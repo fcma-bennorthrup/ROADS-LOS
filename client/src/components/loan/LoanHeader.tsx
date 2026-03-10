@@ -212,36 +212,22 @@ function StageStepper() {
   return (
     <div
       className="flex items-stretch w-full overflow-x-auto"
-      style={{ paddingRight: "var(--roads-spacing-component-l)" }}
+      style={{ paddingRight: "var(--roads-spacing-component-l)", gap: "var(--roads-spacing-component-3xs)" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
         const isFirst = index === 0;
-        const isLast = index === STAGES.length - 1;
         const bgColor = getStageColor(stage.status);
         const textColor = getTextColor(stage.status);
-        const prevBgColor = index > 0 ? getStageColor(STAGES[index - 1].status) : "transparent";
+        const prevBgColor = isFirst ? "var(--roads-bg-page)" : getStageColor(STAGES[index - 1].status);
 
         return (
           <div
             key={stage.label}
             className="flex items-stretch flex-1 min-w-0"
-            style={{ marginRight: isLast ? 0 : -16 }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            {isFirst ? (
-              <div
-                className="flex-shrink-0"
-                style={{
-                  width: "4px",
-                  height: "28px",
-                  backgroundColor: bgColor,
-                  borderRadius: "var(--roads-radius-2xs) 0 0 var(--roads-radius-2xs)",
-                }}
-              />
-            ) : (
-              <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
-            )}
+            <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
             <div
               className="flex items-center justify-center gap-1 flex-1 min-w-0 caption-100-strong"
               style={{
@@ -254,19 +240,7 @@ function StageStepper() {
               {stage.status === "completed" && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
               <span className="truncate">{stage.label}</span>
             </div>
-            {isLast ? (
-              <div
-                className="flex-shrink-0"
-                style={{
-                  width: "4px",
-                  height: "28px",
-                  backgroundColor: bgColor,
-                  borderRadius: "0 var(--roads-radius-2xs) var(--roads-radius-2xs) 0",
-                }}
-              />
-            ) : (
-              <StepperArrowRight color={bgColor} />
-            )}
+            <StepperArrowRight color={bgColor} />
           </div>
         );
       })}
