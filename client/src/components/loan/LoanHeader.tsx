@@ -212,7 +212,7 @@ function StageStepper() {
   return (
     <div
       className="flex items-stretch w-full overflow-x-auto"
-      style={{ paddingRight: "var(--roads-spacing-component-l)", gap: "var(--roads-spacing-component-3xs)" }}
+      style={{ paddingRight: "var(--roads-spacing-component-l)", gap: "1px" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
