@@ -28,8 +28,9 @@ export class MemStorage implements IStorage {
       loanNumber: "123456789",
       cifNumber: "1234567",
       loanType: "Construction",
-      stage: "Processing",
+      stage: "Loan Setup",
       primaryBorrowerName: "Richard Jamerson",
+      displayAmount: "150000.00",
       amountRequested: "145000.00",
       financedFees: "4455.00",
       taxesInsurance: "1000.00",
@@ -40,6 +41,14 @@ export class MemStorage implements IStorage {
       applicationType: "Joint Credit Application",
       ecoaDaysRemaining: 14,
       tridDaysRemaining: 3,
+      piti: "36.00",
+      dti: "17.00",
+      lcv: "80.00",
+      pweCbScore: 756,
+      ruleOfXx: null,
+      totalCv: "250000.00",
+      cashReserves: "5000000.00",
+      totalLoanAmount: "150455.00",
     };
     this.loans.set(loanId, loan);
 

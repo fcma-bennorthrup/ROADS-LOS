@@ -24,6 +24,7 @@ export const loans = pgTable("loans", {
   loanType: text("loan_type").notNull(),
   stage: text("stage").notNull(),
   primaryBorrowerName: text("primary_borrower_name").notNull(),
+  displayAmount: numeric("display_amount").notNull(),
   amountRequested: numeric("amount_requested").notNull(),
   financedFees: numeric("financed_fees").notNull(),
   taxesInsurance: numeric("taxes_insurance").notNull(),
@@ -34,6 +35,14 @@ export const loans = pgTable("loans", {
   applicationType: text("application_type").notNull(),
   ecoaDaysRemaining: integer("ecoa_days_remaining").notNull(),
   tridDaysRemaining: integer("trid_days_remaining").notNull(),
+  piti: numeric("piti").notNull(),
+  dti: numeric("dti").notNull(),
+  lcv: numeric("lcv").notNull(),
+  pweCbScore: integer("pwe_cb_score").notNull(),
+  ruleOfXx: text("rule_of_xx"),
+  totalCv: numeric("total_cv").notNull(),
+  cashReserves: numeric("cash_reserves").notNull(),
+  totalLoanAmount: numeric("total_loan_amount").notNull(),
 });
 
 export const insertLoanSchema = createInsertSchema(loans).omit({ id: true });

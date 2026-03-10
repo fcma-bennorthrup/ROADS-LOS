@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
-import { LoanHeader } from "@/components/loan/LoanHeader";
-import { LoanOverview } from "@/components/loan/LoanOverview";
+import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
+import { SummaryRatios } from "@/components/loan/SummaryRatios";
 import { BorrowerCards } from "@/components/loan/BorrowerCards";
 import type { Loan, Borrower } from "@shared/schema";
 
@@ -67,7 +67,7 @@ export default function LoanSummaryPage() {
         cifNumber={loan.cifNumber}
         loanType={loan.loanType}
         borrowerName={loan.primaryBorrowerName}
-        amount={formatCurrency(loan.amountRequested)}
+        amount={formatCurrency(loan.displayAmount)}
         applicationType={loan.applicationType}
         ecoaDaysRemaining={loan.ecoaDaysRemaining}
         tridDaysRemaining={loan.tridDaysRemaining}
@@ -77,12 +77,21 @@ export default function LoanSummaryPage() {
         style={{
           paddingTop: "var(--roads-spacing-component-xl)",
           gap: "var(--roads-spacing-component-xl)",
-          paddingBottom: "var(--roads-spacing-component-xl)",
+          paddingBottom: "60px",
         }}
         data-testid="loan-content"
       >
-        <LoanOverview
+        <BorrowerCards borrowers={loan.borrowers} />
+        <SummaryRatios
           data={{
+            piti: loan.piti,
+            dti: loan.dti,
+            lcv: loan.lcv,
+            pweCbScore: loan.pweCbScore,
+            ruleOfXx: loan.ruleOfXx,
+            totalCv: formatCurrency(loan.totalCv),
+            cashReserves: formatCurrency(loan.cashReserves),
+            totalLoanAmount: formatCurrency(loan.totalLoanAmount),
             amountRequested: formatCurrency(loan.amountRequested),
             financedFees: formatCurrency(loan.financedFees),
             taxesInsurance: formatCurrency(loan.taxesInsurance),
@@ -92,8 +101,10 @@ export default function LoanSummaryPage() {
             totalMonthlyPayment: formatCurrency(loan.totalMonthlyPayment),
           }}
         />
-        <BorrowerCards borrowers={loan.borrowers} />
       </main>
+      <div className="fixed bottom-0 left-0 w-full z-10">
+        <BottomToolbar />
+      </div>
     </div>
   );
 }

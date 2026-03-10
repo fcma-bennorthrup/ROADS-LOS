@@ -21,6 +21,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Tokens CSS**: `client/src/styles/design-tokens.css` (--roads-* custom properties)
 - **Tokens TS**: `client/src/lib/design-tokens.ts` (TypeScript exports)
 - **Compliance Skill**: `.agents/skills/figma-design-system-compliance/SKILL.md`
+- **Brand colors**: Blue (#005b94) — confirmed by user as the correct variable mode
 
 ### Design Token Categories
 - **Colors** (22 tokens): text, background, icon, border semantic colors
@@ -29,22 +30,25 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Radius** (3 tokens): 2xs (4px), xs (8px), round (9999px)
 
 ### Design System Rule
-New styles MUST come from Figma or the existing design-tokens.css. No arbitrary values are allowed. New tokens from Figma require manual user approval before adding.
+New styles MUST come from Figma or the existing design-tokens.css. No arbitrary values are allowed. New tokens from Figma require manual user approval before adding. Structural dimensions from Figma (heights, widths for specific components) are acceptable when no token exists.
 
 ## Pages
-- **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows header with breadcrumb, stage stepper, metadata, tabs, loan overview cards, and borrower contact cards.
+- **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows:
+  - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
+  - Content: Borrower Contact Information cards (horizontal Email/Phone layout), Summary & Ratios (4-column data table)
+  - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - `/` redirects to `/loans/1` (default mock loan)
 
 ## Data Model
-- **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining
+- **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
 - Currently using in-memory storage with seed data (MemStorage)
 
 ## Components
-- `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, stage stepper, metadata, tabs, toolbar
-- `client/src/components/loan/LoanOverview.tsx` — Two-column financial data cards
-- `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with copy-to-clipboard
+- `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, 8-stage chevron stepper, metadata, tabs, exports BottomToolbar separately
+- `client/src/components/loan/SummaryRatios.tsx` — 4-column flat data layout (ratios, reserves, amounts, product)
+- `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with horizontal Email/Phone layout, copy-to-clipboard
 
 ## Project Structure
 ```
@@ -52,7 +56,7 @@ client/
   src/
     components/
       ui/              # Shadcn UI components (themed with design system)
-      loan/            # Loan page components (Header, Overview, BorrowerCards)
+      loan/            # Loan page components (Header, SummaryRatios, BorrowerCards)
     styles/            # Design token CSS
     lib/               # Utilities and TypeScript tokens
     pages/             # Route pages (loan-summary)
@@ -67,7 +71,7 @@ shared/
 ```
 
 ## API Routes
-- `GET /api/loans/:id` - Loan details with borrowers
+- `GET /api/loans/:id` - Loan details with borrowers (includes ratios, scores, amounts)
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details
 - `POST /api/github/repo` - Create ROADS-LOS repository (one-time setup)
