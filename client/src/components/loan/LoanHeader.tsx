@@ -181,17 +181,17 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
 
 function StepperArrowRight({ color }: { color: string }) {
   return (
-    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0">
-      <polygon points="0,0 24,14 0,28" fill={color} />
+    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <polygon points="0,0 16,14 0,28" fill={color} />
     </svg>
   );
 }
 
 function StepperNotchLeft({ color, prevColor }: { color: string; prevColor: string }) {
   return (
-    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0">
-      <rect width="24" height="28" fill={color} />
-      <polygon points="0,0 24,14 0,28" fill={prevColor} />
+    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <rect width="16" height="28" fill={color} />
+      <polygon points="0,0 16,14 0,28" fill={prevColor} />
     </svg>
   );
 }
@@ -226,14 +226,14 @@ function StageStepper() {
           <div
             key={stage.label}
             className="flex items-stretch flex-1 min-w-0"
-            style={{ marginRight: isLast ? 0 : "-16px" }}
+            style={{ marginRight: isLast ? 0 : -16 }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
             {isFirst ? (
               <div
                 className="flex-shrink-0"
                 style={{
-                  width: "24px",
+                  width: "4px",
                   height: "28px",
                   backgroundColor: bgColor,
                   borderRadius: "var(--roads-radius-2xs) 0 0 var(--roads-radius-2xs)",
@@ -258,7 +258,7 @@ function StageStepper() {
               <div
                 className="flex-shrink-0"
                 style={{
-                  width: "24px",
+                  width: "4px",
                   height: "28px",
                   backgroundColor: bgColor,
                   borderRadius: "0 var(--roads-radius-2xs) var(--roads-radius-2xs) 0",
