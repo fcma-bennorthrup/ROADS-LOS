@@ -179,7 +179,22 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-const ARROW_W = 14;
+function StepperArrowRight({ color }: { color: string }) {
+  return (
+    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <polygon points="0,0 16,14 0,28" fill={color} />
+    </svg>
+  );
+}
+
+function StepperNotchLeft({ color, prevColor }: { color: string; prevColor: string }) {
+  return (
+    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <rect width="16" height="28" fill={color} />
+      <polygon points="0,0 16,14 0,28" fill={prevColor} />
+    </svg>
+  );
+}
 
 function StageStepper() {
   const getStageColor = (status: string) => {
@@ -205,33 +220,53 @@ function StageStepper() {
         const isLast = index === STAGES.length - 1;
         const bgColor = getStageColor(stage.status);
         const textColor = getTextColor(stage.status);
-
-        let clipPath: string;
-        if (isFirst) {
-          clipPath = `polygon(0 0, calc(100% - ${ARROW_W}px) 0, 100% 50%, calc(100% - ${ARROW_W}px) 100%, 0 100%)`;
-        } else if (isLast) {
-          clipPath = `polygon(${ARROW_W}px 0, 100% 0, 100% 100%, ${ARROW_W}px 100%, 0 50%)`;
-        } else {
-          clipPath = `polygon(${ARROW_W}px 0, calc(100% - ${ARROW_W}px) 0, 100% 50%, calc(100% - ${ARROW_W}px) 100%, ${ARROW_W}px 100%, 0 50%)`;
-        }
+        const prevBgColor = index > 0 ? getStageColor(STAGES[index - 1].status) : "transparent";
 
         return (
           <div
             key={stage.label}
-            className="flex items-center justify-center gap-1 flex-1 min-w-0 caption-100-strong"
-            style={{
-              backgroundColor: bgColor,
-              color: textColor,
-              height: "28px",
-              clipPath,
-              marginRight: isLast ? 0 : -ARROW_W,
-              paddingLeft: isFirst ? "var(--roads-spacing-component-xs)" : `${ARROW_W + 4}px`,
-              paddingRight: isLast ? "var(--roads-spacing-component-xs)" : `${ARROW_W + 4}px`,
-            }}
+            className="flex items-stretch flex-1 min-w-0"
+            style={{ marginRight: isLast ? 0 : -16 }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            {stage.status === "completed" && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
-            <span className="truncate">{stage.label}</span>
+            {isFirst ? (
+              <div
+                className="flex-shrink-0"
+                style={{
+                  width: "4px",
+                  height: "28px",
+                  backgroundColor: bgColor,
+                  borderRadius: "var(--roads-radius-2xs) 0 0 var(--roads-radius-2xs)",
+                }}
+              />
+            ) : (
+              <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
+            )}
+            <div
+              className="flex items-center justify-center gap-1 flex-1 min-w-0 caption-100-strong"
+              style={{
+                backgroundColor: bgColor,
+                color: textColor,
+                padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
+                height: "28px",
+              }}
+            >
+              {stage.status === "completed" && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+              <span className="truncate">{stage.label}</span>
+            </div>
+            {isLast ? (
+              <div
+                className="flex-shrink-0"
+                style={{
+                  width: "4px",
+                  height: "28px",
+                  backgroundColor: bgColor,
+                  borderRadius: "0 var(--roads-radius-2xs) var(--roads-radius-2xs) 0",
+                }}
+              />
+            ) : (
+              <StepperArrowRight color={bgColor} />
+            )}
           </div>
         );
       })}
