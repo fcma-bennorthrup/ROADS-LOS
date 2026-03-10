@@ -1,8 +1,8 @@
+@import './styles/design-tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import './styles/design-tokens.css';
 
 :root {
   --button-outline: rgba(0,0,0, .10);

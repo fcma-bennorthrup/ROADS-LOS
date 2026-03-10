@@ -31,28 +31,47 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ### Design System Rule
 New styles MUST come from Figma or the existing design-tokens.css. No arbitrary values are allowed. New tokens from Figma require manual user approval before adding.
 
+## Pages
+- **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows header with breadcrumb, stage stepper, metadata, tabs, loan overview cards, and borrower contact cards.
+- `/` redirects to `/loans/1` (default mock loan)
+
+## Data Model
+- **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining
+- **borrowers**: id, loanId, name, email, phone, isPrimary
+- **users**: id, username, password
+- Currently using in-memory storage with seed data (MemStorage)
+
+## Components
+- `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, stage stepper, metadata, tabs, toolbar
+- `client/src/components/loan/LoanOverview.tsx` — Two-column financial data cards
+- `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with copy-to-clipboard
+
 ## Project Structure
 ```
 client/
   src/
-    components/ui/     # Shadcn UI components (themed with design system)
+    components/
+      ui/              # Shadcn UI components (themed with design system)
+      loan/            # Loan page components (Header, Overview, BorrowerCards)
     styles/            # Design token CSS
     lib/               # Utilities and TypeScript tokens
-    pages/             # Route pages
+    pages/             # Route pages (loan-summary)
     hooks/             # Custom React hooks
 server/
   github.ts            # GitHub API integration via connectors proxy
   routes.ts            # Express API routes
-  storage.ts           # Data storage interface
+  storage.ts           # Data storage interface (MemStorage with seed data)
   db.ts                # Database connection
 shared/
   schema.ts            # Drizzle ORM schema + Zod validation
 ```
 
 ## API Routes
+- `GET /api/loans/:id` - Loan details with borrowers
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details
 - `POST /api/github/repo` - Create ROADS-LOS repository (one-time setup)
+- `POST /api/github/push` - Push codebase to GitHub
 
 ## Running
 - Workflow "Start application" runs `npm run dev`

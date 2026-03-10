@@ -41,6 +41,19 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/loans/:id", async (req, res) => {
+    try {
+      const loan = await storage.getLoan(req.params.id);
+      if (!loan) {
+        return res.status(404).json({ error: "Loan not found" });
+      }
+      const borrowers = await storage.getBorrowersByLoanId(req.params.id);
+      res.json({ ...loan, borrowers });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/github/push", async (req, res) => {
     try {
       const user = await getAuthenticatedUser();
