@@ -1,0 +1,99 @@
+:root {
+  --roads-text-primary: #273333;
+  --roads-text-secondary: #515e5f;
+  --roads-text-brand: #005b94;
+  --roads-text-link: #005b94;
+  --roads-text-reverse: #ffffff;
+  --roads-text-error: #c63434;
+  --roads-text-warning: #dd9903;
+  --roads-text-information: #2079c3;
+
+  --roads-bg-page: #ffffff;
+  --roads-bg-primary: #ffffff;
+  --roads-bg-dark: #dee1e1;
+  --roads-bg-brand: #005b94;
+  --roads-bg-brand-subtle: #e5eff4;
+  --roads-bg-error: #c63434;
+  --roads-bg-error-subtle: #ffd5d2;
+  --roads-bg-warning-subtle: #fdefcd;
+  --roads-bg-information-subtle: #dcf2ff;
+
+  --roads-icon-dark: #273333;
+  --roads-icon-brand: #005b94;
+
+  --roads-border-subtle: #dee1e1;
+  --roads-border-brand: #005b94;
+  --roads-border-reverse: #ffffff;
+
+  --roads-spacing-component-3xs: 2px;
+  --roads-spacing-component-2xs: 4px;
+  --roads-spacing-component-xs: 8px;
+  --roads-spacing-component-m: 12px;
+  --roads-spacing-component-l: 16px;
+  --roads-spacing-component-xl: 24px;
+  --roads-spacing-layout-xs: 48px;
+
+  --roads-radius-2xs: 4px;
+  --roads-radius-xs: 8px;
+  --roads-radius-round: 9999px;
+
+  --roads-font-family: 'Source Sans Pro', sans-serif;
+}
+
+@layer utilities {
+  .headline-100 {
+    font-family: var(--roads-font-family);
+    font-size: 32px;
+    font-weight: 600;
+    line-height: 40px;
+  }
+
+  .headline-200 {
+    font-family: var(--roads-font-family);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 32px;
+  }
+
+  .headline-300 {
+    font-family: var(--roads-font-family);
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  .body-100 {
+    font-family: var(--roads-font-family);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 16px;
+  }
+
+  .body-200-strong {
+    font-family: var(--roads-font-family);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .caption-100 {
+    font-family: var(--roads-font-family);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 16px;
+  }
+
+  .caption-100-strong {
+    font-family: var(--roads-font-family);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+
+  .label-strong {
+    font-family: var(--roads-font-family);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 16px;
+  }
+}

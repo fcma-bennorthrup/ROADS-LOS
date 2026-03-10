@@ -6,12 +6,14 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".5625rem", /* 9px */
-        md: ".375rem", /* 6px */
-        sm: ".1875rem", /* 3px */
+        lg: ".5625rem",
+        md: ".375rem",
+        sm: ".1875rem",
+        "roads-2xs": "4px",
+        "roads-xs": "8px",
+        "roads-round": "9999px",
       },
       colors: {
-        // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border) / <alpha-value>)",
@@ -81,11 +83,47 @@ export default {
           busy: "rgb(239 68 68)",
           offline: "rgb(156 163 175)",
         },
+        brand: {
+          DEFAULT: "#005b94",
+          subtle: "#e5eff4",
+          dark: "#003d63",
+        },
+        warning: {
+          DEFAULT: "#dd9903",
+          subtle: "#fdefcd",
+        },
+        info: {
+          DEFAULT: "#2079c3",
+          subtle: "#dcf2ff",
+        },
+        error: {
+          DEFAULT: "#c63434",
+          subtle: "#ffd5d2",
+        },
+      },
+      spacing: {
+        "roads-3xs": "2px",
+        "roads-2xs": "4px",
+        "roads-xs": "8px",
+        "roads-m": "12px",
+        "roads-l": "16px",
+        "roads-xl": "24px",
+        "roads-layout-xs": "48px",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+      },
+      fontSize: {
+        "headline-100": ["32px", { lineHeight: "40px", fontWeight: "600" }],
+        "headline-200": ["24px", { lineHeight: "32px", fontWeight: "600" }],
+        "headline-300": ["20px", { lineHeight: "24px", fontWeight: "600" }],
+        "body-100": ["16px", { lineHeight: "16px", fontWeight: "400" }],
+        "body-200-strong": ["14px", { lineHeight: "20px", fontWeight: "600" }],
+        "caption-100": ["12px", { lineHeight: "16px", fontWeight: "400" }],
+        "caption-100-strong": ["12px", { lineHeight: "16px", fontWeight: "600" }],
+        "label-strong": ["16px", { lineHeight: "16px", fontWeight: "600" }],
       },
       keyframes: {
         "accordion-down": {
