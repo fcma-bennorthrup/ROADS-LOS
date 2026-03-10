@@ -216,10 +216,8 @@ function StageStepper() {
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
-        const isFirst = index === 0;
         const bgColor = getStageColor(stage.status);
         const textColor = getTextColor(stage.status);
-        const prevBgColor = isFirst ? "var(--roads-bg-page)" : getStageColor(STAGES[index - 1].status);
 
         return (
           <div
@@ -227,7 +225,7 @@ function StageStepper() {
             className="flex items-stretch flex-1 min-w-0"
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
+            <StepperNotchLeft color={bgColor} prevColor="var(--roads-bg-page)" />
             <div
               className="flex items-center justify-center gap-1 flex-1 min-w-0 caption-100-strong"
               style={{
