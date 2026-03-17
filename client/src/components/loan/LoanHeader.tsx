@@ -354,7 +354,10 @@ function TabNavigation({
             onClick={() => onTabChange(tab)}
             className="label-strong whitespace-nowrap"
             style={{
-              padding: "0 var(--roads-spacing-component-xl) var(--roads-spacing-component-l)",
+              padding: "0 var(--roads-spacing-component-xl)",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
               color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
               borderBottom: isActive
                 ? "2px solid var(--roads-border-brand)"
