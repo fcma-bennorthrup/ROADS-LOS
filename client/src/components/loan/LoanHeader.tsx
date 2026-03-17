@@ -315,7 +315,7 @@ function HeaderTextBlock({
           {applicationType}
         </span>
 
-        <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
+        <span style={{ color: "var(--roads-border-subtle)", height: "24px", display: "inline-flex", alignItems: "center" }}>|</span>
 
         <span
           className="body-200-strong inline-flex items-center"
