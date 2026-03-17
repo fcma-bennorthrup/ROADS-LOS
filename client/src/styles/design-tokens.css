@@ -17,6 +17,9 @@
   --roads-bg-error-subtle: #ffd5d2;
   --roads-bg-warning-subtle: #fdefcd;
   --roads-bg-information-subtle: #dcf2ff;
+  --roads-bg-light: #f9f9f9;
+  --roads-bg-action: #5e9732;
+  --roads-bg-error-disabled: #ff9c8f;
 
   --roads-icon-dark: #273333;
   --roads-icon-brand: #005b94;
@@ -30,7 +33,10 @@
   --roads-spacing-component-xs: 8px;
   --roads-spacing-component-m: 12px;
   --roads-spacing-component-l: 16px;
+  --roads-spacing-component-s: 10px;
   --roads-spacing-component-xl: 24px;
+  --roads-spacing-component-2xl: 32px;
+  --roads-spacing-component-3xl: 40px;
   --roads-spacing-layout-xs: 48px;
 
   --roads-radius-2xs: 4px;

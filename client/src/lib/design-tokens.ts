@@ -19,6 +19,9 @@ export const colors = {
     errorSubtle: "#ffd5d2",
     warningSubtle: "#fdefcd",
     informationSubtle: "#dcf2ff",
+    light: "#f9f9f9",
+    action: "#5e9732",
+    errorDisabled: "#ff9c8f",
   },
   icon: {
     dark: "#273333",
@@ -80,7 +83,10 @@ export const spacing = {
   "component-xs": "8px",
   "component-m": "12px",
   "component-l": "16px",
+  "component-s": "10px",
   "component-xl": "24px",
+  "component-2xl": "32px",
+  "component-3xl": "40px",
   "layout-xs": "48px",
 } as const;
 

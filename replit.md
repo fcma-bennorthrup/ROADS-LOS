@@ -24,9 +24,9 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Brand colors**: Blue (#005b94) — confirmed by user as the correct variable mode
 
 ### Design Token Categories
-- **Colors** (22 tokens): text, background, icon, border semantic colors
+- **Colors** (25 tokens): text, background (incl. light, action, errorDisabled), icon, border semantic colors
 - **Typography** (8 styles): headline-100/200/300, body-100, body-200-strong, caption-100, caption-100-strong, label-strong
-- **Spacing** (7 tokens): component-3xs through component-xl, layout-xs
+- **Spacing** (10 tokens): component-3xs through component-3xl, layout-xs
 - **Radius** (3 tokens): 2xs (4px), xs (8px), round (9999px)
 
 ### Design System Rule
@@ -37,7 +37,12 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
   - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
   - Content: Borrower Contact Information cards (horizontal Email/Phone layout), Summary & Ratios (4-column data table)
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
+- **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
+  - 240px side nav: Borrower Information, Loan Details, Collateral, Product & Pricing, Fees
+  - Collateral page: Subject Property (address fields) + Value section (appraisal fields with Primary/Destructive buttons)
+  - Other sub-pages show "Coming Soon" placeholder
 - `/` redirects to `/loans/1` (default mock loan)
+- Tab navigation in header routes between Summary ↔ Origination (other tabs pending)
 
 ## Data Model
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
@@ -49,6 +54,8 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, 8-stage chevron stepper, metadata, tabs, exports BottomToolbar separately
 - `client/src/components/loan/SummaryRatios.tsx` — 4-column flat data layout (ratios, reserves, amounts, product)
 - `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with horizontal Email/Phone layout, copy-to-clipboard
+- `client/src/components/loan/SideNav.tsx` — 240px side navigation for origination sub-pages
+- `client/src/components/loan/CollateralContent.tsx` — Collateral page with Subject Property address fields and Value appraisal fields
 
 ## Project Structure
 ```

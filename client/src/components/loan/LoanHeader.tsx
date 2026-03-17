@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import {
   Menu,
   ChevronRight,
@@ -55,6 +56,11 @@ interface LoanHeaderProps {
   onTabChange?: (tab: string) => void;
 }
 
+const TAB_ROUTES: Record<string, string> = {
+  Summary: "/loans/:id",
+  Origination: "/loans/:id/origination",
+};
+
 export function LoanHeader({
   loanNumber = "123456789",
   cifNumber = "1234567",
@@ -68,10 +74,17 @@ export function LoanHeader({
   onTabChange,
 }: LoanHeaderProps) {
   const [currentTab, setCurrentTab] = useState(activeTab);
+  const [, navigate] = useLocation();
 
   const handleTabClick = (tab: string) => {
     setCurrentTab(tab);
     onTabChange?.(tab);
+    const route = TAB_ROUTES[tab];
+    if (route) {
+      const loanMatch = window.location.pathname.match(/\/loans\/([^/]+)/);
+      const id = loanMatch ? loanMatch[1] : "1";
+      navigate(route.replace(":id", id));
+    }
   };
 
   return (
