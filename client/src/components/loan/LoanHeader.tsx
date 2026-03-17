@@ -302,11 +302,12 @@ function HeaderTextBlock({
         </span>
 
         <span
-          className="caption-100-strong inline-flex items-center"
+          className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-brand-subtle)",
             color: "var(--roads-text-brand)",
-            padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
+            height: "20px",
+            padding: "0 var(--roads-spacing-component-xs)",
             borderRadius: "var(--roads-radius-2xs)",
           }}
           data-testid="chip-application-type"
@@ -317,11 +318,12 @@ function HeaderTextBlock({
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
 
         <span
-          className="caption-100-strong inline-flex items-center"
+          className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-warning-subtle)",
             color: "var(--roads-text-warning)",
-            padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
+            height: "20px",
+            padding: "0 var(--roads-spacing-component-xs)",
             borderRadius: "var(--roads-radius-2xs)",
           }}
           data-testid="chip-ecoa-days"
@@ -330,11 +332,12 @@ function HeaderTextBlock({
         </span>
 
         <span
-          className="caption-100-strong inline-flex items-center"
+          className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-error-subtle)",
             color: "var(--roads-text-error)",
-            padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
+            height: "20px",
+            padding: "0 var(--roads-spacing-component-xs)",
             borderRadius: "var(--roads-radius-2xs)",
           }}
           data-testid="chip-trid-days"
