@@ -82,7 +82,7 @@ export function LoanHeader({
     >
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-l)" }}
+        style={{ gap: "16px", paddingTop: "16px" }}
       >
         <BreadcrumbBar loanNumber={loanNumber} />
         <StageStepper />
@@ -109,7 +109,7 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   return (
     <div
       className="flex items-center justify-between flex-wrap gap-2"
-      style={{ padding: "var(--roads-spacing-component-xs) 24px" }}
+      style={{ padding: "0 24px" }}
       data-testid="breadcrumb-bar"
     >
       <div className="flex items-center body-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}>
