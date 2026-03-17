@@ -203,18 +203,18 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
         }
 
         const clipPath = isFirst
-          ? "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)"
-          : "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%)";
+          ? "polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%)"
+          : "polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%)";
 
         return (
           <div
             key={stage.label}
             style={{
               flex: 1,
-              marginRight: isLast ? 0 : -16,
+              marginRight: isLast ? 0 : -8,
               position: "relative",
               zIndex: index + 1,
-              height: 44,
+              height: 28,
             }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
@@ -224,8 +224,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 backgroundColor: bgColor,
                 color: textColor,
                 clipPath,
-                paddingLeft: isFirst ? 16 : 24,
-                paddingRight: 24,
+                paddingLeft: isFirst ? 10 : 16,
+                paddingRight: 16,
                 gap: 4,
               }}
             >
