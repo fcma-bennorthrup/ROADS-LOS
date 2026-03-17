@@ -176,49 +176,45 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-const CHEVRON_DEPTH = 16;
-const STEP_HEIGHT = 28;
-const STEP_OVERLAP = 16;
-
 function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
-  const getStageColor = (index: number) => {
-    if (index < currentStep) return "var(--roads-bg-brand-subtle)";
-    if (index === currentStep) return "var(--roads-bg-brand)";
-    return "var(--roads-bg-dark)";
-  };
-
-  const getTextColor = (index: number) => {
-    if (index < currentStep) return "var(--roads-text-brand)";
-    if (index === currentStep) return "var(--roads-text-reverse)";
-    return "var(--roads-text-secondary)";
-  };
-
   return (
     <div
-      className="flex w-full overflow-x-auto"
-      style={{ paddingRight: "var(--roads-spacing-component-l)" }}
+      className="flex w-full"
+      style={{ paddingRight: "16px" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
         const isFirst = index === 0;
         const isLast = index === STAGES.length - 1;
-        const bgColor = getStageColor(index);
-        const textColor = getTextColor(index);
         const isCompleted = index < currentStep;
+        const isActive = index === currentStep;
+
+        let bgColor: string;
+        let textColor: string;
+        if (isCompleted) {
+          bgColor = "var(--roads-bg-brand-subtle)";
+          textColor = "var(--roads-text-brand)";
+        } else if (isActive) {
+          bgColor = "var(--roads-bg-brand)";
+          textColor = "var(--roads-text-reverse)";
+        } else {
+          bgColor = "var(--roads-bg-dark)";
+          textColor = "var(--roads-text-secondary)";
+        }
 
         const clipPath = isFirst
-          ? `polygon(0 0, calc(100% - ${CHEVRON_DEPTH}px) 0, 100% 50%, calc(100% - ${CHEVRON_DEPTH}px) 100%, 0 100%)`
-          : `polygon(${CHEVRON_DEPTH}px 0, calc(100% - ${CHEVRON_DEPTH}px) 0, 100% 50%, calc(100% - ${CHEVRON_DEPTH}px) 100%, ${CHEVRON_DEPTH}px 100%, 0 50%)`;
+          ? "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%)"
+          : "polygon(0 0, calc(100% - 16px) 0, 100% 50%, calc(100% - 16px) 100%, 0 100%, 16px 50%)";
 
         return (
           <div
             key={stage.label}
-            className="flex-1 min-w-0"
             style={{
-              marginRight: isLast ? 0 : `-${STEP_OVERLAP}px`,
-              height: `${STEP_HEIGHT}px`,
+              flex: 1,
+              marginRight: isLast ? 0 : -16,
               position: "relative",
-              zIndex: STAGES.length - index,
+              zIndex: index + 1,
+              height: 44,
             }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
@@ -228,9 +224,9 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 backgroundColor: bgColor,
                 color: textColor,
                 clipPath,
-                paddingLeft: isFirst ? `${CHEVRON_DEPTH}px` : `${CHEVRON_DEPTH + 4}px`,
-                paddingRight: `${CHEVRON_DEPTH + 4}px`,
-                gap: "var(--roads-spacing-component-2xs)",
+                paddingLeft: isFirst ? 16 : 24,
+                paddingRight: 24,
+                gap: 4,
               }}
             >
               {isCompleted && <Check className="w-4 h-4 flex-shrink-0" />}
