@@ -358,7 +358,7 @@ function TabNavigation({
               color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
               borderBottom: isActive
                 ? "2px solid var(--roads-border-brand)"
-                : "1px solid var(--roads-border-subtle)",
+                : "2px solid transparent",
             }}
             data-testid={`tab-${tab.toLowerCase().replace(/\s+&\s+/g, "-").replace(/\s+/g, "-")}`}
           >
