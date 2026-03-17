@@ -176,8 +176,9 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-const ARROW_WIDTH = 14;
+const CHEVRON_DEPTH = 16;
 const STEP_HEIGHT = 28;
+const STEP_OVERLAP = 16;
 
 function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
   const getStageColor = (index: number) => {
@@ -206,15 +207,15 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
         const isCompleted = index < currentStep;
 
         const clipPath = isFirst
-          ? `polygon(0 0, calc(100% - ${ARROW_WIDTH}px) 0, 100% 50%, calc(100% - ${ARROW_WIDTH}px) 100%, 0 100%)`
-          : `polygon(${ARROW_WIDTH}px 0, calc(100% - ${ARROW_WIDTH}px) 0, 100% 50%, calc(100% - ${ARROW_WIDTH}px) 100%, ${ARROW_WIDTH}px 100%, 0 50%)`;
+          ? `polygon(0 0, calc(100% - ${CHEVRON_DEPTH}px) 0, 100% 50%, calc(100% - ${CHEVRON_DEPTH}px) 100%, 0 100%)`
+          : `polygon(${CHEVRON_DEPTH}px 0, calc(100% - ${CHEVRON_DEPTH}px) 0, 100% 50%, calc(100% - ${CHEVRON_DEPTH}px) 100%, ${CHEVRON_DEPTH}px 100%, 0 50%)`;
 
         return (
           <div
             key={stage.label}
             className="flex-1 min-w-0"
             style={{
-              marginRight: isLast ? 0 : `-${ARROW_WIDTH / 2}px`,
+              marginRight: isLast ? 0 : `-${STEP_OVERLAP}px`,
               height: `${STEP_HEIGHT}px`,
               position: "relative",
               zIndex: STAGES.length - index,
@@ -227,7 +228,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 backgroundColor: bgColor,
                 color: textColor,
                 clipPath,
-                padding: `0 ${ARROW_WIDTH + 4}px`,
+                paddingLeft: isFirst ? `${CHEVRON_DEPTH}px` : `${CHEVRON_DEPTH + 4}px`,
+                paddingRight: `${CHEVRON_DEPTH + 4}px`,
                 gap: "var(--roads-spacing-component-2xs)",
               }}
             >
