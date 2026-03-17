@@ -111,66 +111,63 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
       style={{ padding: "var(--roads-spacing-component-xs) var(--roads-spacing-layout-xs)" }}
       data-testid="breadcrumb-bar"
     >
-      <div className="flex items-center gap-2 caption-100" style={{ color: "var(--roads-text-secondary)" }}>
+      <div className="flex items-center body-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}>
         <button data-testid="button-menu" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
           <Menu className="w-5 h-5" />
         </button>
-        <span data-testid="breadcrumb-pipeline">Pipeline</span>
-        <ChevronRight className="w-4 h-4" />
+        <span data-testid="breadcrumb-pipeline" style={{ marginLeft: "var(--roads-spacing-component-xs)" }}>Pipeline</span>
+        <ChevronRight className="w-5 h-5" />
         <span data-testid="breadcrumb-loan">Loan: {loanNumber}</span>
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="w-5 h-5" />
         <span data-testid="breadcrumb-level">Level Three</span>
       </div>
 
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <span className="caption-100" style={{ color: "var(--roads-text-secondary)" }}>Viewing</span>
-          <Avatar className="w-6 h-6">
+      <div className="flex items-center flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
+        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <span className="caption-100-strong" style={{ color: "var(--roads-text-primary)" }}>Viewing</span>
+          <Avatar className="w-5 h-5">
             <AvatarFallback
-              className="text-caption-100-strong"
-              style={{ backgroundColor: "var(--roads-bg-brand-subtle)", color: "var(--roads-text-brand)", fontSize: "10px" }}
+              className="caption-100"
+              style={{ backgroundColor: "var(--roads-bg-dark)", color: "var(--roads-text-primary)", fontSize: "10px" }}
             >
               RD
             </AvatarFallback>
           </Avatar>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="caption-100" style={{ color: "var(--roads-text-secondary)" }}>Loan Team</span>
-          <div className="flex -space-x-1.5" data-testid="avatar-group-loan-team">
+        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <span className="caption-100-strong" style={{ color: "var(--roads-text-primary)" }}>Loan Team</span>
+          <div className="flex -space-x-2.5 items-center" data-testid="avatar-group-loan-team">
             {["A1", "B2", "C3"].map((initials, i) => (
-              <Avatar key={i} className="w-6 h-6 border" style={{ borderColor: "var(--roads-border-reverse)" }}>
+              <Avatar key={i} className="w-5 h-5 border" style={{ borderColor: "var(--roads-border-reverse)" }}>
                 <AvatarFallback
-                  style={{ backgroundColor: "var(--roads-bg-brand-subtle)", color: "var(--roads-text-brand)", fontSize: "10px" }}
+                  style={{ backgroundColor: "var(--roads-bg-brand-subtle)", color: "var(--roads-text-brand)", fontSize: "9px" }}
                 >
                   {initials}
                 </AvatarFallback>
               </Avatar>
             ))}
-            <div
-              className="flex items-center justify-center w-6 h-6 rounded-full border"
+            <span
+              className="caption-100"
               style={{
-                backgroundColor: "var(--roads-bg-dark)",
-                borderColor: "var(--roads-border-reverse)",
-                color: "var(--roads-text-secondary)",
-                fontSize: "10px",
-                fontWeight: 600,
+                color: "var(--roads-text-link)",
+                paddingLeft: "var(--roads-spacing-component-2xs)",
               }}
               data-testid="text-avatar-overflow"
             >
               +3
-            </div>
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
-          <button data-testid="button-messages" className="flex items-center justify-center p-1" style={{ color: "var(--roads-icon-dark)" }}>
+        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <button data-testid="button-messages" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <MessageSquare className="w-5 h-5" />
           </button>
-          <button data-testid="button-sidebar-toggle" className="flex items-center justify-center p-1" style={{ color: "var(--roads-icon-dark)" }}>
+          <button data-testid="button-sidebar-toggle" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <PanelRight className="w-5 h-5" />
           </button>
-          <button data-testid="button-more-options" className="flex items-center justify-center p-1" style={{ color: "var(--roads-icon-dark)" }}>
+          <button data-testid="button-more-options" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <MoreVertical className="w-5 h-5" />
           </button>
         </div>
@@ -181,17 +178,17 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
 
 function StepperArrowRight({ color }: { color: string }) {
   return (
-    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
-      <polygon points="0,0 16,14 0,28" fill={color} />
+    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <polygon points="0,0 24,14 0,28" fill={color} />
     </svg>
   );
 }
 
 function StepperNotchLeft({ color, prevColor }: { color: string; prevColor: string }) {
   return (
-    <svg width="16" height="28" viewBox="0 0 16 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
-      <rect width="16" height="28" fill={color} />
-      <polygon points="0,0 16,14 0,28" fill={prevColor} />
+    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
+      <rect width="24" height="28" fill={color} />
+      <polygon points="0,0 24,14 0,28" fill={prevColor} />
     </svg>
   );
 }
@@ -212,30 +209,35 @@ function StageStepper() {
   return (
     <div
       className="flex items-stretch w-full overflow-x-auto"
-      style={{ paddingRight: "var(--roads-spacing-component-l)", gap: "0px" }}
+      style={{ paddingRight: "var(--roads-spacing-component-l)" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
+        const isFirst = index === 0;
+        const isLast = index === STAGES.length - 1;
         const bgColor = getStageColor(stage.status);
         const textColor = getTextColor(stage.status);
+        const prevBgColor = isFirst ? "var(--roads-bg-page)" : getStageColor(STAGES[index - 1].status);
 
         return (
           <div
             key={stage.label}
             className="flex items-stretch flex-1 min-w-0"
+            style={{ marginRight: isLast ? 0 : -16 }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            <StepperNotchLeft color={bgColor} prevColor="var(--roads-bg-page)" />
+            <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
             <div
-              className="flex items-center justify-center gap-1 flex-1 min-w-0 caption-100-strong"
+              className="flex items-center justify-center flex-1 min-w-0 caption-100-strong"
               style={{
                 backgroundColor: bgColor,
                 color: textColor,
                 padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
                 height: "28px",
+                gap: "var(--roads-spacing-component-2xs)",
               }}
             >
-              {stage.status === "completed" && <Check className="w-3.5 h-3.5 flex-shrink-0" />}
+              {stage.status === "completed" && <Check className="w-5 h-5 flex-shrink-0" />}
               <span className="truncate">{stage.label}</span>
             </div>
             <StepperArrowRight color={bgColor} />
@@ -270,9 +272,9 @@ function HeaderTextBlock({
   return (
     <div
       className="flex flex-col"
-      style={{ padding: "0 var(--roads-spacing-layout-xs)", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ padding: "0 var(--roads-spacing-layout-xs)", gap: "var(--roads-spacing-component-3xs)" }}
     >
-      <div className="flex items-center gap-2 caption-100" style={{ color: "var(--roads-text-secondary)" }} data-testid="text-loan-metadata">
+      <div className="flex items-center caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
         <span>{loanType}</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>Loan: {loanNumber}</span>
@@ -288,7 +290,7 @@ function HeaderTextBlock({
         {borrowerName}
       </h1>
 
-      <div className="flex items-center flex-wrap gap-2" data-testid="text-loan-amount-chips">
+      <div className="flex items-center flex-wrap" style={{ gap: "var(--roads-spacing-component-xs)" }} data-testid="text-loan-amount-chips">
         <span
           className="headline-300"
           style={{ color: "var(--roads-text-primary)" }}
