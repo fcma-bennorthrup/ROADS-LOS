@@ -108,7 +108,7 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   return (
     <div
       className="flex items-center justify-between flex-wrap gap-2"
-      style={{ padding: "var(--roads-spacing-component-xs) var(--roads-spacing-layout-xs)" }}
+      style={{ padding: "var(--roads-spacing-component-xs) 24px" }}
       data-testid="breadcrumb-bar"
     >
       <div className="flex items-center body-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}>
@@ -180,7 +180,7 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
   return (
     <div
       className="flex w-full"
-      style={{ paddingRight: "16px" }}
+      style={{ padding: "0 24px" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
@@ -263,7 +263,7 @@ function HeaderTextBlock({
   return (
     <div
       className="flex flex-col"
-      style={{ padding: "0 var(--roads-spacing-layout-xs)", gap: "var(--roads-spacing-component-3xs)" }}
+      style={{ padding: "0 24px", gap: "var(--roads-spacing-component-3xs)" }}
     >
       <div className="flex items-center caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
         <span>{loanType}</span>
@@ -345,7 +345,7 @@ function TabNavigation({
   return (
     <div
       className="flex items-end overflow-x-auto"
-      style={{ padding: "0 var(--roads-spacing-layout-xs)" }}
+      style={{ padding: "0 24px" }}
       data-testid="tab-navigation"
     >
       {TABS.map((tab) => {
