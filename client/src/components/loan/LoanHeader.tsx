@@ -184,7 +184,6 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
-        const isFirst = index === 0;
         const isLast = index === STAGES.length - 1;
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
@@ -202,9 +201,7 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
           textColor = "var(--roads-text-secondary)";
         }
 
-        const clipPath = isFirst
-          ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)"
-          : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)";
+        const clipPath = "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)";
 
         return (
           <div
@@ -224,7 +221,7 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 backgroundColor: bgColor,
                 color: textColor,
                 clipPath,
-                paddingLeft: isFirst ? 12 : 20,
+                paddingLeft: 20,
                 paddingRight: 20,
                 gap: 4,
               }}
