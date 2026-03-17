@@ -203,8 +203,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
         }
 
         const clipPath = isFirst
-          ? "polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%)"
-          : "polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%, 10px 50%)";
+          ? "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%)"
+          : "polygon(0 0, calc(100% - 14px) 0, 100% 50%, calc(100% - 14px) 100%, 0 100%, 14px 50%)";
 
         return (
           <div
@@ -224,8 +224,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 backgroundColor: bgColor,
                 color: textColor,
                 clipPath,
-                paddingLeft: isFirst ? 10 : 16,
-                paddingRight: 16,
+                paddingLeft: isFirst ? 12 : 20,
+                paddingRight: 20,
                 gap: 4,
               }}
             >
