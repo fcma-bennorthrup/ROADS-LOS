@@ -77,6 +77,7 @@ export function LoanHeader({
   return (
     <div
       className="w-full"
+      style={{ borderBottom: "1px solid var(--roads-border-subtle)" }}
       data-testid="loan-header"
     >
       <div
