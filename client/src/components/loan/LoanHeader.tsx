@@ -176,71 +176,64 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-function StepperArrowRight({ color }: { color: string }) {
-  return (
-    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
-      <polygon points="0,0 24,14 0,28" fill={color} />
-    </svg>
-  );
-}
+const ARROW_WIDTH = 14;
+const STEP_HEIGHT = 28;
 
-function StepperNotchLeft({ color, prevColor }: { color: string; prevColor: string }) {
-  return (
-    <svg width="24" height="28" viewBox="0 0 24 28" fill="none" className="flex-shrink-0" style={{ display: "block" }}>
-      <rect width="24" height="28" fill={color} />
-      <polygon points="0,0 24,14 0,28" fill={prevColor} />
-    </svg>
-  );
-}
-
-function StageStepper() {
-  const getStageColor = (status: string) => {
-    if (status === "completed") return "var(--roads-bg-brand-subtle)";
-    if (status === "active") return "var(--roads-bg-brand)";
+function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
+  const getStageColor = (index: number) => {
+    if (index < currentStep) return "var(--roads-bg-brand-subtle)";
+    if (index === currentStep) return "var(--roads-bg-brand)";
     return "var(--roads-bg-dark)";
   };
 
-  const getTextColor = (status: string) => {
-    if (status === "completed") return "var(--roads-text-brand)";
-    if (status === "active") return "var(--roads-text-reverse)";
+  const getTextColor = (index: number) => {
+    if (index < currentStep) return "var(--roads-text-brand)";
+    if (index === currentStep) return "var(--roads-text-reverse)";
     return "var(--roads-text-secondary)";
   };
 
   return (
     <div
-      className="flex items-stretch w-full overflow-x-auto"
+      className="flex w-full overflow-x-auto"
       style={{ paddingRight: "var(--roads-spacing-component-l)" }}
       data-testid="stage-stepper"
     >
       {STAGES.map((stage, index) => {
         const isFirst = index === 0;
         const isLast = index === STAGES.length - 1;
-        const bgColor = getStageColor(stage.status);
-        const textColor = getTextColor(stage.status);
-        const prevBgColor = isFirst ? "var(--roads-bg-page)" : getStageColor(STAGES[index - 1].status);
+        const bgColor = getStageColor(index);
+        const textColor = getTextColor(index);
+        const isCompleted = index < currentStep;
+
+        const clipPath = isFirst
+          ? `polygon(0 0, calc(100% - ${ARROW_WIDTH}px) 0, 100% 50%, calc(100% - ${ARROW_WIDTH}px) 100%, 0 100%)`
+          : `polygon(${ARROW_WIDTH}px 0, calc(100% - ${ARROW_WIDTH}px) 0, 100% 50%, calc(100% - ${ARROW_WIDTH}px) 100%, ${ARROW_WIDTH}px 100%, 0 50%)`;
 
         return (
           <div
             key={stage.label}
-            className="flex items-stretch flex-1 min-w-0"
-            style={{ marginRight: isLast ? 0 : -16 }}
+            className="flex-1 min-w-0"
+            style={{
+              marginRight: isLast ? 0 : `-${ARROW_WIDTH / 2}px`,
+              height: `${STEP_HEIGHT}px`,
+              position: "relative",
+              zIndex: STAGES.length - index,
+            }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            <StepperNotchLeft color={bgColor} prevColor={prevBgColor} />
             <div
-              className="flex items-center justify-center flex-1 min-w-0 caption-100-strong"
+              className="flex items-center justify-center w-full h-full caption-100-strong"
               style={{
                 backgroundColor: bgColor,
                 color: textColor,
-                padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs)",
-                height: "28px",
+                clipPath,
+                padding: `0 ${ARROW_WIDTH + 4}px`,
                 gap: "var(--roads-spacing-component-2xs)",
               }}
             >
-              {stage.status === "completed" && <Check className="w-5 h-5 flex-shrink-0" />}
+              {isCompleted && <Check className="w-4 h-4 flex-shrink-0" />}
               <span className="truncate">{stage.label}</span>
             </div>
-            <StepperArrowRight color={bgColor} />
           </div>
         );
       })}
