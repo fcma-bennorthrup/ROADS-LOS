@@ -20,7 +20,7 @@ export const colors = {
     warningSubtle: "#fdefcd",
     informationSubtle: "#dcf2ff",
     light: "#f9f9f9",
-    action: "#5e9732",
+    action: "#005b94",
     errorDisabled: "#ff9c8f",
   },
   icon: {
