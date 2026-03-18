@@ -21,7 +21,8 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Tokens CSS**: `client/src/styles/design-tokens.css` (--roads-* custom properties)
 - **Tokens TS**: `client/src/lib/design-tokens.ts` (TypeScript exports)
 - **Compliance Skill**: `.agents/skills/figma-design-system-compliance/SKILL.md`
-- **Brand colors**: Blue (#005b94) — confirmed by user as the correct variable mode
+- **Variable Mode**: Rural First only — the Figma token sheet has multiple variable modes; only "Rural First" is used. Ignore all other modes.
+- **Brand colors**: Blue (#005b94) — from the Rural First variable mode
 
 ### Design Token Categories
 - **Colors** (25 tokens): text, background (incl. light, action, errorDisabled), icon, border semantic colors

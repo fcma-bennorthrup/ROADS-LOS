@@ -36,6 +36,9 @@
   - **URL**: https://www.figma.com/design/4b8PadIK9cXCCKmlggWGOL/ROADS-Designs
   - **Node ID**: 1605-33389
 
+  ### Variable Mode
+  The Figma design token sheet contains multiple variable modes. **Only use the "Rural First" variable mode.** All other variable modes must be ignored when extracting tokens. If a token value differs between modes, always use the Rural First value. Do not apply tokens from any other mode without explicit user approval.
+
   ## What You CANNOT Do
 
   ❌ **FORBIDDEN - These will upset the user:**
