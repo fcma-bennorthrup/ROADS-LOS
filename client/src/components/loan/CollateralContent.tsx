@@ -40,7 +40,6 @@ function CollateralField({
           borderRadius: "var(--roads-radius-2xs)",
           padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
           gap: "var(--roads-spacing-component-xs)",
-          minHeight: "20px",
         }}
       >
         {hasLeadingIcon && (
@@ -72,6 +71,7 @@ function CollateralField({
               background: "transparent",
               border: "none",
               padding: 0,
+              height: "20px",
             }}
             data-testid={`input-${label.toLowerCase().replace(/\s+/g, "-")}`}
           />
@@ -84,9 +84,11 @@ function CollateralField({
               fontWeight: 600,
               lineHeight: "20px",
               color: "var(--roads-text-primary)",
+              minHeight: "20px",
+              display: "block",
             }}
           >
-            {value}
+            {value || "\u00A0"}
           </span>
         )}
         {hasTrailingIcon && (
@@ -196,6 +198,15 @@ function EditControls({
   );
 }
 
+interface AddressData {
+  address1: string;
+  address2: string;
+  city: string;
+  county: string;
+  state: string;
+  zip: string;
+}
+
 interface EvaluationData {
   estimatedValue: string;
   evaluationDate: string;
@@ -206,7 +217,41 @@ interface EvaluationData {
   appraiser: string;
 }
 
-function EvaluationFields({
+interface FullEvaluationData extends EvaluationData, AddressData {}
+
+function AddressFields({
+  fields,
+  isEditing,
+  onFieldChange,
+}: {
+  fields: AddressData;
+  isEditing: boolean;
+  onFieldChange: (key: keyof AddressData) => (value: string) => void;
+}) {
+  return (
+    <div
+      className="flex flex-wrap items-center"
+      style={{
+        padding: "0 var(--roads-spacing-component-3xl)",
+        gap: "var(--roads-spacing-component-3xl)",
+      }}
+    >
+      <CollateralField label="Address 1" value={fields.address1} isEditing={isEditing} onChange={onFieldChange("address1")} />
+      <CollateralField label="Address 2" value={fields.address2} isEditing={isEditing} onChange={onFieldChange("address2")} />
+      <CollateralField label="City" value={fields.city} isEditing={isEditing} onChange={onFieldChange("city")} />
+      <CollateralField label="County" value={fields.county} isEditing={isEditing} onChange={onFieldChange("county")} />
+      <StateZipFields
+        stateVal={fields.state}
+        zipVal={fields.zip}
+        isEditing={isEditing}
+        onStateChange={onFieldChange("state")}
+        onZipChange={onFieldChange("zip")}
+      />
+    </div>
+  );
+}
+
+function EvalValueFields({
   fields,
   isEditing,
   onFieldChange,
@@ -243,7 +288,7 @@ function EvaluationTabs({
 }) {
   return (
     <div
-      className="flex items-start"
+      className="flex items-end"
       style={{ padding: "0 var(--roads-spacing-component-3xl)" }}
     >
       {[1, 2].map((tab) => {
@@ -252,15 +297,16 @@ function EvaluationTabs({
           <button
             key={tab}
             onClick={() => onTabChange(tab)}
-            className="body-200-strong"
+            className="label-strong whitespace-nowrap"
             style={{
-              padding: "var(--roads-spacing-component-l) var(--roads-spacing-component-xl)",
+              padding: "0 var(--roads-spacing-component-xl)",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
               borderBottom: isActive
                 ? "2px solid var(--roads-border-brand)"
-                : "1px solid var(--roads-border-subtle)",
-              color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
-              background: "none",
-              cursor: "pointer",
+                : "2px solid transparent",
             }}
             data-testid={`tab-evaluation-${tab}`}
           >
@@ -272,7 +318,7 @@ function EvaluationTabs({
   );
 }
 
-const DEFAULT_ADDRESS = {
+const DEFAULT_ADDRESS: AddressData = {
   address1: "Address",
   address2: "Address 2",
   city: "Louisville",
@@ -291,6 +337,15 @@ const DEFAULT_EVALUATION: EvaluationData = {
   appraiser: "Jerry Geraldson",
 };
 
+const EMPTY_ADDRESS: AddressData = {
+  address1: "",
+  address2: "",
+  city: "",
+  county: "",
+  state: "",
+  zip: "",
+};
+
 const EMPTY_EVALUATION: EvaluationData = {
   estimatedValue: "",
   evaluationDate: "",
@@ -301,29 +356,32 @@ const EMPTY_EVALUATION: EvaluationData = {
   appraiser: "",
 };
 
+const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
+const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
+
 export function CollateralContent() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressFields, setAddressFields] = useState({ ...DEFAULT_ADDRESS });
-  const [savedAddressFields, setSavedAddressFields] = useState({ ...DEFAULT_ADDRESS });
+  const [addressFields, setAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
+  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
 
   const [isSplit, setIsSplit] = useState(false);
   const [activeEvalTab, setActiveEvalTab] = useState(1);
 
   const [isEditingValue, setIsEditingValue] = useState(false);
-  const [eval1Fields, setEval1Fields] = useState<EvaluationData>({ ...DEFAULT_EVALUATION });
-  const [savedEval1Fields, setSavedEval1Fields] = useState<EvaluationData>({ ...DEFAULT_EVALUATION });
+  const [eval1Fields, setEval1Fields] = useState<FullEvaluationData>({ ...DEFAULT_FULL_EVAL });
+  const [savedEval1Fields, setSavedEval1Fields] = useState<FullEvaluationData>({ ...DEFAULT_FULL_EVAL });
 
-  const [eval2Fields, setEval2Fields] = useState<EvaluationData>({ ...EMPTY_EVALUATION });
-  const [savedEval2Fields, setSavedEval2Fields] = useState<EvaluationData>({ ...EMPTY_EVALUATION });
+  const [eval2Fields, setEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
+  const [savedEval2Fields, setSavedEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
 
-  const updateAddressField = (key: keyof typeof addressFields) => (value: string) => {
+  const updateAddressField = (key: keyof AddressData) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
   };
 
   const activeEvalFields = activeEvalTab === 1 ? eval1Fields : eval2Fields;
   const setActiveEvalFields = activeEvalTab === 1 ? setEval1Fields : setEval2Fields;
 
-  const updateEvalField = (key: keyof EvaluationData) => (value: string) => {
+  const updateEvalField = (key: keyof FullEvaluationData) => (value: string) => {
     setActiveEvalFields((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -335,8 +393,8 @@ export function CollateralContent() {
   const handleDeleteEvaluation2 = () => {
     setIsSplit(false);
     setActiveEvalTab(1);
-    setEval2Fields({ ...EMPTY_EVALUATION });
-    setSavedEval2Fields({ ...EMPTY_EVALUATION });
+    setEval2Fields({ ...EMPTY_FULL_EVAL });
+    setSavedEval2Fields({ ...EMPTY_FULL_EVAL });
     setIsEditingValue(false);
   };
 
@@ -368,47 +426,35 @@ export function CollateralContent() {
       }}
       data-testid="collateral-content"
     >
-      <div
-        className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-l)" }}
-      >
-        <h2
-          className="headline-300"
-          style={{
-            color: "var(--roads-text-primary)",
-            padding: "0 var(--roads-spacing-component-3xl)",
-          }}
-          data-testid="section-subject-property"
-        >
-          Subject Property
-        </h2>
+      {!isSplit && (
         <div
-          className="flex flex-wrap items-center"
-          style={{
-            padding: "0 var(--roads-spacing-component-3xl)",
-            gap: "var(--roads-spacing-component-3xl)",
-          }}
+          className="flex flex-col"
+          style={{ gap: "var(--roads-spacing-component-l)" }}
         >
-          <CollateralField label="Address 1" value={addressFields.address1} isEditing={isEditingAddress} onChange={updateAddressField("address1")} />
-          <CollateralField label="Address 2" value={addressFields.address2} isEditing={isEditingAddress} onChange={updateAddressField("address2")} />
-          <CollateralField label="City" value={addressFields.city} isEditing={isEditingAddress} onChange={updateAddressField("city")} />
-          <CollateralField label="County" value={addressFields.county} isEditing={isEditingAddress} onChange={updateAddressField("county")} />
-          <StateZipFields
-            stateVal={addressFields.state}
-            zipVal={addressFields.zip}
+          <h2
+            className="headline-300"
+            style={{
+              color: "var(--roads-text-primary)",
+              padding: "0 var(--roads-spacing-component-3xl)",
+            }}
+            data-testid="section-subject-property"
+          >
+            Subject Property
+          </h2>
+          <AddressFields
+            fields={addressFields}
             isEditing={isEditingAddress}
-            onStateChange={updateAddressField("state")}
-            onZipChange={updateAddressField("zip")}
+            onFieldChange={updateAddressField}
+          />
+          <EditControls
+            isEditing={isEditingAddress}
+            onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
+            onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
+            onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
+            testIdPrefix="address"
           />
         </div>
-        <EditControls
-          isEditing={isEditingAddress}
-          onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
-          onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
-          onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
-          testIdPrefix="address"
-        />
-      </div>
+      )}
 
       <div
         className="flex flex-col"
@@ -476,10 +522,18 @@ export function CollateralContent() {
           />
         )}
 
-        <EvaluationFields
+        {isSplit && (
+          <AddressFields
+            fields={activeEvalFields}
+            isEditing={isEditingValue}
+            onFieldChange={updateEvalField as (key: keyof AddressData) => (value: string) => void}
+          />
+        )}
+
+        <EvalValueFields
           fields={activeEvalFields}
           isEditing={isEditingValue}
-          onFieldChange={updateEvalField}
+          onFieldChange={updateEvalField as (key: keyof EvaluationData) => (value: string) => void}
         />
 
         <EditControls
