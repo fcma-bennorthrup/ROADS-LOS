@@ -306,7 +306,7 @@ function EvaluationTabs({
               color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
               borderBottom: isActive
                 ? "2px solid var(--roads-border-brand)"
-                : "2px solid transparent",
+                : "1px solid var(--roads-border-subtle)",
             }}
             data-testid={`tab-evaluation-${tab}`}
           >
