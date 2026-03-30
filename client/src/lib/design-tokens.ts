@@ -29,6 +29,7 @@ export const colors = {
   },
   border: {
     subtle: "#dee1e1",
+    dark: "#929a9b",
     brand: "#005b94",
     reverse: "#ffffff",
   },
