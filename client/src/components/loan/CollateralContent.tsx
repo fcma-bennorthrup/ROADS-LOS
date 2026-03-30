@@ -195,6 +195,82 @@ function EditControls({
   );
 }
 
+interface EvaluationData {
+  estimatedValue: string;
+  evaluationDate: string;
+  appraisalType: string;
+  landValue: string;
+  otherImprovementsValue: string;
+  reportedValueTotal: string;
+  appraiser: string;
+}
+
+function EvaluationFields({
+  fields,
+  isEditing,
+  onFieldChange,
+}: {
+  fields: EvaluationData;
+  isEditing: boolean;
+  onFieldChange: (key: keyof EvaluationData) => (value: string) => void;
+}) {
+  return (
+    <div
+      className="flex flex-wrap items-center"
+      style={{
+        padding: "0 var(--roads-spacing-component-3xl)",
+        gap: "var(--roads-spacing-component-3xl)",
+      }}
+    >
+      <CollateralField label="Estimated Value" value={fields.estimatedValue} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("estimatedValue")} />
+      <CollateralField label="Evaluation Date" value={fields.evaluationDate} hasTrailingIcon isEditing={isEditing} onChange={onFieldChange("evaluationDate")} />
+      <CollateralField label="Appraisal Type" value={fields.appraisalType} isEditing={isEditing} onChange={onFieldChange("appraisalType")} />
+      <CollateralField label="Land Value" value={fields.landValue} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("landValue")} />
+      <CollateralField label="Other Improvements Value" value={fields.otherImprovementsValue} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("otherImprovementsValue")} />
+      <CollateralField label="Reported Value Total" value={fields.reportedValueTotal} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("reportedValueTotal")} />
+      <CollateralField label="Appraiser" value={fields.appraiser} isEditing={isEditing} onChange={onFieldChange("appraiser")} />
+    </div>
+  );
+}
+
+function EvaluationTabs({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: number;
+  onTabChange: (tab: number) => void;
+}) {
+  return (
+    <div
+      className="flex items-start"
+      style={{ padding: "0 var(--roads-spacing-component-3xl)" }}
+    >
+      {[1, 2].map((tab) => {
+        const isActive = activeTab === tab;
+        return (
+          <button
+            key={tab}
+            onClick={() => onTabChange(tab)}
+            className="body-200-strong"
+            style={{
+              padding: "var(--roads-spacing-component-l) var(--roads-spacing-component-xl)",
+              borderBottom: isActive
+                ? "2px solid var(--roads-border-brand)"
+                : "1px solid var(--roads-border-subtle)",
+              color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
+              background: "none",
+              cursor: "pointer",
+            }}
+            data-testid={`tab-evaluation-${tab}`}
+          >
+            Evaluation {tab}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 const DEFAULT_ADDRESS = {
   address1: "Address",
   address2: "Address 2",
@@ -204,7 +280,7 @@ const DEFAULT_ADDRESS = {
   zip: "40234",
 };
 
-const DEFAULT_EVALUATION = {
+const DEFAULT_EVALUATION: EvaluationData = {
   estimatedValue: "400,000",
   evaluationDate: "01/22/2022",
   appraisalType: "As is",
@@ -214,21 +290,71 @@ const DEFAULT_EVALUATION = {
   appraiser: "Jerry Geraldson",
 };
 
+const EMPTY_EVALUATION: EvaluationData = {
+  estimatedValue: "",
+  evaluationDate: "",
+  appraisalType: "",
+  landValue: "",
+  otherImprovementsValue: "",
+  reportedValueTotal: "",
+  appraiser: "",
+};
+
 export function CollateralContent() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressFields, setAddressFields] = useState({ ...DEFAULT_ADDRESS });
   const [savedAddressFields, setSavedAddressFields] = useState({ ...DEFAULT_ADDRESS });
 
+  const [isSplit, setIsSplit] = useState(false);
+  const [activeEvalTab, setActiveEvalTab] = useState(1);
+
   const [isEditingValue, setIsEditingValue] = useState(false);
-  const [valueFields, setValueFields] = useState({ ...DEFAULT_EVALUATION });
-  const [savedValueFields, setSavedValueFields] = useState({ ...DEFAULT_EVALUATION });
+  const [eval1Fields, setEval1Fields] = useState<EvaluationData>({ ...DEFAULT_EVALUATION });
+  const [savedEval1Fields, setSavedEval1Fields] = useState<EvaluationData>({ ...DEFAULT_EVALUATION });
+
+  const [eval2Fields, setEval2Fields] = useState<EvaluationData>({ ...EMPTY_EVALUATION });
+  const [savedEval2Fields, setSavedEval2Fields] = useState<EvaluationData>({ ...EMPTY_EVALUATION });
 
   const updateAddressField = (key: keyof typeof addressFields) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
   };
 
-  const updateValueField = (key: keyof typeof valueFields) => (value: string) => {
-    setValueFields((prev) => ({ ...prev, [key]: value }));
+  const activeEvalFields = activeEvalTab === 1 ? eval1Fields : eval2Fields;
+  const setActiveEvalFields = activeEvalTab === 1 ? setEval1Fields : setEval2Fields;
+
+  const updateEvalField = (key: keyof EvaluationData) => (value: string) => {
+    setActiveEvalFields((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSplitAppraisal = () => {
+    setIsSplit(true);
+    setActiveEvalTab(1);
+  };
+
+  const handleDeleteEvaluation2 = () => {
+    setIsSplit(false);
+    setActiveEvalTab(1);
+    setEval2Fields({ ...EMPTY_EVALUATION });
+    setSavedEval2Fields({ ...EMPTY_EVALUATION });
+    setIsEditingValue(false);
+  };
+
+  const handleValueEdit = () => {
+    setSavedEval1Fields({ ...eval1Fields });
+    setSavedEval2Fields({ ...eval2Fields });
+    setIsEditingValue(true);
+  };
+
+  const handleValueSave = () => {
+    setSavedEval1Fields({ ...eval1Fields });
+    setSavedEval2Fields({ ...eval2Fields });
+    setIsEditingValue(false);
+  };
+
+  const handleValueDiscard = () => {
+    setEval1Fields({ ...savedEval1Fields });
+    setEval2Fields({ ...savedEval2Fields });
+    setIsEditingValue(false);
   };
 
   return (
@@ -306,24 +432,34 @@ export function CollateralContent() {
             style={{ gap: "var(--roads-spacing-component-l)" }}
           >
             <button
+              onClick={handleSplitAppraisal}
+              disabled={isSplit}
               className="body-200-strong"
               style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
+                backgroundColor: isSplit ? "var(--roads-bg-light)" : "var(--roads-bg-action)",
+                color: isSplit ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
                 padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
                 borderRadius: "var(--roads-radius-2xs)",
+                border: isSplit ? "1px solid var(--roads-border-subtle)" : "none",
+                cursor: isSplit ? "not-allowed" : "pointer",
+                opacity: isSplit ? 0.6 : 1,
               }}
               data-testid="button-split-appraisal"
             >
               Split Appraisal
             </button>
             <button
+              onClick={handleDeleteEvaluation2}
+              disabled={!isSplit}
               className="body-200-strong"
               style={{
-                backgroundColor: "var(--roads-bg-error)",
-                color: "var(--roads-text-reverse)",
+                backgroundColor: !isSplit ? "var(--roads-bg-light)" : "var(--roads-bg-error)",
+                color: !isSplit ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
                 padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
                 borderRadius: "var(--roads-radius-2xs)",
+                border: !isSplit ? "1px solid var(--roads-border-subtle)" : "none",
+                cursor: !isSplit ? "not-allowed" : "pointer",
+                opacity: !isSplit ? 0.6 : 1,
               }}
               data-testid="button-delete-evaluation"
             >
@@ -331,26 +467,25 @@ export function CollateralContent() {
             </button>
           </div>
         </div>
-        <div
-          className="flex flex-wrap items-center"
-          style={{
-            padding: "0 var(--roads-spacing-component-3xl)",
-            gap: "var(--roads-spacing-component-3xl)",
-          }}
-        >
-          <CollateralField label="Estimated Value" value={valueFields.estimatedValue} hasLeadingIcon isEditing={isEditingValue} onChange={updateValueField("estimatedValue")} />
-          <CollateralField label="Evaluation Date" value={valueFields.evaluationDate} hasTrailingIcon isEditing={isEditingValue} onChange={updateValueField("evaluationDate")} />
-          <CollateralField label="Appraisal Type" value={valueFields.appraisalType} isEditing={isEditingValue} onChange={updateValueField("appraisalType")} />
-          <CollateralField label="Land Value" value={valueFields.landValue} hasLeadingIcon isEditing={isEditingValue} onChange={updateValueField("landValue")} />
-          <CollateralField label="Other Improvements Value" value={valueFields.otherImprovementsValue} hasLeadingIcon isEditing={isEditingValue} onChange={updateValueField("otherImprovementsValue")} />
-          <CollateralField label="Reported Value Total" value={valueFields.reportedValueTotal} hasLeadingIcon isEditing={isEditingValue} onChange={updateValueField("reportedValueTotal")} />
-          <CollateralField label="Appraiser" value={valueFields.appraiser} isEditing={isEditingValue} onChange={updateValueField("appraiser")} />
-        </div>
+
+        {isSplit && (
+          <EvaluationTabs
+            activeTab={activeEvalTab}
+            onTabChange={setActiveEvalTab}
+          />
+        )}
+
+        <EvaluationFields
+          fields={activeEvalFields}
+          isEditing={isEditingValue}
+          onFieldChange={updateEvalField}
+        />
+
         <EditControls
           isEditing={isEditingValue}
-          onEdit={() => { setSavedValueFields({ ...valueFields }); setIsEditingValue(true); }}
-          onSave={() => { setSavedValueFields({ ...valueFields }); setIsEditingValue(false); }}
-          onDiscard={() => { setValueFields({ ...savedValueFields }); setIsEditingValue(false); }}
+          onEdit={handleValueEdit}
+          onSave={handleValueSave}
+          onDiscard={handleValueDiscard}
           testIdPrefix="value"
         />
       </div>
