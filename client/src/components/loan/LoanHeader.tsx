@@ -420,7 +420,7 @@ export function BottomToolbar() {
             <span>{item.label}</span>
             {"hasIndicator" in item && item.hasIndicator && (
               <span
-                className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full"
+                className="w-1 h-1 rounded-full"
                 style={{ backgroundColor: "var(--roads-bg-error)" }}
                 data-testid="indicator-errors"
               />

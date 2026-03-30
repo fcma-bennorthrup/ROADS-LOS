@@ -87,7 +87,7 @@ export default function LoanOriginationPage() {
         tridDaysRemaining={loan.tridDaysRemaining}
         activeTab="Origination"
       />
-      <div className="flex flex-1" style={{ minHeight: 0 }}>
+      <div className="flex flex-1" style={{ minHeight: 0, paddingBottom: "36px" }}>
         <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
         <div className="flex flex-1 flex-col" style={{ minWidth: 0 }}>
           {activeNavItem === "Collateral" && <CollateralContent />}
