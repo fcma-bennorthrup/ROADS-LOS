@@ -38,7 +38,7 @@ function CollateralField({
         style={{
           backgroundColor: isEditing ? "var(--roads-bg-primary)" : "var(--roads-bg-light)",
           border: isEditing
-            ? "1px solid var(--roads-border-brand)"
+            ? "1px solid var(--roads-border-dark)"
             : "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
           padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
