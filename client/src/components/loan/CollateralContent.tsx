@@ -31,7 +31,7 @@ function CollateralField({
         {label}
       </span>
       <div
-        className="flex items-start w-full"
+        className="flex items-center w-full"
         style={{
           backgroundColor: isEditing ? "var(--roads-bg-primary)" : "var(--roads-bg-light)",
           border: isEditing
@@ -40,6 +40,7 @@ function CollateralField({
           borderRadius: "var(--roads-radius-2xs)",
           padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
           gap: "var(--roads-spacing-component-xs)",
+          minHeight: "20px",
         }}
       >
         {hasLeadingIcon && (
