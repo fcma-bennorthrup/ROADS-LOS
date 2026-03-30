@@ -72,7 +72,7 @@ export default function LoanOriginationPage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col"
+      className="h-screen flex flex-col overflow-hidden"
       style={{ backgroundColor: "var(--roads-bg-page)" }}
       data-testid="loan-origination-page"
     >
@@ -87,9 +87,9 @@ export default function LoanOriginationPage() {
         tridDaysRemaining={loan.tridDaysRemaining}
         activeTab="Origination"
       />
-      <div className="flex flex-1" style={{ minHeight: 0 }}>
+      <div className="flex flex-1 min-h-0">
         <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
-        <div className="flex flex-1 flex-col" style={{ minWidth: 0, paddingBottom: "36px" }}>
+        <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Collateral" && <CollateralContent />}
           {activeNavItem !== "Collateral" && <ComingSoon page={activeNavItem} />}
         </div>
