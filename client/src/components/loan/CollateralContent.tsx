@@ -426,35 +426,33 @@ export function CollateralContent() {
       }}
       data-testid="collateral-content"
     >
-      {!isSplit && (
-        <div
-          className="flex flex-col"
-          style={{ gap: "var(--roads-spacing-component-l)" }}
+      <div
+        className="flex flex-col"
+        style={{ gap: "var(--roads-spacing-component-l)" }}
+      >
+        <h2
+          className="headline-300"
+          style={{
+            color: "var(--roads-text-primary)",
+            padding: "0 var(--roads-spacing-component-3xl)",
+          }}
+          data-testid="section-subject-property"
         >
-          <h2
-            className="headline-300"
-            style={{
-              color: "var(--roads-text-primary)",
-              padding: "0 var(--roads-spacing-component-3xl)",
-            }}
-            data-testid="section-subject-property"
-          >
-            Subject Property
-          </h2>
-          <AddressFields
-            fields={addressFields}
-            isEditing={isEditingAddress}
-            onFieldChange={updateAddressField}
-          />
-          <EditControls
-            isEditing={isEditingAddress}
-            onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
-            onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
-            onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
-            testIdPrefix="address"
-          />
-        </div>
-      )}
+          Subject Property
+        </h2>
+        <AddressFields
+          fields={addressFields}
+          isEditing={isEditingAddress}
+          onFieldChange={updateAddressField}
+        />
+        <EditControls
+          isEditing={isEditingAddress}
+          onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
+          onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
+          onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
+          testIdPrefix="address"
+        />
+      </div>
 
       <div
         className="flex flex-col"
