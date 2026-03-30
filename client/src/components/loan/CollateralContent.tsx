@@ -230,11 +230,11 @@ export function CollateralContent() {
                 onClick={handleDiscard}
                 className="body-200-strong"
                 style={{
-                  backgroundColor: "var(--roads-bg-primary)",
-                  border: "1px solid var(--roads-border-dark)",
+                  backgroundColor: "var(--roads-bg-error)",
+                  border: "1px solid var(--roads-bg-error)",
                   borderRadius: "var(--roads-radius-2xs)",
                   padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                  color: "var(--roads-text-primary)",
+                  color: "var(--roads-text-reverse)",
                 }}
                 data-testid="button-discard"
               >
