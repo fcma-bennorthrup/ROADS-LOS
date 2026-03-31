@@ -6,25 +6,32 @@ export function DecisioningSummaryContent() {
 
   return (
     <div
-      className="flex flex-1"
+      className="flex flex-col flex-1"
       style={{
         padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
-        gap: "80px",
+        gap: "var(--roads-spacing-component-l)",
       }}
       data-testid="decisioning-summary-content"
     >
+      <h2
+        className="headline-200"
+        style={{ color: "var(--roads-text-primary)" }}
+        data-testid="heading-decisioning-summary"
+      >
+        Decisioning Summary
+      </h2>
+      <div
+        className="flex"
+        style={{ gap: "80px" }}
+      >
       <div
         className="flex flex-col"
         style={{ gap: "var(--roads-spacing-component-xs)", width: "345px" }}
       >
         <div
-          className="flex items-center"
+          className="headline-300 flex items-center"
           style={{
             gap: "var(--roads-spacing-component-xs)",
-            fontFamily: "var(--roads-font-family)",
-            fontSize: "20px",
-            fontWeight: 600,
-            lineHeight: "24px",
             color: "var(--roads-text-primary)",
           }}
         >
@@ -76,13 +83,9 @@ export function DecisioningSummaryContent() {
         style={{ gap: "var(--roads-spacing-component-xs)", width: "180px" }}
       >
         <div
-          className="flex items-center"
+          className="headline-300 flex items-center"
           style={{
             gap: "var(--roads-spacing-component-xs)",
-            fontFamily: "var(--roads-font-family)",
-            fontSize: "20px",
-            fontWeight: 600,
-            lineHeight: "24px",
             color: "var(--roads-text-primary)",
           }}
         >
@@ -108,6 +111,7 @@ export function DecisioningSummaryContent() {
             Pull Credit
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
