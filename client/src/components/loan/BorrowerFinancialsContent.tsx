@@ -596,7 +596,7 @@ export function BorrowerFinancialsContent() {
             </span>
             {activeBorrower.isPrimaryWageEarner && (
               <div
-                className="caption-100-strong flex items-center"
+                className="body-200-strong flex items-center"
                 style={{
                   backgroundColor: "var(--roads-bg-brand-subtle)",
                   color: "var(--roads-text-brand)",
