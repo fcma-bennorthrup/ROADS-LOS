@@ -2,6 +2,7 @@ import { useState } from "react";
 
 export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);
+  const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
 
   return (
@@ -61,6 +62,7 @@ export function DecisioningSummaryContent() {
           </button>
           <button
             disabled={!isDecisioned}
+            onClick={() => { if (isDecisioned) setLetterGenerated(true); }}
             className="body-200-strong"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
@@ -73,7 +75,7 @@ export function DecisioningSummaryContent() {
             }}
             data-testid="button-generate-decision-letter"
           >
-            Generate Decision Letter
+            {letterGenerated ? "View Decision Letter" : "Generate Decision Letter"}
           </button>
         </div>
       </div>
