@@ -250,10 +250,10 @@ function IncomeSourceCard({
           </span>
           {source.currentJob === "Yes" && (
             <div
-              className="caption-100-strong flex items-center"
+              className="body-200-strong flex items-center"
               style={{
-                backgroundColor: "var(--roads-bg-brand-subtle)",
-                color: "var(--roads-text-brand)",
+                backgroundColor: "var(--roads-bg-dark)",
+                color: "var(--roads-text-primary)",
                 padding: "0 var(--roads-spacing-component-xs)",
                 borderRadius: "var(--roads-radius-2xs)",
                 height: "20px",
