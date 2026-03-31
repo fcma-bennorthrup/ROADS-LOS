@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DecisioningSummaryContent } from "@/components/loan/DecisioningSummaryContent";
+import { BorrowerFinancialsContent } from "@/components/loan/BorrowerFinancialsContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -102,7 +103,8 @@ export default function LoanDecisioningPage() {
         />
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Decisioning Summary" && <DecisioningSummaryContent />}
-          {activeNavItem !== "Decisioning Summary" && <ComingSoon page={activeNavItem} />}
+          {activeNavItem === "Borrower Financials" && <BorrowerFinancialsContent />}
+          {activeNavItem !== "Decisioning Summary" && activeNavItem !== "Borrower Financials" && <ComingSoon page={activeNavItem} />}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
