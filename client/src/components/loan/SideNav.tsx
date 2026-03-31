@@ -1,9 +1,10 @@
 interface SideNavProps {
   activeItem: string;
   onItemChange: (item: string) => void;
+  items?: string[];
 }
 
-const NAV_ITEMS = [
+const ORIGINATION_NAV_ITEMS = [
   "Borrower Information",
   "Loan Details",
   "Collateral",
@@ -11,7 +12,9 @@ const NAV_ITEMS = [
   "Fees",
 ];
 
-export function SideNav({ activeItem, onItemChange }: SideNavProps) {
+export function SideNav({ activeItem, onItemChange, items }: SideNavProps) {
+  const navItems = items || ORIGINATION_NAV_ITEMS;
+
   return (
     <div
       className="flex flex-col h-full shrink-0"
@@ -31,7 +34,7 @@ export function SideNav({ activeItem, onItemChange }: SideNavProps) {
           gap: "var(--roads-spacing-component-xs)",
         }}
       >
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = item === activeItem;
           return (
             <button

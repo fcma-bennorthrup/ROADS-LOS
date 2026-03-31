@@ -40,10 +40,13 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
   - 240px side nav: Borrower Information, Loan Details, Collateral, Product & Pricing, Fees
-  - Collateral page: Subject Property (address fields) + Value section (appraisal fields with Primary/Destructive buttons)
+  - Collateral page: Subject Property (address fields with edit/save/discard) + Value section (split appraisal with evaluation tabs, edit/save/discard)
   - Other sub-pages show "Coming Soon" placeholder
+- **Loan Decisioning** (`/loans/:id/decisioning`): Decisioning tab with side navigation:
+  - 240px side nav: Decisioning Summary, Borrower Financials, Item 3, Item 4
+  - All sub-pages show "Coming Soon" placeholder (content pending)
 - `/` redirects to `/loans/1` (default mock loan)
-- Tab navigation in header routes between Summary ↔ Origination (other tabs pending)
+- Tab navigation in header routes between Summary ↔ Origination ↔ Decisioning (other tabs pending)
 
 ## Data Model
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount

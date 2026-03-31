@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import LoanSummaryPage from "@/pages/loan-summary";
 import LoanOriginationPage from "@/pages/loan-origination";
+import LoanDecisioningPage from "@/pages/loan-decisioning";
 import { Redirect } from "wouter";
 
 function Router() {
@@ -15,6 +16,7 @@ function Router() {
         <Redirect to="/loans/1" />
       </Route>
       <Route path="/loans/:id/origination" component={LoanOriginationPage} />
+      <Route path="/loans/:id/decisioning" component={LoanDecisioningPage} />
       <Route path="/loans/:id" component={LoanSummaryPage} />
       <Route component={NotFound} />
     </Switch>
