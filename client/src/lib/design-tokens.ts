@@ -2,6 +2,7 @@ export const colors = {
   text: {
     primary: "#273333",
     secondary: "#515e5f",
+    tertiary: "#929a9b",
     brand: "#005b94",
     link: "#005b94",
     reverse: "#ffffff",
