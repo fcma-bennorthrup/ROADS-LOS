@@ -62,7 +62,14 @@ export function DecisioningSummaryContent() {
           </button>
           <button
             disabled={!isDecisioned}
-            onClick={() => { if (isDecisioned) setLetterGenerated(true); }}
+            onClick={() => {
+              if (!isDecisioned) return;
+              if (letterGenerated) {
+                window.open("/decision-letter.pdf", "_blank");
+              } else {
+                setLetterGenerated(true);
+              }
+            }}
             className="body-200-strong"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
