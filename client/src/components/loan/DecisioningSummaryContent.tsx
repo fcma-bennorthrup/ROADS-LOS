@@ -89,10 +89,10 @@ export function DecisioningSummaryContent() {
 
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-xs)", width: "180px" }}
+        style={{ gap: "var(--roads-spacing-component-xs)" }}
       >
         <div
-          className="headline-300 flex items-center"
+          className="headline-300 flex items-center whitespace-nowrap"
           style={{
             gap: "var(--roads-spacing-component-xs)",
             color: "var(--roads-text-primary)",
@@ -101,11 +101,11 @@ export function DecisioningSummaryContent() {
           <span data-testid="text-credit-score-label">Credit Score:</span>
           <span data-testid="text-credit-score-value">{creditPulled ? "742" : "--"}</span>
         </div>
-        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+        <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
             onClick={() => setCreditPulled(true)}
             disabled={creditPulled}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: creditPulled ? "var(--roads-bg-light)" : "var(--roads-bg-action)",
               color: creditPulled ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
@@ -122,7 +122,7 @@ export function DecisioningSummaryContent() {
           <button
             disabled={!creditPulled}
             onClick={() => { if (creditPulled) window.open("/credit-report.pdf", "_blank"); }}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",
