@@ -101,7 +101,7 @@ export function DecisioningSummaryContent() {
           <span data-testid="text-credit-score-label">Credit Score:</span>
           <span data-testid="text-credit-score-value">{creditPulled ? "742" : "--"}</span>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
             onClick={() => setCreditPulled(true)}
             disabled={creditPulled}
@@ -118,6 +118,23 @@ export function DecisioningSummaryContent() {
             data-testid="button-pull-credit"
           >
             Pull Credit
+          </button>
+          <button
+            disabled={!creditPulled}
+            onClick={() => { if (creditPulled) window.open("/credit-report.pdf", "_blank"); }}
+            className="body-200-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              color: !creditPulled ? "var(--roads-text-tertiary)" : "var(--roads-text-primary)",
+              cursor: !creditPulled ? "not-allowed" : "pointer",
+              opacity: !creditPulled ? 0.6 : 1,
+            }}
+            data-testid="button-view-credit-report"
+          >
+            View Credit Report
           </button>
         </div>
       </div>
