@@ -30,8 +30,8 @@ const productData: ProductEntry[] = [
   { productType: "fixed", productId: "4374", label: "4374 - 30 year fixed", term: 360, baseRate: 6.75 },
 ];
 
-const totalAdjustments = 0.625;
-const totalDiscounts = 0.25;
+const totalAdjustments = 0.65;
+const totalDiscounts = 0;
 
 const rateAdjustments = [
   { label: "FICO Score", value: "0.025%" },
