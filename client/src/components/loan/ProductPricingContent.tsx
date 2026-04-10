@@ -544,12 +544,15 @@ export function ProductPricingContent() {
                     type="text"
                     value={lockDate}
                     onChange={(e) => setLockDate(e.target.value)}
+                    disabled={!isRateLocked}
                     className="label-strong outline-none"
                     style={{
                       flex: 1,
                       color: "var(--roads-text-primary)",
                       border: "none",
                       background: "transparent",
+                      cursor: isRateLocked ? "text" : "not-allowed",
+                      opacity: isRateLocked ? 1 : 0.7,
                     }}
                     data-testid="input-lock-date"
                   />
