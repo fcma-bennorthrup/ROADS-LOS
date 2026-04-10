@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { getAuthenticatedUser, getRepository, createRepository, pushCodebase } from "./github";
+import { getAuthenticatedUser, getRepository, createRepository, pushCodebase, getRepoTree, getFileContent } from "./github";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -54,10 +54,52 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/github/pull", async (_req, res) => {
+    try {
+      const user = await getAuthenticatedUser();
+      const owner = "bennorthrup";
+      const repo = "ROADS-LOS";
+
+      const { commitSha, tree } = await getRepoTree(owner, repo);
+
+      const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
+      const IGNORE_FILES = new Set(["package-lock.json"]);
+
+      const projectRoot = path.resolve(process.cwd());
+      let updatedCount = 0;
+
+      for (const item of tree) {
+        if (item.type !== "blob") continue;
+
+        const parts = item.path.split("/");
+        const shouldIgnore = parts.some((p: string) => IGNORE_DIRS.has(p) || p.startsWith("."));
+        const fileName = parts[parts.length - 1];
+        if (shouldIgnore || IGNORE_FILES.has(fileName)) continue;
+
+        try {
+          const content = await getFileContent(owner, repo, item.path);
+          if (content !== null) {
+            const filePath = path.join(projectRoot, item.path);
+            const dir = path.dirname(filePath);
+            if (!fs.existsSync(dir)) {
+              fs.mkdirSync(dir, { recursive: true });
+            }
+            fs.writeFileSync(filePath, content, "utf-8");
+            updatedCount++;
+          }
+        } catch {}
+      }
+
+      res.json({ commitSha, filesUpdated: updatedCount, message: `Pulled ${updatedCount} files from ${owner}/${repo}` });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.post("/api/github/push", async (req, res) => {
     try {
       const user = await getAuthenticatedUser();
-      const owner = user.login;
+      const owner = "bennorthrup";
       const repo = "ROADS-LOS";
       const commitMessage = req.body?.message || "Update codebase from Replit";
 

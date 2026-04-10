@@ -78,3 +78,19 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
 
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length };
 }
+
+export async function getRepoTree(owner: string, repo: string, branch: string = "main") {
+  const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  const commitSha = ref.object.sha;
+  const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
+  const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
+  return { commitSha, tree: tree.tree };
+}
+
+export async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
+  const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
+  if (response.encoding === "base64" && response.content) {
+    return Buffer.from(response.content, "base64").toString("utf-8");
+  }
+  return null;
+}
