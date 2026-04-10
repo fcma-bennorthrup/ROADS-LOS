@@ -153,6 +153,7 @@ export function ProductPricingContent() {
   const [termOverride, setTermOverride] = useState<string | null>(null);
   const [isRateLocked, setIsRateLocked] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [lockDate, setLockDate] = useState(getLockDate());
 
   const filteredProducts = useMemo(
     () => productData.filter((p) => p.productType === productType),
@@ -489,7 +490,7 @@ export function ProductPricingContent() {
                 className="headline-200"
                 style={{ color: "var(--roads-text-primary)" }}
               >
-                Rate Lock
+                {isRateLocked ? "Edit Rate Lock" : "Rate Lock"}
               </DialogTitle>
               <DialogClose asChild>
                 <button
@@ -539,16 +540,19 @@ export function ProductPricingContent() {
                     height: "44px",
                   }}
                 >
-                  <span
-                    className="label-strong"
+                  <input
+                    type="text"
+                    value={lockDate}
+                    onChange={(e) => setLockDate(e.target.value)}
+                    className="label-strong outline-none"
                     style={{
                       flex: 1,
                       color: "var(--roads-text-primary)",
+                      border: "none",
+                      background: "transparent",
                     }}
                     data-testid="input-lock-date"
-                  >
-                    {getLockDate()}
-                  </span>
+                  />
                   <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
                 </div>
               </div>
@@ -595,7 +599,7 @@ export function ProductPricingContent() {
                 }}
                 data-testid="button-confirm-lock-rate"
               >
-                Lock Rate
+                {isRateLocked ? "Update Rate Lock" : "Lock Rate"}
               </button>
             </div>
           </div>
