@@ -219,7 +219,6 @@ export function ProductPricingContent() {
       >
         Product &amp; Pricing
       </h2>
-
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
         <div
           className="flex items-center"
@@ -238,7 +237,7 @@ export function ProductPricingContent() {
               minWidth: "180px",
             }}
           >
-            <span className="label-strong whitespace-nowrap" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong whitespace-nowrap text-[24px]" style={{ color: "var(--roads-text-primary)" }}>
               Rate Breakdown
             </span>
           </div>
@@ -468,7 +467,6 @@ export function ProductPricingContent() {
           </div>
         </div>
       </div>
-
       <Dialog open={isLockModalOpen} onOpenChange={setIsLockModalOpen}>
         <DialogContent
           className="p-0 gap-0 max-w-[600px] overflow-clip [&>button:last-child]:hidden"
