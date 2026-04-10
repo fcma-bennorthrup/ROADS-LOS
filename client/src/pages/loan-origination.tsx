@@ -17,6 +17,7 @@ function formatCurrency(value: string): string {
 }
 
 function ComingSoon({ page }: { page: string }) {
+  const message = page === "Fees" ? "Welcome to the party" : "Coming Soon";
   return (
     <div
       className="flex flex-1 items-center justify-center"
@@ -27,7 +28,7 @@ function ComingSoon({ page }: { page: string }) {
           {page}
         </h2>
         <p className="body-100" style={{ color: "var(--roads-text-secondary)" }}>
-          Coming Soon
+          {message}
         </p>
       </div>
     </div>
