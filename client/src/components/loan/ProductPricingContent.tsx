@@ -70,7 +70,7 @@ function ProductField({
   return (
     <div
       className="flex flex-col"
-      style={{ flex: "1 1 0", minWidth: "120px", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ width: "288px", gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`form-field-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
     >
       <span
@@ -340,7 +340,7 @@ export function ProductPricingContent() {
 
         <div className="flex" style={{ gap: "var(--roads-spacing-layout-xs)" }}>
           <div className="flex flex-col flex-1" style={{ gap: "var(--roads-spacing-component-xl)", minWidth: 0 }}>
-            <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
+            <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <ProductField
                 label="Product Type"
                 value={productType}
