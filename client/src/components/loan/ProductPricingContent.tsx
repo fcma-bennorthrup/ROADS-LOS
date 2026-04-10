@@ -179,6 +179,7 @@ export function ProductPricingContent() {
 
   const handleLockRate = () => {
     setIsRateLocked(true);
+    setIsEditing(false);
     setIsLockModalOpen(false);
   };
 
