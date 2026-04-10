@@ -7,7 +7,12 @@ export async function githubRequest(endpoint: string, options: { method?: string
     method: options.method || "GET",
     ...(options.body ? { body: JSON.stringify(options.body), headers: { "Content-Type": "application/json" } } : {}),
   });
-  return response.json();
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`GitHub API returned non-JSON (status ${response.status}): ${text.substring(0, 200)}`);
+  }
 }
 
 export async function getAuthenticatedUser() {
@@ -36,11 +41,12 @@ export async function listRepositories() {
 
 export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string }[], message: string) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+  if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
   const currentCommit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${currentCommitSha}`);
   const baseTreeSha = currentCommit.tree.sha;
 
-  const treeItems = [];
+  const treeItems: { path: string; mode: string; type: string; sha: string }[] = [];
   for (const file of files) {
     const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
       method: "POST",
@@ -49,6 +55,10 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
         encoding: "base64",
       },
     });
+    if (!blob.sha) {
+      console.error(`Blob creation failed for ${file.path}:`, blob);
+      continue;
+    }
     treeItems.push({
       path: file.path,
       mode: "100644",
@@ -57,10 +67,13 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
     });
   }
 
+  if (treeItems.length === 0) throw new Error("No files to push");
+
   const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees`, {
     method: "POST",
     body: { base_tree: baseTreeSha, tree: treeItems },
   });
+  if (!tree.sha) throw new Error(`Tree creation failed: ${JSON.stringify(tree)}`);
 
   const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits`, {
     method: "POST",
@@ -70,11 +83,28 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
       parents: [currentCommitSha],
     },
   });
+  if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
     body: { sha: commit.sha },
   });
 
-  return { commitSha: commit.sha, message: commit.message, filesCount: files.length };
+  return { commitSha: commit.sha, message: commit.message, filesCount: treeItems.length };
+}
+
+export async function getRepoTree(owner: string, repo: string, branch: string = "main") {
+  const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
+  const commitSha = ref.object.sha;
+  const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
+  const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
+  return { commitSha, tree: tree.tree };
+}
+
+export async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
+  const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
+  if (response.encoding === "base64" && response.content) {
+    return Buffer.from(response.content, "base64").toString("utf-8");
+  }
+  return null;
 }
