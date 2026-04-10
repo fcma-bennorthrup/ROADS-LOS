@@ -569,7 +569,9 @@ export function ProductPricingContent() {
               borderTop: "1px solid var(--roads-border-subtle)",
             }}
           >
-            {!isRateLocked && (
+            {isRateLocked ? (
+              <div />
+            ) : (
               <span className="body-200-strong" style={{ color: "var(--roads-text-primary)" }}>
                 Initial Rate Lock Period is 45 days.
               </span>
