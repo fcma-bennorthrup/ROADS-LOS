@@ -86,15 +86,8 @@ shared/
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details
 - `POST /api/github/repo` - Create ROADS-LOS repository (one-time setup)
-- `POST /api/github/push` - Push codebase to GitHub (collects all project files, commits via GitHub API)
-- `POST /api/github/pull` - Pull latest from GitHub (downloads all files from bennorthrup/ROADS-LOS main branch)
-
-## GitHub Sync
-- **Push**: `POST /api/github/push` with optional `{ "message": "commit message" }` body
-- **Pull**: `POST /api/github/pull` downloads latest files from the repo's main branch
-- Uses `@replit/connectors-sdk` proxy for authenticated GitHub API access
-- The GitHub connector is configured via Replit integrations (OAuth-based)
+- `POST /api/github/push` - Push codebase to GitHub
 
 ## Running
 - Workflow "Start application" runs `npm run dev`
-- Express backend + Vite frontend on same port (5000)
+- Express backend + Vite frontend on same port
