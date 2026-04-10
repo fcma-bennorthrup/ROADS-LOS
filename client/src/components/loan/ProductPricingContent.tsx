@@ -53,6 +53,7 @@ const getLockDate = (): string => {
 function ProductField({
   label,
   value,
+  displayValue,
   isEditing,
   type,
   options,
@@ -60,6 +61,7 @@ function ProductField({
 }: {
   label: string;
   value: string;
+  displayValue?: string;
   isEditing: boolean;
   type?: "text" | "dropdown";
   options?: { value: string; label: string }[];
@@ -81,16 +83,12 @@ function ProductField({
         <select
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
-          className="w-full outline-none"
+          className="w-full outline-none label-strong"
           style={{
             backgroundColor: "var(--roads-bg-primary)",
             border: "1px solid var(--roads-border-dark)",
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-            fontFamily: "var(--roads-font-family)",
-            fontSize: "16px",
-            fontWeight: 600,
-            lineHeight: "20px",
             color: "var(--roads-text-primary)",
             height: "44px",
           }}
@@ -116,18 +114,15 @@ function ProductField({
           }}
         >
           <span
+            className="label-strong"
             style={{
               flex: 1,
-              fontFamily: "var(--roads-font-family)",
-              fontSize: "16px",
-              fontWeight: 600,
-              lineHeight: "20px",
               color: "var(--roads-text-primary)",
               minHeight: "20px",
               display: "block",
             }}
           >
-            {value || "\u00A0"}
+            {displayValue || value || "\u00A0"}
           </span>
         </div>
       )}
@@ -329,6 +324,7 @@ export function ProductPricingContent() {
               <ProductField
                 label="Product Type"
                 value={productType}
+                displayValue={productType === "arm" ? "ARM" : "Fixed"}
                 isEditing={isEditing}
                 type="dropdown"
                 options={[
@@ -340,6 +336,7 @@ export function ProductPricingContent() {
               <ProductField
                 label="Product"
                 value={selectedProductId}
+                displayValue={currentProduct.label}
                 isEditing={isEditing}
                 type="dropdown"
                 options={filteredProducts.map((p) => ({ value: p.productId, label: p.label }))}
@@ -520,12 +517,9 @@ export function ProductPricingContent() {
                   }}
                 >
                   <span
+                    className="label-strong"
                     style={{
                       flex: 1,
-                      fontFamily: "var(--roads-font-family)",
-                      fontSize: "16px",
-                      fontWeight: 600,
-                      lineHeight: "20px",
                       color: "var(--roads-text-primary)",
                     }}
                     data-testid="input-lock-date"
