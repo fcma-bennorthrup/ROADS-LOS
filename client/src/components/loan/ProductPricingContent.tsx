@@ -70,7 +70,7 @@ function ProductField({
   return (
     <div
       className="flex flex-col"
-      style={{ width: "288px", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ flex: "1 1 0", minWidth: "120px", gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`form-field-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
     >
       <span
@@ -219,6 +219,7 @@ export function ProductPricingContent() {
       >
         Product &amp; Pricing
       </h2>
+
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
         <div
           className="flex items-center"
@@ -230,14 +231,14 @@ export function ProductPricingContent() {
           data-testid="rate-breakdown-card"
         >
           <div
-            className="flex flex-col items-start justify-center ml-[16px] mr-[16px]"
+            className="flex flex-col items-start justify-center"
             style={{
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRight: "1px solid var(--roads-border-subtle)",
               minWidth: "180px",
             }}
           >
-            <span className="label-strong whitespace-nowrap text-[24px]" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong whitespace-nowrap" style={{ color: "var(--roads-text-primary)" }}>
               Rate Breakdown
             </span>
           </div>
@@ -340,7 +341,7 @@ export function ProductPricingContent() {
 
         <div className="flex" style={{ gap: "var(--roads-spacing-layout-xs)" }}>
           <div className="flex flex-col flex-1" style={{ gap: "var(--roads-spacing-component-xl)", minWidth: 0 }}>
-            <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
+            <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <ProductField
                 label="Product Type"
                 value={productType}
@@ -467,6 +468,7 @@ export function ProductPricingContent() {
           </div>
         </div>
       </div>
+
       <Dialog open={isLockModalOpen} onOpenChange={setIsLockModalOpen}>
         <DialogContent
           className="p-0 gap-0 max-w-[600px] overflow-clip [&>button:last-child]:hidden"
