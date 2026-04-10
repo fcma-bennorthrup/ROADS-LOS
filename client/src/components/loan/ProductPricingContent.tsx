@@ -100,6 +100,22 @@ function ProductField({
             </option>
           ))}
         </select>
+      ) : isEditing && type === "text" ? (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full outline-none label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+            color: "var(--roads-text-primary)",
+            height: "44px",
+          }}
+          data-testid={`input-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
+        />
       ) : (
         <div
           className="flex items-center w-full"
@@ -134,6 +150,7 @@ export function ProductPricingContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [productType, setProductType] = useState("fixed");
   const [selectedProductId, setSelectedProductId] = useState("4370");
+  const [termOverride, setTermOverride] = useState<string | null>(null);
   const [isRateLocked, setIsRateLocked] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
 
@@ -155,18 +172,20 @@ export function ProductPricingContent() {
     const firstProduct = productData.filter((p) => p.productType === value)[0];
     if (firstProduct) {
       setSelectedProductId(firstProduct.productId);
+      setTermOverride(null);
     }
   };
 
   const handleProductChange = (value: string) => {
     setSelectedProductId(value);
+    setTermOverride(null);
   };
 
-  const savedState = useRef({ productType: "fixed", productId: "4370" });
+  const savedState = useRef({ productType: "fixed", productId: "4370", termOverride: null as string | null });
 
   const handleEditToggle = () => {
     if (!isEditing) {
-      savedState.current = { productType, productId: selectedProductId };
+      savedState.current = { productType, productId: selectedProductId, termOverride };
     }
     setIsEditing(!isEditing);
   };
@@ -174,6 +193,7 @@ export function ProductPricingContent() {
   const handleDiscard = () => {
     setProductType(savedState.current.productType);
     setSelectedProductId(savedState.current.productId);
+    setTermOverride(savedState.current.termOverride);
     setIsEditing(false);
   };
 
@@ -345,8 +365,10 @@ export function ProductPricingContent() {
               />
               <ProductField
                 label="Term (Months)"
-                value={currentProduct.term.toString()}
-                isEditing={false}
+                value={termOverride ?? currentProduct.term.toString()}
+                isEditing={isEditing}
+                type="text"
+                onChange={(v) => setTermOverride(v)}
               />
               <ProductField
                 label="Base Rate"
