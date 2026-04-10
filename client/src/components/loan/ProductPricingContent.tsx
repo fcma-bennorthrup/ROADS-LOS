@@ -569,9 +569,11 @@ export function ProductPricingContent() {
               borderTop: "1px solid var(--roads-border-subtle)",
             }}
           >
-            <span className="body-200-strong" style={{ color: "var(--roads-text-primary)" }}>
-              Initial Rate Lock Period is 45 days.
-            </span>
+            {!isRateLocked && (
+              <span className="body-200-strong" style={{ color: "var(--roads-text-primary)" }}>
+                Initial Rate Lock Period is 45 days.
+              </span>
+            )}
             <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <DialogClose asChild>
                 <button
