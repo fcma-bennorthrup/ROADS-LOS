@@ -230,7 +230,7 @@ export function ProductPricingContent() {
           data-testid="rate-breakdown-card"
         >
           <div
-            className="flex flex-col items-start justify-center"
+            className="flex flex-col items-start justify-center ml-[16px] mr-[16px]"
             style={{
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRight: "1px solid var(--roads-border-subtle)",
