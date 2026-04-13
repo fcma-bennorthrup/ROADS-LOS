@@ -12,7 +12,6 @@ import {
   ListChecks,
   Calendar,
   AlertTriangle,
-  GitBranch,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
@@ -470,29 +469,33 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
           position: "absolute",
           top: "calc(100% + 4px)",
           right: 0,
-          minWidth: 200,
           background: "var(--roads-bg-primary)",
-          border: "1px solid var(--roads-bg-dark)",
-          borderRadius: "var(--roads-radius-md, 6px)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          padding: "4px 0",
+          borderRadius: "var(--roads-radius-2xs, 4px)",
+          boxShadow: "0px 8px 16px rgba(39, 51, 51, 0.24)",
+          padding: "var(--roads-spacing-component-xs, 8px)",
           zIndex: 50,
           visibility: open ? "visible" : "hidden",
           opacity: open ? 1 : 0,
         }}
       >
         <button
-          data-testid="menu-item-github-sync"
-          className="flex items-center w-full label-strong"
+          data-testid="menu-item-prototype-admin"
+          className="body-100"
           style={{
-            gap: "var(--roads-spacing-component-xs)",
-            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-sm)",
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            height: 40,
+            padding: "0 12px",
             color: "var(--roads-text-primary)",
             background: "transparent",
+            borderRadius: "var(--roads-radius-2xs, 4px)",
             cursor: "pointer",
+            whiteSpace: "nowrap",
+            border: "none",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "var(--roads-bg-hover, rgba(0,0,0,0.04))";
+            (e.currentTarget as HTMLElement).style.background = "var(--roads-bg-light, #f9f9f9)";
           }}
           onMouseLeave={(e) => {
             (e.currentTarget as HTMLElement).style.background = "transparent";
@@ -502,7 +505,6 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
             onGitHubSync();
           }}
         >
-          <GitBranch className="w-4 h-4" style={{ color: "var(--roads-icon-dark)" }} />
           Prototype Admin Controls
         </button>
       </div>
