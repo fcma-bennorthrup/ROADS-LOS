@@ -481,13 +481,12 @@ export function CollateralContent() {
               disabled={isSplit}
               className="body-200-strong"
               style={{
-                backgroundColor: isSplit ? "var(--roads-bg-light)" : "var(--roads-bg-action)",
-                color: isSplit ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
+                backgroundColor: isSplit ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+                color: "var(--roads-text-reverse)",
                 padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
                 borderRadius: "var(--roads-radius-2xs)",
-                border: isSplit ? "1px solid var(--roads-border-subtle)" : "none",
+                border: "none",
                 cursor: isSplit ? "not-allowed" : "pointer",
-                opacity: isSplit ? 0.6 : 1,
               }}
               data-testid="button-split-appraisal"
             >

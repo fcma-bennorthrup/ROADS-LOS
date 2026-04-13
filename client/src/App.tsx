@@ -7,6 +7,8 @@ import NotFound from "@/pages/not-found";
 import LoanSummaryPage from "@/pages/loan-summary";
 import LoanOriginationPage from "@/pages/loan-origination";
 import LoanDecisioningPage from "@/pages/loan-decisioning";
+import LoanDocumentsPage from "@/pages/loan-documents";
+import LoanComingSoonPage from "@/pages/loan-coming-soon";
 import { Redirect } from "wouter";
 
 function Router() {
@@ -17,6 +19,9 @@ function Router() {
       </Route>
       <Route path="/loans/:id/origination" component={LoanOriginationPage} />
       <Route path="/loans/:id/decisioning" component={LoanDecisioningPage} />
+      <Route path="/loans/:id/closing-booking">{() => <LoanComingSoonPage tabName="Closing & Booking" />}</Route>
+      <Route path="/loans/:id/documents" component={LoanDocumentsPage} />
+      <Route path="/loans/:id/history">{() => <LoanComingSoonPage tabName="History" />}</Route>
       <Route path="/loans/:id" component={LoanSummaryPage} />
       <Route component={NotFound} />
     </Switch>

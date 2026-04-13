@@ -60,6 +60,9 @@ const TAB_ROUTES: Record<string, string> = {
   Summary: "/loans/:id",
   Origination: "/loans/:id/origination",
   Decisioning: "/loans/:id/decisioning",
+  "Closing & Booking": "/loans/:id/closing-booking",
+  Documents: "/loans/:id/documents",
+  History: "/loans/:id/history",
 };
 
 export function LoanHeader({
