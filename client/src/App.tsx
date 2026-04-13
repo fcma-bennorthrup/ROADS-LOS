@@ -1,3 +1,4 @@
+import { createContext, useContext } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -10,6 +11,23 @@ import LoanDecisioningPage from "@/pages/loan-decisioning";
 import LoanDocumentsPage from "@/pages/loan-documents";
 import LoanComingSoonPage from "@/pages/loan-coming-soon";
 import { Redirect } from "wouter";
+import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
+import { useGitHubSync } from "@/hooks/use-github-sync";
+
+interface GitHubSyncContextValue {
+  pullMutation: ReturnType<typeof useGitHubSync>["pullMutation"];
+  pushMutation: ReturnType<typeof useGitHubSync>["pushMutation"];
+  openConflictDialog: () => void;
+  hasPendingConflicts: boolean;
+}
+
+const GitHubSyncContext = createContext<GitHubSyncContextValue | null>(null);
+
+export function useGitHubSyncContext() {
+  const ctx = useContext(GitHubSyncContext);
+  if (!ctx) throw new Error("useGitHubSyncContext must be used within GitHubSyncProvider");
+  return ctx;
+}
 
 function Router() {
   return (
@@ -28,12 +46,34 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const sync = useGitHubSync();
+
+  return (
+    <GitHubSyncContext.Provider
+      value={{
+        pullMutation: sync.pullMutation,
+        pushMutation: sync.pushMutation,
+        openConflictDialog: sync.openConflictDialog,
+        hasPendingConflicts: sync.hasPendingConflicts,
+      }}
+    >
+      <Router />
+      <ConflictResolutionDialog
+        open={sync.conflictDialogOpen}
+        onOpenChange={sync.setConflictDialogOpen}
+        conflictsData={sync.conflictsData}
+      />
+    </GitHubSyncContext.Provider>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <Router />
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
   );

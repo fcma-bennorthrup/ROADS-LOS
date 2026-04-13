@@ -12,8 +12,10 @@ import {
   ListChecks,
   Calendar,
   AlertTriangle,
+  GitBranch,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -123,6 +125,7 @@ export function LoanHeader({
 }
 
 function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
+  const [syncPanelOpen, setSyncPanelOpen] = useState(false);
   return (
     <div
       className="flex items-center justify-between flex-wrap gap-2"
@@ -179,6 +182,14 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
         </div>
 
         <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <button
+            data-testid="button-github-sync"
+            className="flex items-center justify-center"
+            style={{ color: "var(--roads-icon-dark)" }}
+            onClick={() => setSyncPanelOpen(true)}
+          >
+            <GitBranch className="w-5 h-5" />
+          </button>
           <button data-testid="button-messages" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <MessageSquare className="w-5 h-5" />
           </button>
@@ -190,6 +201,7 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
           </button>
         </div>
       </div>
+      <GitHubSyncPanel open={syncPanelOpen} onOpenChange={setSyncPanelOpen} />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { getAuthenticatedUser, getRepository, createRepository, pushCodebase, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit } from "./github";
+import { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit } from "./github";
 import { getLastSyncedCommit, setLastSyncedCommit } from "./sync-state";
 import { detectPushConflicts, detectPullConflicts, type FileEntry } from "./conflict-detection";
+import { getPendingConflicts, setPendingConflicts, clearPendingConflicts } from "./pending-conflicts";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -200,6 +201,7 @@ export async function registerRoutes(
         }
 
         setLastSyncedCommit(remoteHeadSha);
+        clearPendingConflicts();
         res.json({
           commitSha: remoteHeadSha,
           filesUpdated: updatedCount,
@@ -281,6 +283,15 @@ export async function registerRoutes(
 
       if (report.conflicts.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
+        clearPendingConflicts();
+      } else {
+        setPendingConflicts({
+          operation: "pull",
+          conflicts: report.conflicts,
+          safeToUpdate: [],
+          remoteHeadSha,
+          createdAt: new Date().toISOString(),
+        });
       }
 
       res.json({
@@ -293,10 +304,11 @@ export async function registerRoutes(
         conflicts: report.conflicts.map((c) => ({
           path: c.path,
           reason: c.reason,
-          localContentPreview: c.localContent?.substring(0, 500) ?? null,
-          remoteContentPreview: c.remoteContent?.substring(0, 500) ?? null,
-          baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
+          localContent: c.localContent,
+          remoteContent: c.remoteContent,
+          baseContent: c.baseContent,
         })),
+        hasConflicts: report.conflicts.length > 0,
         message: report.conflicts.length > 0
           ? `Pulled ${updatedCount} files, deleted ${deletedCount}. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.`
           : `Pulled ${updatedCount} files, deleted ${deletedCount} from ${OWNER}/${REPO}`,
@@ -346,16 +358,26 @@ export async function registerRoutes(
         const report = detectPushConflicts(localFiles, remoteFiles, baseFiles);
 
         if (report.conflicts.length > 0) {
+          setPendingConflicts({
+            operation: "push",
+            conflicts: report.conflicts,
+            safeToUpdate: report.safeToUpdate,
+            remoteHeadSha,
+            commitMessage,
+            createdAt: new Date().toISOString(),
+          });
+
           res.status(409).json({
             error: "Push blocked due to conflicts",
-            message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Pull first to resolve conflicts before pushing.`,
+            message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Resolve conflicts before pushing.`,
             conflicts: report.conflicts.map((c) => ({
               path: c.path,
               reason: c.reason,
-              localContentPreview: c.localContent?.substring(0, 500) ?? null,
-              remoteContentPreview: c.remoteContent?.substring(0, 500) ?? null,
-              baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
+              localContent: c.localContent,
+              remoteContent: c.remoteContent,
+              baseContent: c.baseContent,
             })),
+            hasConflicts: true,
             safeFiles: report.safeToUpdate.map((f) => f.path),
             unchangedFiles: report.unchanged,
             safeFileCount: report.safeToUpdate.length,
@@ -367,6 +389,7 @@ export async function registerRoutes(
         const filesToPush = report.safeToUpdate;
         if (filesToPush.length === 0) {
           setLastSyncedCommit(remoteHeadSha);
+          clearPendingConflicts();
           res.json({
             commitSha: remoteHeadSha,
             filesCount: 0,
@@ -380,6 +403,7 @@ export async function registerRoutes(
 
         const result = await pushCodebase(OWNER, REPO, filesToPush, commitMessage);
         setLastSyncedCommit(result.commitSha);
+        clearPendingConflicts();
 
         res.json({
           ...result,
@@ -393,6 +417,7 @@ export async function registerRoutes(
 
       const result = await pushCodebase(OWNER, REPO, localFiles, commitMessage);
       setLastSyncedCommit(result.commitSha);
+      clearPendingConflicts();
 
       res.json({
         ...result,
@@ -403,6 +428,181 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/github/conflicts", async (_req, res) => {
+    try {
+      const pending = getPendingConflicts();
+      if (!pending) {
+        res.json({ hasConflicts: false, conflicts: [], operation: null });
+        return;
+      }
+      res.json({
+        hasConflicts: true,
+        operation: pending.operation,
+        remoteHeadSha: pending.remoteHeadSha,
+        commitMessage: pending.commitMessage || null,
+        createdAt: pending.createdAt,
+        conflicts: pending.conflicts.map((c) => ({
+          path: c.path,
+          reason: c.reason,
+          localContent: c.localContent,
+          remoteContent: c.remoteContent,
+          baseContent: c.baseContent,
+        })),
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  interface ResolutionEntry {
+    path: string;
+    resolvedContent: string | null;
+    operation?: string;
+  }
+
+  app.post("/api/github/resolve-conflicts", async (req, res) => {
+    try {
+      const rawBody = req.body;
+      const resolutions: unknown[] = Array.isArray(rawBody) ? rawBody : rawBody?.resolutions;
+      if (!resolutions || !Array.isArray(resolutions) || resolutions.length === 0) {
+        res.status(400).json({ error: "resolutions array is required and must not be empty" });
+        return;
+      }
+
+      const pending = getPendingConflicts();
+      if (!pending) {
+        res.status(400).json({ error: "No pending conflicts to resolve" });
+        return;
+      }
+
+      const projectRoot = path.resolve(process.cwd());
+      const pendingPaths = new Set(pending.conflicts.map((c) => c.path));
+      const validatedResolutions: ResolutionEntry[] = [];
+      for (const raw of resolutions) {
+        const r = raw as Record<string, unknown>;
+        if (!r.path || typeof r.path !== "string" || (r.resolvedContent !== null && typeof r.resolvedContent !== "string")) {
+          res.status(400).json({ error: `Each resolution must have a "path" (string) and "resolvedContent" (string or null). Invalid entry for: ${(r.path as string) || "unknown"}` });
+          return;
+        }
+        if (!pendingPaths.has(r.path as string)) {
+          res.status(400).json({ error: `File "${r.path}" is not in the pending conflicts list` });
+          return;
+        }
+        const resolvedFullPath = path.resolve(projectRoot, r.path as string);
+        if (!resolvedFullPath.startsWith(projectRoot + path.sep)) {
+          res.status(400).json({ error: `Invalid file path: "${r.path}" escapes project root` });
+          return;
+        }
+        validatedResolutions.push({
+          path: r.path as string,
+          resolvedContent: r.resolvedContent as string | null,
+        });
+      }
+
+      const resolvedPaths = new Set(validatedResolutions.map((r) => r.path));
+      const unresolvedConflicts = pending.conflicts.filter((c) => !resolvedPaths.has(c.path));
+      if (unresolvedConflicts.length > 0) {
+        res.status(400).json({
+          error: `All conflicts must be resolved. Missing resolutions for: ${unresolvedConflicts.map((c) => c.path).join(", ")}`,
+        });
+        return;
+      }
+
+      const writtenFiles: string[] = [];
+      const deletedFiles: string[] = [];
+      for (const r of validatedResolutions) {
+        const fullPath = path.join(projectRoot, r.path);
+        if (r.resolvedContent === null) {
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+          }
+          deletedFiles.push(r.path);
+        } else {
+          const dir = path.dirname(fullPath);
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir, { recursive: true });
+          }
+          fs.writeFileSync(fullPath, r.resolvedContent, "utf-8");
+          writtenFiles.push(r.path);
+        }
+      }
+
+      if (pending.operation === "push") {
+        const branchRef = await githubRequest(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
+        const currentRemoteHead = branchRef.object?.sha as string;
+        if (currentRemoteHead && currentRemoteHead !== pending.remoteHeadSha) {
+          clearPendingConflicts();
+          res.status(409).json({
+            error: "Remote branch has advanced since conflicts were detected. Please pull again to get the latest changes.",
+            staleHead: true,
+          });
+          return;
+        }
+
+        const resolvedFileEntries: FileEntry[] = validatedResolutions
+          .filter((r) => r.resolvedContent !== null)
+          .map((r) => ({ path: r.path, content: r.resolvedContent as string }));
+        const filesToPush = [...pending.safeToUpdate, ...resolvedFileEntries];
+        const filesToDelete = validatedResolutions
+          .filter((r) => r.resolvedContent === null)
+          .map((r) => r.path);
+
+        const commitMessage = pending.commitMessage || "Resolve conflicts and push from Replit";
+
+        if (filesToPush.length === 0 && filesToDelete.length === 0) {
+          setLastSyncedCommit(pending.remoteHeadSha);
+          clearPendingConflicts();
+          res.json({
+            message: "All conflicts resolved — no changes to push.",
+            commitSha: pending.remoteHeadSha,
+            filesResolved: writtenFiles,
+            filesDeleted: deletedFiles,
+            filesPushed: 0,
+            operation: "push",
+          });
+        } else {
+          const result = await pushCodebaseWithDeletions(OWNER, REPO, filesToPush, filesToDelete, commitMessage);
+          setLastSyncedCommit(result.commitSha);
+          clearPendingConflicts();
+
+          res.json({
+            message: `Resolved ${writtenFiles.length} conflict(s)${filesToDelete.length > 0 ? `, deleted ${filesToDelete.length} file(s)` : ""} and pushed ${result.filesCount} files to ${OWNER}/${REPO}`,
+            commitSha: result.commitSha,
+            filesResolved: writtenFiles,
+            filesDeleted: deletedFiles,
+            filesPushed: result.filesCount,
+            operation: "push",
+          });
+        }
+      } else {
+        setLastSyncedCommit(pending.remoteHeadSha);
+        clearPendingConflicts();
+
+        res.json({
+          message: `Resolved ${writtenFiles.length} conflict(s)${deletedFiles.length > 0 ? `, deleted ${deletedFiles.length} file(s)` : ""}. Pull sync complete.`,
+          commitSha: pending.remoteHeadSha,
+          filesResolved: writtenFiles,
+          filesDeleted: deletedFiles,
+          operation: "pull",
+        });
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: message });
+    }
+  });
+
+  app.delete("/api/github/conflicts", async (_req, res) => {
+    try {
+      clearPendingConflicts();
+      res.json({ message: "Pending conflicts cleared" });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: message });
     }
   });
 
