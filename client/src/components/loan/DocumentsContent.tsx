@@ -94,12 +94,9 @@ function DisclosuresContent() {
             style={{
               backgroundColor:
                 generationState === "generating"
-                  ? "var(--roads-bg-dark)"
+                  ? "var(--roads-bg-action-disabled)"
                   : "var(--roads-bg-action)",
-              color:
-                generationState === "generating"
-                  ? "var(--roads-text-tertiary)"
-                  : "var(--roads-text-reverse)",
+              color: "var(--roads-text-reverse)",
               padding:
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
