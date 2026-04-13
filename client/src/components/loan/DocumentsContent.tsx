@@ -107,9 +107,7 @@ function DisclosuresContent() {
             }}
             data-testid="button-generate-loan-estimate"
           >
-            {lastGenerated !== null
-              ? "Regenerate Loan Estimate"
-              : "Generate Loan Estimate"}
+            Generate Loan Estimate
           </button>
 
           <button
