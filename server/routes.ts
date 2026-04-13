@@ -209,14 +209,19 @@ export async function registerRoutes(
 
       const baseFiles = await fetchRemoteFiles(basePaths, lastSyncedSha);
 
+      const allRelevantPaths = new Set([...eligiblePaths, ...basePaths]);
+
       const projectRoot = path.resolve(process.cwd());
       const localFiles: FileEntry[] = [];
-      for (const filePath of eligiblePaths) {
+      for (const filePath of allRelevantPaths) {
         const fullPath = path.join(projectRoot, filePath);
         if (fs.existsSync(fullPath)) {
           try {
-            const content = fs.readFileSync(fullPath, "utf-8");
-            localFiles.push({ path: filePath, content });
+            const stats = fs.statSync(fullPath);
+            if (stats.size <= MAX_FILE_SIZE) {
+              const content = fs.readFileSync(fullPath, "utf-8");
+              localFiles.push({ path: filePath, content });
+            }
           } catch (err) {
             console.warn(`Could not read local file ${filePath}:`, err);
           }
