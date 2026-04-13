@@ -143,10 +143,8 @@ function DisclosuresContent() {
 }
 
 const DOCUMENTS_NAV_ITEMS = [
-  "Customer Documents",
   "Disclosures",
   "Closing Documents",
-  "Other Documents",
 ];
 
 export function DocumentsContent() {
