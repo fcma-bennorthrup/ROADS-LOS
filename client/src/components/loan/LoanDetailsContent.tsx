@@ -188,185 +188,193 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
       </h2>
 
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
-          <LoanDetailField
-            label="Loan Type"
-            value={fields.loanType}
-            displayValue={getLoanTypeLabel(fields.loanType)}
-            isEditing={isEditing}
-            type="dropdown"
-            options={LOAN_TYPE_OPTIONS}
-            onChange={setField("loanType")}
-          />
-          <LoanDetailField
-            label="Loan Purpose"
-            value={fields.loanPurpose}
-            displayValue={getLoanPurposeLabel(fields.loanPurpose)}
-            isEditing={isEditing}
-            type="dropdown"
-            options={LOAN_PURPOSE_OPTIONS}
-            onChange={setField("loanPurpose")}
-          />
-          <LoanDetailField
-            label="Requested Loan Amount"
-            value={fields.requestedLoanAmount}
-            isEditing={isEditing}
-            type="text"
-            onChange={setField("requestedLoanAmount")}
-          />
-          <LoanDetailField
-            label="Down Payment Amount"
-            value={fields.downPaymentAmount}
-            isEditing={isEditing}
-            type="text"
-            onChange={setField("downPaymentAmount")}
-          />
-          <LoanDetailField
-            label="Down Payment Source"
-            value={fields.downPaymentSource}
-            displayValue={getDownPaymentSourceLabel(fields.downPaymentSource)}
-            isEditing={isEditing}
-            type="dropdown"
-            options={DOWN_PAYMENT_SOURCE_OPTIONS}
-            onChange={setField("downPaymentSource")}
-          />
+
+        {/* Fields row + checkboxes: 16px between them */}
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+          <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
+            <LoanDetailField
+              label="Loan Type"
+              value={fields.loanType}
+              displayValue={getLoanTypeLabel(fields.loanType)}
+              isEditing={isEditing}
+              type="dropdown"
+              options={LOAN_TYPE_OPTIONS}
+              onChange={setField("loanType")}
+            />
+            <LoanDetailField
+              label="Loan Purpose"
+              value={fields.loanPurpose}
+              displayValue={getLoanPurposeLabel(fields.loanPurpose)}
+              isEditing={isEditing}
+              type="dropdown"
+              options={LOAN_PURPOSE_OPTIONS}
+              onChange={setField("loanPurpose")}
+            />
+            <LoanDetailField
+              label="Requested Loan Amount"
+              value={fields.requestedLoanAmount}
+              isEditing={isEditing}
+              type="text"
+              onChange={setField("requestedLoanAmount")}
+            />
+            <LoanDetailField
+              label="Down Payment Amount"
+              value={fields.downPaymentAmount}
+              isEditing={isEditing}
+              type="text"
+              onChange={setField("downPaymentAmount")}
+            />
+            <LoanDetailField
+              label="Down Payment Source"
+              value={fields.downPaymentSource}
+              displayValue={getDownPaymentSourceLabel(fields.downPaymentSource)}
+              isEditing={isEditing}
+              type="dropdown"
+              options={DOWN_PAYMENT_SOURCE_OPTIONS}
+              onChange={setField("downPaymentSource")}
+            />
+          </div>
+
+          <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+            <label
+              className="flex items-center body-100"
+              style={{
+                gap: "var(--roads-spacing-component-xs)",
+                color: "var(--roads-text-primary)",
+                cursor: "pointer",
+              }}
+              data-testid="checkbox-intent-to-proceed"
+            >
+              <input
+                type="checkbox"
+                checked={fields.intentToProceed}
+                onChange={(e) => setField("intentToProceed")(e.target.checked)}
+                style={{
+                  width: "var(--roads-spacing-component-l)",
+                  height: "var(--roads-spacing-component-l)",
+                  border: "1px solid var(--roads-border-dark)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  accentColor: "var(--roads-bg-action)",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              />
+              Intent to Proceed
+            </label>
+            <label
+              className="flex items-center body-100"
+              style={{
+                gap: "var(--roads-spacing-component-xs)",
+                color: "var(--roads-text-primary)",
+                cursor: "pointer",
+              }}
+              data-testid="checkbox-brp-loan"
+            >
+              <input
+                type="checkbox"
+                checked={fields.brpLoan}
+                onChange={(e) => setField("brpLoan")(e.target.checked)}
+                style={{
+                  width: "var(--roads-spacing-component-l)",
+                  height: "var(--roads-spacing-component-l)",
+                  border: "1px solid var(--roads-border-dark)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  accentColor: "var(--roads-bg-action)",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
+              />
+              BRP Loan
+            </label>
+          </div>
         </div>
 
-        <div className="flex items-center justify-end">
-          {isEditing ? (
-            <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-              <button
-                onClick={handleDiscard}
-                className="body-200-strong"
-                style={{
-                  backgroundColor: "var(--roads-bg-error)",
-                  border: "1px solid var(--roads-bg-error)",
-                  borderRadius: "var(--roads-radius-2xs)",
-                  padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                  color: "var(--roads-text-reverse)",
-                  cursor: "pointer",
-                }}
-                data-testid="button-discard-loan-details"
-              >
-                Discard Changes
-              </button>
-              <button
-                onClick={handleSave}
-                className="body-200-strong"
-                style={{
-                  backgroundColor: "var(--roads-bg-action)",
-                  color: "var(--roads-text-reverse)",
-                  border: "1px solid var(--roads-bg-action)",
-                  borderRadius: "var(--roads-radius-2xs)",
-                  padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                  cursor: "pointer",
-                }}
-                data-testid="button-save-loan-details"
-              >
-                Save
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={handleEditToggle}
-              className="body-200-strong flex items-center"
+        {/* Tell the Story + Edit button: 24px between them */}
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+              Tell the Story
+            </span>
+            <textarea
+              value={fields.tellTheStory}
+              onChange={(e) => setField("tellTheStory")(e.target.value)}
+              placeholder="Tell the story about the borrower."
+              rows={5}
+              className="w-full outline-none body-100 roads-textarea-placeholder"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
                 border: "1px solid var(--roads-border-dark)",
                 borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
                 color: "var(--roads-text-primary)",
-                gap: "var(--roads-spacing-component-2xs)",
-                cursor: "pointer",
+                resize: "vertical",
+                fontFamily: "var(--roads-font-family)",
               }}
-              data-testid="button-edit-loan-details"
-            >
-              <Pencil
+              data-testid="textarea-tell-the-story"
+            />
+          </div>
+
+          <div className="flex items-center justify-end">
+            {isEditing ? (
+              <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+                <button
+                  onClick={handleDiscard}
+                  className="body-200-strong"
+                  style={{
+                    backgroundColor: "var(--roads-bg-error)",
+                    border: "1px solid var(--roads-bg-error)",
+                    borderRadius: "var(--roads-radius-2xs)",
+                    padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                    color: "var(--roads-text-reverse)",
+                    cursor: "pointer",
+                  }}
+                  data-testid="button-discard-loan-details"
+                >
+                  Discard Changes
+                </button>
+                <button
+                  onClick={handleSave}
+                  className="body-200-strong"
+                  style={{
+                    backgroundColor: "var(--roads-bg-action)",
+                    color: "var(--roads-text-reverse)",
+                    border: "1px solid var(--roads-bg-action)",
+                    borderRadius: "var(--roads-radius-2xs)",
+                    padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                    cursor: "pointer",
+                  }}
+                  data-testid="button-save-loan-details"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={handleEditToggle}
+                className="body-200-strong flex items-center"
                 style={{
-                  width: "var(--roads-spacing-component-m)",
-                  height: "var(--roads-spacing-component-m)",
+                  backgroundColor: "var(--roads-bg-primary)",
+                  border: "1px solid var(--roads-border-dark)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                  color: "var(--roads-text-primary)",
+                  gap: "var(--roads-spacing-component-2xs)",
+                  cursor: "pointer",
                 }}
-              />
-              Edit
-            </button>
-          )}
+                data-testid="button-edit-loan-details"
+              >
+                <Pencil
+                  style={{
+                    width: "var(--roads-spacing-component-m)",
+                    height: "var(--roads-spacing-component-m)",
+                  }}
+                />
+                Edit
+              </button>
+            )}
+          </div>
         </div>
 
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-            Tell the Story
-          </span>
-          <textarea
-            value={fields.tellTheStory}
-            onChange={(e) => setField("tellTheStory")(e.target.value)}
-            placeholder="Tell the story about the borrower."
-            rows={5}
-            className="w-full outline-none body-100 roads-textarea-placeholder"
-            style={{
-              backgroundColor: "var(--roads-bg-primary)",
-              border: "1px solid var(--roads-border-dark)",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-              color: "var(--roads-text-primary)",
-              resize: "vertical",
-              fontFamily: "var(--roads-font-family)",
-            }}
-            data-testid="textarea-tell-the-story"
-          />
-        </div>
-
-        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-          <label
-            className="flex items-center body-100"
-            style={{
-              gap: "var(--roads-spacing-component-xs)",
-              color: "var(--roads-text-primary)",
-              cursor: "pointer",
-            }}
-            data-testid="checkbox-intent-to-proceed"
-          >
-            <input
-              type="checkbox"
-              checked={fields.intentToProceed}
-              onChange={(e) => setField("intentToProceed")(e.target.checked)}
-              style={{
-                width: "var(--roads-spacing-component-l)",
-                height: "var(--roads-spacing-component-l)",
-                border: "1px solid var(--roads-border-dark)",
-                borderRadius: "var(--roads-radius-2xs)",
-                accentColor: "var(--roads-bg-action)",
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-            />
-            Intent to Proceed
-          </label>
-          <label
-            className="flex items-center body-100"
-            style={{
-              gap: "var(--roads-spacing-component-xs)",
-              color: "var(--roads-text-primary)",
-              cursor: "pointer",
-            }}
-            data-testid="checkbox-brp-loan"
-          >
-            <input
-              type="checkbox"
-              checked={fields.brpLoan}
-              onChange={(e) => setField("brpLoan")(e.target.checked)}
-              style={{
-                width: "var(--roads-spacing-component-l)",
-                height: "var(--roads-spacing-component-l)",
-                border: "1px solid var(--roads-border-dark)",
-                borderRadius: "var(--roads-radius-2xs)",
-                accentColor: "var(--roads-bg-action)",
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-            />
-            BRP Loan
-          </label>
-        </div>
       </div>
     </div>
   );
