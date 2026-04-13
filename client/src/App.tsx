@@ -1,4 +1,3 @@
-import { createContext, useContext } from "react";
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -13,21 +12,9 @@ import LoanComingSoonPage from "@/pages/loan-coming-soon";
 import { Redirect } from "wouter";
 import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
 import { useGitHubSync } from "@/hooks/use-github-sync";
+import { GitHubSyncContext } from "@/contexts/github-sync-context";
 
-interface GitHubSyncContextValue {
-  pullMutation: ReturnType<typeof useGitHubSync>["pullMutation"];
-  pushMutation: ReturnType<typeof useGitHubSync>["pushMutation"];
-  openConflictDialog: () => void;
-  hasPendingConflicts: boolean;
-}
-
-const GitHubSyncContext = createContext<GitHubSyncContextValue | null>(null);
-
-export function useGitHubSyncContext() {
-  const ctx = useContext(GitHubSyncContext);
-  if (!ctx) throw new Error("useGitHubSyncContext must be used within GitHubSyncProvider");
-  return ctx;
-}
+export { useGitHubSyncContext } from "@/contexts/github-sync-context";
 
 function Router() {
   return (
