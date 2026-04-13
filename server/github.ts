@@ -127,6 +127,11 @@ export async function getFileContentAtCommit(owner: string, repo: string, filePa
     if (response.encoding === "base64" && response.content) {
       return Buffer.from(response.content, "base64").toString("utf-8");
     }
-  } catch {}
-  return null;
+    return null;
+  } catch (err: any) {
+    if (err.message?.includes("404")) {
+      return null;
+    }
+    throw err;
+  }
 }

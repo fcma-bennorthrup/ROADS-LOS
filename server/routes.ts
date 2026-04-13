@@ -53,26 +53,44 @@ function collectLocalFiles(dir: string, base: string = ""): FileEntry[] {
 
 async function fetchRemoteFiles(treePaths: string[], commitRef: string): Promise<FileEntry[]> {
   const files: FileEntry[] = [];
+  const errors: string[] = [];
   for (const filePath of treePaths) {
     try {
       const content = await getFileContentAtCommit(OWNER, REPO, filePath, commitRef);
       if (content !== null) {
         files.push({ path: filePath, content });
       }
-    } catch {}
+    } catch (err: any) {
+      if (err.message?.includes("404")) {
+        continue;
+      }
+      errors.push(`${filePath}: ${err.message}`);
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(`Failed to fetch ${errors.length} file(s) from commit ${commitRef}: ${errors.slice(0, 5).join("; ")}`);
   }
   return files;
 }
 
 async function fetchRemoteFilesAtHead(treePaths: string[]): Promise<FileEntry[]> {
   const files: FileEntry[] = [];
+  const errors: string[] = [];
   for (const filePath of treePaths) {
     try {
       const content = await getFileContent(OWNER, REPO, filePath);
       if (content !== null) {
         files.push({ path: filePath, content });
       }
-    } catch {}
+    } catch (err: any) {
+      if (err.message?.includes("404")) {
+        continue;
+      }
+      errors.push(`${filePath}: ${err.message}`);
+    }
+  }
+  if (errors.length > 0) {
+    throw new Error(`Failed to fetch ${errors.length} file(s) from remote HEAD: ${errors.slice(0, 5).join("; ")}`);
   }
   return files;
 }
@@ -195,15 +213,18 @@ export async function registerRoutes(
 
       const remoteFiles = await fetchRemoteFilesAtHead(eligiblePaths);
 
-      let baseTree: any[] = [];
+      let baseTree: any[];
       try {
         const baseData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
         baseTree = baseData.tree;
       } catch (err) {
-        console.warn(`Could not fetch base tree at ${lastSyncedSha}, treating all files as new:`, err);
+        res.status(500).json({
+          error: `Could not fetch base commit ${lastSyncedSha}. The sync state may be stale. Try a force pull with { "force": true } to re-sync.`,
+        });
+        return;
       }
 
-      const basePaths = baseTree
+      const basePaths: string[] = baseTree
         .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
         .map((item: any) => item.path);
 
@@ -307,7 +328,7 @@ export async function registerRoutes(
 
         const remoteFiles = await fetchRemoteFilesAtHead(eligibleRemotePaths);
 
-        let baseFiles: FileEntry[] = [];
+        let baseFiles: FileEntry[];
         try {
           const baseTree = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
           const basePaths = baseTree.tree
@@ -316,7 +337,10 @@ export async function registerRoutes(
             .filter((p: string) => unionPaths.has(p));
           baseFiles = await fetchRemoteFiles(basePaths, lastSyncedSha);
         } catch (err) {
-          console.warn(`Could not fetch base tree at ${lastSyncedSha} for push comparison, treating all remote files as new:`, err);
+          res.status(500).json({
+            error: `Could not fetch base commit ${lastSyncedSha} for comparison. The sync state may be stale. Try a force push with { "force": true } to push without conflict checks, or force pull first to re-sync.`,
+          });
+          return;
         }
 
         const report = detectPushConflicts(localFiles, remoteFiles, baseFiles);
