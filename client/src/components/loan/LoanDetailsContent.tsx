@@ -239,8 +239,8 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               className="flex items-center body-100"
               style={{
                 gap: "var(--roads-spacing-component-xs)",
-                color: "var(--roads-text-primary)",
-                cursor: "pointer",
+                color: isEditing ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
+                cursor: isEditing ? "pointer" : "default",
               }}
               data-testid="checkbox-intent-to-proceed"
             >
@@ -248,13 +248,14 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
                 type="checkbox"
                 checked={fields.intentToProceed}
                 onChange={(e) => setField("intentToProceed")(e.target.checked)}
+                disabled={!isEditing}
                 style={{
                   width: "var(--roads-spacing-component-l)",
                   height: "var(--roads-spacing-component-l)",
-                  border: "1px solid var(--roads-border-dark)",
+                  border: isEditing ? "1px solid var(--roads-border-dark)" : "1px solid var(--roads-border-subtle)",
                   borderRadius: "var(--roads-radius-2xs)",
                   accentColor: "var(--roads-bg-action)",
-                  cursor: "pointer",
+                  cursor: isEditing ? "pointer" : "default",
                   flexShrink: 0,
                 }}
               />
@@ -264,8 +265,8 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               className="flex items-center body-100"
               style={{
                 gap: "var(--roads-spacing-component-xs)",
-                color: "var(--roads-text-primary)",
-                cursor: "pointer",
+                color: isEditing ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
+                cursor: isEditing ? "pointer" : "default",
               }}
               data-testid="checkbox-brp-loan"
             >
@@ -273,13 +274,14 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
                 type="checkbox"
                 checked={fields.brpLoan}
                 onChange={(e) => setField("brpLoan")(e.target.checked)}
+                disabled={!isEditing}
                 style={{
                   width: "var(--roads-spacing-component-l)",
                   height: "var(--roads-spacing-component-l)",
-                  border: "1px solid var(--roads-border-dark)",
+                  border: isEditing ? "1px solid var(--roads-border-dark)" : "1px solid var(--roads-border-subtle)",
                   borderRadius: "var(--roads-radius-2xs)",
                   accentColor: "var(--roads-bg-action)",
-                  cursor: "pointer",
+                  cursor: isEditing ? "pointer" : "default",
                   flexShrink: 0,
                 }}
               />
