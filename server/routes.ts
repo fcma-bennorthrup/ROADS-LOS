@@ -245,10 +245,14 @@ export async function registerRoutes(
       res.json({
         commitSha: remoteHeadSha,
         filesUpdated: updatedCount,
-        filesUnchanged: report.unchanged.length,
+        safeFiles: report.safeToUpdate.map((f) => f.path),
+        unchangedFiles: report.unchanged,
         conflicts: report.conflicts.map((c) => ({
           path: c.path,
           reason: "Modified both locally and remotely since last sync",
+          localContentPreview: c.localContent.substring(0, 500),
+          remoteContentPreview: c.remoteContent.substring(0, 500),
+          baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
         })),
         message: report.conflicts.length > 0
           ? `Pulled ${updatedCount} files. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.`
@@ -301,12 +305,43 @@ export async function registerRoutes(
             conflicts: report.conflicts.map((c) => ({
               path: c.path,
               reason: "Modified both locally and remotely since last sync",
+              localContentPreview: c.localContent.substring(0, 500),
+              remoteContentPreview: c.remoteContent.substring(0, 500),
+              baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
             })),
+            safeFiles: report.safeToUpdate.map((f) => f.path),
+            unchangedFiles: report.unchanged,
             safeFileCount: report.safeToUpdate.length,
             conflictFileCount: report.conflicts.length,
           });
           return;
         }
+
+        const filesToPush = report.safeToUpdate;
+        if (filesToPush.length === 0) {
+          setLastSyncedCommit(remoteHeadSha);
+          res.json({
+            commitSha: remoteHeadSha,
+            filesCount: 0,
+            conflicts: [],
+            safeFiles: [],
+            unchangedFiles: report.unchanged,
+            message: "No local changes to push — all files are unchanged since last sync.",
+          });
+          return;
+        }
+
+        const result = await pushCodebase(OWNER, REPO, filesToPush, commitMessage);
+        setLastSyncedCommit(result.commitSha);
+
+        res.json({
+          ...result,
+          conflicts: [],
+          safeFiles: filesToPush.map((f) => f.path),
+          unchangedFiles: report.unchanged,
+          message: `Successfully pushed ${result.filesCount} locally-changed files to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)`,
+        });
+        return;
       }
 
       const result = await pushCodebase(OWNER, REPO, localFiles, commitMessage);
@@ -315,6 +350,8 @@ export async function registerRoutes(
       res.json({
         ...result,
         conflicts: [],
+        safeFiles: localFiles.map((f) => f.path),
+        unchangedFiles: [],
         message: `Successfully pushed ${result.filesCount} files to ${OWNER}/${REPO}`,
       });
     } catch (error: any) {
