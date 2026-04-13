@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   Menu,
@@ -14,6 +14,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -60,6 +61,9 @@ const TAB_ROUTES: Record<string, string> = {
   Summary: "/loans/:id",
   Origination: "/loans/:id/origination",
   Decisioning: "/loans/:id/decisioning",
+  "Closing & Booking": "/loans/:id/closing-booking",
+  Documents: "/loans/:id/documents",
+  History: "/loans/:id/history",
 };
 
 export function LoanHeader({
@@ -120,6 +124,7 @@ export function LoanHeader({
 }
 
 function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
+  const [syncPanelOpen, setSyncPanelOpen] = useState(false);
   return (
     <div
       className="flex items-center justify-between flex-wrap gap-2"
@@ -182,11 +187,12 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
           <button data-testid="button-sidebar-toggle" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <PanelRight className="w-5 h-5" />
           </button>
-          <button data-testid="button-more-options" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
-            <MoreVertical className="w-5 h-5" />
-          </button>
+          <MoreOptionsMenu
+            onGitHubSync={() => setSyncPanelOpen(true)}
+          />
         </div>
       </div>
+      <GitHubSyncPanel open={syncPanelOpen} onOpenChange={setSyncPanelOpen} />
     </div>
   );
 }
@@ -429,6 +435,79 @@ export function BottomToolbar() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        data-testid="button-more-options"
+        className="flex items-center justify-center"
+        style={{ color: "var(--roads-icon-dark)" }}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <MoreVertical className="w-5 h-5" />
+      </button>
+      <div
+        style={{
+          position: "absolute",
+          top: "calc(100% + 4px)",
+          right: 0,
+          background: "var(--roads-bg-primary)",
+          borderRadius: "var(--roads-radius-2xs, 4px)",
+          boxShadow: "0px 8px 16px rgba(39, 51, 51, 0.24)",
+          padding: "var(--roads-spacing-component-xs, 8px)",
+          zIndex: 50,
+          visibility: open ? "visible" : "hidden",
+          opacity: open ? 1 : 0,
+        }}
+      >
+        <button
+          data-testid="menu-item-prototype-admin"
+          className="body-100"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            width: "100%",
+            height: 40,
+            padding: "0 12px",
+            color: "var(--roads-text-primary)",
+            background: "transparent",
+            borderRadius: "var(--roads-radius-2xs, 4px)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            border: "none",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "var(--roads-bg-light, #f9f9f9)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+          }}
+          onClick={() => {
+            setOpen(false);
+            onGitHubSync();
+          }}
+        >
+          Prototype Admin Controls
+        </button>
+      </div>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export class MemStorage implements IStorage {
       stage: "Loan Setup",
       primaryBorrowerName: "Richard Jamerson",
       displayAmount: "150000.00",
-      amountRequested: "200000.00",
+      amountRequested: "145000.00",
       financedFees: "4455.00",
       taxesInsurance: "1000.00",
       product: "1/1 ARM 2/6 caps",

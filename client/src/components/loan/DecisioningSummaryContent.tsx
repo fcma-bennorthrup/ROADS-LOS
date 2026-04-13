@@ -48,13 +48,12 @@ export function DecisioningSummaryContent() {
             disabled={isDecisioned}
             className="body-200-strong"
             style={{
-              backgroundColor: isDecisioned ? "var(--roads-bg-light)" : "var(--roads-bg-action)",
-              color: isDecisioned ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
+              backgroundColor: isDecisioned ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+              color: "var(--roads-text-reverse)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
-              border: isDecisioned ? "1px solid var(--roads-border-subtle)" : "none",
+              border: "none",
               cursor: isDecisioned ? "not-allowed" : "pointer",
-              opacity: isDecisioned ? 0.6 : 1,
             }}
             data-testid="button-decision-loan"
           >
@@ -107,13 +106,12 @@ export function DecisioningSummaryContent() {
             disabled={creditPulled}
             className="body-200-strong whitespace-nowrap"
             style={{
-              backgroundColor: creditPulled ? "var(--roads-bg-light)" : "var(--roads-bg-action)",
-              color: creditPulled ? "var(--roads-text-secondary)" : "var(--roads-text-reverse)",
+              backgroundColor: creditPulled ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+              color: "var(--roads-text-reverse)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
-              border: creditPulled ? "1px solid var(--roads-border-subtle)" : "none",
+              border: "none",
               cursor: creditPulled ? "not-allowed" : "pointer",
-              opacity: creditPulled ? 0.6 : 1,
             }}
             data-testid="button-pull-credit"
           >

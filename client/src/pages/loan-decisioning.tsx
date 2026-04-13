@@ -19,8 +19,6 @@ function formatCurrency(value: string): string {
 const DECISIONING_NAV_ITEMS = [
   "Decisioning Summary",
   "Borrower Financials",
-  "Item 3",
-  "Item 4",
 ];
 
 function ComingSoon({ page }: { page: string }) {

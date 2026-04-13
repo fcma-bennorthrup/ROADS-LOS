@@ -86,7 +86,20 @@ shared/
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details
 - `POST /api/github/repo` - Create ROADS-LOS repository (one-time setup)
-- `POST /api/github/push` - Push codebase to GitHub
+- `GET /api/github/sync-status` - Sync status (last synced SHA vs remote HEAD)
+- `POST /api/github/pull` - Pull from GitHub (with conflict detection)
+- `POST /api/github/push` - Push codebase to GitHub (with conflict detection)
+- `GET /api/github/conflicts` - Get pending unresolved conflicts with full file content
+- `POST /api/github/resolve-conflicts` - Resolve all pending conflicts and complete sync
+- `DELETE /api/github/conflicts` - Dismiss/clear pending conflicts
+
+## Conflict Resolution
+- Conflicts detected during push/pull are stored server-side in `.local/pending-conflicts.json`
+- `server/pending-conflicts.ts` manages the pending conflicts lifecycle
+- `client/src/components/ConflictResolutionDialog.tsx` provides the resolution UI
+- Resolution UI shows side-by-side diff, per-file "Keep Mine" / "Take Theirs" / "Edit Manually" controls
+- For pull conflicts: resolving writes chosen content locally and updates sync SHA
+- For push conflicts: resolving writes locally then re-pushes all files to GitHub
 
 ## Running
 - Workflow "Start application" runs `npm run dev`
