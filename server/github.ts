@@ -8,11 +8,17 @@ export async function githubRequest(endpoint: string, options: { method?: string
     ...(options.body ? { body: JSON.stringify(options.body), headers: { "Content-Type": "application/json" } } : {}),
   });
   const text = await response.text();
+  let parsed: any;
   try {
-    return JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch {
     throw new Error(`GitHub API returned non-JSON (status ${response.status}): ${text.substring(0, 200)}`);
   }
+  if (!response.ok) {
+    const msg = parsed?.message || text.substring(0, 200);
+    throw new Error(`GitHub API error ${response.status} on ${options.method || "GET"} ${endpoint}: ${msg}`);
+  }
+  return parsed;
 }
 
 export async function getAuthenticatedUser() {
@@ -101,10 +107,26 @@ export async function getRepoTree(owner: string, repo: string, branch: string = 
   return { commitSha, tree: tree.tree };
 }
 
+export async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: string) {
+  const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
+  const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
+  return { commitSha, tree: tree.tree };
+}
+
 export async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
   const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
   if (response.encoding === "base64" && response.content) {
     return Buffer.from(response.content, "base64").toString("utf-8");
   }
+  return null;
+}
+
+export async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string): Promise<string | null> {
+  try {
+    const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
+    if (response.encoding === "base64" && response.content) {
+      return Buffer.from(response.content, "base64").toString("utf-8");
+    }
+  } catch {}
   return null;
 }
