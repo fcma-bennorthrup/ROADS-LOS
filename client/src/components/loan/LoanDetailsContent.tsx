@@ -112,6 +112,7 @@ const LOAN_PURPOSE_OPTIONS = [
 
 const DOWN_PAYMENT_SOURCE_OPTIONS = [
   { value: "", label: "Select..." },
+  { value: "cash_on_hand", label: "Cash on hand" },
   { value: "savings", label: "Savings" },
   { value: "gift", label: "Gift" },
   { value: "sale_of_property", label: "Sale of Property" },
@@ -128,8 +129,8 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
     loanType: "purchase",
     loanPurpose: "lot",
     requestedLoanAmount: initialRequestedLoanAmount,
-    downPaymentAmount: "",
-    downPaymentSource: "",
+    downPaymentAmount: "$50,000.00",
+    downPaymentSource: "cash_on_hand",
     tellTheStory: "",
     intentToProceed: false,
     brpLoan: false,
