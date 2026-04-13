@@ -98,16 +98,15 @@ interface LoanDetailsState {
 
 const LOAN_TYPE_OPTIONS = [
   { value: "purchase", label: "Purchase" },
-  { value: "refinance", label: "Refinance" },
   { value: "construction", label: "Construction" },
-  { value: "home_equity", label: "Home Equity" },
+  { value: "cash_out", label: "Cash Out" },
+  { value: "refinance", label: "Refinance" },
 ];
 
 const LOAN_PURPOSE_OPTIONS = [
-  { value: "lot", label: "Lot" },
-  { value: "primary_residence", label: "Primary Residence" },
-  { value: "second_home", label: "Second Home" },
-  { value: "investment", label: "Investment" },
+  { value: "primary_dwelling", label: "Primary Dwelling" },
+  { value: "land_lot", label: "Land/Lot" },
+  { value: "other", label: "Other" },
 ];
 
 const DOWN_PAYMENT_SOURCE_OPTIONS = [
@@ -127,7 +126,7 @@ interface LoanDetailsContentProps {
 export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDetailsContentProps) {
   const defaultState: LoanDetailsState = {
     loanType: "purchase",
-    loanPurpose: "lot",
+    loanPurpose: "land_lot",
     requestedLoanAmount: initialRequestedLoanAmount,
     downPaymentAmount: "$50,000.00",
     downPaymentSource: "cash_on_hand",
