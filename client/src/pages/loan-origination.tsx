@@ -17,6 +17,11 @@ function formatCurrency(value: string): string {
   return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function formatAmount(value: string): string {
+  const num = parseFloat(value);
+  return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function ComingSoon({ page }: { page: string }) {
   const message = page === "Fees" ? "Welcome to the party" : "Coming Soon";
   return (
@@ -95,7 +100,9 @@ export default function LoanOriginationPage() {
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Collateral" && <CollateralContent />}
           {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
-          {activeNavItem === "Loan Details" && <LoanDetailsContent />}
+          {activeNavItem === "Loan Details" && (
+            <LoanDetailsContent initialRequestedLoanAmount={formatAmount(loan.amountRequested)} />
+          )}
           {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && <ComingSoon page={activeNavItem} />}
         </div>
       </div>

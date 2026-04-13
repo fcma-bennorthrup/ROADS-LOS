@@ -1,13 +1,6 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 
-interface LoanDetailsField {
-  label: string;
-  value: string;
-  type: "text" | "dropdown";
-  options?: { value: string; label: string }[];
-}
-
 function LoanDetailField({
   label,
   value,
@@ -29,7 +22,7 @@ function LoanDetailField({
   return (
     <div
       className="flex flex-col"
-      style={{ flex: "1 1 0", minWidth: "120px", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ flex: "1 1 0", gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`loan-detail-field-${testId}`}
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -46,7 +39,6 @@ function LoanDetailField({
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
             color: "var(--roads-text-primary)",
-            height: "44px",
           }}
           data-testid={`select-${testId}`}
         >
@@ -68,7 +60,6 @@ function LoanDetailField({
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
             color: "var(--roads-text-primary)",
-            height: "44px",
           }}
           data-testid={`input-${testId}`}
         />
@@ -80,12 +71,11 @@ function LoanDetailField({
             border: "1px solid var(--roads-border-subtle)",
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-            height: "44px",
           }}
         >
           <span
             className="label-strong"
-            style={{ flex: 1, color: "var(--roads-text-primary)", minHeight: "20px", display: "block" }}
+            style={{ flex: 1, color: "var(--roads-text-primary)", display: "block" }}
           >
             {displayValue || value || "\u00A0"}
           </span>
@@ -129,21 +119,25 @@ const DOWN_PAYMENT_SOURCE_OPTIONS = [
   { value: "other", label: "Other" },
 ];
 
-const DEFAULT_STATE: LoanDetailsState = {
-  loanType: "purchase",
-  loanPurpose: "lot",
-  requestedLoanAmount: "145,000.00",
-  downPaymentAmount: "",
-  downPaymentSource: "",
-  tellTheStory: "",
-  intentToProceed: false,
-  brpLoan: false,
-};
+interface LoanDetailsContentProps {
+  initialRequestedLoanAmount?: string;
+}
 
-export function LoanDetailsContent() {
+export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDetailsContentProps) {
+  const defaultState: LoanDetailsState = {
+    loanType: "purchase",
+    loanPurpose: "lot",
+    requestedLoanAmount: initialRequestedLoanAmount,
+    downPaymentAmount: "",
+    downPaymentSource: "",
+    tellTheStory: "",
+    intentToProceed: false,
+    brpLoan: false,
+  };
+
   const [isEditing, setIsEditing] = useState(false);
-  const [fields, setFields] = useState<LoanDetailsState>({ ...DEFAULT_STATE });
-  const savedFields = useRef<LoanDetailsState>({ ...DEFAULT_STATE });
+  const [fields, setFields] = useState<LoanDetailsState>({ ...defaultState });
+  const savedFields = useRef<LoanDetailsState>({ ...defaultState });
 
   const handleEditToggle = () => {
     if (!isEditing) {
@@ -286,7 +280,12 @@ export function LoanDetailsContent() {
               }}
               data-testid="button-edit-loan-details"
             >
-              <Pencil style={{ width: 12, height: 12 }} />
+              <Pencil
+                style={{
+                  width: "var(--roads-spacing-component-m)",
+                  height: "var(--roads-spacing-component-m)",
+                }}
+              />
               Edit
             </button>
           )}
@@ -318,7 +317,11 @@ export function LoanDetailsContent() {
         <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xl)" }}>
           <label
             className="flex items-center body-100"
-            style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)", cursor: "pointer" }}
+            style={{
+              gap: "var(--roads-spacing-component-xs)",
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
+            }}
             data-testid="checkbox-intent-to-proceed"
           >
             <input
@@ -326,8 +329,8 @@ export function LoanDetailsContent() {
               checked={fields.intentToProceed}
               onChange={(e) => setField("intentToProceed")(e.target.checked)}
               style={{
-                width: "16px",
-                height: "16px",
+                width: "var(--roads-spacing-component-l)",
+                height: "var(--roads-spacing-component-l)",
                 border: "1px solid var(--roads-border-dark)",
                 borderRadius: "var(--roads-radius-2xs)",
                 accentColor: "var(--roads-bg-action)",
@@ -339,7 +342,11 @@ export function LoanDetailsContent() {
           </label>
           <label
             className="flex items-center body-100"
-            style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)", cursor: "pointer" }}
+            style={{
+              gap: "var(--roads-spacing-component-xs)",
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
+            }}
             data-testid="checkbox-brp-loan"
           >
             <input
@@ -347,8 +354,8 @@ export function LoanDetailsContent() {
               checked={fields.brpLoan}
               onChange={(e) => setField("brpLoan")(e.target.checked)}
               style={{
-                width: "16px",
-                height: "16px",
+                width: "var(--roads-spacing-component-l)",
+                height: "var(--roads-spacing-component-l)",
                 border: "1px solid var(--roads-border-dark)",
                 borderRadius: "var(--roads-radius-2xs)",
                 accentColor: "var(--roads-bg-action)",
