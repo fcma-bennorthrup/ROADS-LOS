@@ -30,8 +30,8 @@ const productData: ProductEntry[] = [
   { productType: "fixed", productId: "4374", label: "4374 - 30 year fixed", term: 360, baseRate: 6.75 },
 ];
 
-const totalAdjustments = 0.625;
-const totalDiscounts = 0.25;
+const totalAdjustments = 0.65;
+const totalDiscounts = 0;
 
 const rateAdjustments = [
   { label: "FICO Score", value: "0.025%" },
@@ -70,7 +70,7 @@ function ProductField({
   return (
     <div
       className="flex flex-col"
-      style={{ width: "288px", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ flex: "1 1 0", minWidth: "120px", gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`form-field-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
     >
       <span
@@ -100,6 +100,22 @@ function ProductField({
             </option>
           ))}
         </select>
+      ) : isEditing && type === "text" ? (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className="w-full outline-none label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+            color: "var(--roads-text-primary)",
+            height: "44px",
+          }}
+          data-testid={`input-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
+        />
       ) : (
         <div
           className="flex items-center w-full"
@@ -134,8 +150,10 @@ export function ProductPricingContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [productType, setProductType] = useState("fixed");
   const [selectedProductId, setSelectedProductId] = useState("4370");
+  const [termOverride, setTermOverride] = useState<string | null>(null);
   const [isRateLocked, setIsRateLocked] = useState(false);
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [lockDate, setLockDate] = useState(getLockDate());
 
   const filteredProducts = useMemo(
     () => productData.filter((p) => p.productType === productType),
@@ -155,18 +173,20 @@ export function ProductPricingContent() {
     const firstProduct = productData.filter((p) => p.productType === value)[0];
     if (firstProduct) {
       setSelectedProductId(firstProduct.productId);
+      setTermOverride(null);
     }
   };
 
   const handleProductChange = (value: string) => {
     setSelectedProductId(value);
+    setTermOverride(null);
   };
 
-  const savedState = useRef({ productType: "fixed", productId: "4370" });
+  const savedState = useRef({ productType: "fixed", productId: "4370", termOverride: null as string | null });
 
   const handleEditToggle = () => {
     if (!isEditing) {
-      savedState.current = { productType, productId: selectedProductId };
+      savedState.current = { productType, productId: selectedProductId, termOverride };
     }
     setIsEditing(!isEditing);
   };
@@ -174,6 +194,7 @@ export function ProductPricingContent() {
   const handleDiscard = () => {
     setProductType(savedState.current.productType);
     setSelectedProductId(savedState.current.productId);
+    setTermOverride(savedState.current.termOverride);
     setIsEditing(false);
   };
 
@@ -321,7 +342,7 @@ export function ProductPricingContent() {
 
         <div className="flex" style={{ gap: "var(--roads-spacing-layout-xs)" }}>
           <div className="flex flex-col flex-1" style={{ gap: "var(--roads-spacing-component-xl)", minWidth: 0 }}>
-            <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
+            <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <ProductField
                 label="Product Type"
                 value={productType}
@@ -345,8 +366,10 @@ export function ProductPricingContent() {
               />
               <ProductField
                 label="Term (Months)"
-                value={currentProduct.term.toString()}
-                isEditing={false}
+                value={termOverride ?? currentProduct.term.toString()}
+                isEditing={isEditing}
+                type="text"
+                onChange={(v) => setTermOverride(v)}
               />
               <ProductField
                 label="Base Rate"
@@ -467,7 +490,7 @@ export function ProductPricingContent() {
                 className="headline-200"
                 style={{ color: "var(--roads-text-primary)" }}
               >
-                Rate Lock
+                {isRateLocked ? "Edit Rate Lock" : "Rate Lock"}
               </DialogTitle>
               <DialogClose asChild>
                 <button
@@ -517,16 +540,22 @@ export function ProductPricingContent() {
                     height: "44px",
                   }}
                 >
-                  <span
-                    className="label-strong"
+                  <input
+                    type="text"
+                    value={lockDate}
+                    onChange={(e) => setLockDate(e.target.value)}
+                    disabled={!isRateLocked}
+                    className="label-strong outline-none"
                     style={{
                       flex: 1,
                       color: "var(--roads-text-primary)",
+                      border: "none",
+                      background: "transparent",
+                      cursor: isRateLocked ? "text" : "not-allowed",
+                      opacity: isRateLocked ? 1 : 0.7,
                     }}
                     data-testid="input-lock-date"
-                  >
-                    {getLockDate()}
-                  </span>
+                  />
                   <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
                 </div>
               </div>
@@ -540,9 +569,13 @@ export function ProductPricingContent() {
               borderTop: "1px solid var(--roads-border-subtle)",
             }}
           >
-            <span className="body-200-strong" style={{ color: "var(--roads-text-primary)" }}>
-              Initial Rate Lock Period is 45 days.
-            </span>
+            {isRateLocked ? (
+              <div />
+            ) : (
+              <span className="body-200-strong" style={{ color: "var(--roads-text-primary)" }}>
+                Initial Rate Lock Period is 45 days.
+              </span>
+            )}
             <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <DialogClose asChild>
                 <button
@@ -573,7 +606,7 @@ export function ProductPricingContent() {
                 }}
                 data-testid="button-confirm-lock-rate"
               >
-                Lock Rate
+                {isRateLocked ? "Update Rate Lock" : "Lock Rate"}
               </button>
             </div>
           </div>
