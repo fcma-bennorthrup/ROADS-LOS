@@ -471,10 +471,11 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
           top: "calc(100% + 4px)",
           right: 0,
           minWidth: 200,
-          background: "var(--roads-bg-surface)",
-          border: "1px solid var(--roads-border-default)",
+          background: "var(--roads-bg-primary)",
+          border: "1px solid var(--roads-bg-dark)",
           borderRadius: "var(--roads-radius-md, 6px)",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          padding: "4px 0",
           zIndex: 50,
           visibility: open ? "visible" : "hidden",
           opacity: open ? 1 : 0,
@@ -502,7 +503,7 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
           }}
         >
           <GitBranch className="w-4 h-4" style={{ color: "var(--roads-icon-dark)" }} />
-          GitHub Sync
+          Prototype Admin Controls
         </button>
       </div>
     </div>
