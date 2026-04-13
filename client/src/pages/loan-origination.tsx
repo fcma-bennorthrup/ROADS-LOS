@@ -5,6 +5,7 @@ import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { CollateralContent } from "@/components/loan/CollateralContent";
 import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
+import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -94,7 +95,10 @@ export default function LoanOriginationPage() {
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Collateral" && <CollateralContent />}
           {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
-          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && <ComingSoon page={activeNavItem} />}
+          {activeNavItem === "Loan Details" && (
+            <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
+          )}
+          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && <ComingSoon page={activeNavItem} />}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
