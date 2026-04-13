@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
   Menu,
@@ -182,23 +182,15 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
         </div>
 
         <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          <button
-            data-testid="button-github-sync"
-            className="flex items-center justify-center"
-            style={{ color: "var(--roads-icon-dark)" }}
-            onClick={() => setSyncPanelOpen(true)}
-          >
-            <GitBranch className="w-5 h-5" />
-          </button>
           <button data-testid="button-messages" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <MessageSquare className="w-5 h-5" />
           </button>
           <button data-testid="button-sidebar-toggle" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <PanelRight className="w-5 h-5" />
           </button>
-          <button data-testid="button-more-options" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
-            <MoreVertical className="w-5 h-5" />
-          </button>
+          <MoreOptionsMenu
+            onGitHubSync={() => setSyncPanelOpen(true)}
+          />
         </div>
       </div>
       <GitHubSyncPanel open={syncPanelOpen} onOpenChange={setSyncPanelOpen} />
@@ -444,6 +436,75 @@ export function BottomToolbar() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        data-testid="button-more-options"
+        className="flex items-center justify-center"
+        style={{ color: "var(--roads-icon-dark)" }}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <MoreVertical className="w-5 h-5" />
+      </button>
+      <div
+        style={{
+          position: "absolute",
+          top: "calc(100% + 4px)",
+          right: 0,
+          minWidth: 200,
+          background: "var(--roads-bg-surface)",
+          border: "1px solid var(--roads-border-default)",
+          borderRadius: "var(--roads-radius-md, 6px)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+          zIndex: 50,
+          visibility: open ? "visible" : "hidden",
+          opacity: open ? 1 : 0,
+        }}
+      >
+        <button
+          data-testid="menu-item-github-sync"
+          className="flex items-center w-full label-strong"
+          style={{
+            gap: "var(--roads-spacing-component-xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-sm)",
+            color: "var(--roads-text-primary)",
+            background: "transparent",
+            cursor: "pointer",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "var(--roads-bg-hover, rgba(0,0,0,0.04))";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "transparent";
+          }}
+          onClick={() => {
+            setOpen(false);
+            onGitHubSync();
+          }}
+        >
+          <GitBranch className="w-4 h-4" style={{ color: "var(--roads-icon-dark)" }} />
+          GitHub Sync
+        </button>
+      </div>
     </div>
   );
 }
