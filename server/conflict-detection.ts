@@ -7,13 +7,15 @@ export interface ConflictReport {
   safeToUpdate: FileEntry[];
   conflicts: ConflictedFile[];
   unchanged: string[];
+  safeToDelete: string[];
 }
 
 export interface ConflictedFile {
   path: string;
-  localContent: string;
-  remoteContent: string;
+  localContent: string | null;
+  remoteContent: string | null;
   baseContent: string | null;
+  reason: string;
 }
 
 function buildContentMap(files: FileEntry[]): Map<string, string> {
@@ -29,35 +31,72 @@ export function detectPushConflicts(
   remoteFiles: FileEntry[],
   baseFiles: FileEntry[]
 ): ConflictReport {
+  const localMap = buildContentMap(localFiles);
   const remoteMap = buildContentMap(remoteFiles);
   const baseMap = buildContentMap(baseFiles);
+
+  const allPaths = new Set([
+    ...localMap.keys(),
+    ...remoteMap.keys(),
+    ...baseMap.keys(),
+  ]);
 
   const safeToUpdate: FileEntry[] = [];
   const conflicts: ConflictedFile[] = [];
   const unchanged: string[] = [];
+  const safeToDelete: string[] = [];
 
-  for (const localFile of localFiles) {
-    const remoteContent = remoteMap.get(localFile.path);
-    const baseContent = baseMap.get(localFile.path) ?? null;
+  for (const filePath of allPaths) {
+    const local = localMap.get(filePath) ?? null;
+    const remote = remoteMap.get(filePath) ?? null;
+    const base = baseMap.get(filePath) ?? null;
 
-    const localChanged = baseContent === null || localFile.content !== baseContent;
-    const remoteChanged = remoteContent !== undefined && remoteContent !== (baseContent ?? undefined) && remoteContent !== localFile.content;
+    const localExists = local !== null;
+    const remoteExists = remote !== null;
+    const baseExists = base !== null;
 
-    if (!localChanged) {
-      unchanged.push(localFile.path);
-    } else if (remoteChanged) {
-      conflicts.push({
-        path: localFile.path,
-        localContent: localFile.content,
-        remoteContent: remoteContent!,
-        baseContent,
-      });
-    } else {
-      safeToUpdate.push(localFile);
+    const localChanged = localExists !== baseExists || (localExists && local !== base);
+    const remoteChanged = remoteExists !== baseExists || (remoteExists && remote !== base);
+
+    if (!localChanged && !remoteChanged) {
+      unchanged.push(filePath);
+      continue;
     }
+
+    if (localChanged && !remoteChanged) {
+      if (localExists) {
+        safeToUpdate.push({ path: filePath, content: local! });
+      }
+      continue;
+    }
+
+    if (!localChanged && remoteChanged) {
+      unchanged.push(filePath);
+      continue;
+    }
+
+    if (local === remote) {
+      unchanged.push(filePath);
+      continue;
+    }
+
+    let reason = "Modified both locally and remotely since last sync";
+    if (!remoteExists && localExists) {
+      reason = "Deleted remotely but modified locally since last sync";
+    } else if (remoteExists && !localExists) {
+      reason = "Deleted locally but modified remotely since last sync";
+    }
+
+    conflicts.push({
+      path: filePath,
+      localContent: local,
+      remoteContent: remote,
+      baseContent: base,
+      reason,
+    });
   }
 
-  return { safeToUpdate, conflicts, unchanged };
+  return { safeToUpdate, conflicts, unchanged, safeToDelete };
 }
 
 export function detectPullConflicts(
@@ -66,53 +105,71 @@ export function detectPullConflicts(
   baseFiles: FileEntry[]
 ): ConflictReport {
   const localMap = buildContentMap(localFiles);
+  const remoteMap = buildContentMap(remoteFiles);
   const baseMap = buildContentMap(baseFiles);
+
+  const allPaths = new Set([
+    ...localMap.keys(),
+    ...remoteMap.keys(),
+    ...baseMap.keys(),
+  ]);
 
   const safeToUpdate: FileEntry[] = [];
   const conflicts: ConflictedFile[] = [];
   const unchanged: string[] = [];
+  const safeToDelete: string[] = [];
 
-  for (const remoteFile of remoteFiles) {
-    const localContent = localMap.get(remoteFile.path);
-    const baseContent = baseMap.get(remoteFile.path) ?? null;
+  for (const filePath of allPaths) {
+    const local = localMap.get(filePath) ?? null;
+    const remote = remoteMap.get(filePath) ?? null;
+    const base = baseMap.get(filePath) ?? null;
 
-    if (localContent === undefined) {
-      safeToUpdate.push(remoteFile);
+    const localExists = local !== null;
+    const remoteExists = remote !== null;
+    const baseExists = base !== null;
+
+    const localChanged = localExists !== baseExists || (localExists && local !== base);
+    const remoteChanged = remoteExists !== baseExists || (remoteExists && remote !== base);
+
+    if (!localChanged && !remoteChanged) {
+      unchanged.push(filePath);
       continue;
     }
 
-    if (remoteFile.content === localContent) {
-      unchanged.push(remoteFile.path);
-      continue;
-    }
-
-    const localChanged = baseContent !== null && localContent !== baseContent;
-    const remoteChanged = baseContent !== null && remoteFile.content !== baseContent;
-
-    if (baseContent === null) {
-      if (localContent !== remoteFile.content) {
-        conflicts.push({
-          path: remoteFile.path,
-          localContent,
-          remoteContent: remoteFile.content,
-          baseContent: null,
-        });
+    if (remoteChanged && !localChanged) {
+      if (remoteExists) {
+        safeToUpdate.push({ path: filePath, content: remote! });
       } else {
-        unchanged.push(remoteFile.path);
+        safeToDelete.push(filePath);
       }
-    } else if (localChanged && remoteChanged) {
-      conflicts.push({
-        path: remoteFile.path,
-        localContent,
-        remoteContent: remoteFile.content,
-        baseContent,
-      });
-    } else if (remoteChanged && !localChanged) {
-      safeToUpdate.push(remoteFile);
-    } else {
-      unchanged.push(remoteFile.path);
+      continue;
     }
+
+    if (localChanged && !remoteChanged) {
+      unchanged.push(filePath);
+      continue;
+    }
+
+    if (local === remote) {
+      unchanged.push(filePath);
+      continue;
+    }
+
+    let reason = "Modified both locally and remotely since last sync";
+    if (!remoteExists && localExists) {
+      reason = "Deleted remotely but modified locally since last sync";
+    } else if (remoteExists && !localExists) {
+      reason = "Modified remotely but deleted locally since last sync";
+    }
+
+    conflicts.push({
+      path: filePath,
+      localContent: local,
+      remoteContent: remote,
+      baseContent: base,
+      reason,
+    });
   }
 
-  return { safeToUpdate, conflicts, unchanged };
+  return { safeToUpdate, conflicts, unchanged, safeToDelete };
 }

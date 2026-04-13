@@ -235,7 +235,22 @@ export async function registerRoutes(
           }
           fs.writeFileSync(fullPath, file.content, "utf-8");
           updatedCount++;
-        } catch {}
+        } catch (err) {
+          console.warn(`Failed to write pulled file ${file.path}:`, err);
+        }
+      }
+
+      let deletedCount = 0;
+      for (const filePath of report.safeToDelete) {
+        try {
+          const fullPath = path.join(projectRoot, filePath);
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            deletedCount++;
+          }
+        } catch (err) {
+          console.warn(`Failed to delete file ${filePath}:`, err);
+        }
       }
 
       if (report.conflicts.length === 0) {
@@ -245,18 +260,20 @@ export async function registerRoutes(
       res.json({
         commitSha: remoteHeadSha,
         filesUpdated: updatedCount,
+        filesDeleted: deletedCount,
         safeFiles: report.safeToUpdate.map((f) => f.path),
+        deletedFiles: report.safeToDelete,
         unchangedFiles: report.unchanged,
         conflicts: report.conflicts.map((c) => ({
           path: c.path,
-          reason: "Modified both locally and remotely since last sync",
-          localContentPreview: c.localContent.substring(0, 500),
-          remoteContentPreview: c.remoteContent.substring(0, 500),
+          reason: c.reason,
+          localContentPreview: c.localContent?.substring(0, 500) ?? null,
+          remoteContentPreview: c.remoteContent?.substring(0, 500) ?? null,
           baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
         })),
         message: report.conflicts.length > 0
-          ? `Pulled ${updatedCount} files. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.`
-          : `Pulled ${updatedCount} files from ${OWNER}/${REPO}`,
+          ? `Pulled ${updatedCount} files, deleted ${deletedCount}. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.`
+          : `Pulled ${updatedCount} files, deleted ${deletedCount} from ${OWNER}/${REPO}`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -280,9 +297,10 @@ export async function registerRoutes(
           .map((item: any) => item.path);
 
         const localPathSet = new Set(localFiles.map((f) => f.path));
-        const overlappingPaths = eligibleRemotePaths.filter((p: string) => localPathSet.has(p));
+        const remotePathSet = new Set(eligibleRemotePaths as string[]);
+        const unionPaths = new Set([...localPathSet, ...remotePathSet]);
 
-        const remoteFiles = await fetchRemoteFilesAtHead(overlappingPaths);
+        const remoteFiles = await fetchRemoteFilesAtHead(eligibleRemotePaths);
 
         let baseFiles: FileEntry[] = [];
         try {
@@ -290,7 +308,7 @@ export async function registerRoutes(
           const basePaths = baseTree.tree
             .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
             .map((item: any) => item.path)
-            .filter((p: string) => localPathSet.has(p));
+            .filter((p: string) => unionPaths.has(p));
           baseFiles = await fetchRemoteFiles(basePaths, lastSyncedSha);
         } catch (err) {
           console.warn(`Could not fetch base tree at ${lastSyncedSha} for push comparison, treating all remote files as new:`, err);
@@ -304,9 +322,9 @@ export async function registerRoutes(
             message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Pull first to resolve conflicts before pushing.`,
             conflicts: report.conflicts.map((c) => ({
               path: c.path,
-              reason: "Modified both locally and remotely since last sync",
-              localContentPreview: c.localContent.substring(0, 500),
-              remoteContentPreview: c.remoteContent.substring(0, 500),
+              reason: c.reason,
+              localContentPreview: c.localContent?.substring(0, 500) ?? null,
+              remoteContentPreview: c.remoteContent?.substring(0, 500) ?? null,
               baseContentPreview: c.baseContent?.substring(0, 500) ?? null,
             })),
             safeFiles: report.safeToUpdate.map((f) => f.path),
