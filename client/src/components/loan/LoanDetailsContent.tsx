@@ -167,7 +167,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
     LOAN_PURPOSE_OPTIONS.find((o) => o.value === val)?.label ?? val;
 
   const getDownPaymentSourceLabel = (val: string) =>
-    DOWN_PAYMENT_SOURCE_OPTIONS.find((o) => o.value === val)?.label ?? val;
+    val === "" ? "" : (DOWN_PAYMENT_SOURCE_OPTIONS.find((o) => o.value === val)?.label ?? val);
 
   return (
     <div
@@ -300,7 +300,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
             onChange={(e) => setField("tellTheStory")(e.target.value)}
             placeholder="Tell the story about the borrower."
             rows={5}
-            className="w-full outline-none body-100"
+            className="w-full outline-none body-100 roads-textarea-placeholder"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",

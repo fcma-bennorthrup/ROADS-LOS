@@ -104,4 +104,8 @@
     font-weight: 600;
     line-height: 16px;
   }
+
+  .roads-textarea-placeholder::placeholder {
+    color: var(--roads-text-tertiary);
+  }
 }
