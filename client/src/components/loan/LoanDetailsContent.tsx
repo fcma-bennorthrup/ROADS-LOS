@@ -304,7 +304,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               className="w-full outline-none body-100 roads-textarea-placeholder"
               style={{
                 backgroundColor: isEditing ? "var(--roads-bg-primary)" : "var(--roads-bg-light)",
-                border: "1px solid var(--roads-border-dark)",
+                border: isEditing ? "1px solid var(--roads-border-dark)" : "1px solid var(--roads-border-subtle)",
                 borderRadius: "var(--roads-radius-2xs)",
                 padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
                 color: "var(--roads-text-primary)",
