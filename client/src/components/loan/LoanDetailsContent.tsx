@@ -300,15 +300,17 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               onChange={(e) => setField("tellTheStory")(e.target.value)}
               placeholder="Tell the story about the borrower."
               rows={5}
+              disabled={!isEditing}
               className="w-full outline-none body-100 roads-textarea-placeholder"
               style={{
-                backgroundColor: "var(--roads-bg-primary)",
+                backgroundColor: isEditing ? "var(--roads-bg-primary)" : "var(--roads-bg-light)",
                 border: "1px solid var(--roads-border-dark)",
                 borderRadius: "var(--roads-radius-2xs)",
                 padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
                 color: "var(--roads-text-primary)",
-                resize: "vertical",
+                resize: isEditing ? "vertical" : "none",
                 fontFamily: "var(--roads-font-family)",
+                cursor: isEditing ? "auto" : "default",
               }}
               data-testid="textarea-tell-the-story"
             />
