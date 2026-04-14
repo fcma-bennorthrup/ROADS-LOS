@@ -39,7 +39,7 @@ function ComingSoon({ page }: { page: string }) {
 export default function LoanOriginationPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
-  const [activeNavItem, setActiveNavItem] = useState("Collateral");
+  const [activeNavItem, setActiveNavItem] = useState("Borrower Information");
 
   const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
     queryKey: ["/api/loans", loanId],
