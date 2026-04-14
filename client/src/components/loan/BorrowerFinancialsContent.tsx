@@ -572,7 +572,7 @@ export function BorrowerFinancialsContent() {
               border: "none",
               borderBottom: idx === activeBorrowerIndex
                 ? "2px solid var(--roads-border-brand)"
-                : "2px solid transparent",
+                : "1px solid var(--roads-border-subtle)",
               cursor: "pointer",
             }}
             data-testid={`tab-borrower-${idx}`}
