@@ -559,22 +559,20 @@ export function BorrowerFinancialsContent() {
               setEditingSourceIndex(null);
               setEditBuffer(null);
             }}
-            className="body-200-strong text-[16px]"
+            className="label-strong whitespace-nowrap"
             style={{
-              padding: "var(--roads-spacing-component-l) var(--roads-spacing-component-xl)",
-              borderBottom: idx === activeBorrowerIndex
-                ? "2px solid var(--roads-border-brand)"
-                : "1px solid var(--roads-border-subtle)",
+              padding: "0 var(--roads-spacing-component-xl)",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
               color: idx === activeBorrowerIndex
                 ? "var(--roads-text-brand)"
                 : "var(--roads-text-primary)",
               background: "none",
               border: "none",
-              borderBottomStyle: "solid",
-              borderBottomWidth: idx === activeBorrowerIndex ? "2px" : "1px",
-              borderBottomColor: idx === activeBorrowerIndex
-                ? "var(--roads-border-brand)"
-                : "var(--roads-border-subtle)",
+              borderBottom: idx === activeBorrowerIndex
+                ? "2px solid var(--roads-border-brand)"
+                : "2px solid transparent",
               cursor: "pointer",
             }}
             data-testid={`tab-borrower-${idx}`}
