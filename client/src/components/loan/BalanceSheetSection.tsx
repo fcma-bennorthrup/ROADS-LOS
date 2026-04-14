@@ -16,7 +16,6 @@ interface LiabilityData {
   accountNumber: string;
   unpaidBalance: string;
   monthlyPayment: string;
-  monthsLeft: string;
   toBePaidOff: string;
 }
 
@@ -39,7 +38,6 @@ const DEFAULT_LIABILITY: LiabilityData = {
   accountNumber: "",
   unpaidBalance: "",
   monthlyPayment: "",
-  monthsLeft: "",
   toBePaidOff: "No",
 };
 
@@ -196,61 +194,63 @@ function AssetCard({
       }}
       data-testid={`asset-card-${index}`}
     >
-      <div
-        className="flex items-center justify-between"
-        style={{ padding: "0 var(--roads-spacing-component-m)" }}
-      >
-        <span
-          className="label-strong"
-          style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }}
-          data-testid={`text-asset-title-${index}`}
+      <div className="flex flex-col" style={{ flex: 1 }}>
+        <div
+          className="flex items-center justify-between"
+          style={{ padding: "0 var(--roads-spacing-component-m)" }}
         >
-          {title}
-        </span>
-        <MoreVertical
-          style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
-        />
-      </div>
+          <span
+            className="label-strong"
+            style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }}
+            data-testid={`text-asset-title-${index}`}
+          >
+            {title}
+          </span>
+          <MoreVertical
+            style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
+          />
+        </div>
 
-      <div
-        className="flex flex-wrap"
-        style={{
-          gap: "var(--roads-spacing-component-3xl) 40px",
-          padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-l)",
-        }}
-      >
-        <BalanceSheetField
-          label="Asset Type"
-          value={asset.assetType}
-          isEditing={isEditing}
-          onChange={(v) => onChange("assetType", v)}
-          type="dropdown"
-          options={ASSET_TYPES}
-        />
-        <BalanceSheetField
-          label="Financial Institution"
-          value={asset.financialInstitution}
-          isEditing={isEditing}
-          onChange={(v) => onChange("financialInstitution", v)}
-        />
-        <BalanceSheetField
-          label="Account Number"
-          value={asset.accountNumber}
-          isEditing={isEditing}
-          onChange={(v) => onChange("accountNumber", v)}
-        />
-        <BalanceSheetField
-          label="Cash or Market Value"
-          value={asset.cashOrMarketValue}
-          isEditing={isEditing}
-          onChange={(v) => onChange("cashOrMarketValue", v)}
-          hasLeadingDollar
-        />
+        <div
+          className="flex flex-wrap"
+          style={{
+            gap: "var(--roads-spacing-component-3xl) 40px",
+            padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-l)",
+          }}
+        >
+          <BalanceSheetField
+            label="Asset Type"
+            value={asset.assetType}
+            isEditing={isEditing}
+            onChange={(v) => onChange("assetType", v)}
+            type="dropdown"
+            options={ASSET_TYPES}
+          />
+          <BalanceSheetField
+            label="Financial Institution"
+            value={asset.financialInstitution}
+            isEditing={isEditing}
+            onChange={(v) => onChange("financialInstitution", v)}
+          />
+          <BalanceSheetField
+            label="Account Number"
+            value={asset.accountNumber}
+            isEditing={isEditing}
+            onChange={(v) => onChange("accountNumber", v)}
+          />
+          <BalanceSheetField
+            label="Cash or Market Value"
+            value={asset.cashOrMarketValue}
+            isEditing={isEditing}
+            onChange={(v) => onChange("cashOrMarketValue", v)}
+            hasLeadingDollar
+          />
+        </div>
       </div>
 
       <div
         className="flex items-center justify-end"
-        style={{ padding: "0 var(--roads-spacing-component-l)" }}
+        style={{ padding: "0 var(--roads-spacing-component-l)", marginTop: "auto" }}
       >
         {!isEditing ? (
           <button
@@ -339,82 +339,78 @@ function LiabilityCard({
       }}
       data-testid={`liability-card-${index}`}
     >
-      <div
-        className="flex items-center justify-between"
-        style={{ padding: "0 var(--roads-spacing-component-m)" }}
-      >
-        <span
-          className="label-strong"
-          style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }}
-          data-testid={`text-liability-title-${index}`}
+      <div className="flex flex-col" style={{ flex: 1 }}>
+        <div
+          className="flex items-center justify-between"
+          style={{ padding: "0 var(--roads-spacing-component-m)" }}
         >
-          {title}
-        </span>
-        <MoreVertical
-          style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
-        />
-      </div>
+          <span
+            className="label-strong"
+            style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }}
+            data-testid={`text-liability-title-${index}`}
+          >
+            {title}
+          </span>
+          <MoreVertical
+            style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
+          />
+        </div>
 
-      <div
-        className="flex flex-wrap"
-        style={{
-          gap: "var(--roads-spacing-component-3xl) 40px",
-          padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-l)",
-        }}
-      >
-        <BalanceSheetField
-          label="Liability Type"
-          value={liability.liabilityType}
-          isEditing={isEditing}
-          onChange={(v) => onChange("liabilityType", v)}
-          type="dropdown"
-          options={LIABILITY_TYPES}
-        />
-        <BalanceSheetField
-          label="Creditor Name"
-          value={liability.creditorName}
-          isEditing={isEditing}
-          onChange={(v) => onChange("creditorName", v)}
-        />
-        <BalanceSheetField
-          label="Account Number"
-          value={liability.accountNumber}
-          isEditing={isEditing}
-          onChange={(v) => onChange("accountNumber", v)}
-        />
-        <BalanceSheetField
-          label="Unpaid Balance"
-          value={liability.unpaidBalance}
-          isEditing={isEditing}
-          onChange={(v) => onChange("unpaidBalance", v)}
-          hasLeadingDollar
-        />
-        <BalanceSheetField
-          label="Monthly Payment"
-          value={liability.monthlyPayment}
-          isEditing={isEditing}
-          onChange={(v) => onChange("monthlyPayment", v)}
-          hasLeadingDollar
-        />
-        <BalanceSheetField
-          label="Months Left"
-          value={liability.monthsLeft}
-          isEditing={isEditing}
-          onChange={(v) => onChange("monthsLeft", v)}
-        />
-        <BalanceSheetField
-          label="To Be Paid Off"
-          value={liability.toBePaidOff}
-          isEditing={isEditing}
-          onChange={(v) => onChange("toBePaidOff", v)}
-          type="dropdown"
-          options={PAID_OFF_OPTIONS}
-        />
+        <div
+          className="flex flex-wrap"
+          style={{
+            gap: "var(--roads-spacing-component-3xl) 40px",
+            padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-l)",
+          }}
+        >
+          <BalanceSheetField
+            label="Liability Type"
+            value={liability.liabilityType}
+            isEditing={isEditing}
+            onChange={(v) => onChange("liabilityType", v)}
+            type="dropdown"
+            options={LIABILITY_TYPES}
+          />
+          <BalanceSheetField
+            label="Creditor Name"
+            value={liability.creditorName}
+            isEditing={isEditing}
+            onChange={(v) => onChange("creditorName", v)}
+          />
+          <BalanceSheetField
+            label="Account Number"
+            value={liability.accountNumber}
+            isEditing={isEditing}
+            onChange={(v) => onChange("accountNumber", v)}
+          />
+          <BalanceSheetField
+            label="Unpaid Balance"
+            value={liability.unpaidBalance}
+            isEditing={isEditing}
+            onChange={(v) => onChange("unpaidBalance", v)}
+            hasLeadingDollar
+          />
+          <BalanceSheetField
+            label="Monthly Payment"
+            value={liability.monthlyPayment}
+            isEditing={isEditing}
+            onChange={(v) => onChange("monthlyPayment", v)}
+            hasLeadingDollar
+          />
+          <BalanceSheetField
+            label="Will be paid off by closing?"
+            value={liability.toBePaidOff}
+            isEditing={isEditing}
+            onChange={(v) => onChange("toBePaidOff", v)}
+            type="dropdown"
+            options={PAID_OFF_OPTIONS}
+          />
+        </div>
       </div>
 
       <div
         className="flex items-center justify-end"
-        style={{ padding: "0 var(--roads-spacing-component-l)" }}
+        style={{ padding: "0 var(--roads-spacing-component-l)", marginTop: "auto" }}
       >
         {!isEditing ? (
           <button
@@ -501,7 +497,6 @@ const SAMPLE_CURRENT_LIABILITIES: LiabilityData[] = [
     accountNumber: "987654321",
     unpaidBalance: "2000",
     monthlyPayment: "100",
-    monthsLeft: "24",
     toBePaidOff: "No",
   },
 ];
@@ -514,7 +509,6 @@ const SAMPLE_NON_CURRENT_LIABILITIES: LiabilityData[] = [
     accountNumber: "556677889",
     unpaidBalance: "18,000",
     monthlyPayment: "450",
-    monthsLeft: "48",
     toBePaidOff: "No",
   },
 ];
