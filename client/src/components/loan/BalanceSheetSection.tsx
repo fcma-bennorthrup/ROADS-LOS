@@ -773,6 +773,7 @@ export function BalanceSheetSection() {
         onAddLiability={() => handleAddLiability("currentLiabilities")}
       />
 
+      <div style={{ marginTop: "calc(40px - var(--roads-spacing-component-xs))" }}>
       <BalanceSheetRow
         assetLabel="Non-Current Assets"
         liabilityLabel="Non-Current Liabilities"
@@ -792,6 +793,7 @@ export function BalanceSheetSection() {
         onAddAsset={() => handleAddAsset("nonCurrentAssets")}
         onAddLiability={() => handleAddLiability("nonCurrentLiabilities")}
       />
+      </div>
     </div>
   );
 }
