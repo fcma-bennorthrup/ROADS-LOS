@@ -550,7 +550,6 @@ export function BorrowerFinancialsContent() {
       >
         Borrower Financials
       </h2>
-
       <div className="flex" data-testid="borrower-tabs">
         {borrowers.map((borrower, idx) => (
           <button
@@ -560,7 +559,7 @@ export function BorrowerFinancialsContent() {
               setEditingSourceIndex(null);
               setEditBuffer(null);
             }}
-            className="body-200-strong"
+            className="body-200-strong text-[16px]"
             style={{
               padding: "var(--roads-spacing-component-l) var(--roads-spacing-component-xl)",
               borderBottom: idx === activeBorrowerIndex
@@ -584,7 +583,6 @@ export function BorrowerFinancialsContent() {
           </button>
         ))}
       </div>
-
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -644,7 +642,6 @@ export function BorrowerFinancialsContent() {
           ))}
         </div>
       </div>
-
       <BalanceSheetSection />
     </div>
   );
