@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MoreVertical, Pencil, ChevronDown } from "lucide-react";
 
 interface AssetData {
@@ -171,6 +171,7 @@ function AssetCard({
   onSave,
   onDiscard,
   onChange,
+  onDelete,
   index,
 }: {
   asset: AssetData;
@@ -179,9 +180,23 @@ function AssetCard({
   onSave: () => void;
   onDiscard: () => void;
   onChange: (field: keyof AssetData, value: string) => void;
+  onDelete: () => void;
   index: number;
 }) {
   const title = `${asset.assetType}${asset.financialInstitution ? ` - ${asset.financialInstitution}` : ""}`;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   return (
     <div
@@ -197,7 +212,7 @@ function AssetCard({
       <div className="flex flex-col" style={{ flex: 1 }}>
         <div
           className="flex items-center justify-between"
-          style={{ padding: "0 var(--roads-spacing-component-m)" }}
+          style={{ padding: "0 var(--roads-spacing-component-m)", position: "relative" }}
         >
           <span
             className="label-strong"
@@ -206,9 +221,51 @@ function AssetCard({
           >
             {title}
           </span>
-          <MoreVertical
-            style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
-          />
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <MoreVertical
+              style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
+              onClick={() => setMenuOpen((v) => !v)}
+              data-testid={`button-more-asset-${index}`}
+            />
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  zIndex: 50,
+                  backgroundColor: "var(--roads-bg-primary)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  boxShadow: "0px 8px 16px rgba(39,51,51,0.24)",
+                  padding: "var(--roads-spacing-component-xs)",
+                }}
+                data-testid={`menu-asset-${index}`}
+              >
+                <button
+                  className="body-100"
+                  onClick={() => { onDelete(); setMenuOpen(false); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    height: 40,
+                    padding: "0 12px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--roads-text-error)",
+                    whiteSpace: "nowrap",
+                    borderRadius: "var(--roads-radius-2xs)",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--roads-bg-light)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  data-testid={`button-delete-asset-${index}`}
+                >
+                  Delete {asset.assetType || "Asset"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div
@@ -316,6 +373,7 @@ function LiabilityCard({
   onSave,
   onDiscard,
   onChange,
+  onDelete,
   index,
 }: {
   liability: LiabilityData;
@@ -324,9 +382,23 @@ function LiabilityCard({
   onSave: () => void;
   onDiscard: () => void;
   onChange: (field: keyof LiabilityData, value: string) => void;
+  onDelete: () => void;
   index: number;
 }) {
   const title = `${liability.liabilityType}${liability.creditorName ? ` - ${liability.creditorName}` : ""}`;
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
 
   return (
     <div
@@ -342,7 +414,7 @@ function LiabilityCard({
       <div className="flex flex-col" style={{ flex: 1 }}>
         <div
           className="flex items-center justify-between"
-          style={{ padding: "0 var(--roads-spacing-component-m)" }}
+          style={{ padding: "0 var(--roads-spacing-component-m)", position: "relative" }}
         >
           <span
             className="label-strong"
@@ -351,9 +423,51 @@ function LiabilityCard({
           >
             {title}
           </span>
-          <MoreVertical
-            style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
-          />
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <MoreVertical
+              style={{ width: 20, height: 20, color: "var(--roads-icon-dark)", cursor: "pointer" }}
+              onClick={() => setMenuOpen((v) => !v)}
+              data-testid={`button-more-liability-${index}`}
+            />
+            {menuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "100%",
+                  right: 0,
+                  zIndex: 50,
+                  backgroundColor: "var(--roads-bg-primary)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  boxShadow: "0px 8px 16px rgba(39,51,51,0.24)",
+                  padding: "var(--roads-spacing-component-xs)",
+                }}
+                data-testid={`menu-liability-${index}`}
+              >
+                <button
+                  className="body-100"
+                  onClick={() => { onDelete(); setMenuOpen(false); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    height: 40,
+                    padding: "0 12px",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--roads-text-error)",
+                    whiteSpace: "nowrap",
+                    borderRadius: "var(--roads-radius-2xs)",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--roads-bg-light)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                  data-testid={`button-delete-liability-${index}`}
+                >
+                  Delete {liability.liabilityType || "Liability"}
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div
@@ -539,6 +653,8 @@ function BalanceSheetRow({
   onLiabilityFieldChange,
   onAddAsset,
   onAddLiability,
+  onDeleteAsset,
+  onDeleteLiability,
 }: {
   assetLabel: string;
   liabilityLabel: string;
@@ -557,6 +673,8 @@ function BalanceSheetRow({
   onLiabilityFieldChange: (field: keyof LiabilityData, value: string) => void;
   onAddAsset: () => void;
   onAddLiability: () => void;
+  onDeleteAsset: (index: number) => void;
+  onDeleteLiability: (index: number) => void;
 }) {
   const testPrefix = assetLabel.toLowerCase().replace(/[\s-]+/g, "-");
 
@@ -602,6 +720,7 @@ function BalanceSheetRow({
             onSave={onSave}
             onDiscard={onDiscard}
             onChange={onAssetFieldChange}
+            onDelete={() => onDeleteAsset(idx)}
             index={idx}
           />
         ))}
@@ -644,6 +763,7 @@ function BalanceSheetRow({
             onSave={onSave}
             onDiscard={onDiscard}
             onChange={onLiabilityFieldChange}
+            onDelete={() => onDeleteLiability(idx)}
             index={idx}
           />
         ))}
@@ -717,6 +837,24 @@ export function BalanceSheetSection() {
     setLiabilityBuffer({ ...liabilityBuffer, [field]: value });
   }
 
+  function handleDeleteAsset(category: "currentAssets" | "nonCurrentAssets", index: number) {
+    const setter = category === "currentAssets" ? setCurrentAssets : setNonCurrentAssets;
+    setter((prev) => prev.filter((_, i) => i !== index));
+    if (editTarget?.category === category && editTarget.index === index) {
+      setEditTarget(null);
+      setAssetBuffer(null);
+    }
+  }
+
+  function handleDeleteLiability(category: "currentLiabilities" | "nonCurrentLiabilities", index: number) {
+    const setter = category === "currentLiabilities" ? setCurrentLiabilities : setNonCurrentLiabilities;
+    setter((prev) => prev.filter((_, i) => i !== index));
+    if (editTarget?.category === category && editTarget.index === index) {
+      setEditTarget(null);
+      setLiabilityBuffer(null);
+    }
+  }
+
   function handleAddAsset(category: "currentAssets" | "nonCurrentAssets") {
     const newAsset: AssetData = { ...DEFAULT_ASSET, id: String(Date.now()) };
     const setter = category === "currentAssets" ? setCurrentAssets : setNonCurrentAssets;
@@ -771,6 +909,8 @@ export function BalanceSheetSection() {
         onLiabilityFieldChange={handleLiabilityFieldChange}
         onAddAsset={() => handleAddAsset("currentAssets")}
         onAddLiability={() => handleAddLiability("currentLiabilities")}
+        onDeleteAsset={(idx) => handleDeleteAsset("currentAssets", idx)}
+        onDeleteLiability={(idx) => handleDeleteLiability("currentLiabilities", idx)}
       />
 
       <div style={{ marginTop: "calc(40px - var(--roads-spacing-component-xs))" }}>
@@ -792,6 +932,8 @@ export function BalanceSheetSection() {
         onLiabilityFieldChange={handleLiabilityFieldChange}
         onAddAsset={() => handleAddAsset("nonCurrentAssets")}
         onAddLiability={() => handleAddLiability("nonCurrentLiabilities")}
+        onDeleteAsset={(idx) => handleDeleteAsset("nonCurrentAssets", idx)}
+        onDeleteLiability={(idx) => handleDeleteLiability("nonCurrentLiabilities", idx)}
       />
       </div>
     </div>
