@@ -192,6 +192,7 @@ function AssetCard({
         backgroundColor: "var(--roads-bg-light)",
         borderRadius: "var(--roads-radius-xs)",
         padding: "var(--roads-spacing-component-l) 0",
+        flex: 1,
       }}
       data-testid={`asset-card-${index}`}
     >
@@ -334,6 +335,7 @@ function LiabilityCard({
         backgroundColor: "var(--roads-bg-light)",
         borderRadius: "var(--roads-radius-xs)",
         padding: "var(--roads-spacing-component-l) 0",
+        flex: 1,
       }}
       data-testid={`liability-card-${index}`}
     >
