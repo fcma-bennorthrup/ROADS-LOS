@@ -65,7 +65,7 @@ function BalanceSheetField({
   return (
     <div
       className="flex flex-col"
-      style={{ width: "362px", gap: "var(--roads-spacing-component-xs)" }}
+      style={{ flex: "1 1 calc(50% - 20px)", minWidth: "200px", gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`field-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
     >
       <span
@@ -522,6 +522,140 @@ type EditTarget = {
   index: number;
 } | null;
 
+type CategoryAsset = "currentAssets" | "nonCurrentAssets";
+type CategoryLiability = "currentLiabilities" | "nonCurrentLiabilities";
+
+function BalanceSheetRow({
+  assetLabel,
+  liabilityLabel,
+  assets,
+  liabilities,
+  assetCategory,
+  liabilityCategory,
+  editTarget,
+  assetBuffer,
+  liabilityBuffer,
+  onEditAsset,
+  onEditLiability,
+  onSave,
+  onDiscard,
+  onAssetFieldChange,
+  onLiabilityFieldChange,
+  onAddAsset,
+  onAddLiability,
+}: {
+  assetLabel: string;
+  liabilityLabel: string;
+  assets: AssetData[];
+  liabilities: LiabilityData[];
+  assetCategory: CategoryAsset;
+  liabilityCategory: CategoryLiability;
+  editTarget: EditTarget;
+  assetBuffer: AssetData | null;
+  liabilityBuffer: LiabilityData | null;
+  onEditAsset: (category: CategoryAsset, index: number) => void;
+  onEditLiability: (category: CategoryLiability, index: number) => void;
+  onSave: () => void;
+  onDiscard: () => void;
+  onAssetFieldChange: (field: keyof AssetData, value: string) => void;
+  onLiabilityFieldChange: (field: keyof LiabilityData, value: string) => void;
+  onAddAsset: () => void;
+  onAddLiability: () => void;
+}) {
+  const testPrefix = assetLabel.toLowerCase().replace(/[\s-]+/g, "-");
+
+  return (
+    <div
+      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "stretch" }}
+      data-testid={`balance-sheet-row-${testPrefix}`}
+    >
+      <div
+        className="flex flex-col"
+        style={{ gap: "var(--roads-spacing-component-s)" }}
+        data-testid={`${testPrefix}-section`}
+      >
+        <div
+          className="flex items-center justify-between"
+          style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
+        >
+          <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${testPrefix}-heading`}>
+            {assetLabel}
+          </span>
+          <button
+            onClick={onAddAsset}
+            className="label-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-action)",
+              color: "var(--roads-text-reverse)",
+              border: "none",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              cursor: "pointer",
+            }}
+            data-testid={`button-add-${testPrefix}`}
+          >
+            + Add Asset
+          </button>
+        </div>
+        {assets.map((asset, idx) => (
+          <AssetCard
+            key={asset.id}
+            asset={editTarget?.category === assetCategory && editTarget.index === idx && assetBuffer ? assetBuffer : asset}
+            isEditing={editTarget?.category === assetCategory && editTarget.index === idx}
+            onEdit={() => onEditAsset(assetCategory, idx)}
+            onSave={onSave}
+            onDiscard={onDiscard}
+            onChange={onAssetFieldChange}
+            index={idx}
+          />
+        ))}
+      </div>
+
+      <div
+        className="flex flex-col"
+        style={{ gap: "var(--roads-spacing-component-s)" }}
+        data-testid={`${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}-section`}
+      >
+        <div
+          className="flex items-center justify-between"
+          style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
+        >
+          <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}-heading`}>
+            {liabilityLabel}
+          </span>
+          <button
+            onClick={onAddLiability}
+            className="label-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-action)",
+              color: "var(--roads-text-reverse)",
+              border: "none",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              cursor: "pointer",
+            }}
+            data-testid={`button-add-${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}`}
+          >
+            + Add Liability
+          </button>
+        </div>
+        {liabilities.map((liability, idx) => (
+          <LiabilityCard
+            key={liability.id}
+            liability={editTarget?.category === liabilityCategory && editTarget.index === idx && liabilityBuffer ? liabilityBuffer : liability}
+            isEditing={editTarget?.category === liabilityCategory && editTarget.index === idx}
+            onEdit={() => onEditLiability(liabilityCategory, idx)}
+            onSave={onSave}
+            onDiscard={onDiscard}
+            onChange={onLiabilityFieldChange}
+            index={idx}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function BalanceSheetSection() {
   const [currentAssets, setCurrentAssets] = useState<AssetData[]>(SAMPLE_CURRENT_ASSETS);
   const [nonCurrentAssets, setNonCurrentAssets] = useState<AssetData[]>(SAMPLE_NON_CURRENT_ASSETS);
@@ -623,166 +757,45 @@ export function BalanceSheetSection() {
         </span>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "40px",
-        }}
-        data-testid="balance-sheet-grid"
-      >
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-s)" }} data-testid="current-assets-section">
-          <div
-            className="flex items-center justify-between"
-            style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
-          >
-            <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="text-current-assets-heading">
-              Current Assets
-            </span>
-            <button
-              onClick={() => handleAddAsset("currentAssets")}
-              className="label-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
-                border: "none",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                cursor: "pointer",
-              }}
-              data-testid="button-add-current-asset"
-            >
-              + Add Asset
-            </button>
-          </div>
-          {currentAssets.map((asset, idx) => (
-            <AssetCard
-              key={asset.id}
-              asset={editTarget?.category === "currentAssets" && editTarget.index === idx && assetBuffer ? assetBuffer : asset}
-              isEditing={editTarget?.category === "currentAssets" && editTarget.index === idx}
-              onEdit={() => handleEditAsset("currentAssets", idx)}
-              onSave={handleSave}
-              onDiscard={handleDiscard}
-              onChange={handleAssetFieldChange}
-              index={idx}
-            />
-          ))}
-        </div>
+      <BalanceSheetRow
+        assetLabel="Current Assets"
+        liabilityLabel="Current Liabilities"
+        assets={currentAssets}
+        liabilities={currentLiabilities}
+        assetCategory="currentAssets"
+        liabilityCategory="currentLiabilities"
+        editTarget={editTarget}
+        assetBuffer={assetBuffer}
+        liabilityBuffer={liabilityBuffer}
+        onEditAsset={handleEditAsset}
+        onEditLiability={handleEditLiability}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        onAssetFieldChange={handleAssetFieldChange}
+        onLiabilityFieldChange={handleLiabilityFieldChange}
+        onAddAsset={() => handleAddAsset("currentAssets")}
+        onAddLiability={() => handleAddLiability("currentLiabilities")}
+      />
 
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-s)" }} data-testid="current-liabilities-section">
-          <div
-            className="flex items-center justify-between"
-            style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
-          >
-            <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="text-current-liabilities-heading">
-              Current Liabilities
-            </span>
-            <button
-              onClick={() => handleAddLiability("currentLiabilities")}
-              className="label-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
-                border: "none",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                cursor: "pointer",
-              }}
-              data-testid="button-add-current-liability"
-            >
-              + Add Liability
-            </button>
-          </div>
-          {currentLiabilities.map((liability, idx) => (
-            <LiabilityCard
-              key={liability.id}
-              liability={editTarget?.category === "currentLiabilities" && editTarget.index === idx && liabilityBuffer ? liabilityBuffer : liability}
-              isEditing={editTarget?.category === "currentLiabilities" && editTarget.index === idx}
-              onEdit={() => handleEditLiability("currentLiabilities", idx)}
-              onSave={handleSave}
-              onDiscard={handleDiscard}
-              onChange={handleLiabilityFieldChange}
-              index={idx}
-            />
-          ))}
-        </div>
-
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-s)" }} data-testid="non-current-assets-section">
-          <div
-            className="flex items-center justify-between"
-            style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
-          >
-            <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="text-non-current-assets-heading">
-              Non-Current Assets
-            </span>
-            <button
-              onClick={() => handleAddAsset("nonCurrentAssets")}
-              className="label-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
-                border: "none",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                cursor: "pointer",
-              }}
-              data-testid="button-add-non-current-asset"
-            >
-              + Add Asset
-            </button>
-          </div>
-          {nonCurrentAssets.map((asset, idx) => (
-            <AssetCard
-              key={asset.id}
-              asset={editTarget?.category === "nonCurrentAssets" && editTarget.index === idx && assetBuffer ? assetBuffer : asset}
-              isEditing={editTarget?.category === "nonCurrentAssets" && editTarget.index === idx}
-              onEdit={() => handleEditAsset("nonCurrentAssets", idx)}
-              onSave={handleSave}
-              onDiscard={handleDiscard}
-              onChange={handleAssetFieldChange}
-              index={idx}
-            />
-          ))}
-        </div>
-
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-s)" }} data-testid="non-current-liabilities-section">
-          <div
-            className="flex items-center justify-between"
-            style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
-          >
-            <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="text-non-current-liabilities-heading">
-              Non-Current Liabilities
-            </span>
-            <button
-              onClick={() => handleAddLiability("nonCurrentLiabilities")}
-              className="label-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
-                border: "none",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                cursor: "pointer",
-              }}
-              data-testid="button-add-non-current-liability"
-            >
-              + Add Liability
-            </button>
-          </div>
-          {nonCurrentLiabilities.map((liability, idx) => (
-            <LiabilityCard
-              key={liability.id}
-              liability={editTarget?.category === "nonCurrentLiabilities" && editTarget.index === idx && liabilityBuffer ? liabilityBuffer : liability}
-              isEditing={editTarget?.category === "nonCurrentLiabilities" && editTarget.index === idx}
-              onEdit={() => handleEditLiability("nonCurrentLiabilities", idx)}
-              onSave={handleSave}
-              onDiscard={handleDiscard}
-              onChange={handleLiabilityFieldChange}
-              index={idx}
-            />
-          ))}
-        </div>
-      </div>
+      <BalanceSheetRow
+        assetLabel="Non-Current Assets"
+        liabilityLabel="Non-Current Liabilities"
+        assets={nonCurrentAssets}
+        liabilities={nonCurrentLiabilities}
+        assetCategory="nonCurrentAssets"
+        liabilityCategory="nonCurrentLiabilities"
+        editTarget={editTarget}
+        assetBuffer={assetBuffer}
+        liabilityBuffer={liabilityBuffer}
+        onEditAsset={handleEditAsset}
+        onEditLiability={handleEditLiability}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+        onAssetFieldChange={handleAssetFieldChange}
+        onLiabilityFieldChange={handleLiabilityFieldChange}
+        onAddAsset={() => handleAddAsset("nonCurrentAssets")}
+        onAddLiability={() => handleAddLiability("nonCurrentLiabilities")}
+      />
     </div>
   );
 }
