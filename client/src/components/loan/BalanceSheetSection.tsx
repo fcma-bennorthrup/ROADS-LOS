@@ -690,7 +690,7 @@ function BalanceSheetRow({
       >
         <div
           className="flex items-center justify-between"
-          style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
+          style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
         >
           <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${testPrefix}-heading`}>
             {assetLabel}
@@ -733,7 +733,7 @@ function BalanceSheetRow({
       >
         <div
           className="flex items-center justify-between"
-          style={{ paddingLeft: "var(--roads-spacing-component-xs)" }}
+          style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
         >
           <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}-heading`}>
             {liabilityLabel}
