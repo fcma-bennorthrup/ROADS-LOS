@@ -2,6 +2,10 @@
 
 This project is collaboratively developed between Replit and local environments, synced via GitHub. Follow these guidelines to avoid overwriting each other's work.
 
+## GitHub Sync Is Explicit Only
+
+**Never push or pull to GitHub unless the user explicitly asks you to.** Making a code change does not imply a push. Wait for a direct instruction such as "push to GitHub", "sync to GitHub", or "pull from GitHub" before triggering any sync operation.
+
 ## Pull Before You Push
 
 Always pull the latest changes before pushing your work. The push endpoint will block your push if it detects that someone else has pushed changes since your last sync and any of your files conflict with theirs.

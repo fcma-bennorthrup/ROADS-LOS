@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown, Pencil, Calendar } from "lucide-react";
+import { BalanceSheetSection } from "./BalanceSheetSection";
 
 interface IncomeSourceData {
   id: string;
@@ -644,30 +645,7 @@ export function BorrowerFinancialsContent() {
         </div>
       </div>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-        <div className="flex items-center">
-          <span
-            className="headline-300"
-            style={{ color: "var(--roads-text-primary)", paddingLeft: "var(--roads-spacing-component-s)" }}
-            data-testid="text-balance-sheet-title"
-          >
-            Balance Sheet
-          </span>
-        </div>
-        <div
-          className="flex items-center justify-center"
-          style={{
-            backgroundColor: "var(--roads-bg-light)",
-            borderRadius: "var(--roads-radius-2xs)",
-            padding: "var(--roads-spacing-component-3xl)",
-          }}
-          data-testid="balance-sheet-placeholder"
-        >
-          <span className="body-100" style={{ color: "var(--roads-text-secondary)" }}>
-            Coming Soon
-          </span>
-        </div>
-      </div>
+      <BalanceSheetSection />
     </div>
   );
 }
