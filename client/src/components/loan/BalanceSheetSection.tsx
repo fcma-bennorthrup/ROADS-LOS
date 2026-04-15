@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { MoreVertical, Pencil, ChevronDown } from "lucide-react";
+import { RoadsDropdown } from "./RoadsDropdown";
 
 interface AssetData {
   id: string;
@@ -94,28 +95,13 @@ function BalanceSheetField({
         )}
         {isEditing ? (
           fieldType === "dropdown" ? (
-            <select
+            <RoadsDropdown
               value={value}
-              onChange={(e) => onChange?.(e.target.value)}
-              className="w-full outline-none"
-              style={{
-                flex: 1,
-                fontFamily: "var(--roads-font-family)",
-                fontSize: "16px",
-                fontWeight: 600,
-                lineHeight: "20px",
-                color: "var(--roads-text-primary)",
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                height: "20px",
-              }}
-              data-testid={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
-            >
-              {(options || []).map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
+              onChange={(v) => onChange?.(v)}
+              options={(options || []).map((o) => ({ value: o, label: o }))}
+              variant="inline"
+              testId={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
+            />
           ) : (
             <input
               type="text"

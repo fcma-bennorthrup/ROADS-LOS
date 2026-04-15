@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef } from "react";
 import { HelpCircle, Pencil, Lock, Calendar, X } from "lucide-react";
+import { RoadsDropdown } from "./RoadsDropdown";
 import {
   Dialog,
   DialogContent,
@@ -80,26 +81,12 @@ function ProductField({
         {label}
       </span>
       {type === "dropdown" && isEditing ? (
-        <select
+        <RoadsDropdown
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="w-full outline-none label-strong"
-          style={{
-            backgroundColor: "var(--roads-bg-primary)",
-            border: "1px solid var(--roads-border-dark)",
-            borderRadius: "var(--roads-radius-2xs)",
-            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-            color: "var(--roads-text-primary)",
-            height: "44px",
-          }}
-          data-testid={`select-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
-        >
-          {options?.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => onChange?.(v)}
+          options={(options || []).map((o) => ({ value: o.value, label: o.label }))}
+          testId={`select-${label.toLowerCase().replace(/[\s()]+/g, "-")}`}
+        />
       ) : isEditing && type === "text" ? (
         <input
           type="text"

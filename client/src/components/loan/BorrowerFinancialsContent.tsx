@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown, Pencil, Calendar } from "lucide-react";
 import { BalanceSheetSection } from "./BalanceSheetSection";
+import { RoadsDropdown } from "./RoadsDropdown";
 
 interface IncomeSourceData {
   id: string;
@@ -121,39 +122,27 @@ function IncomeField({
         )}
         {effectiveEditing ? (
           fieldType === "dropdown" ? (
-            <select
+            <RoadsDropdown
               value={value}
-              onChange={(e) => onChange?.(e.target.value)}
-              className="w-full outline-none"
-              style={{
-                flex: 1,
-                fontFamily: "var(--roads-font-family)",
-                fontSize: "16px",
-                fontWeight: 600,
-                lineHeight: "20px",
-                color: "var(--roads-text-primary)",
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                height: "20px",
-              }}
-              data-testid={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
-            >
-              {label === "Income Type" && (
-                <>
-                  <option value="W2">W2</option>
-                  <option value="1099">1099</option>
-                  <option value="Self-Employment">Self-Employment</option>
-                  <option value="Other">Other</option>
-                </>
-              )}
-              {label === "Current Job?" && (
-                <>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </>
-              )}
-            </select>
+              onChange={(v) => onChange?.(v)}
+              options={
+                label === "Income Type"
+                  ? [
+                      { value: "W2", label: "W2" },
+                      { value: "1099", label: "1099" },
+                      { value: "Self-Employment", label: "Self-Employment" },
+                      { value: "Other", label: "Other" },
+                    ]
+                  : label === "Current Job?"
+                  ? [
+                      { value: "Yes", label: "Yes" },
+                      { value: "No", label: "No" },
+                    ]
+                  : []
+              }
+              variant="inline"
+              testId={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
+            />
           ) : (
             <input
               type={fieldType === "date" ? "date" : "text"}
