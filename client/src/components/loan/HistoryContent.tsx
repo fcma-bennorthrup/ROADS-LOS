@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 
@@ -96,6 +97,7 @@ interface HistoryContentProps {
 }
 
 export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("20");
   const [currentPage, setCurrentPage] = useState(1);
@@ -154,11 +156,10 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
   const handleLinkClick = (entry: ChangeLogEntry) => {
     if (onNavigateToField) {
       onNavigateToField(entry.navItem);
+    } else if (entry.navItem === "Decisioning") {
+      setLocation("/loans/1/decisioning");
     } else {
-      const tabRoute = entry.navItem === "Decisioning"
-        ? "/loans/1/decisioning"
-        : "/loans/1/origination";
-      window.location.href = tabRoute;
+      setLocation(`/loans/1/origination?section=${encodeURIComponent(entry.navItem)}`);
     }
   };
 

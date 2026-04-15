@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useParams, useSearch } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { CollateralContent } from "@/components/loan/CollateralContent";
@@ -37,10 +37,21 @@ function ComingSoon({ page }: { page: string }) {
   );
 }
 
+const VALID_NAV_ITEMS = ["Borrower Information", "Loan Details", "Collateral", "Product & Pricing", "Fees"];
+
 export default function LoanOriginationPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
+  const searchString = useSearch();
   const [activeNavItem, setActiveNavItem] = useState("Borrower Information");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(searchString);
+    const section = urlParams.get("section");
+    if (section && VALID_NAV_ITEMS.includes(section)) {
+      setActiveNavItem(section);
+    }
+  }, [searchString]);
 
   const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
     queryKey: ["/api/loans", loanId],
