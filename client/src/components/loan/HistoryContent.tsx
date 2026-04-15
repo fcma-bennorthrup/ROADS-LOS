@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Search, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 
 interface ChangeLogEntry {
@@ -432,22 +432,17 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
               >
                 <button
                   onClick={() => handleLinkClick(entry)}
-                  className="body-100"
+                  className="label-strong"
                   style={{
                     background: "none",
                     border: "none",
                     padding: 0,
                     cursor: "pointer",
                     color: "var(--roads-text-link)",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    textDecoration: "underline",
                   }}
                   data-testid={`link-to-field-${entry.id}`}
                 >
                   {entry.section}
-                  <ExternalLink style={{ width: 14, height: 14, flexShrink: 0 }} />
                 </button>
               </div>
             </div>
