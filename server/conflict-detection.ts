@@ -27,12 +27,23 @@ function buildContentMap(files: FileEntry[]): Map<string, string> {
   return map;
 }
 
+function buildEncodingMap(files: FileEntry[]): Map<string, "utf-8" | "base64"> {
+  const map = new Map<string, "utf-8" | "base64">();
+  for (const f of files) {
+    if (f.encoding) {
+      map.set(f.path, f.encoding);
+    }
+  }
+  return map;
+}
+
 export function detectPushConflicts(
   localFiles: FileEntry[],
   remoteFiles: FileEntry[],
   baseFiles: FileEntry[]
 ): ConflictReport {
   const localMap = buildContentMap(localFiles);
+  const localEncodingMap = buildEncodingMap(localFiles);
   const remoteMap = buildContentMap(remoteFiles);
   const baseMap = buildContentMap(baseFiles);
 
@@ -66,7 +77,12 @@ export function detectPushConflicts(
 
     if (localChanged && !remoteChanged) {
       if (localExists) {
-        safeToUpdate.push({ path: filePath, content: local! });
+        const entry: FileEntry = { path: filePath, content: local! };
+        const enc = localEncodingMap.get(filePath);
+        if (enc) entry.encoding = enc;
+        safeToUpdate.push(entry);
+      } else {
+        safeToDelete.push(filePath);
       }
       continue;
     }
