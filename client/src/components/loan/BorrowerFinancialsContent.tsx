@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown, Pencil, Calendar } from "lucide-react";
+import { BalanceSheetSection } from "./BalanceSheetSection";
+import { RoadsDropdown } from "./RoadsDropdown";
 
 interface IncomeSourceData {
   id: string;
@@ -120,39 +122,27 @@ function IncomeField({
         )}
         {effectiveEditing ? (
           fieldType === "dropdown" ? (
-            <select
+            <RoadsDropdown
               value={value}
-              onChange={(e) => onChange?.(e.target.value)}
-              className="w-full outline-none"
-              style={{
-                flex: 1,
-                fontFamily: "var(--roads-font-family)",
-                fontSize: "16px",
-                fontWeight: 600,
-                lineHeight: "20px",
-                color: "var(--roads-text-primary)",
-                background: "transparent",
-                border: "none",
-                padding: 0,
-                height: "20px",
-              }}
-              data-testid={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
-            >
-              {label === "Income Type" && (
-                <>
-                  <option value="W2">W2</option>
-                  <option value="1099">1099</option>
-                  <option value="Self-Employment">Self-Employment</option>
-                  <option value="Other">Other</option>
-                </>
-              )}
-              {label === "Current Job?" && (
-                <>
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </>
-              )}
-            </select>
+              onChange={(v) => onChange?.(v)}
+              options={
+                label === "Income Type"
+                  ? [
+                      { value: "W2", label: "W2" },
+                      { value: "1099", label: "1099" },
+                      { value: "Self-Employment", label: "Self-Employment" },
+                      { value: "Other", label: "Other" },
+                    ]
+                  : label === "Current Job?"
+                  ? [
+                      { value: "Yes", label: "Yes" },
+                      { value: "No", label: "No" },
+                    ]
+                  : []
+              }
+              variant="inline"
+              testId={`select-${label.toLowerCase().replace(/[\s\/]+/g, "-")}`}
+            />
           ) : (
             <input
               type={fieldType === "date" ? "date" : "text"}
@@ -549,7 +539,6 @@ export function BorrowerFinancialsContent() {
       >
         Borrower Financials
       </h2>
-
       <div className="flex" data-testid="borrower-tabs">
         {borrowers.map((borrower, idx) => (
           <button
@@ -559,22 +548,20 @@ export function BorrowerFinancialsContent() {
               setEditingSourceIndex(null);
               setEditBuffer(null);
             }}
-            className="body-200-strong"
+            className="label-strong whitespace-nowrap"
             style={{
-              padding: "var(--roads-spacing-component-l) var(--roads-spacing-component-xl)",
-              borderBottom: idx === activeBorrowerIndex
-                ? "2px solid var(--roads-border-brand)"
-                : "1px solid var(--roads-border-subtle)",
+              padding: "0 var(--roads-spacing-component-xl)",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
               color: idx === activeBorrowerIndex
                 ? "var(--roads-text-brand)"
                 : "var(--roads-text-primary)",
               background: "none",
               border: "none",
-              borderBottomStyle: "solid",
-              borderBottomWidth: idx === activeBorrowerIndex ? "2px" : "1px",
-              borderBottomColor: idx === activeBorrowerIndex
-                ? "var(--roads-border-brand)"
-                : "var(--roads-border-subtle)",
+              borderBottom: idx === activeBorrowerIndex
+                ? "2px solid var(--roads-border-brand)"
+                : "1px solid var(--roads-border-subtle)",
               cursor: "pointer",
             }}
             data-testid={`tab-borrower-${idx}`}
@@ -583,7 +570,6 @@ export function BorrowerFinancialsContent() {
           </button>
         ))}
       </div>
-
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -643,31 +629,7 @@ export function BorrowerFinancialsContent() {
           ))}
         </div>
       </div>
-
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-        <div className="flex items-center">
-          <span
-            className="headline-300"
-            style={{ color: "var(--roads-text-primary)", paddingLeft: "var(--roads-spacing-component-s)" }}
-            data-testid="text-balance-sheet-title"
-          >
-            Balance Sheet
-          </span>
-        </div>
-        <div
-          className="flex items-center justify-center"
-          style={{
-            backgroundColor: "var(--roads-bg-light)",
-            borderRadius: "var(--roads-radius-2xs)",
-            padding: "var(--roads-spacing-component-3xl)",
-          }}
-          data-testid="balance-sheet-placeholder"
-        >
-          <span className="body-100" style={{ color: "var(--roads-text-secondary)" }}>
-            Coming Soon
-          </span>
-        </div>
-      </div>
+      <BalanceSheetSection />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
+import { RoadsDropdown } from "./RoadsDropdown";
 
 function LoanDetailField({
   label,
@@ -29,25 +30,12 @@ function LoanDetailField({
         {label}
       </span>
       {type === "dropdown" && isEditing ? (
-        <select
+        <RoadsDropdown
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="w-full outline-none label-strong"
-          style={{
-            backgroundColor: "var(--roads-bg-primary)",
-            border: "1px solid var(--roads-border-dark)",
-            borderRadius: "var(--roads-radius-2xs)",
-            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-            color: "var(--roads-text-primary)",
-          }}
-          data-testid={`select-${testId}`}
-        >
-          {options?.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={(v) => onChange?.(v)}
+          options={(options || []).map((o) => ({ value: o.value, label: o.label }))}
+          testId={`select-${testId}`}
+        />
       ) : isEditing && type === "text" ? (
         <input
           type="text"

@@ -23,6 +23,7 @@ export const colors = {
     light: "#f9f9f9",
     action: "#005b94",
     errorDisabled: "#ff9c8f",
+    discoverySubtle: "#eaeaf9",
   },
   icon: {
     dark: "#273333",
