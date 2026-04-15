@@ -357,7 +357,7 @@ function StaticRadioGroup({
       style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid={testId}
     >
-      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+      <span className="label-strong" style={{ color: "var(--roads-text-tertiary)" }}>
         {question}
       </span>
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
@@ -369,7 +369,9 @@ function StaticRadioGroup({
               className="flex items-center body-100"
               style={{
                 gap: "var(--roads-spacing-component-xs)",
-                color: checked ? "var(--roads-text-primary)" : "var(--roads-text-tertiary)",
+                color: "var(--roads-text-tertiary)",
+                cursor: "not-allowed",
+                opacity: checked ? 1 : 0.6,
               }}
             >
               <div
@@ -377,9 +379,7 @@ function StaticRadioGroup({
                   width: "var(--roads-spacing-component-l)",
                   height: "var(--roads-spacing-component-l)",
                   borderRadius: "var(--roads-radius-round)",
-                  border: checked
-                    ? "1px solid var(--roads-border-brand)"
-                    : "1px solid var(--roads-border-dark)",
+                  border: "1px solid var(--roads-border-subtle)",
                   backgroundColor: "var(--roads-bg-primary)",
                   flexShrink: 0,
                   display: "flex",
@@ -393,7 +393,7 @@ function StaticRadioGroup({
                       width: "var(--roads-spacing-component-xs)",
                       height: "var(--roads-spacing-component-xs)",
                       borderRadius: "var(--roads-radius-round)",
-                      backgroundColor: "var(--roads-bg-action)",
+                      backgroundColor: "var(--roads-bg-action-disabled)",
                     }}
                   />
                 )}
@@ -411,16 +411,21 @@ function StaticCheckbox({ checked, label }: { checked: boolean; label: string })
   return (
     <div
       className="flex items-start body-100"
-      style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}
+      style={{
+        gap: "var(--roads-spacing-component-xs)",
+        color: "var(--roads-text-tertiary)",
+        cursor: "not-allowed",
+        opacity: checked ? 1 : 0.6,
+      }}
     >
       <div
         style={{
           width: "var(--roads-spacing-component-l)",
           height: "var(--roads-spacing-component-l)",
           flexShrink: 0,
-          border: "1px solid var(--roads-border-dark)",
+          border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
-          backgroundColor: checked ? "var(--roads-bg-action)" : "var(--roads-bg-primary)",
+          backgroundColor: checked ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-primary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
