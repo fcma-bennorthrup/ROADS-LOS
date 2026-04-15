@@ -407,15 +407,15 @@ function StaticRadioGroup({
   );
 }
 
-function StaticCheckbox({ checked, label }: { checked: boolean; label: string }) {
+function StaticCheckbox({ checked, label, disabled = false }: { checked: boolean; label: string; disabled?: boolean }) {
   return (
     <div
       className="flex items-start body-100"
       style={{
         gap: "var(--roads-spacing-component-xs)",
-        color: "var(--roads-text-tertiary)",
-        cursor: "not-allowed",
-        opacity: checked ? 1 : 0.6,
+        color: disabled ? "var(--roads-text-tertiary)" : "var(--roads-text-primary)",
+        cursor: disabled ? "not-allowed" : "default",
+        opacity: disabled && !checked ? 0.6 : 1,
       }}
     >
       <div
@@ -423,9 +423,13 @@ function StaticCheckbox({ checked, label }: { checked: boolean; label: string })
           width: "var(--roads-spacing-component-l)",
           height: "var(--roads-spacing-component-l)",
           flexShrink: 0,
-          border: "1px solid var(--roads-border-subtle)",
+          border: disabled
+            ? "1px solid var(--roads-border-subtle)"
+            : "1px solid var(--roads-border-dark)",
           borderRadius: "var(--roads-radius-2xs)",
-          backgroundColor: checked ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-primary)",
+          backgroundColor: checked
+            ? (disabled ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)")
+            : "var(--roads-bg-primary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -898,6 +902,7 @@ export function BorrowerInformationContent({ borrowers }: BorrowerInformationCon
                     key={detail}
                     checked={activeStaticData.militaryDetails.includes(detail)}
                     label={detail}
+                    disabled
                   />
                 ))}
               </div>
