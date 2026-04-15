@@ -377,14 +377,14 @@ function StaticRadioGroup({
                   width: "var(--roads-spacing-component-l)",
                   height: "var(--roads-spacing-component-l)",
                   borderRadius: "var(--roads-radius-round)",
-                  border: checked
-                    ? "1px solid var(--roads-border-brand)"
-                    : "1px solid var(--roads-border-dark)",
+                  border: "1px solid var(--roads-border-subtle)",
                   backgroundColor: "var(--roads-bg-primary)",
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  cursor: "not-allowed",
+                  pointerEvents: "none",
                 }}
               >
                 {checked && (
@@ -393,7 +393,7 @@ function StaticRadioGroup({
                       width: "var(--roads-spacing-component-xs)",
                       height: "var(--roads-spacing-component-xs)",
                       borderRadius: "var(--roads-radius-round)",
-                      backgroundColor: "var(--roads-bg-action)",
+                      backgroundColor: "var(--roads-bg-action-disabled)",
                     }}
                   />
                 )}
@@ -418,13 +418,15 @@ function StaticCheckbox({ checked, label }: { checked: boolean; label: string })
           width: "var(--roads-spacing-component-l)",
           height: "var(--roads-spacing-component-l)",
           flexShrink: 0,
-          border: "1px solid var(--roads-border-dark)",
+          border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
-          backgroundColor: checked ? "var(--roads-bg-action)" : "var(--roads-bg-primary)",
+          backgroundColor: checked ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-primary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           marginTop: "var(--roads-spacing-component-3xs)",
+          cursor: "not-allowed",
+          pointerEvents: "none",
         }}
       >
         {checked && (
