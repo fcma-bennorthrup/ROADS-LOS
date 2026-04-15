@@ -87,7 +87,8 @@ function computeGitBlobSha(content: Buffer): string {
 
 function diffAgainstRemoteTree(
   localFiles: FileEntry[],
-  remoteTree: { path: string; type: string; sha: string }[]
+  remoteTree: { path: string; type: string; sha: string }[],
+  projectRoot?: string
 ): { changedFiles: FileEntry[]; deletions: string[] } {
   const remoteBlobMap = new Map<string, string>();
   for (const item of remoteTree) {
@@ -114,9 +115,14 @@ function diffAgainstRemoteTree(
   }
 
   const deletions: string[] = [];
-  for (const [remotePath] of remoteBlobMap) {
-    if (!localPathSet.has(remotePath)) {
-      deletions.push(remotePath);
+  if (projectRoot) {
+    for (const [remotePath] of remoteBlobMap) {
+      if (!localPathSet.has(remotePath)) {
+        const fullPath = path.join(projectRoot, remotePath);
+        if (!fs.existsSync(fullPath)) {
+          deletions.push(remotePath);
+        }
+      }
     }
   }
 
@@ -468,7 +474,7 @@ export async function registerRoutes(
         return;
       }
 
-      const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, remoteTree);
+      const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, remoteTree, projectRoot);
 
       if (changedFiles.length === 0 && deletions.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
