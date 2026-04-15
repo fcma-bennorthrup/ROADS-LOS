@@ -45,7 +45,7 @@ export function RoadsDropdown({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="body-100"
+          className="label-strong"
           style={{
             width: "100%",
             display: "flex",
@@ -58,7 +58,7 @@ export function RoadsDropdown({
             color: value ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
             cursor: "pointer",
             lineHeight: "20px",
-            minHeight: 40,
+            height: 44,
           }}
           data-testid={testId}
         >

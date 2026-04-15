@@ -53,7 +53,7 @@ function CurrencyInput({
           borderRadius: "var(--roads-radius-2xs)",
           padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
           gap: "var(--roads-spacing-component-2xs)",
-          minHeight: 40,
+          height: 44,
         }}
       >
         <span className="body-100" style={{ color: "var(--roads-text-secondary)" }}>$</span>
