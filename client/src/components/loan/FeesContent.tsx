@@ -254,65 +254,69 @@ export function FeesContent() {
         )}
       </div>
 
-      {fees.length > 0 && (
-        <div data-testid="fees-table">
-          <div
-            className="flex"
-            style={{
-              backgroundColor: "var(--roads-bg-light)",
-            }}
-          >
-            <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-fee">Fee</div>
-            <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-le-amount">LE Amount</div>
-            <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-cd-amount">CD Amount</div>
-            <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-method">Method of Payment</div>
-            <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-paid-by">Paid By</div>
-            <div style={{ width: 80 }} />
-          </div>
-
-          {fees.map((fee) => (
-            <div
-              key={fee.id}
-              className="flex"
-              style={{ borderBottom: "1px solid var(--roads-border-subtle)" }}
-              data-testid={`fee-row-${fee.id}`}
-            >
-              <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.fee}</div>
-              <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.leAmount}</div>
-              <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.cdAmount}</div>
-              <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.methodOfPayment}</div>
-              <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.paidBy}</div>
-              <div className="flex items-center justify-center" style={{ width: 80 }}>
-                <button
-                  onClick={() => handleDeleteFee(fee.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--roads-text-error)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "var(--roads-spacing-component-2xs)",
-                  }}
-                  data-testid={`button-delete-fee-${fee.id}`}
-                >
-                  <Trash2 style={{ width: 16, height: 16 }} />
-                </button>
-              </div>
-            </div>
-          ))}
-
-          <div
-            className="flex"
-            style={{
-              backgroundColor: "var(--roads-bg-light)",
-              padding: "var(--roads-spacing-component-l)",
-            }}
-            data-testid="fees-table-footer"
-          />
+      <div
+        style={{
+          backgroundColor: "var(--roads-bg-primary)",
+          border: "1px solid var(--roads-border-subtle)",
+          borderRadius: "var(--roads-radius-xs)",
+          overflow: "hidden",
+        }}
+        data-testid="fees-table"
+      >
+        <div
+          className="flex"
+          style={{ backgroundColor: "var(--roads-bg-light)" }}
+        >
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-fee">Fee</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-le-amount">LE Amount</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-cd-amount">CD Amount</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-method">Method of Payment</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-paid-by">Paid By</div>
+          <div style={{ width: 80 }} />
         </div>
-      )}
+
+        {fees.map((fee) => (
+          <div
+            key={fee.id}
+            className="flex"
+            style={{ borderTop: "1px solid var(--roads-border-subtle)" }}
+            data-testid={`fee-row-${fee.id}`}
+          >
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.fee}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.leAmount}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.cdAmount}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.methodOfPayment}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.paidBy}</div>
+            <div className="flex items-center justify-center" style={{ width: 80 }}>
+              <button
+                onClick={() => handleDeleteFee(fee.id)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--roads-text-error)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "var(--roads-spacing-component-2xs)",
+                }}
+                data-testid={`button-delete-fee-${fee.id}`}
+              >
+                <Trash2 style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <div
+          style={{
+            backgroundColor: "var(--roads-bg-light)",
+            padding: "var(--roads-spacing-component-l)",
+            borderTop: fees.length > 0 ? "1px solid var(--roads-border-subtle)" : "none",
+          }}
+          data-testid="fees-table-footer"
+        />
+      </div>
     </div>
   );
 }
