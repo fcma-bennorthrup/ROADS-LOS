@@ -170,8 +170,6 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
       className="flex flex-col"
       style={{
         padding: "var(--roads-spacing-component-xl)",
-        flex: 1,
-        minHeight: 0,
       }}
       data-testid="history-content"
     >
@@ -182,9 +180,6 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
           border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-xs)",
           overflow: "hidden",
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
         }}
         data-testid="change-log-table"
       >
@@ -268,7 +263,7 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
           ))}
         </div>
 
-        <div className="flex flex-col" style={{ flex: 1, overflowY: "auto", overflowX: "auto" }}>
+        <div className="flex flex-col">
           {paginatedData.map((entry) => (
             <div
               key={entry.id}
@@ -321,7 +316,6 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
             backgroundColor: "var(--roads-bg-light)",
             padding: "var(--roads-spacing-component-l)",
             borderTop: "1px solid var(--roads-border-subtle)",
-            marginTop: "auto",
             gap: "var(--roads-spacing-component-m)",
           }}
           data-testid="change-log-footer"
