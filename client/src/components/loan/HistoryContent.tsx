@@ -341,6 +341,7 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
                 options={ITEMS_PER_PAGE_OPTIONS}
                 variant="inline"
                 testId="select-items-per-page"
+                openUpward
               />
             </div>
 
