@@ -516,17 +516,19 @@ export async function registerRoutes(
         return;
       }
 
-      const canDetectDeletions = force || lastSyncedSha === remoteHeadSha;
       let filesToDiff = localFiles;
-      if (force && lastSyncedSha) {
+      let baseAwareDeletions: string[] = [];
+
+      if (lastSyncedSha) {
         try {
-          const baseTreeForForce = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
+          const baseTreeForFallback = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
           const baseShaMap = new Map<string, string>();
-          for (const item of baseTreeForForce.tree) {
+          for (const item of baseTreeForFallback.tree) {
             if (item.type === "blob" && !shouldIgnorePath(item.path)) {
               baseShaMap.set(item.path, item.sha);
             }
           }
+
           filesToDiff = localFiles.filter((f) => {
             const baseSha = baseShaMap.get(f.path);
             if (!baseSha) return true;
@@ -536,15 +538,29 @@ export async function registerRoutes(
             const localSha = computeGitBlobSha(contentBuffer);
             return localSha !== baseSha;
           });
-        } catch (forceBaseErr: any) {
-          console.warn("Force push base tree fetch failed, diffing against remote only:", forceBaseErr?.message);
+
+          const remoteShaMap = new Map<string, string>();
+          for (const item of remoteTree) {
+            if (item.type === "blob" && !shouldIgnorePath(item.path)) {
+              remoteShaMap.set(item.path, item.sha);
+            }
+          }
+          for (const [basePath, baseSha] of baseShaMap) {
+            const fullPath = path.join(projectRoot, basePath);
+            if (!fs.existsSync(fullPath)) {
+              const remoteSha = remoteShaMap.get(basePath);
+              if (!remoteSha || remoteSha === baseSha) {
+                baseAwareDeletions.push(basePath);
+              }
+            }
+          }
+        } catch (baseErr: any) {
+          console.warn("Base tree fetch failed, diffing against remote only:", baseErr?.message);
         }
       }
-      const { changedFiles, deletions } = diffAgainstRemoteTree(
-        filesToDiff,
-        remoteTree,
-        canDetectDeletions ? projectRoot : undefined
-      );
+
+      const { changedFiles } = diffAgainstRemoteTree(filesToDiff, remoteTree);
+      const deletions = baseAwareDeletions;
 
       if (changedFiles.length === 0 && deletions.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
