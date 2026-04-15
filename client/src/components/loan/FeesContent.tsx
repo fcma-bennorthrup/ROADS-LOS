@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Trash2, ChevronDown } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Trash2, ChevronDown, Check } from "lucide-react";
 
 const FEE_OPTIONS = [
   "Appraisal Fee",
@@ -31,6 +31,18 @@ function FeeDropdown({
   onChange: (v: string) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   return (
     <div className="flex flex-col" style={{ width: 294, gap: "var(--roads-spacing-component-xs)" }}>
@@ -40,7 +52,7 @@ function FeeDropdown({
       >
         Fee
       </span>
-      <div style={{ position: "relative" }}>
+      <div style={{ position: "relative" }} ref={containerRef}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
@@ -68,41 +80,58 @@ function FeeDropdown({
           <div
             style={{
               position: "absolute",
-              top: "100%",
+              top: "calc(100% + 4px)",
               left: 0,
               right: 0,
               zIndex: 50,
               backgroundColor: "var(--roads-bg-primary)",
-              border: "1px solid var(--roads-border-dark)",
               borderRadius: "var(--roads-radius-2xs)",
               boxShadow: "0px 8px 16px rgba(39,51,51,0.24)",
-              maxHeight: 240,
+              padding: "var(--roads-spacing-component-xs)",
+              display: "flex",
+              flexDirection: "column",
+              gap: "var(--roads-spacing-component-xs)",
+              maxHeight: 400,
               overflowY: "auto",
             }}
           >
-            {FEE_OPTIONS.map((opt) => (
-              <button
-                key={opt}
-                type="button"
-                className="body-100"
-                onClick={() => { onChange(opt); setOpen(false); }}
-                style={{
-                  display: "block",
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--roads-text-primary)",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--roads-bg-light)")}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-                data-testid={`option-fee-${opt.toLowerCase().replace(/\s+/g, "-")}`}
-              >
-                {opt}
-              </button>
-            ))}
+            {FEE_OPTIONS.map((opt) => {
+              const isSelected = value === opt;
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  className={isSelected ? "label-strong" : "body-100"}
+                  onClick={() => { onChange(opt); setOpen(false); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "0 12px",
+                    height: 40,
+                    background: "none",
+                    border: "none",
+                    borderRadius: "var(--roads-radius-2xs)",
+                    cursor: "pointer",
+                    color: isSelected ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.backgroundColor = "var(--roads-bg-light)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                  data-testid={`option-fee-${opt.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  <span>{opt}</span>
+                  {isSelected && (
+                    <Check style={{ width: 20, height: 20, color: "var(--roads-text-brand)" }} />
+                  )}
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
