@@ -160,7 +160,7 @@ function DisclosuresContent() {
         generatingText="Generating At-App Disclosures"
         generateLabel="Generate At-App Disclosures"
         secondaryLabel="Download At-App Disclosures"
-        onSecondaryClick={() => alert("At-App Disclosures download is not yet available in this prototype.")}
+        onSecondaryClick={() => window.open("/at-app-disclosures.pdf", "_blank")}
         testIdPrefix="at-app-disclosures"
       />
 
