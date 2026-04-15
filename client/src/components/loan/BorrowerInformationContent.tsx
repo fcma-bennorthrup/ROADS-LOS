@@ -439,11 +439,12 @@ function StaticCheckbox({ checked, label }: { checked: boolean; label: string })
             style={{
               width: "var(--roads-spacing-component-m)",
               height: "var(--roads-spacing-component-m)",
+              color: "var(--roads-text-reverse)",
             }}
           >
             <path
               d="M1 4L4.5 7.5L11 1"
-              stroke="white"
+              stroke="currentColor"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -553,15 +554,15 @@ export function BorrowerInformationContent({ borrowers }: BorrowerInformationCon
             <button
               key={b.id}
               onClick={() => handleTabChange(b.id)}
-              className={`flex items-center ${isActive ? "label-strong" : "body-100"}`}
+              className="flex items-center label-strong"
               style={{
                 gap: "var(--roads-spacing-component-xs)",
                 padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-m)",
                 background: "none",
                 border: "none",
                 borderBottom: isActive
-                  ? "2px solid var(--roads-border-brand)"
-                  : "2px solid var(--roads-border-subtle)",
+                  ? "var(--roads-spacing-component-3xs) solid var(--roads-border-brand)"
+                  : "var(--roads-spacing-component-3xs) solid var(--roads-border-subtle)",
                 cursor: "pointer",
                 color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
                 position: "relative",
@@ -876,33 +877,29 @@ export function BorrowerInformationContent({ borrowers }: BorrowerInformationCon
               value={activeStaticData.militaryService}
               testId="military-service-question"
             />
-            {activeStaticData.militaryService === "yes" && (
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-m)" }}>
+              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+                If yes, check all that apply:
+              </span>
               <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-m)" }}>
-                <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                  If yes, check all that apply:
-                </span>
-                <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-m)" }}>
-                  {MILITARY_CHECKBOXES.map((detail) => (
-                    <StaticCheckbox
-                      key={detail}
-                      checked={activeStaticData.militaryDetails.includes(detail)}
-                      label={detail}
-                    />
-                  ))}
-                </div>
-                {activeStaticData.militaryDetails.includes(MILITARY_CHECKBOXES[0]) && (
-                  <div
-                    className="flex flex-col"
-                    style={{ gap: "var(--roads-spacing-component-xs)" }}
-                  >
-                    <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                      Date
-                    </span>
-                    <ReadOnlyField value={activeStaticData.militaryDate || "\u00A0"} />
-                  </div>
-                )}
+                {MILITARY_CHECKBOXES.map((detail) => (
+                  <StaticCheckbox
+                    key={detail}
+                    checked={activeStaticData.militaryDetails.includes(detail)}
+                    label={detail}
+                  />
+                ))}
               </div>
-            )}
+              <div
+                className="flex flex-col"
+                style={{ gap: "var(--roads-spacing-component-xs)" }}
+              >
+                <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+                  Date
+                </span>
+                <ReadOnlyField value={activeStaticData.militaryDate || "\u00A0"} />
+              </div>
+            </div>
           </div>
         </SectionCard>
       </div>
