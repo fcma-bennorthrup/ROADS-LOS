@@ -396,9 +396,10 @@ export async function registerRoutes(
         const remoteFiles = await fetchRemoteFilesAtHead(eligibleRemotePaths);
 
         let baseFiles: FileEntry[];
+        let baseTreeData: any;
         try {
-          const baseTree = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
-          const basePaths = baseTree.tree
+          baseTreeData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
+          const basePaths = baseTreeData.tree
             .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
             .map((item: any) => item.path)
             .filter((p: string) => unionPaths.has(p));
@@ -442,40 +443,43 @@ export async function registerRoutes(
           return;
         }
 
-        const { changedFiles: filteredFiles } = diffAgainstRemoteTree(report.safeToUpdate, remoteTree);
-
         const safeDeletions = [...(report.safeToDelete || [])];
+        let binaryFilteredSafeToUpdate = report.safeToUpdate;
 
         try {
-          const baseTreeData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
-          const baseBinaryPaths = new Set(
-            baseTreeData.tree
-              .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path))
-              .map((item: any) => item.path)
-          );
+          const baseBinaryShas = new Map<string, string>();
           const remoteBinaryShas = new Map<string, string>();
+          for (const item of baseTreeData.tree) {
+            if (item.type === "blob" && isBinaryFile(item.path)) {
+              baseBinaryShas.set(item.path, item.sha);
+            }
+          }
           for (const item of remoteTree) {
             if (item.type === "blob" && isBinaryFile(item.path)) {
               remoteBinaryShas.set(item.path, item.sha);
             }
           }
-          const baseTreeBinaryShas = new Map<string, string>();
-          for (const item of baseTreeData.tree) {
-            if (item.type === "blob" && isBinaryFile(item.path)) {
-              baseTreeBinaryShas.set(item.path, item.sha);
-            }
-          }
-          for (const binaryPath of baseBinaryPaths) {
+
+          binaryFilteredSafeToUpdate = report.safeToUpdate.filter((f) => {
+            if (!isBinaryFile(f.path)) return true;
+            const baseSha = baseBinaryShas.get(f.path);
+            if (!baseSha) return true;
+            const localSha = computeGitBlobSha(f);
+            return localSha !== baseSha;
+          });
+
+          for (const [binaryPath, baseSha] of baseBinaryShas) {
             const fullPath = path.join(projectRoot, binaryPath);
             if (!fs.existsSync(fullPath)) {
               const remoteSha = remoteBinaryShas.get(binaryPath);
-              const baseSha = baseTreeBinaryShas.get(binaryPath);
               if (remoteSha === baseSha) {
                 safeDeletions.push(binaryPath);
               }
             }
           }
         } catch {}
+
+        const { changedFiles: filteredFiles } = diffAgainstRemoteTree(binaryFilteredSafeToUpdate, remoteTree);
 
 
         if (filteredFiles.length === 0 && safeDeletions.length === 0) {
