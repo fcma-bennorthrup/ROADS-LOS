@@ -64,7 +64,7 @@ export function DecisioningSummaryContent() {
             onClick={() => {
               if (!isDecisioned) return;
               if (letterGenerated) {
-                window.open("/decision-letter.pdf", "_blank");
+                alert("Decision letter preview is not yet available in this prototype.");
               } else {
                 setLetterGenerated(true);
               }
