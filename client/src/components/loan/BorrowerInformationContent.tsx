@@ -393,7 +393,7 @@ function StaticRadioGroup({
                       width: "var(--roads-spacing-component-xs)",
                       height: "var(--roads-spacing-component-xs)",
                       borderRadius: "var(--roads-radius-round)",
-                      backgroundColor: "var(--roads-bg-action-disabled)",
+                      backgroundColor: "var(--roads-bg-disabled)",
                     }}
                   />
                 )}
@@ -420,7 +420,7 @@ function StaticCheckbox({ checked, label }: { checked: boolean; label: string })
           flexShrink: 0,
           border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
-          backgroundColor: checked ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-primary)",
+          backgroundColor: checked ? "var(--roads-bg-disabled)" : "var(--roads-bg-primary)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
