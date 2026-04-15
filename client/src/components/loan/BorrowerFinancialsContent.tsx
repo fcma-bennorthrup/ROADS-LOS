@@ -600,11 +600,11 @@ export function BorrowerFinancialsContent() {
             onClick={handleAddIncomeSource}
             className="body-200-strong"
             style={{
-              backgroundColor: "var(--roads-bg-primary)",
-              border: "1px solid var(--roads-border-dark)",
+              backgroundColor: "var(--roads-bg-action)",
+              border: "none",
               borderRadius: "var(--roads-radius-2xs)",
               padding: "var(--roads-spacing-component-2xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
+              color: "var(--roads-text-reverse)",
               cursor: "pointer",
               height: "32px",
             }}
