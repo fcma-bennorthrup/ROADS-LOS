@@ -40,12 +40,16 @@ function collectLocalFiles(dir: string, base: string = ""): FileEntry[] {
       }
     } else if (entry.isFile()) {
       if (IGNORE_FILES.has(entry.name)) continue;
-      if (isBinaryFile(entry.name)) continue;
       try {
         const stats = fs.statSync(fullPath);
         if (stats.size > MAX_FILE_SIZE) continue;
-        const content = fs.readFileSync(fullPath, "utf-8");
-        results.push({ path: relativePath, content });
+        if (isBinaryFile(entry.name)) {
+          const content = fs.readFileSync(fullPath).toString("base64");
+          results.push({ path: relativePath, content, encoding: "base64" });
+        } else {
+          const content = fs.readFileSync(fullPath, "utf-8");
+          results.push({ path: relativePath, content });
+        }
       } catch {}
     }
   }

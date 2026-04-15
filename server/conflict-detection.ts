@@ -1,6 +1,7 @@
 export interface FileEntry {
   path: string;
   content: string;
+  encoding?: "utf-8" | "base64";
 }
 
 export interface ConflictReport {
