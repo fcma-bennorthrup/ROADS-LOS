@@ -196,7 +196,7 @@ export function FeesContent() {
   return (
     <div
       className="flex flex-col"
-      style={{ padding: "var(--roads-spacing-component-xl)", gap: "var(--roads-spacing-component-xl)" }}
+      style={{ padding: "var(--roads-spacing-component-xl)", gap: "var(--roads-spacing-component-xl)", flex: 1, minHeight: 0 }}
       data-testid="fees-content"
     >
       <h2
@@ -255,11 +255,13 @@ export function FeesContent() {
       </div>
 
       <div
+        className="flex flex-col"
         style={{
           backgroundColor: "var(--roads-bg-primary)",
           border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-xs)",
           overflow: "hidden",
+          flex: 1,
         }}
         data-testid="fees-table"
       >
@@ -312,7 +314,8 @@ export function FeesContent() {
           style={{
             backgroundColor: "var(--roads-bg-light)",
             padding: "var(--roads-spacing-component-l)",
-            borderTop: fees.length > 0 ? "1px solid var(--roads-border-subtle)" : "none",
+            borderTop: "1px solid var(--roads-border-subtle)",
+            marginTop: "auto",
           }}
           data-testid="fees-table-footer"
         />
