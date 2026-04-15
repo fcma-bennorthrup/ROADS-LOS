@@ -72,6 +72,16 @@ const ITEMS_PER_PAGE_OPTIONS = [
   { value: "50", label: "50" },
 ];
 
+const COLUMNS = [
+  { key: "field" as const, label: "Field", width: "16.3%" },
+  { key: "previousValue" as const, label: "Previous value", width: "16.3%" },
+  { key: "newValue" as const, label: "New value", width: "16.3%" },
+  { key: "changedBy" as const, label: "Changed by", width: "13.4%" },
+  { key: "position" as const, label: "Position", width: "10.9%" },
+  { key: "timestamp" as const, label: "Timestamp", width: "12.7%" },
+  { key: "linkToField" as const, label: "Link to field", width: "14.1%" },
+];
+
 function parseTimestamp(ts: string): number {
   const [datePart, timePart, ampm] = ts.split(" ");
   const [month, day, year] = datePart.split("/").map(Number);
@@ -228,111 +238,33 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
           className="flex"
           style={{ backgroundColor: "var(--roads-bg-light)" }}
         >
-          <div
-            className="label-strong"
-            style={{
-              width: 225,
-              minWidth: 225,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-field"
-          >
-            Field
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              width: 225,
-              minWidth: 225,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-previousValue"
-          >
-            Previous value
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              width: 225,
-              minWidth: 225,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-newValue"
-          >
-            New value
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              width: 185,
-              minWidth: 185,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-changedBy"
-          >
-            Changed by
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              width: 150,
-              minWidth: 150,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-position"
-          >
-            Position
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              width: 175,
-              minWidth: 175,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--roads-spacing-component-xs)",
-              userSelect: "none",
-            }}
-            onClick={toggleSort}
-            data-testid="th-timestamp"
-          >
-            Timestamp
-            <SortIcon style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
-          </div>
-          <div
-            className="label-strong"
-            style={{
-              flex: 1,
-              minWidth: 120,
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: "var(--roads-text-primary)",
-              lineHeight: "24px",
-              whiteSpace: "nowrap",
-            }}
-            data-testid="th-linkToField"
-          >
-            Link to field
-          </div>
+          {COLUMNS.map((col) => (
+            <div
+              key={col.key}
+              className="label-strong"
+              style={{
+                width: col.width,
+                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+                color: "var(--roads-text-primary)",
+                lineHeight: "24px",
+                whiteSpace: "nowrap",
+                ...(col.key === "timestamp" ? {
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "var(--roads-spacing-component-xs)",
+                  userSelect: "none" as const,
+                } : {}),
+              }}
+              onClick={col.key === "timestamp" ? toggleSort : undefined}
+              data-testid={`th-${col.key}`}
+            >
+              {col.label}
+              {col.key === "timestamp" && (
+                <SortIcon style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="flex flex-col" style={{ flex: 1, overflowY: "auto", overflowX: "auto" }}>
@@ -343,108 +275,41 @@ export function HistoryContent({ onNavigateToField }: HistoryContentProps) {
               style={{ borderTop: "1px solid var(--roads-border-subtle)" }}
               data-testid={`change-log-row-${entry.id}`}
             >
-              <div
-                className="body-100"
-                style={{
-                  width: 225, minWidth: 225,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-field-${entry.id}`}
-              >
-                {entry.field}
-              </div>
-              <div
-                className="body-100"
-                style={{
-                  width: 225, minWidth: 225,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-previousValue-${entry.id}`}
-              >
-                {entry.previousValue}
-              </div>
-              <div
-                className="body-100"
-                style={{
-                  width: 225, minWidth: 225,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-newValue-${entry.id}`}
-              >
-                {entry.newValue}
-              </div>
-              <div
-                className="body-100"
-                style={{
-                  width: 185, minWidth: 185,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-changedBy-${entry.id}`}
-              >
-                {entry.changedBy}
-              </div>
-              <div
-                className="body-100"
-                style={{
-                  width: 150, minWidth: 150,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-position-${entry.id}`}
-              >
-                {entry.position}
-              </div>
-              <div
-                className="body-100"
-                style={{
-                  width: 175, minWidth: 175,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  color: "var(--roads-text-primary)",
-                  lineHeight: "24px",
-                  overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}
-                data-testid={`td-timestamp-${entry.id}`}
-              >
-                {entry.timestamp}
-              </div>
-              <div
-                style={{
-                  flex: 1,
-                  minWidth: 120,
-                  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                  lineHeight: "24px",
-                }}
-                data-testid={`td-linkToField-${entry.id}`}
-              >
-                <button
-                  onClick={() => handleLinkClick(entry)}
-                  className="label-strong"
+              {COLUMNS.map((col) => (
+                <div
+                  key={col.key}
+                  className={col.key === "linkToField" ? undefined : "body-100"}
                   style={{
-                    background: "none",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    color: "var(--roads-text-link)",
+                    width: col.width,
+                    padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+                    color: "var(--roads-text-primary)",
+                    lineHeight: "24px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
-                  data-testid={`link-to-field-${entry.id}`}
+                  data-testid={`td-${col.key}-${entry.id}`}
                 >
-                  {entry.section}
-                </button>
-              </div>
+                  {col.key === "linkToField" ? (
+                    <button
+                      onClick={() => handleLinkClick(entry)}
+                      className="label-strong"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        padding: 0,
+                        cursor: "pointer",
+                        color: "var(--roads-text-link)",
+                      }}
+                      data-testid={`link-to-field-${entry.id}`}
+                    >
+                      {entry.section}
+                    </button>
+                  ) : (
+                    entry[col.key as keyof typeof entry]
+                  )}
+                </div>
+              ))}
             </div>
           ))}
         </div>
