@@ -227,13 +227,13 @@ export function FeesContent() {
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
             cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
           data-testid="button-add-fee"
         >
           Add Fee
         </button>
         <button
-          onClick={handleDeleteAll}
           className="label-strong"
           style={{
             backgroundColor: "var(--roads-bg-primary)",
@@ -242,6 +242,23 @@ export function FeesContent() {
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
             cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+          data-testid="button-save-fee-table"
+        >
+          Save Fee Table
+        </button>
+        <button
+          onClick={handleDeleteAll}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-error)",
+            color: "var(--roads-text-reverse)",
+            border: "none",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
           }}
           data-testid="button-delete-all-fees"
         >
