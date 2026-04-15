@@ -33,7 +33,7 @@ function FeeDropdown({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="flex flex-col" style={{ flex: 1, minWidth: 200, gap: "var(--roads-spacing-component-xs)" }}>
+    <div className="flex flex-col" style={{ width: 294, gap: "var(--roads-spacing-component-xs)" }}>
       <span
         className="label-strong"
         style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}
@@ -122,7 +122,7 @@ function CurrencyInput({
   testId: string;
 }) {
   return (
-    <div className="flex flex-col" style={{ flex: 1, minWidth: 200, gap: "var(--roads-spacing-component-xs)" }}>
+    <div className="flex flex-col" style={{ width: 294, gap: "var(--roads-spacing-component-xs)" }}>
       <span
         className="label-strong"
         style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}
@@ -221,37 +221,32 @@ export function FeesContent() {
           onClick={handleAddFee}
           className="label-strong"
           style={{
-            backgroundColor: feeType ? "var(--roads-bg-action)" : "var(--roads-bg-action-disabled)",
+            backgroundColor: "var(--roads-bg-action)",
             color: "var(--roads-text-reverse)",
             border: "none",
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-            cursor: feeType ? "pointer" : "default",
+            cursor: "pointer",
           }}
-          disabled={!feeType}
           data-testid="button-add-fee"
         >
           Add Fee
         </button>
-        {fees.length > 0 && (
-          <>
-            <button
-              onClick={handleDeleteAll}
-              className="label-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-error)",
-                color: "var(--roads-text-reverse)",
-                border: "none",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-                cursor: "pointer",
-              }}
-              data-testid="button-delete-all-fees"
-            >
-              Delete All Fees
-            </button>
-          </>
-        )}
+        <button
+          onClick={handleDeleteAll}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            color: "var(--roads-text-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+          }}
+          data-testid="button-delete-all-fees"
+        >
+          Delete All Fees
+        </button>
       </div>
 
       <div
