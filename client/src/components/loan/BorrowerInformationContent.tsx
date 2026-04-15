@@ -39,7 +39,6 @@ interface BorrowerFields {
   state: string;
   zip: string;
   country: string;
-  homePhone: string;
   maritalStatus: string;
   dependents: string;
   dependentsAges: string;
@@ -121,7 +120,6 @@ const BORROWER_SEED: Record<string, SeedEntry> = {
       state: "KY",
       zip: "40234",
       country: "United States",
-      homePhone: "(502) 555-0101",
       maritalStatus: "married",
       dependents: "2",
       dependentsAges: "4, 7",
@@ -150,7 +148,6 @@ const BORROWER_SEED: Record<string, SeedEntry> = {
       state: "KY",
       zip: "40234",
       country: "United States",
-      homePhone: "(502) 555-0102",
       maritalStatus: "married",
       dependents: "2",
       dependentsAges: "4, 7",
@@ -179,7 +176,6 @@ const BORROWER_SEED: Record<string, SeedEntry> = {
       state: "KY",
       zip: "40502",
       country: "United States",
-      homePhone: "(859) 555-0103",
       maritalStatus: "unmarried",
       dependents: "0",
       dependentsAges: "",
@@ -224,7 +220,6 @@ function borrowerToFields(borrower: Borrower): BorrowerFields {
     state: seed.state ?? "TN",
     zip: seed.zip ?? "37201",
     country: seed.country ?? "United States",
-    homePhone: seed.homePhone ?? borrower.phone,
     maritalStatus: seed.maritalStatus ?? "unmarried",
     dependents: seed.dependents ?? "0",
     dependentsAges: seed.dependentsAges ?? "",
@@ -492,6 +487,17 @@ export function BorrowerInformationContent({ borrowers }: BorrowerInformationCon
 
   const activeBorrower = sorted.find((b) => b.id === activeBorrowerId) ?? sorted[0];
   const fields = fieldsMap[activeBorrowerId] ?? borrowerToFields(activeBorrower);
+
+  if (borrowers.length === 0) {
+    return (
+      <div
+        className="flex items-center justify-center body-100"
+        style={{ padding: "var(--roads-spacing-component-3xl)", color: "var(--roads-text-tertiary)" }}
+      >
+        No borrowers found for this loan.
+      </div>
+    );
+  }
 
   const activeStaticData = (BORROWER_SEED[getSeedKey(activeBorrower)] ?? DEFAULT_SEED).staticData;
 
