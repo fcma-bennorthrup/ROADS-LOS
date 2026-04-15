@@ -443,12 +443,40 @@ export async function registerRoutes(
         }
 
         const { changedFiles: filteredFiles } = diffAgainstRemoteTree(report.safeToUpdate, remoteTree);
-        const { deletions: diskDeletions } = diffAgainstRemoteTree(localFiles, remoteTree, projectRoot);
-        const conflictPaths = new Set(report.conflicts.map((c) => c.path));
-        const nonConflictDiskDeletions = diskDeletions.filter((p) => !conflictPaths.has(p));
-        const textDeletions = report.safeToDelete || [];
-        const allDeletionPaths = new Set([...textDeletions, ...nonConflictDiskDeletions]);
-        const safeDeletions = [...allDeletionPaths];
+
+        const safeDeletions = [...(report.safeToDelete || [])];
+
+        try {
+          const baseTreeData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
+          const baseBinaryPaths = new Set(
+            baseTreeData.tree
+              .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path))
+              .map((item: any) => item.path)
+          );
+          const remoteBinaryShas = new Map<string, string>();
+          for (const item of remoteTree) {
+            if (item.type === "blob" && isBinaryFile(item.path)) {
+              remoteBinaryShas.set(item.path, item.sha);
+            }
+          }
+          const baseTreeBinaryShas = new Map<string, string>();
+          for (const item of baseTreeData.tree) {
+            if (item.type === "blob" && isBinaryFile(item.path)) {
+              baseTreeBinaryShas.set(item.path, item.sha);
+            }
+          }
+          for (const binaryPath of baseBinaryPaths) {
+            const fullPath = path.join(projectRoot, binaryPath);
+            if (!fs.existsSync(fullPath)) {
+              const remoteSha = remoteBinaryShas.get(binaryPath);
+              const baseSha = baseTreeBinaryShas.get(binaryPath);
+              if (remoteSha === baseSha) {
+                safeDeletions.push(binaryPath);
+              }
+            }
+          }
+        } catch {}
+
 
         if (filteredFiles.length === 0 && safeDeletions.length === 0) {
           setLastSyncedCommit(remoteHeadSha);
@@ -479,9 +507,9 @@ export async function registerRoutes(
         return;
       }
 
-      const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, remoteTree, projectRoot);
+      const { changedFiles } = diffAgainstRemoteTree(localFiles, remoteTree);
 
-      if (changedFiles.length === 0 && deletions.length === 0) {
+      if (changedFiles.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
         clearPendingConflicts();
         res.json({
@@ -495,7 +523,7 @@ export async function registerRoutes(
         return;
       }
 
-      const result = await pushCodebaseWithDeletions(OWNER, REPO, changedFiles, deletions, commitMessage);
+      const result = await pushCodebase(OWNER, REPO, changedFiles, commitMessage);
       setLastSyncedCommit(result.commitSha);
       clearPendingConflicts();
 
@@ -503,9 +531,8 @@ export async function registerRoutes(
         ...result,
         conflicts: [],
         safeFiles: changedFiles.map((f) => f.path),
-        deletedFiles: deletions,
         unchangedFiles: [],
-        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
+        message: `Successfully pushed ${result.filesCount} changed file(s) to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
