@@ -7,6 +7,7 @@ import { detectPushConflicts, detectPullConflicts, type FileEntry } from "./conf
 import { getPendingConflicts, setPendingConflicts, clearPendingConflicts } from "./pending-conflicts";
 import * as fs from "fs";
 import * as path from "path";
+import * as crypto from "crypto";
 
 const OWNER = "bennorthrup";
 const REPO = "ROADS-LOS";
@@ -76,6 +77,50 @@ async function fetchRemoteFiles(treePaths: string[], commitRef: string): Promise
     throw new Error(`Failed to fetch ${errors.length} file(s) from commit ${commitRef}: ${errors.slice(0, 5).join("; ")}`);
   }
   return files;
+}
+
+function computeGitBlobSha(content: Buffer): string {
+  const header = `blob ${content.length}\0`;
+  const store = Buffer.concat([Buffer.from(header), content]);
+  return crypto.createHash("sha1").update(store).digest("hex");
+}
+
+function diffAgainstRemoteTree(
+  localFiles: FileEntry[],
+  remoteTree: { path: string; type: string; sha: string }[]
+): { changedFiles: FileEntry[]; deletions: string[] } {
+  const remoteBlobMap = new Map<string, string>();
+  for (const item of remoteTree) {
+    if (item.type === "blob" && !shouldIgnorePath(item.path)) {
+      remoteBlobMap.set(item.path, item.sha);
+    }
+  }
+
+  const localPathSet = new Set<string>();
+  const changedFiles: FileEntry[] = [];
+
+  for (const file of localFiles) {
+    localPathSet.add(file.path);
+    const remoteSha = remoteBlobMap.get(file.path);
+
+    const contentBuffer = file.encoding === "base64"
+      ? Buffer.from(file.content, "base64")
+      : Buffer.from(file.content);
+    const localSha = computeGitBlobSha(contentBuffer);
+
+    if (remoteSha !== localSha) {
+      changedFiles.push(file);
+    }
+  }
+
+  const deletions: string[] = [];
+  for (const [remotePath] of remoteBlobMap) {
+    if (!localPathSet.has(remotePath)) {
+      deletions.push(remotePath);
+    }
+  }
+
+  return { changedFiles, deletions };
 }
 
 async function fetchRemoteFilesAtHead(treePaths: string[]): Promise<FileEntry[]> {
@@ -419,16 +464,33 @@ export async function registerRoutes(
         return;
       }
 
-      const result = await pushCodebase(OWNER, REPO, localFiles, commitMessage);
+      const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, remoteTree);
+
+      if (changedFiles.length === 0 && deletions.length === 0) {
+        setLastSyncedCommit(remoteHeadSha);
+        clearPendingConflicts();
+        res.json({
+          commitSha: remoteHeadSha,
+          filesCount: 0,
+          conflicts: [],
+          safeFiles: [],
+          unchangedFiles: localFiles.map((f) => f.path),
+          message: "No local changes to push — all files match the remote.",
+        });
+        return;
+      }
+
+      const result = await pushCodebaseWithDeletions(OWNER, REPO, changedFiles, deletions, commitMessage);
       setLastSyncedCommit(result.commitSha);
       clearPendingConflicts();
 
       res.json({
         ...result,
         conflicts: [],
-        safeFiles: localFiles.map((f) => f.path),
+        safeFiles: changedFiles.map((f) => f.path),
+        deletedFiles: deletions,
         unchangedFiles: [],
-        message: `Successfully pushed ${result.filesCount} files to ${OWNER}/${REPO}`,
+        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
