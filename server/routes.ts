@@ -507,9 +507,14 @@ export async function registerRoutes(
         return;
       }
 
-      const { changedFiles } = diffAgainstRemoteTree(localFiles, remoteTree);
+      const canDetectDeletions = lastSyncedSha === remoteHeadSha;
+      const { changedFiles, deletions } = diffAgainstRemoteTree(
+        localFiles,
+        remoteTree,
+        canDetectDeletions ? projectRoot : undefined
+      );
 
-      if (changedFiles.length === 0) {
+      if (changedFiles.length === 0 && deletions.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
         clearPendingConflicts();
         res.json({
@@ -523,7 +528,7 @@ export async function registerRoutes(
         return;
       }
 
-      const result = await pushCodebase(OWNER, REPO, changedFiles, commitMessage);
+      const result = await pushCodebaseWithDeletions(OWNER, REPO, changedFiles, deletions, commitMessage);
       setLastSyncedCommit(result.commitSha);
       clearPendingConflicts();
 
@@ -531,8 +536,9 @@ export async function registerRoutes(
         ...result,
         conflicts: [],
         safeFiles: changedFiles.map((f) => f.path),
+        deletedFiles: deletions,
         unchangedFiles: [],
-        message: `Successfully pushed ${result.filesCount} changed file(s) to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
+        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
