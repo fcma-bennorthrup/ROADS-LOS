@@ -411,6 +411,7 @@ export async function registerRoutes(
             operation: "push",
             conflicts: report.conflicts,
             safeToUpdate: report.safeToUpdate,
+            safeToDelete: report.safeToDelete,
             remoteHeadSha,
             commitMessage,
             createdAt: new Date().toISOString(),
@@ -616,9 +617,11 @@ export async function registerRoutes(
           .filter((r) => r.resolvedContent !== null)
           .map((r) => ({ path: r.path, content: r.resolvedContent as string }));
         const filesToPush = [...pending.safeToUpdate, ...resolvedFileEntries];
-        const filesToDelete = validatedResolutions
+        const conflictDeletions = validatedResolutions
           .filter((r) => r.resolvedContent === null)
           .map((r) => r.path);
+        const pendingSafeDeletions = pending.safeToDelete || [];
+        const filesToDelete = [...conflictDeletions, ...pendingSafeDeletions];
 
         const commitMessage = pending.commitMessage || "Resolve conflicts and push from Replit";
 
