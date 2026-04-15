@@ -41,6 +41,8 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
   - 240px side nav: Borrower Information, Loan Details, Collateral, Product & Pricing, Fees
+  - Borrower Information page: borrower tabs (Richard/Jamelle/Priya), Primary Borrower chip, Personal Information fields (First Name, Last Name, SSN, DOB, Phone, Email, Address row, Marital Status/Dependents/Farm Involvement), Declarations section (14 Yes/No radio questions), edit/save/discard pattern
+  - Loan Details page: Loan Type, Loan Purpose, Requested Loan Amount, Down Payment Amount/Source, checkboxes, Tell the Story textarea, edit/save/discard pattern
   - Collateral page: Subject Property (address fields with edit/save/discard) + Value section (split appraisal with evaluation tabs, edit/save/discard)
   - Other sub-pages show "Coming Soon" placeholder
 - **Loan Decisioning** (`/loans/:id/decisioning`): Decisioning tab with side navigation:
@@ -60,6 +62,8 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - `client/src/components/loan/SummaryRatios.tsx` — 4-column flat data layout (ratios, reserves, amounts, product)
 - `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with horizontal Email/Phone layout, copy-to-clipboard
 - `client/src/components/loan/SideNav.tsx` — 240px side navigation for origination sub-pages
+- `client/src/components/loan/BorrowerInformationContent.tsx` — Borrower Information page with tabs, Personal Information fields, 14-question Declarations section, edit/save/discard
+- `client/src/components/loan/LoanDetailsContent.tsx` — Loan Details page with dropdowns, checkboxes, Tell the Story textarea, edit/save/discard
 - `client/src/components/loan/CollateralContent.tsx` — Collateral page with Subject Property address fields and Value appraisal fields
 
 ## Project Structure
