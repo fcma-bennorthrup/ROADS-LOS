@@ -443,7 +443,12 @@ export async function registerRoutes(
         }
 
         const { changedFiles: filteredFiles } = diffAgainstRemoteTree(report.safeToUpdate, remoteTree);
-        const safeDeletions = report.safeToDelete || [];
+        const { deletions: diskDeletions } = diffAgainstRemoteTree(localFiles, remoteTree, projectRoot);
+        const conflictPaths = new Set(report.conflicts.map((c) => c.path));
+        const nonConflictDiskDeletions = diskDeletions.filter((p) => !conflictPaths.has(p));
+        const textDeletions = report.safeToDelete || [];
+        const allDeletionPaths = new Set([...textDeletions, ...nonConflictDiskDeletions]);
+        const safeDeletions = [...allDeletionPaths];
 
         if (filteredFiles.length === 0 && safeDeletions.length === 0) {
           setLastSyncedCommit(remoteHeadSha);
