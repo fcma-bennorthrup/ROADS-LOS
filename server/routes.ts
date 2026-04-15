@@ -464,7 +464,10 @@ export async function registerRoutes(
             if (!isBinaryFile(f.path)) return true;
             const baseSha = baseBinaryShas.get(f.path);
             if (!baseSha) return true;
-            const localSha = computeGitBlobSha(f);
+            const contentBuffer = f.encoding === "base64"
+              ? Buffer.from(f.content, "base64")
+              : Buffer.from(f.content);
+            const localSha = computeGitBlobSha(contentBuffer);
             return localSha !== baseSha;
           });
 
@@ -477,7 +480,9 @@ export async function registerRoutes(
               }
             }
           }
-        } catch {}
+        } catch (binaryErr: any) {
+          console.warn("Binary diff against base tree failed, pushing all binaries:", binaryErr?.message);
+        }
 
         const { changedFiles: filteredFiles } = diffAgainstRemoteTree(binaryFilteredSafeToUpdate, remoteTree);
 
@@ -512,8 +517,31 @@ export async function registerRoutes(
       }
 
       const canDetectDeletions = force || lastSyncedSha === remoteHeadSha;
+      let filesToDiff = localFiles;
+      if (force && lastSyncedSha) {
+        try {
+          const baseTreeForForce = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
+          const baseShaMap = new Map<string, string>();
+          for (const item of baseTreeForForce.tree) {
+            if (item.type === "blob" && !shouldIgnorePath(item.path)) {
+              baseShaMap.set(item.path, item.sha);
+            }
+          }
+          filesToDiff = localFiles.filter((f) => {
+            const baseSha = baseShaMap.get(f.path);
+            if (!baseSha) return true;
+            const contentBuffer = f.encoding === "base64"
+              ? Buffer.from(f.content, "base64")
+              : Buffer.from(f.content);
+            const localSha = computeGitBlobSha(contentBuffer);
+            return localSha !== baseSha;
+          });
+        } catch (forceBaseErr: any) {
+          console.warn("Force push base tree fetch failed, diffing against remote only:", forceBaseErr?.message);
+        }
+      }
       const { changedFiles, deletions } = diffAgainstRemoteTree(
-        localFiles,
+        filesToDiff,
         remoteTree,
         canDetectDeletions ? projectRoot : undefined
       );
