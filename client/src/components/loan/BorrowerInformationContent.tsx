@@ -369,7 +369,7 @@ function StaticRadioGroup({
               className="flex items-center body-100"
               style={{
                 gap: "var(--roads-spacing-component-xs)",
-                color: checked ? "var(--roads-text-primary)" : "var(--roads-text-tertiary)",
+                color: "var(--roads-text-tertiary)",
               }}
             >
               <div
