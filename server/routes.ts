@@ -507,7 +507,7 @@ export async function registerRoutes(
         return;
       }
 
-      const canDetectDeletions = lastSyncedSha === remoteHeadSha;
+      const canDetectDeletions = force || lastSyncedSha === remoteHeadSha;
       const { changedFiles, deletions } = diffAgainstRemoteTree(
         localFiles,
         remoteTree,
