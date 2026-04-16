@@ -517,9 +517,8 @@ export async function registerRoutes(
       }
 
       let filesToDiff = localFiles;
-      let baseAwareDeletions: string[] = [];
 
-      if (lastSyncedSha) {
+      if (!force && lastSyncedSha) {
         try {
           const baseTreeForFallback = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
           const baseShaMap = new Map<string, string>();
@@ -528,7 +527,6 @@ export async function registerRoutes(
               baseShaMap.set(item.path, item.sha);
             }
           }
-
           filesToDiff = localFiles.filter((f) => {
             const baseSha = baseShaMap.get(f.path);
             if (!baseSha) return true;
@@ -538,29 +536,17 @@ export async function registerRoutes(
             const localSha = computeGitBlobSha(contentBuffer);
             return localSha !== baseSha;
           });
-
-          const remoteShaMap = new Map<string, string>();
-          for (const item of remoteTree) {
-            if (item.type === "blob" && !shouldIgnorePath(item.path)) {
-              remoteShaMap.set(item.path, item.sha);
-            }
-          }
-          for (const [basePath, baseSha] of baseShaMap) {
-            const fullPath = path.join(projectRoot, basePath);
-            if (!fs.existsSync(fullPath)) {
-              const remoteSha = remoteShaMap.get(basePath);
-              if (!remoteSha || remoteSha === baseSha) {
-                baseAwareDeletions.push(basePath);
-              }
-            }
-          }
         } catch (baseErr: any) {
           console.warn("Base tree fetch failed, diffing against remote only:", baseErr?.message);
         }
       }
 
-      const { changedFiles } = diffAgainstRemoteTree(filesToDiff, remoteTree);
-      const deletions = baseAwareDeletions;
+      const canDetectDeletions = force || lastSyncedSha === remoteHeadSha;
+      const { changedFiles, deletions } = diffAgainstRemoteTree(
+        filesToDiff,
+        remoteTree,
+        canDetectDeletions ? projectRoot : undefined
+      );
 
       if (changedFiles.length === 0 && deletions.length === 0) {
         setLastSyncedCommit(remoteHeadSha);
