@@ -48,7 +48,7 @@ export async function listRepositories() {
 export async function pushCodebaseWithDeletions(
   owner: string,
   repo: string,
-  files: { path: string; content: string }[],
+  files: { path: string; content: string; encoding?: "utf-8" | "base64" }[],
   deletions: string[],
   message: string
 ) {
@@ -61,10 +61,13 @@ export async function pushCodebaseWithDeletions(
   const treeItems: { path: string; mode: string; type: string; sha: string | null }[] = [];
 
   for (const file of files) {
+    const base64Content = file.encoding === "base64"
+      ? file.content
+      : Buffer.from(file.content).toString("base64");
     const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
       method: "POST",
       body: {
-        content: Buffer.from(file.content).toString("base64"),
+        content: base64Content,
         encoding: "base64",
       },
     });
@@ -117,7 +120,7 @@ export async function pushCodebaseWithDeletions(
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length, deletedCount: deletions.length };
 }
 
-export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string }[], message: string) {
+export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
@@ -126,10 +129,13 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
 
   const treeItems: { path: string; mode: string; type: string; sha: string }[] = [];
   for (const file of files) {
+    const base64Content = file.encoding === "base64"
+      ? file.content
+      : Buffer.from(file.content).toString("base64");
     const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
       method: "POST",
       body: {
-        content: Buffer.from(file.content).toString("base64"),
+        content: base64Content,
         encoding: "base64",
       },
     });

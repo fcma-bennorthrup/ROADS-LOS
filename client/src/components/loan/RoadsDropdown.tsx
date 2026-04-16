@@ -13,6 +13,7 @@ interface RoadsDropdownProps {
   placeholder?: string;
   testId?: string;
   variant?: "standalone" | "inline";
+  openUpward?: boolean;
 }
 
 export function RoadsDropdown({
@@ -22,6 +23,7 @@ export function RoadsDropdown({
   placeholder = "Select",
   testId,
   variant = "standalone",
+  openUpward = false,
 }: RoadsDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -105,7 +107,7 @@ export function RoadsDropdown({
         <div
           style={{
             position: "absolute",
-            top: "calc(100% + 4px)",
+            ...(openUpward ? { bottom: "calc(100% + 4px)" } : { top: "calc(100% + 4px)" }),
             left: 0,
             minWidth: "100%",
             zIndex: 50,
