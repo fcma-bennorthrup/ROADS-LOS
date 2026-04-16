@@ -60,7 +60,7 @@ export function DecisioningSummaryContent() {
           </button>
           <button
             onClick={() => setLetterGenerated(true)}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",
@@ -75,7 +75,7 @@ export function DecisioningSummaryContent() {
           </button>
           <button
             onClick={() => window.open("/decision-letter.pdf", "_blank")}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",
