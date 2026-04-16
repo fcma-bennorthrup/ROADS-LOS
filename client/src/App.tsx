@@ -9,7 +9,6 @@ import LoanOriginationPage from "@/pages/loan-origination";
 import LoanDecisioningPage from "@/pages/loan-decisioning";
 import LoanDocumentsPage from "@/pages/loan-documents";
 import LoanClosingBookingPage from "@/pages/loan-closing-booking";
-import LoanComingSoonPage from "@/pages/loan-coming-soon";
 import LoanHistoryPage from "@/pages/loan-history";
 import { Redirect } from "wouter";
 import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
