@@ -45,15 +45,14 @@ export function DecisioningSummaryContent() {
         >
           <button
             onClick={() => setIsDecisioned(true)}
-            disabled={isDecisioned}
             className="body-200-strong"
             style={{
-              backgroundColor: isDecisioned ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+              backgroundColor: "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
               border: "none",
-              cursor: isDecisioned ? "not-allowed" : "pointer",
+              cursor: "pointer",
             }}
             data-testid="button-decision-loan"
           >
