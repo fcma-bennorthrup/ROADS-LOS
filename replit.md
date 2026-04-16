@@ -8,6 +8,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Owner**: bennorthrup
 - **Branch Strategy**: Branch off main for new features
 - **RULE: Never push or pull to GitHub unless explicitly instructed.** A code change does not imply a push. Only sync when the user says "push to GitHub", "pull from GitHub", or similar direct instruction.
+- **RULE: Clarify before removing or deleting.** When a request involves removing, deleting, or getting rid of something, and the scope could reasonably be interpreted in more than one way (e.g., removing a single button vs. an entire section), always ask a clarifying question before proceeding. Prefer the narrowest interpretation — remove only what was explicitly named. If the request is ambiguous about what to keep vs. what to remove, ask. This applies to any destructive or irreversible change where making the wrong choice would require undoing work.
 
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Wouter (routing)
