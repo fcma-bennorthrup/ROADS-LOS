@@ -15,6 +15,10 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
+  useEffect(() => {
+    if (disabled) setIsOpen(false);
+  }, [disabled]);
+
   const close = useCallback((restoreFocus = false) => {
     setIsOpen(false);
     if (restoreFocus) {
