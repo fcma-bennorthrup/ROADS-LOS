@@ -15,9 +15,11 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const close = useCallback(() => {
+  const close = useCallback((restoreFocus = false) => {
     setIsOpen(false);
-    triggerRef.current?.focus();
+    if (restoreFocus) {
+      triggerRef.current?.focus();
+    }
   }, []);
 
   useEffect(() => {
@@ -28,7 +30,7 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
     }
     function handleEscape(e: KeyboardEvent) {
       if (e.key === "Escape") {
-        close();
+        close(true);
       }
     }
     if (isOpen) {
@@ -47,7 +49,7 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
   function handleDaySelect(day: Date | undefined) {
     if (day) {
       onChange(format(day, "MM/dd/yyyy"));
-      close();
+      close(true);
     }
   }
 
