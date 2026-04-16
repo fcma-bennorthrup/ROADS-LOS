@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef } from "react";
-import { HelpCircle, Pencil, Lock, Calendar, X } from "lucide-react";
+import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { RoadsDatePicker } from "./RoadsDatePicker";
 import {
   Dialog,
   DialogContent,
@@ -516,36 +517,12 @@ export function ProductPricingContent() {
               <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
                 Rate Lock Expiration Date
               </span>
-              <div className="relative">
-                <div
-                  className="flex items-center w-full"
-                  style={{
-                    border: "1px solid var(--roads-border-dark)",
-                    backgroundColor: "var(--roads-bg-primary)",
-                    borderRadius: "var(--roads-radius-2xs)",
-                    padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-                    height: "44px",
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={lockDate}
-                    onChange={(e) => setLockDate(e.target.value)}
-                    disabled={!isRateLocked}
-                    className="label-strong outline-none"
-                    style={{
-                      flex: 1,
-                      color: "var(--roads-text-primary)",
-                      border: "none",
-                      background: "transparent",
-                      cursor: isRateLocked ? "text" : "not-allowed",
-                      opacity: isRateLocked ? 1 : 0.7,
-                    }}
-                    data-testid="input-lock-date"
-                  />
-                  <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
-                </div>
-              </div>
+              <RoadsDatePicker
+                value={lockDate}
+                onChange={setLockDate}
+                disabled={!isRateLocked}
+                testId="input-lock-date"
+              />
             </div>
           </div>
 
