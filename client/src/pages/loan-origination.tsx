@@ -19,7 +19,7 @@ function formatCurrency(value: string): string {
 }
 
 function ComingSoon({ page }: { page: string }) {
-  const message = page === "Fees" ? "Welcome to the party" : "Coming Soon";
+  const message = page === "Fees" ? "Welcome to the party" : page === "Borrower Information" ? "Soon Coming" : "Coming Soon";
   return (
     <div
       className="flex flex-1 items-center justify-center"
