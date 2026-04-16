@@ -59,28 +59,34 @@ export function DecisioningSummaryContent() {
             Decision Loan
           </button>
           <button
-            disabled={!isDecisioned}
-            onClick={() => {
-              if (!isDecisioned) return;
-              if (letterGenerated) {
-                window.open("/decision-letter.pdf", "_blank");
-              } else {
-                setLetterGenerated(true);
-              }
-            }}
+            onClick={() => setLetterGenerated(true)}
             className="body-200-strong"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",
               borderRadius: "var(--roads-radius-2xs)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: !isDecisioned ? "var(--roads-text-tertiary)" : "var(--roads-text-primary)",
-              cursor: !isDecisioned ? "not-allowed" : "pointer",
-              opacity: !isDecisioned ? 0.6 : 1,
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
             }}
             data-testid="button-generate-decision-letter"
           >
-            {letterGenerated ? "View Decision Letter" : "Generate Decision Letter"}
+            Generate Decision Letter
+          </button>
+          <button
+            onClick={() => window.open("/decision-letter.pdf", "_blank")}
+            className="body-200-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
+            }}
+            data-testid="button-view-decision-letter"
+          >
+            View Decision Letter
           </button>
         </div>
       </div>
