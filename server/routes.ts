@@ -450,12 +450,12 @@ export async function registerRoutes(
           const baseBinaryShas = new Map<string, string>();
           const remoteBinaryShas = new Map<string, string>();
           for (const item of baseTreeData.tree) {
-            if (item.type === "blob" && isBinaryFile(item.path)) {
+            if (item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path)) {
               baseBinaryShas.set(item.path, item.sha);
             }
           }
           for (const item of remoteTree) {
-            if (item.type === "blob" && isBinaryFile(item.path)) {
+            if (item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path)) {
               remoteBinaryShas.set(item.path, item.sha);
             }
           }
@@ -485,9 +485,9 @@ export async function registerRoutes(
         }
 
         const { changedFiles: filteredFiles } = diffAgainstRemoteTree(binaryFilteredSafeToUpdate, remoteTree);
+        const dedupedDeletions = [...new Set(safeDeletions)];
 
-
-        if (filteredFiles.length === 0 && safeDeletions.length === 0) {
+        if (filteredFiles.length === 0 && dedupedDeletions.length === 0) {
           setLastSyncedCommit(remoteHeadSha);
           clearPendingConflicts();
           res.json({
@@ -501,7 +501,7 @@ export async function registerRoutes(
           return;
         }
 
-        const result = await pushCodebaseWithDeletions(OWNER, REPO, filteredFiles, safeDeletions, commitMessage);
+        const result = await pushCodebaseWithDeletions(OWNER, REPO, filteredFiles, dedupedDeletions, commitMessage);
         setLastSyncedCommit(result.commitSha);
         clearPendingConflicts();
 
@@ -509,9 +509,9 @@ export async function registerRoutes(
           ...result,
           conflicts: [],
           safeFiles: filteredFiles.map((f) => f.path),
-          deletedFiles: safeDeletions,
+          deletedFiles: dedupedDeletions,
           unchangedFiles: report.unchanged,
-          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${safeDeletions.length > 0 ? ` and deleted ${safeDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)`,
+          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${dedupedDeletions.length > 0 ? ` and deleted ${dedupedDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)`,
         });
         return;
       }
