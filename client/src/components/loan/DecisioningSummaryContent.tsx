@@ -27,7 +27,7 @@ export function DecisioningSummaryContent() {
       >
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-xs)", width: "345px" }}
+        style={{ gap: "var(--roads-spacing-component-xs)" }}
       >
         <div
           className="headline-300 flex items-center"
@@ -45,7 +45,7 @@ export function DecisioningSummaryContent() {
         >
           <button
             onClick={() => setIsDecisioned(true)}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
