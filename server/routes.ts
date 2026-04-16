@@ -200,15 +200,52 @@ export async function registerRoutes(
     }
   });
 
+  let syncStatusCache: { data: any; timestamp: number } | null = null;
+  const SYNC_STATUS_CACHE_TTL = 5000;
+
   app.get("/api/github/sync-status", async (_req, res) => {
     try {
+      const now = Date.now();
+      if (syncStatusCache && (now - syncStatusCache.timestamp) < SYNC_STATUS_CACHE_TTL) {
+        return res.json(syncStatusCache.data);
+      }
+
       const lastSynced = getLastSyncedCommit();
       const { commitSha: remoteHead } = await getRepoTree(OWNER, REPO);
-      res.json({
+      const remoteHasChanges = lastSynced !== remoteHead;
+
+      let hasLocalChanges = false;
+      let localChangedCount = 0;
+      let localDeletedCount = 0;
+      let localCheckFailed = false;
+
+      if (lastSynced) {
+        try {
+          const { tree: baseTree } = await getRepoTreeAtCommit(OWNER, REPO, lastSynced);
+          const projectRoot = path.resolve(process.cwd());
+          const localFiles = collectLocalFiles(projectRoot);
+          const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, baseTree, projectRoot);
+          localChangedCount = changedFiles.length;
+          localDeletedCount = deletions.length;
+          hasLocalChanges = localChangedCount > 0 || localDeletedCount > 0;
+        } catch {
+          localCheckFailed = true;
+        }
+      }
+
+      const result = {
         lastSyncedCommitSha: lastSynced,
         remoteHeadSha: remoteHead,
-        inSync: lastSynced === remoteHead,
-      });
+        inSync: !remoteHasChanges && !hasLocalChanges && !localCheckFailed,
+        remoteHasChanges,
+        hasLocalChanges,
+        localChangedCount,
+        localDeletedCount,
+        localCheckFailed,
+      };
+
+      syncStatusCache = { data: result, timestamp: now };
+      res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
@@ -216,6 +253,7 @@ export async function registerRoutes(
 
   app.post("/api/github/pull", async (req, res) => {
     try {
+      syncStatusCache = null;
       const force = req.body?.force === true;
       const { commitSha: remoteHeadSha, tree: remoteTree } = await getRepoTree(OWNER, REPO);
       const lastSyncedSha = getLastSyncedCommit();
@@ -375,6 +413,7 @@ export async function registerRoutes(
 
   app.post("/api/github/push", async (req, res) => {
     try {
+      syncStatusCache = null;
       const commitMessage = req.body?.message || "Update codebase from Replit";
       const force = req.body?.force === true;
 
