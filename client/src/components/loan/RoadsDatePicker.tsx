@@ -67,6 +67,9 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={() => {
+            if (!disabled) setIsOpen(true);
+          }}
           disabled={disabled}
           className="label-strong outline-none"
           style={{
