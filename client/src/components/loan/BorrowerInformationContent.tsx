@@ -544,7 +544,10 @@ function YesNoQuestion({
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-l)" }}
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
       data-testid={`question-${testId}`}
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -611,15 +614,19 @@ function MoneyDisplayField({ value, label, testId }: { value: string; label: str
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-xs)", maxWidth: "320px" }}
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
       data-testid={`field-${testId}`}
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {label}
       </span>
       <div
-        className="flex items-center w-full"
+        className="flex items-center"
         style={{
+          maxWidth: "320px",
           backgroundColor: "var(--roads-bg-light)",
           border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
@@ -765,7 +772,10 @@ function DeclarationsSection() {
     <div
       key="bankruptcy-types"
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-l)" }}
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
       data-testid="question-bankruptcy-types"
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -858,7 +868,13 @@ function MilitarySection() {
           testId="military-served"
         />
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
-          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+          <div
+            className="flex flex-col"
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
+          >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               If yes, check all that apply:
             </span>
@@ -883,15 +899,19 @@ function MilitarySection() {
           </div>
           <div
             className="flex flex-col"
-            style={{ gap: "var(--roads-spacing-component-xs)", maxWidth: "320px" }}
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
             data-testid="field-projected-expiration"
           >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Projected Expiration of Service/Tour
             </span>
             <div
-              className="flex items-center w-full"
+              className="flex items-center"
               style={{
+                maxWidth: "320px",
                 backgroundColor: "var(--roads-bg-light)",
                 border: "1px solid var(--roads-border-subtle)",
                 borderRadius: "var(--roads-radius-2xs)",
@@ -934,7 +954,10 @@ function DemographicSection() {
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           <div
             className="flex flex-col"
-            style={{ gap: "var(--roads-spacing-component-l)" }}
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
             data-testid="question-ethnicity"
           >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -967,7 +990,10 @@ function DemographicSection() {
 
           <div
             className="flex flex-col"
-            style={{ gap: "var(--roads-spacing-component-l)" }}
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
             data-testid="question-sex"
           >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -988,7 +1014,10 @@ function DemographicSection() {
         {/* Right column: Race */}
         <div
           className="flex flex-col"
-          style={{ gap: "var(--roads-spacing-component-l)" }}
+          style={{
+            gap: "var(--roads-spacing-component-l)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+          }}
           data-testid="question-race"
         >
           <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -1064,7 +1093,10 @@ function DemographicSection() {
 
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-l)" }}
+        style={{
+          gap: "var(--roads-spacing-component-l)",
+          padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+        }}
         data-testid="question-collection-method"
       >
         <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
