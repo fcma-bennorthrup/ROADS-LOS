@@ -932,7 +932,7 @@ function DemographicSection() {
         }}
       >
         {/* Left column: Ethnicity, Other hispanic text, Sex */}
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           <div
             className="flex flex-col"
             style={{ gap: "var(--roads-spacing-component-xs)" }}
