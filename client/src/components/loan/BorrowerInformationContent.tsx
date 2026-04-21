@@ -858,11 +858,11 @@ function MilitarySection() {
           testId="military-served"
         />
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
-          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               If yes, check all that apply:
             </span>
-            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <DisabledCheckbox
                 label="Currently serving on active duty with projected expiration date of service/tour"
                 checked={false}
@@ -934,7 +934,7 @@ function DemographicSection() {
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           <div
             className="flex flex-col"
-            style={{ gap: "var(--roads-spacing-component-xs)" }}
+            style={{ gap: "var(--roads-spacing-component-l)" }}
             data-testid="question-ethnicity"
           >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -967,7 +967,7 @@ function DemographicSection() {
 
           <div
             className="flex flex-col"
-            style={{ gap: "var(--roads-spacing-component-xs)" }}
+            style={{ gap: "var(--roads-spacing-component-l)" }}
             data-testid="question-sex"
           >
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -988,7 +988,7 @@ function DemographicSection() {
         {/* Right column: Race */}
         <div
           className="flex flex-col"
-          style={{ gap: "var(--roads-spacing-component-xs)" }}
+          style={{ gap: "var(--roads-spacing-component-l)" }}
           data-testid="question-race"
         >
           <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -1064,13 +1064,13 @@ function DemographicSection() {
 
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-xs)" }}
+        style={{ gap: "var(--roads-spacing-component-l)" }}
         data-testid="question-collection-method"
       >
         <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
           The demographic information was provided through:
         </span>
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
           <DisabledRadio
             groupName="demographic-method"
             optionValue="face-to-face"
