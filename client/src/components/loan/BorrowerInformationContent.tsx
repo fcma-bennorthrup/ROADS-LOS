@@ -940,11 +940,11 @@ function DemographicSection() {
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Ethnicity (check one or more):
             </span>
-            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <DisabledCheckbox label="Hispanic or Latino" checked={false} testId="eth-hispanic" />
               <div
                 className="flex flex-col"
-                style={{ gap: "var(--roads-spacing-component-xs)", paddingLeft: "var(--roads-spacing-component-xl)" }}
+                style={{ gap: "var(--roads-spacing-component-l)", paddingLeft: "var(--roads-spacing-component-xl)" }}
               >
                 <DisabledCheckbox label="Mexican" checked={false} testId="eth-mexican" />
                 <DisabledCheckbox label="Puerto Rican" checked={false} testId="eth-puerto-rican" />
@@ -973,7 +973,7 @@ function DemographicSection() {
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Sex:
             </span>
-            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <DisabledCheckbox label="Female" checked={false} testId="sex-female" />
               <DisabledCheckbox label="Male" checked={true} testId="sex-male" />
               <DisabledCheckbox
@@ -994,7 +994,7 @@ function DemographicSection() {
           <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
             Race (check one or more):
           </span>
-          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
             <DisabledCheckbox
               label="American Indian or Alaska Native"
               checked={false}
@@ -1006,7 +1006,7 @@ function DemographicSection() {
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 columnGap: "var(--roads-spacing-component-l)",
-                rowGap: "var(--roads-spacing-component-xs)",
+                rowGap: "var(--roads-spacing-component-l)",
                 paddingLeft: "var(--roads-spacing-component-xl)",
               }}
             >
@@ -1033,7 +1033,7 @@ function DemographicSection() {
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
                 columnGap: "var(--roads-spacing-component-l)",
-                rowGap: "var(--roads-spacing-component-xs)",
+                rowGap: "var(--roads-spacing-component-l)",
                 paddingLeft: "var(--roads-spacing-component-xl)",
               }}
             >
