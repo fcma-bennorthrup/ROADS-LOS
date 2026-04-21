@@ -742,15 +742,6 @@ const DECLARATION_QUESTIONS: { question: string; testId: string; selected: "yes"
 ];
 
 function DeclarationsSection() {
-  const left: React.ReactNode[] = [];
-  const right: React.ReactNode[] = [];
-
-  // Q1 left, Q2 right, Q3 left, Q4 right, then "amount of money" sits left after Q4
-  // Following Figma's column distribution: odd-indexed go left, even go right; bankruptcy types in right column at end
-  const leftItems: React.ReactNode[] = [];
-  const rightItems: React.ReactNode[] = [];
-
-  // Helper: build YesNo question
   const yn = (q: typeof DECLARATION_QUESTIONS[number], idx: number) => (
     <YesNoQuestion
       key={q.testId}
@@ -761,20 +752,6 @@ function DeclarationsSection() {
     />
   );
 
-  // Distribute questions: Q1 L, Q2 R, Q3 L, Q4 R, then money input L (insert), Q5 R, ...
-  // Indexing per user's order:
-  // 0:occupy(L), 1:ownership(R), 2:seller-aff(L), 3:borrowing(R), 4:other-mortgage(R via shift), ...
-  // Simpler: alternate L/R; insert money after borrowing-undisclosed in left column
-  DECLARATION_QUESTIONS.forEach((q, i) => {
-    if (i % 2 === 0) {
-      leftItems.push(yn(q, i));
-    } else {
-      rightItems.push(yn(q, i));
-    }
-  });
-
-  // Insert "amount of money" question into the left column after position 2 (after Q3 seller-aff)
-  // so order is: Q1, Q3, Money, Q5, Q7, ... matching Figma
   const moneyField = (
     <MoneyDisplayField
       key="amount-of-money"
@@ -783,20 +760,18 @@ function DeclarationsSection() {
       testId="amount-of-money"
     />
   );
-  leftItems.splice(2, 0, moneyField);
 
-  // Bankruptcy type checkboxes in right column at end
   const bankruptcyTypes = (
     <div
       key="bankruptcy-types"
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-xs)" }}
+      style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid="question-bankruptcy-types"
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         If yes, identify the type(s) of bankruptcy:
       </span>
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <DisabledCheckbox label="Chapter 7" checked={false} testId="chapter-7" />
         <DisabledCheckbox label="Chapter 11" checked={false} testId="chapter-11" />
         <DisabledCheckbox label="Chapter 12" checked={false} testId="chapter-12" />
@@ -804,7 +779,34 @@ function DeclarationsSection() {
       </div>
     </div>
   );
-  rightItems.push(bankruptcyTypes);
+
+  // 2 columns x 8 rows, row-major order matching Figma:
+  // Row 1: Q1 (occupy)            | Q2 (ownership)
+  // Row 2: Q3 (seller affiliation)| Q4 (borrowing money)
+  // Row 3: Money field            | Q5 (other mortgage)
+  // Row 4: Q6 (new credit)        | Q7 (co-signer)
+  // Row 5: Q8 (judgments)         | Q9 (federal debt)
+  // Row 6: Q10 (lawsuit)          | Q11 (conveyed title)
+  // Row 7: Q12 (short sale)       | Q13 (foreclosed)
+  // Row 8: Q14 (bankruptcy)       | bankruptcy types
+  const cells: React.ReactNode[] = [
+    yn(DECLARATION_QUESTIONS[0], 0),
+    yn(DECLARATION_QUESTIONS[1], 1),
+    yn(DECLARATION_QUESTIONS[2], 2),
+    yn(DECLARATION_QUESTIONS[3], 3),
+    moneyField,
+    yn(DECLARATION_QUESTIONS[4], 4),
+    yn(DECLARATION_QUESTIONS[5], 5),
+    yn(DECLARATION_QUESTIONS[6], 6),
+    yn(DECLARATION_QUESTIONS[7], 7),
+    yn(DECLARATION_QUESTIONS[8], 8),
+    yn(DECLARATION_QUESTIONS[9], 9),
+    yn(DECLARATION_QUESTIONS[10], 10),
+    yn(DECLARATION_QUESTIONS[11], 11),
+    yn(DECLARATION_QUESTIONS[12], 12),
+    yn(DECLARATION_QUESTIONS[13], 13),
+    bankruptcyTypes,
+  ];
 
   return (
     <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
@@ -819,16 +821,13 @@ function DeclarationsSection() {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
+          gridAutoRows: "min-content",
+          alignItems: "start",
           columnGap: "var(--roads-spacing-component-xl)",
-          rowGap: "var(--roads-spacing-component-2xl)",
+          rowGap: "var(--roads-spacing-component-xl)",
         }}
       >
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
-          {leftItems}
-        </div>
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
-          {rightItems}
-        </div>
+        {cells}
       </div>
     </div>
   );
