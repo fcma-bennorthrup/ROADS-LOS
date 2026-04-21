@@ -819,14 +819,14 @@ function DeclarationsSection() {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          columnGap: "var(--roads-spacing-component-3xl)",
-          rowGap: "var(--roads-spacing-component-xl)",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-2xl)",
         }}
       >
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           {leftItems}
         </div>
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           {rightItems}
         </div>
       </div>
@@ -848,8 +848,8 @@ function MilitarySection() {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          columnGap: "var(--roads-spacing-component-3xl)",
-          rowGap: "var(--roads-spacing-component-xl)",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-2xl)",
         }}
       >
         <YesNoQuestion
@@ -858,7 +858,7 @@ function MilitarySection() {
           selected="no"
           testId="military-served"
         />
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
           <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
             <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               If yes, check all that apply:
@@ -927,8 +927,8 @@ function DemographicSection() {
         style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
-          columnGap: "var(--roads-spacing-component-3xl)",
-          rowGap: "var(--roads-spacing-component-xl)",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-2xl)",
         }}
       >
         {/* Left column: Ethnicity, Other hispanic text, Sex */}
