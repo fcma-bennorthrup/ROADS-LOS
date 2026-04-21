@@ -35,6 +35,8 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ### Design System Rule
 New styles MUST come from Figma or the existing design-tokens.css. No arbitrary values are allowed. New tokens from Figma require manual user approval before adding. Structural dimensions from Figma (heights, widths for specific components) are acceptable when no token exists.
 
+**Token approval rule (strict):** Before adding, removing, or modifying ANY entry in `client/src/styles/design-tokens.css` or `client/src/lib/design-tokens.ts`, the agent MUST explicitly ask the user for approval and wait for a clear confirmation — even when the user has already supplied the exact specs in the same message. Providing specs is NOT the same as approving the write. Always pause, restate the proposed change (token name + properties + file), and ask "OK to add?" before editing.
+
 ## Pages
 - **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows:
   - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
