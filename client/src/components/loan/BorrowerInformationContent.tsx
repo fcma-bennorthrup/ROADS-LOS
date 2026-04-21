@@ -685,7 +685,7 @@ function PersonalInfoSection({
     <div
       className="flex flex-col"
       style={{
-        gap: "var(--roads-spacing-component-xl)",
+        gap: "var(--roads-spacing-component-2xl)",
         marginTop: "var(--roads-spacing-component-l)",
       }}
     >
