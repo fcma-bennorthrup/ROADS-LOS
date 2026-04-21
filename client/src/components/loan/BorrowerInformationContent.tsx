@@ -550,7 +550,7 @@ function YesNoQuestion({
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {question}
       </span>
-      <div className="flex" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <DisabledRadio
           groupName={groupName}
           optionValue="yes"
