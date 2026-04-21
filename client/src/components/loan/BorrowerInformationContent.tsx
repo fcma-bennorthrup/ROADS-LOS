@@ -128,12 +128,13 @@ const BORROWERS = [
 function PrimaryChip() {
   return (
     <span
-      className="caption-100-strong"
+      className="body-200-strong flex items-center"
       style={{
-        backgroundColor: "var(--roads-bg-brand)",
-        color: "var(--roads-text-reverse)",
-        padding: "2px 8px",
-        borderRadius: "var(--roads-radius-round)",
+        backgroundColor: "var(--roads-bg-brand-subtle)",
+        color: "var(--roads-text-brand)",
+        padding: "0 var(--roads-spacing-component-xs)",
+        borderRadius: "var(--roads-radius-2xs)",
+        height: "20px",
         whiteSpace: "nowrap",
       }}
       data-testid="chip-primary-borrower"
@@ -151,7 +152,7 @@ function BorrowerTabs({
   onChange: (id: string) => void;
 }) {
   return (
-    <div className="flex items-end" data-testid="borrower-tabs">
+    <div className="flex" data-testid="borrower-tabs">
       {BORROWERS.map((b) => {
         const isActive = b.id === active;
         return (
@@ -165,10 +166,12 @@ function BorrowerTabs({
               display: "flex",
               alignItems: "center",
               color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
+              background: "none",
+              border: "none",
               borderBottom: isActive
                 ? "2px solid var(--roads-border-brand)"
                 : "1px solid var(--roads-border-subtle)",
-              background: "transparent",
+              cursor: "pointer",
             }}
             data-testid={`tab-borrower-${b.id}`}
           >
@@ -176,7 +179,6 @@ function BorrowerTabs({
           </button>
         );
       })}
-      <div style={{ flex: 1, borderBottom: "1px solid var(--roads-border-subtle)", height: "48px" }} />
     </div>
   );
 }
@@ -676,7 +678,7 @@ function PersonalInfoSection({
         {isPrimary && <PrimaryChip />}
       </div>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
         <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
           <TextField label="First Name" value={data.firstName} isEditing={isEditing} onChange={setField("firstName")} testId="first-name" />
           <TextField label="Last Name" value={data.lastName} isEditing={isEditing} onChange={setField("lastName")} testId="last-name" />
