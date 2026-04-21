@@ -204,7 +204,17 @@ function ReadOnlyDisplay({ value, showChevron }: { value: string; showChevron?: 
         height: "44px",
       }}
     >
-      <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+      <span
+        className="label-strong"
+        style={{
+          flex: 1,
+          minWidth: 0,
+          color: "var(--roads-text-primary)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
         {value || "\u00A0"}
       </span>
       {showChevron && (
