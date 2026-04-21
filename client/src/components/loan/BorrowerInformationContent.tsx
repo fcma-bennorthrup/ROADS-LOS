@@ -682,10 +682,16 @@ function PersonalInfoSection({
   onDiscard: () => void;
 }) {
   return (
-    <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+    <div
+      className="flex flex-col"
+      style={{
+        gap: "var(--roads-spacing-component-xl)",
+        marginTop: "var(--roads-spacing-component-l)",
+      }}
+    >
       <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <h3
-          className="headline-300"
+          className="headline-400"
           style={{ color: "var(--roads-text-primary)" }}
           data-testid="text-borrower-name"
         >
