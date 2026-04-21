@@ -544,7 +544,7 @@ function YesNoQuestion({
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-xs)" }}
+      style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid={`question-${testId}`}
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
