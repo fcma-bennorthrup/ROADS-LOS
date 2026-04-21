@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Pencil, Calendar } from "lucide-react";
+import { Pencil, Calendar, ChevronDown } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 
 const MARITAL_OPTIONS = [
@@ -191,7 +191,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ReadOnlyDisplay({ value }: { value: string }) {
+function ReadOnlyDisplay({ value, showChevron }: { value: string; showChevron?: boolean }) {
   return (
     <div
       className="flex items-center w-full"
@@ -200,12 +200,18 @@ function ReadOnlyDisplay({ value }: { value: string }) {
         border: "1px solid var(--roads-border-subtle)",
         borderRadius: "var(--roads-radius-2xs)",
         padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+        gap: "var(--roads-spacing-component-xs)",
         height: "44px",
       }}
     >
       <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
         {value || "\u00A0"}
       </span>
+      {showChevron && (
+        <ChevronDown
+          style={{ width: 16, height: 16, color: "var(--roads-text-tertiary)" }}
+        />
+      )}
     </div>
   );
 }
@@ -364,7 +370,7 @@ function DropdownField({
           testId={`select-${testId}`}
         />
       ) : (
-        <ReadOnlyDisplay value={displayValue} />
+        <ReadOnlyDisplay value={displayValue} showChevron />
       )}
     </div>
   );
@@ -403,7 +409,7 @@ function StateZipFields({
             testId="select-state"
           />
         ) : (
-          <ReadOnlyDisplay value={stateLabel} />
+          <ReadOnlyDisplay value={stateLabel} showChevron />
         )}
       </div>
       <TextField
