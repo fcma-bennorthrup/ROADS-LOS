@@ -547,7 +547,7 @@ function YesNoQuestion({
       style={{ gap: "var(--roads-spacing-component-xs)" }}
       data-testid={`question-${testId}`}
     >
-      <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {question}
       </span>
       <div className="flex" style={{ gap: "var(--roads-spacing-component-xl)" }}>
@@ -614,7 +614,7 @@ function MoneyDisplayField({ value, label, testId }: { value: string; label: str
       style={{ gap: "var(--roads-spacing-component-xs)", maxWidth: "320px" }}
       data-testid={`field-${testId}`}
     >
-      <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {label}
       </span>
       <div
@@ -793,7 +793,7 @@ function DeclarationsSection() {
       style={{ gap: "var(--roads-spacing-component-xs)" }}
       data-testid="question-bankruptcy-types"
     >
-      <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         If yes, identify the type(s) of bankruptcy:
       </span>
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -860,7 +860,7 @@ function MilitarySection() {
         />
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
           <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-            <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               If yes, check all that apply:
             </span>
             <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -887,7 +887,7 @@ function MilitarySection() {
             style={{ gap: "var(--roads-spacing-component-xs)", maxWidth: "320px" }}
             data-testid="field-projected-expiration"
           >
-            <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Projected Expiration of Service/Tour
             </span>
             <div
@@ -938,7 +938,7 @@ function DemographicSection() {
             style={{ gap: "var(--roads-spacing-component-xs)" }}
             data-testid="question-ethnicity"
           >
-            <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Ethnicity (check one or more):
             </span>
             <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -971,7 +971,7 @@ function DemographicSection() {
             style={{ gap: "var(--roads-spacing-component-xs)" }}
             data-testid="question-sex"
           >
-            <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
               Sex:
             </span>
             <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -992,7 +992,7 @@ function DemographicSection() {
           style={{ gap: "var(--roads-spacing-component-xs)" }}
           data-testid="question-race"
         >
-          <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+          <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
             Race (check one or more):
           </span>
           <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
@@ -1068,7 +1068,7 @@ function DemographicSection() {
         style={{ gap: "var(--roads-spacing-component-xs)" }}
         data-testid="question-collection-method"
       >
-        <span className="body-100" style={{ color: "var(--roads-text-primary)" }}>
+        <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
           The demographic information was provided through:
         </span>
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
