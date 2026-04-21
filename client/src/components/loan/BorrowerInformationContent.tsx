@@ -738,13 +738,15 @@ function PersonalInfoSection({
         </div>
       </div>
 
-      <EditControls
-        isEditing={isEditing}
-        onEdit={onEdit}
-        onSave={onSave}
-        onDiscard={onDiscard}
-        testIdPrefix="borrower-info"
-      />
+      <div style={{ marginTop: "var(--roads-spacing-component-3xl)" }}>
+        <EditControls
+          isEditing={isEditing}
+          onEdit={onEdit}
+          onSave={onSave}
+          onDiscard={onDiscard}
+          testIdPrefix="borrower-info"
+        />
+      </div>
     </div>
   );
 }
