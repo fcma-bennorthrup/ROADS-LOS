@@ -691,7 +691,7 @@ function PersonalInfoSection({
     >
       <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <h3
-          className="headline-400"
+          className="headline-300"
           style={{ color: "var(--roads-text-primary)" }}
           data-testid="text-borrower-name"
         >
