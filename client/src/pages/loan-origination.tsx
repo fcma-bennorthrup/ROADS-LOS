@@ -7,6 +7,7 @@ import { CollateralContent } from "@/components/loan/CollateralContent";
 import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
+import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -111,7 +112,8 @@ export default function LoanOriginationPage() {
             <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
           )}
           {activeNavItem === "Fees" && <FeesContent />}
-          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && <ComingSoon page={activeNavItem} />}
+          {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
+          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
