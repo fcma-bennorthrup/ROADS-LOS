@@ -138,8 +138,6 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
         <span data-testid="breadcrumb-pipeline" style={{ marginLeft: "var(--roads-spacing-component-xs)" }}>Pipeline</span>
         <ChevronRight className="w-5 h-5" />
         <span data-testid="breadcrumb-loan">Loan: {loanNumber}</span>
-        <ChevronRight className="w-5 h-5" />
-        <span data-testid="breadcrumb-level">Level Three</span>
       </div>
 
       <div className="flex items-center flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
