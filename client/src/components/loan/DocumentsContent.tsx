@@ -93,14 +93,14 @@ function DocumentSection({
           style={{ gap: "var(--roads-spacing-component-l)" }}
         >
           <button
-            onClick={handleGenerate}
-            disabled={generationState === "generating"}
+            onClick={() => {
+              if (generationState === "generating") return;
+              handleGenerate();
+            }}
+            aria-disabled={generationState === "generating"}
             className="label-strong"
             style={{
-              backgroundColor:
-                generationState === "generating"
-                  ? "var(--roads-bg-action-disabled)"
-                  : "var(--roads-bg-action)",
+              backgroundColor: "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
               padding:
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
