@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
+import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
 
 type GenerationState = "idle" | "generating" | "generated";
 
@@ -234,7 +235,8 @@ function ClosingDocumentsContent() {
         secondaryActions={[
           {
             label: "View Closing Package",
-            onClick: () => window.open("/closing-package.pdf", "_blank"),
+            onClick: () =>
+              window.open(sampleClosingPackagePdf, "_blank", "noopener,noreferrer"),
           },
           {
             label: "Deliver Closing Package",
