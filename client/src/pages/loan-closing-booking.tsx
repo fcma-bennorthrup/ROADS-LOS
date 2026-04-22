@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { ClosingContent } from "@/components/loan/ClosingContent";
+import { BookingContent } from "@/components/loan/BookingContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -101,6 +102,8 @@ export default function LoanClosingBookingPage() {
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Closing" ? (
             <ClosingContent />
+          ) : activeNavItem === "Booking" ? (
+            <BookingContent />
           ) : (
             <ComingSoon page={activeNavItem} />
           )}
