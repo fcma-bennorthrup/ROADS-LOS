@@ -62,8 +62,10 @@ export function RoadsDatePicker({ value, onChange, disabled = false, testId }: R
       <div
         className="flex items-center w-full"
         style={{
-          border: "1px solid var(--roads-border-dark)",
-          backgroundColor: "var(--roads-bg-primary)",
+          border: disabled
+            ? "1px solid var(--roads-border-subtle)"
+            : "1px solid var(--roads-border-dark)",
+          backgroundColor: disabled ? "var(--roads-bg-light)" : "var(--roads-bg-primary)",
           borderRadius: "var(--roads-radius-2xs)",
           padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
           height: "44px",
