@@ -26,6 +26,11 @@ interface SyncStatus {
   lastSyncedCommitSha: string | null;
   remoteHeadSha: string;
   inSync: boolean;
+  remoteHasChanges: boolean;
+  hasLocalChanges: boolean;
+  localChangedCount: number;
+  localDeletedCount: number;
+  localCheckFailed: boolean;
 }
 
 export function GitHubSyncPanel({
@@ -46,7 +51,11 @@ export function GitHubSyncPanel({
     }
   }, [open]);
 
-  const { data: syncStatus, isLoading: statusLoading } = useQuery<SyncStatus>({
+  const refreshStatus = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+  };
+
+  const { data: syncStatus, isLoading: statusLoading, isFetching: statusFetching } = useQuery<SyncStatus>({
     queryKey: ["/api/github/sync-status"],
     enabled: open,
   });
@@ -72,13 +81,50 @@ export function GitHubSyncPanel({
               Checking sync status...
             </div>
           ) : syncStatus ? (
-            <div className="flex items-center gap-2 text-sm" data-testid="text-sync-status">
-              <RefreshCw className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center justify-between gap-2" data-testid="text-sync-status">
+            <div className="flex flex-col gap-1 text-sm">
               {syncStatus.inSync ? (
-                <span className="text-muted-foreground">In sync with remote</span>
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">In sync with remote</span>
+                </div>
               ) : (
-                <span>Remote has newer changes</span>
+                <>
+                  {syncStatus.remoteHasChanges && (
+                    <div className="flex items-center gap-2">
+                      <ArrowDown className="w-4 h-4 text-muted-foreground" />
+                      <span>Remote has newer changes</span>
+                    </div>
+                  )}
+                  {syncStatus.hasLocalChanges && (
+                    <div className="flex items-center gap-2">
+                      <ArrowUp className="w-4 h-4 text-muted-foreground" />
+                      <span>
+                        You have local changes to push
+                        {syncStatus.localChangedCount >= 0 && (
+                          <> ({syncStatus.localChangedCount} modified{syncStatus.localDeletedCount > 0 ? `, ${syncStatus.localDeletedCount} deleted` : ""})</>
+                        )}
+                      </span>
+                    </div>
+                  )}
+                  {syncStatus.localCheckFailed && (
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-500" />
+                      <span className="text-muted-foreground">Unable to check local changes</span>
+                    </div>
+                  )}
+                </>
               )}
+            </div>
+            <button
+              onClick={refreshStatus}
+              disabled={statusFetching}
+              className="p-1 rounded hover:bg-muted transition-colors"
+              title="Refresh sync status"
+              data-testid="button-refresh-sync-status"
+            >
+              <RefreshCw className={`w-4 h-4 text-muted-foreground ${statusFetching ? "animate-spin" : ""}`} />
+            </button>
             </div>
           ) : null}
 

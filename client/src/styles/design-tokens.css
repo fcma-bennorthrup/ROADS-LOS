@@ -21,7 +21,6 @@
   --roads-bg-light: #f9f9f9;
   --roads-bg-action: #005b94;
   --roads-bg-action-disabled: #8ab4d0;
-  --roads-bg-disabled: #929a9b;
   --roads-bg-error-disabled: #ff9c8f;
   --roads-bg-discovery-subtle: #eaeaf9;
   --roads-bg-discovery: #6f5ed3;
@@ -74,6 +73,14 @@
     line-height: 24px;
   }
 
+  .headline-400 {
+    font-family: var(--roads-font-family);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: 0;
+  }
+
   .body-100 {
     font-family: var(--roads-font-family);
     font-size: 16px;
@@ -108,105 +115,4 @@
     font-weight: 600;
     line-height: 16px;
   }
-}
-
-.roads-calendar {
-  font-family: var(--roads-font-family);
-  color: var(--roads-text-primary);
-}
-
-.roads-calendar-months {
-  display: flex;
-  flex-direction: column;
-  gap: var(--roads-spacing-component-xs);
-}
-
-.roads-calendar-caption {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 24px;
-  padding: var(--roads-spacing-component-xs) 0;
-  color: var(--roads-text-primary);
-}
-
-.roads-calendar-nav {
-  display: flex;
-  align-items: center;
-  gap: var(--roads-spacing-component-2xs);
-}
-
-.roads-calendar-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--roads-spacing-component-2xl);
-  height: var(--roads-spacing-component-2xl);
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: var(--roads-radius-2xs);
-  color: var(--roads-text-primary);
-}
-
-.roads-calendar-nav-btn:hover {
-  background-color: var(--roads-bg-brand-subtle);
-}
-
-.roads-calendar-weekday {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--roads-text-tertiary);
-  width: var(--roads-spacing-component-3xl);
-  text-align: center;
-  padding: var(--roads-spacing-component-2xs) 0;
-}
-
-.roads-calendar-day-cell {
-  text-align: center;
-}
-
-.roads-calendar-day {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--roads-spacing-component-3xl);
-  height: var(--roads-spacing-component-3xl);
-  font-size: 14px;
-  font-family: var(--roads-font-family);
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-radius: var(--roads-radius-2xs);
-  color: var(--roads-text-primary);
-}
-
-.roads-calendar-day:hover {
-  background-color: var(--roads-bg-brand-subtle);
-}
-
-.roads-day-selected .roads-calendar-day {
-  background-color: var(--roads-bg-action);
-  color: var(--roads-text-reverse);
-}
-
-.roads-day-selected .roads-calendar-day:hover {
-  background-color: var(--roads-bg-brand);
-}
-
-.roads-day-today .roads-calendar-day {
-  font-weight: 700;
-  border: 1px solid var(--roads-border-brand);
-}
-
-.roads-day-disabled .roads-calendar-day {
-  color: var(--roads-text-tertiary);
-  cursor: not-allowed;
-  opacity: 0.4;
-}
-
-.roads-day-disabled .roads-calendar-day:hover {
-  background: none;
 }

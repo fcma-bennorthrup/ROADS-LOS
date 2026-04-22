@@ -27,7 +27,7 @@ export function DecisioningSummaryContent() {
       >
       <div
         className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-xs)", width: "345px" }}
+        style={{ gap: "var(--roads-spacing-component-xs)" }}
       >
         <div
           className="headline-300 flex items-center"
@@ -45,43 +45,52 @@ export function DecisioningSummaryContent() {
         >
           <button
             onClick={() => setIsDecisioned(true)}
-            disabled={isDecisioned}
-            className="body-200-strong"
+            className="body-200-strong whitespace-nowrap"
             style={{
-              backgroundColor: isDecisioned ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+              backgroundColor: "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
               border: "none",
-              cursor: isDecisioned ? "not-allowed" : "pointer",
+              cursor: "pointer",
             }}
             data-testid="button-decision-loan"
           >
             Decision Loan
           </button>
           <button
-            disabled={!isDecisioned}
-            onClick={() => {
-              if (!isDecisioned) return;
-              if (letterGenerated) {
-                window.open("/decision-letter.pdf", "_blank");
-              } else {
-                setLetterGenerated(true);
-              }
-            }}
-            className="body-200-strong"
+            onClick={() => setLetterGenerated(true)}
+            className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
               border: "1px solid var(--roads-border-dark)",
               borderRadius: "var(--roads-radius-2xs)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: !isDecisioned ? "var(--roads-text-tertiary)" : "var(--roads-text-primary)",
-              cursor: !isDecisioned ? "not-allowed" : "pointer",
-              opacity: !isDecisioned ? 0.6 : 1,
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
             }}
             data-testid="button-generate-decision-letter"
           >
-            {letterGenerated ? "View Decision Letter" : "Generate Decision Letter"}
+            Generate Decision Letter
+          </button>
+          <button
+            onClick={() => {
+              if (!letterGenerated) return;
+              window.open("/decision-letter.pdf", "_blank");
+            }}
+            aria-disabled={!letterGenerated}
+            className="body-200-strong whitespace-nowrap"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              color: "var(--roads-text-primary)",
+              cursor: letterGenerated ? "pointer" : "not-allowed",
+            }}
+            data-testid="button-view-decision-letter"
+          >
+            View Decision Letter
           </button>
         </div>
       </div>
@@ -116,23 +125,6 @@ export function DecisioningSummaryContent() {
             data-testid="button-pull-credit"
           >
             Pull Credit
-          </button>
-          <button
-            disabled={!creditPulled}
-            onClick={() => { if (creditPulled) window.open("/credit-report.pdf", "_blank"); }}
-            className="body-200-strong whitespace-nowrap"
-            style={{
-              backgroundColor: "var(--roads-bg-primary)",
-              border: "1px solid var(--roads-border-dark)",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              color: !creditPulled ? "var(--roads-text-tertiary)" : "var(--roads-text-primary)",
-              cursor: !creditPulled ? "not-allowed" : "pointer",
-              opacity: !creditPulled ? 0.6 : 1,
-            }}
-            data-testid="button-view-credit-report"
-          >
-            View Credit Report
           </button>
         </div>
       </div>

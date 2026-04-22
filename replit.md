@@ -8,6 +8,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Owner**: bennorthrup
 - **Branch Strategy**: Branch off main for new features
 - **RULE: Never push or pull to GitHub unless explicitly instructed.** A code change does not imply a push. Only sync when the user says "push to GitHub", "pull from GitHub", or similar direct instruction.
+- **RULE: Ask when the intended user experience isn't clear.** When a request could reasonably be interpreted in more than one way — whether it involves adding, changing, or removing something — always ask a clarifying question before proceeding. Don't guess at the intended end-user experience. Examples: if asked to "get rid of the credit report," ask whether that means the button, the section, or the whole feature. If asked to "add a status indicator," ask what states it should show. Prefer the narrowest, safest interpretation when in doubt, but ask rather than assume.
 
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Wouter (routing)
@@ -34,6 +35,8 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ### Design System Rule
 New styles MUST come from Figma or the existing design-tokens.css. No arbitrary values are allowed. New tokens from Figma require manual user approval before adding. Structural dimensions from Figma (heights, widths for specific components) are acceptable when no token exists.
 
+**Token approval rule (strict):** Before adding, removing, or modifying ANY entry in `client/src/styles/design-tokens.css` or `client/src/lib/design-tokens.ts`, the agent MUST explicitly ask the user for approval and wait for a clear confirmation — even when the user has already supplied the exact specs in the same message. Providing specs is NOT the same as approving the write. Always pause, restate the proposed change (token name + properties + file), and ask "OK to add?" before editing.
+
 ## Pages
 - **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows:
   - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
@@ -41,8 +44,6 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
   - 240px side nav: Borrower Information, Loan Details, Collateral, Product & Pricing, Fees
-  - Borrower Information page: borrower tabs (Richard/Jamelle/Priya), Primary Borrower chip, Personal Information fields (First Name, Last Name, SSN, DOB, Phone, Email, Address row, Marital Status/Dependents/Farm Involvement), Declarations section (14 Yes/No radio questions), edit/save/discard pattern
-  - Loan Details page: Loan Type, Loan Purpose, Requested Loan Amount, Down Payment Amount/Source, checkboxes, Tell the Story textarea, edit/save/discard pattern
   - Collateral page: Subject Property (address fields with edit/save/discard) + Value section (split appraisal with evaluation tabs, edit/save/discard)
   - Other sub-pages show "Coming Soon" placeholder
 - **Loan Decisioning** (`/loans/:id/decisioning`): Decisioning tab with side navigation:
@@ -62,8 +63,6 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - `client/src/components/loan/SummaryRatios.tsx` — 4-column flat data layout (ratios, reserves, amounts, product)
 - `client/src/components/loan/BorrowerCards.tsx` — Borrower contact cards with horizontal Email/Phone layout, copy-to-clipboard
 - `client/src/components/loan/SideNav.tsx` — 240px side navigation for origination sub-pages
-- `client/src/components/loan/BorrowerInformationContent.tsx` — Borrower Information page with tabs, Personal Information fields, 14-question Declarations section, edit/save/discard
-- `client/src/components/loan/LoanDetailsContent.tsx` — Loan Details page with dropdowns, checkboxes, Tell the Story textarea, edit/save/discard
 - `client/src/components/loan/CollateralContent.tsx` — Collateral page with Subject Property address fields and Value appraisal fields
 
 ## Project Structure

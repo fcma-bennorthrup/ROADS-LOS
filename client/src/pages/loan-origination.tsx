@@ -7,6 +7,7 @@ import { CollateralContent } from "@/components/loan/CollateralContent";
 import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
+import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -19,7 +20,7 @@ function formatCurrency(value: string): string {
 }
 
 function ComingSoon({ page }: { page: string }) {
-  const message = page === "Fees" ? "Welcome to the party" : "Coming Soon";
+  const message = page === "Fees" ? "Welcome to the party" : page === "Borrower Information" ? "Soon Coming" : "Coming Soon";
   return (
     <div
       className="flex flex-1 items-center justify-center"
@@ -111,7 +112,8 @@ export default function LoanOriginationPage() {
             <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
           )}
           {activeNavItem === "Fees" && <FeesContent />}
-          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && <ComingSoon page={activeNavItem} />}
+          {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
+          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">

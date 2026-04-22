@@ -1,536 +1,1204 @@
 import { useState, useRef } from "react";
-import { Pencil } from "lucide-react";
+import { Pencil, Calendar, ChevronDown } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
-import type { Borrower } from "@shared/schema";
 
-const MARITAL_STATUS_OPTIONS = [
+const MARITAL_OPTIONS = [
+  { value: "single", label: "Single" },
   { value: "married", label: "Married" },
   { value: "separated", label: "Separated" },
-  { value: "unmarried", label: "Unmarried" },
+  { value: "divorced", label: "Divorced" },
+  { value: "widowed", label: "Widowed" },
 ];
 
-const FARM_INVOLVEMENT_OPTIONS = [
+const FARM_OPTIONS = [
   { value: "none", label: "None" },
-  { value: "primary", label: "Primary" },
-  { value: "secondary", label: "Secondary" },
+  { value: "part_time", label: "Part Time Farmer" },
+  { value: "full_time", label: "Full Time Farmer" },
 ];
 
-const CITIZENSHIP_STATUS_OPTIONS = [
-  { value: "us_citizen", label: "U.S. Citizen" },
-  { value: "permanent_resident", label: "Permanent Resident Alien" },
-  { value: "non_resident", label: "Non-Permanent Resident Alien" },
+const STATE_OPTIONS = [
+  { value: "AL", label: "AL - Alabama" },
+  { value: "AK", label: "AK - Alaska" },
+  { value: "AZ", label: "AZ - Arizona" },
+  { value: "AR", label: "AR - Arkansas" },
+  { value: "CA", label: "CA - California" },
+  { value: "CO", label: "CO - Colorado" },
+  { value: "CT", label: "CT - Connecticut" },
+  { value: "DE", label: "DE - Delaware" },
+  { value: "FL", label: "FL - Florida" },
+  { value: "GA", label: "GA - Georgia" },
+  { value: "HI", label: "HI - Hawaii" },
+  { value: "ID", label: "ID - Idaho" },
+  { value: "IL", label: "IL - Illinois" },
+  { value: "IN", label: "IN - Indiana" },
+  { value: "IA", label: "IA - Iowa" },
+  { value: "KS", label: "KS - Kansas" },
+  { value: "KY", label: "KY - Kentucky" },
+  { value: "LA", label: "LA - Louisiana" },
+  { value: "ME", label: "ME - Maine" },
+  { value: "MD", label: "MD - Maryland" },
+  { value: "MA", label: "MA - Massachusetts" },
+  { value: "MI", label: "MI - Michigan" },
+  { value: "MN", label: "MN - Minnesota" },
+  { value: "MS", label: "MS - Mississippi" },
+  { value: "MO", label: "MO - Missouri" },
+  { value: "MT", label: "MT - Montana" },
+  { value: "NE", label: "NE - Nebraska" },
+  { value: "NV", label: "NV - Nevada" },
+  { value: "NH", label: "NH - New Hampshire" },
+  { value: "NJ", label: "NJ - New Jersey" },
+  { value: "NM", label: "NM - New Mexico" },
+  { value: "NY", label: "NY - New York" },
+  { value: "NC", label: "NC - North Carolina" },
+  { value: "ND", label: "ND - North Dakota" },
+  { value: "OH", label: "OH - Ohio" },
+  { value: "OK", label: "OK - Oklahoma" },
+  { value: "OR", label: "OR - Oregon" },
+  { value: "PA", label: "PA - Pennsylvania" },
+  { value: "RI", label: "RI - Rhode Island" },
+  { value: "SC", label: "SC - South Carolina" },
+  { value: "SD", label: "SD - South Dakota" },
+  { value: "TN", label: "TN - Tennessee" },
+  { value: "TX", label: "TX - Texas" },
+  { value: "UT", label: "UT - Utah" },
+  { value: "VT", label: "VT - Vermont" },
+  { value: "VA", label: "VA - Virginia" },
+  { value: "WA", label: "WA - Washington" },
+  { value: "WV", label: "WV - West Virginia" },
+  { value: "WI", label: "WI - Wisconsin" },
+  { value: "WY", label: "WY - Wyoming" },
 ];
 
-const CREDIT_SCORE_TYPE_OPTIONS = [
-  { value: "fico", label: "FICO" },
-  { value: "vantage", label: "VantageScore" },
-  { value: "other", label: "Other" },
-];
-
-interface BorrowerFields {
+interface BorrowerInfo {
   firstName: string;
   lastName: string;
   ssn: string;
-  dateOfBirth: string;
+  dob: string;
   phone: string;
   email: string;
   address: string;
   city: string;
   state: string;
   zip: string;
-  country: string;
   maritalStatus: string;
   dependents: string;
   dependentsAges: string;
   farmInvolvement: string;
-  citizenshipStatus: string;
-  creditScoreType: string;
 }
 
-interface BorrowerStaticData {
-  declarations: Record<string, "yes" | "no">;
-  militaryService: "yes" | "no";
-  militaryDetails: string[];
-  militaryDate: string;
-  ethnicity: string[];
-  ethnicityOther: string;
-  sex: string;
-  race: string[];
-  howInfoProvided: string;
-}
-
-const DECLARATION_QUESTIONS = [
-  "Will you occupy the property as your primary residence?",
-  "Have you had ownership interest in another property in the last three years?",
-  "Do you have family relationship or business affiliation with the seller of the property?",
-  "Are you borrowing any money for this real estate transaction or obtaining any money from another party, such as the seller or realtor, that you have not disclosed on this loan application?",
-  "Have you or will you be applying for a mortgage loan on another property (not the property securing this loan) on or before closing this transaction that is not disclosed on this loan application?",
-  "Have you or will you be applying for any new credit on or before closing this loan that is not disclosed on this application?",
-  "Are you a co-signer or guarantor on any debt or loan that is not disclosed on this application?",
-  "Are there any outstanding judgments against you?",
-  "Are you currently delinquent or in default on a Federal debt?",
-  "Are you a party to a lawsuit in which you potentially have any personal financial liability?",
-  "Have you conveyed title to any property in lieu of foreclosure in the past 7 years?",
-  "Within the past 7 years have you completed a pre-foreclosure sale or short sale, whereby the property was sold to a third party and the Lender agreed to accept less than the outstanding mortgage balance due?",
-  "Have you had property foreclose upon in the last 7 years?",
-  "Have you declared bankruptcy within the past 7 years?",
-];
-
-const MILITARY_CHECKBOXES = [
-  "Currently serving on active duty with projected expiration date of service/tour",
-  "Currently retired, discharged, or separated from service",
-  "Only period of service was as a non-activated member of the Reserve or National Guard",
-  "Surviving spouse",
-];
-
-const ETHNICITY_OPTIONS = [
-  "Hispanic or Latino",
-  "Not Hispanic or Latino",
-  "I do not wish to provide this information",
-];
-
-const RACE_OPTIONS = [
-  "American Indian or Alaska Native",
-  "Asian",
-  "Black or African American",
-  "Native Hawaiian or Other Pacific Islander",
-  "White",
-  "I do not wish to provide this information",
-];
-
-const HOW_PROVIDED_OPTIONS = [
-  "Face-to-face interview (includes electronic media w/ video component)",
-  "Telephone interview",
-  "Fax or mail",
-  "Email or internet",
-];
-
-interface SeedEntry {
-  fields: Partial<BorrowerFields>;
-  staticData: BorrowerStaticData;
-}
-
-const BORROWER_SEED: Record<string, SeedEntry> = {
-  richard: {
-    fields: {
-      ssn: "123-45-6789",
-      dateOfBirth: "01/01/1978",
-      address: "106 Kentucky Drive",
-      city: "Louisville",
-      state: "KY",
-      zip: "40234",
-      country: "United States",
-      maritalStatus: "married",
-      dependents: "2",
-      dependentsAges: "4, 7",
-      farmInvolvement: "primary",
-      citizenshipStatus: "us_citizen",
-      creditScoreType: "fico",
-    },
-    staticData: {
-      declarations: { q0: "yes", q1: "no", q2: "no", q3: "no", q4: "no", q5: "no", q6: "no", q7: "no", q8: "no", q9: "no", q10: "no", q11: "no", q12: "no", q13: "no" },
-      militaryService: "no",
-      militaryDetails: [],
-      militaryDate: "",
-      ethnicity: ["Not Hispanic or Latino"],
-      ethnicityOther: "",
-      sex: "Male",
-      race: ["White"],
-      howInfoProvided: "Face-to-face interview (includes electronic media w/ video component)",
-    },
-  },
-  jamelle: {
-    fields: {
-      ssn: "987-65-4321",
-      dateOfBirth: "03/22/1980",
-      address: "106 Kentucky Drive",
-      city: "Louisville",
-      state: "KY",
-      zip: "40234",
-      country: "United States",
-      maritalStatus: "married",
-      dependents: "2",
-      dependentsAges: "4, 7",
-      farmInvolvement: "none",
-      citizenshipStatus: "us_citizen",
-      creditScoreType: "fico",
-    },
-    staticData: {
-      declarations: { q0: "yes", q1: "no", q2: "no", q3: "no", q4: "no", q5: "no", q6: "no", q7: "no", q8: "no", q9: "no", q10: "no", q11: "no", q12: "no", q13: "no" },
-      militaryService: "no",
-      militaryDetails: [],
-      militaryDate: "",
-      ethnicity: ["Not Hispanic or Latino"],
-      ethnicityOther: "",
-      sex: "Female",
-      race: ["Black or African American"],
-      howInfoProvided: "Face-to-face interview (includes electronic media w/ video component)",
-    },
-  },
-  priya: {
-    fields: {
-      ssn: "456-78-9012",
-      dateOfBirth: "07/08/1990",
-      address: "250 Maple Street",
-      city: "Lexington",
-      state: "KY",
-      zip: "40502",
-      country: "United States",
-      maritalStatus: "unmarried",
-      dependents: "0",
-      dependentsAges: "",
-      farmInvolvement: "none",
-      citizenshipStatus: "permanent_resident",
-      creditScoreType: "fico",
-    },
-    staticData: {
-      declarations: { q0: "no", q1: "no", q2: "no", q3: "no", q4: "no", q5: "no", q6: "no", q7: "no", q8: "no", q9: "no", q10: "no", q11: "no", q12: "no", q13: "no" },
-      militaryService: "no",
-      militaryDetails: [],
-      militaryDate: "",
-      ethnicity: ["Not Hispanic or Latino"],
-      ethnicityOther: "",
-      sex: "Female",
-      race: ["Asian"],
-      howInfoProvided: "Face-to-face interview (includes electronic media w/ video component)",
-    },
-  },
+const RICHARD_DATA: BorrowerInfo = {
+  firstName: "Richard",
+  lastName: "Jamerson",
+  ssn: "XXX-XX-1234",
+  dob: "1975-04-12",
+  phone: "(502) 555-0142",
+  email: "richard.jamerson@example.com",
+  address: "123 Farm Lane",
+  city: "Louisville",
+  state: "KY",
+  zip: "40234",
+  maritalStatus: "married",
+  dependents: "2",
+  dependentsAges: "12, 9",
+  farmInvolvement: "part_time",
 };
 
-const DEFAULT_SEED: SeedEntry = BORROWER_SEED.richard;
+const JANE_DATA: BorrowerInfo = {
+  firstName: "Jane",
+  lastName: "Jamerson",
+  ssn: "XXX-XX-5678",
+  dob: "1978-09-03",
+  phone: "(502) 555-0188",
+  email: "jane.jamerson@example.com",
+  address: "123 Farm Lane",
+  city: "Louisville",
+  state: "KY",
+  zip: "40234",
+  maritalStatus: "married",
+  dependents: "2",
+  dependentsAges: "12, 9",
+  farmInvolvement: "none",
+};
 
-function getSeedKey(borrower: Borrower): string {
-  return borrower.name.split(" ")[0].toLowerCase();
+const BORROWERS = [
+  { id: "richard", name: "Richard Jamerson", isPrimary: true },
+  { id: "jane", name: "Jane Jamerson", isPrimary: false },
+];
+
+function PrimaryChip() {
+  return (
+    <span
+      className="body-200-strong flex items-center"
+      style={{
+        backgroundColor: "var(--roads-bg-brand-subtle)",
+        color: "var(--roads-text-brand)",
+        padding: "0 var(--roads-spacing-component-xs)",
+        borderRadius: "var(--roads-radius-2xs)",
+        height: "20px",
+        whiteSpace: "nowrap",
+      }}
+      data-testid="chip-primary-borrower"
+    >
+      Primary Borrower
+    </span>
+  );
 }
 
-function borrowerToFields(borrower: Borrower): BorrowerFields {
-  const nameParts = borrower.name.trim().split(" ");
-  const firstName = nameParts[0] ?? "";
-  const lastName = nameParts.slice(1).join(" ");
-  const seed = (BORROWER_SEED[firstName.toLowerCase()] ?? DEFAULT_SEED).fields;
-  return {
-    firstName,
-    lastName,
-    ssn: seed.ssn ?? "123-45-6789",
-    dateOfBirth: seed.dateOfBirth ?? "01/01/1985",
-    phone: borrower.phone,
-    email: borrower.email,
-    address: seed.address ?? "123 Main St",
-    city: seed.city ?? "Nashville",
-    state: seed.state ?? "TN",
-    zip: seed.zip ?? "37201",
-    country: seed.country ?? "United States",
-    maritalStatus: seed.maritalStatus ?? "unmarried",
-    dependents: seed.dependents ?? "0",
-    dependentsAges: seed.dependentsAges ?? "",
-    farmInvolvement: seed.farmInvolvement ?? "none",
-    citizenshipStatus: seed.citizenshipStatus ?? "us_citizen",
-    creditScoreType: seed.creditScoreType ?? "fico",
-  };
+function BorrowerTabs({
+  active,
+  onChange,
+}: {
+  active: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div className="flex" data-testid="borrower-tabs">
+      {BORROWERS.map((b) => {
+        const isActive = b.id === active;
+        return (
+          <button
+            key={b.id}
+            onClick={() => onChange(b.id)}
+            className="label-strong whitespace-nowrap"
+            style={{
+              padding: "0 var(--roads-spacing-component-xl)",
+              height: "48px",
+              display: "flex",
+              alignItems: "center",
+              color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
+              background: "none",
+              border: "none",
+              borderBottom: isActive
+                ? "2px solid var(--roads-border-brand)"
+                : "1px solid var(--roads-border-subtle)",
+              cursor: "pointer",
+            }}
+            data-testid={`tab-borrower-${b.id}`}
+          >
+            {b.name}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
-function ReadOnlyField({ value }: { value: string }) {
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+      {children}
+    </span>
+  );
+}
+
+function ReadOnlyDisplay({ value, showChevron }: { value: string; showChevron?: boolean }) {
   return (
     <div
-      className="flex items-center"
+      className="flex items-center w-full"
       style={{
         backgroundColor: "var(--roads-bg-light)",
         border: "1px solid var(--roads-border-subtle)",
         borderRadius: "var(--roads-radius-2xs)",
         padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-        minHeight: "var(--roads-spacing-layout-xs)",
+        gap: "var(--roads-spacing-component-xs)",
+        height: "44px",
       }}
     >
-      <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+      <span
+        className="label-strong"
+        style={{
+          flex: 1,
+          minWidth: 0,
+          color: "var(--roads-text-primary)",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
         {value || "\u00A0"}
       </span>
+      {showChevron && (
+        <ChevronDown
+          style={{ width: 16, height: 16, color: "var(--roads-text-tertiary)" }}
+        />
+      )}
     </div>
   );
 }
 
-function BorrowerTextField({
+function TextField({
   label,
   value,
   isEditing,
   onChange,
+  width,
   testId,
 }: {
   label: string;
   value: string;
   isEditing: boolean;
-  onChange?: (v: string) => void;
-  testId?: string;
+  onChange: (v: string) => void;
+  width?: string;
+  testId: string;
 }) {
-  const tid = testId ?? `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div
       className="flex flex-col"
-      style={{
-        flex: "1 1 288px",
-        gap: "var(--roads-spacing-component-xs)",
-      }}
-      data-testid={`borrower-field-${tid}`}
+      style={{ width: width || "288px", gap: "var(--roads-spacing-component-xs)" }}
+      data-testid={`field-${testId}`}
     >
-      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-        {label}
-      </span>
+      <FieldLabel>{label}</FieldLabel>
       {isEditing ? (
         <input
           type="text"
           value={value}
-          onChange={(e) => onChange?.(e.target.value)}
-          className="outline-none label-strong"
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full outline-none label-strong"
           style={{
-            width: "100%",
             backgroundColor: "var(--roads-bg-primary)",
             border: "1px solid var(--roads-border-dark)",
             borderRadius: "var(--roads-radius-2xs)",
             padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
             color: "var(--roads-text-primary)",
-            fontFamily: "var(--roads-font-family)",
-            minHeight: "var(--roads-spacing-layout-xs)",
+            height: "44px",
           }}
-          data-testid={`input-${tid}`}
+          data-testid={`input-${testId}`}
         />
       ) : (
-        <ReadOnlyField value={value} />
+        <ReadOnlyDisplay value={value} />
       )}
     </div>
   );
 }
 
-function BorrowerDropdownField({
+function DateField({
   label,
   value,
   isEditing,
-  options,
   onChange,
   testId,
 }: {
   label: string;
   value: string;
   isEditing: boolean;
-  options: { value: string; label: string }[];
-  onChange?: (v: string) => void;
-  testId?: string;
+  onChange: (v: string) => void;
+  testId: string;
 }) {
-  const tid = testId ?? `field-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
-  const displayLabel = options.find((o) => o.value === value)?.label ?? value;
+  const displayValue = value
+    ? new Date(value + "T00:00:00").toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "";
+
   return (
     <div
       className="flex flex-col"
-      style={{
-        flex: "1 1 288px",
-        gap: "var(--roads-spacing-component-xs)",
-      }}
-      data-testid={`borrower-field-${tid}`}
+      style={{ width: "288px", gap: "var(--roads-spacing-component-xs)" }}
+      data-testid={`field-${testId}`}
     >
-      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-        {label}
-      </span>
+      <FieldLabel>{label}</FieldLabel>
       {isEditing ? (
-        <RoadsDropdown
-          value={value}
-          onChange={(v) => onChange?.(v)}
-          options={options}
-          testId={`select-${tid}`}
-        />
+        <div
+          className="flex items-center"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+            gap: "var(--roads-spacing-component-xs)",
+            height: "44px",
+          }}
+        >
+          <input
+            type="date"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="outline-none label-strong"
+            style={{
+              flex: 1,
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              color: "var(--roads-text-primary)",
+              fontFamily: "var(--roads-font-family)",
+            }}
+            data-testid={`input-${testId}`}
+          />
+        </div>
       ) : (
-        <ReadOnlyField value={displayLabel} />
+        <div
+          className="flex items-center w-full"
+          style={{
+            backgroundColor: "var(--roads-bg-light)",
+            border: "1px solid var(--roads-border-subtle)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+            gap: "var(--roads-spacing-component-xs)",
+            height: "44px",
+          }}
+        >
+          <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+            {displayValue || "\u00A0"}
+          </span>
+          <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
+        </div>
       )}
     </div>
   );
 }
 
-function StaticRadioGroup({
-  question,
+function DropdownField({
+  label,
   value,
+  options,
+  isEditing,
+  onChange,
+  testId,
+}: {
+  label: string;
+  value: string;
+  options: { value: string; label: string }[];
+  isEditing: boolean;
+  onChange: (v: string) => void;
+  testId: string;
+}) {
+  const displayValue = options.find((o) => o.value === value)?.label || "";
+  return (
+    <div
+      className="flex flex-col"
+      style={{ width: "288px", gap: "var(--roads-spacing-component-xs)" }}
+      data-testid={`field-${testId}`}
+    >
+      <FieldLabel>{label}</FieldLabel>
+      {isEditing ? (
+        <RoadsDropdown
+          value={value}
+          onChange={onChange}
+          options={options}
+          testId={`select-${testId}`}
+        />
+      ) : (
+        <ReadOnlyDisplay value={displayValue} showChevron />
+      )}
+    </div>
+  );
+}
+
+function StateZipFields({
+  stateVal,
+  zipVal,
+  isEditing,
+  onStateChange,
+  onZipChange,
+}: {
+  stateVal: string;
+  zipVal: string;
+  isEditing: boolean;
+  onStateChange: (v: string) => void;
+  onZipChange: (v: string) => void;
+}) {
+  const stateLabel = STATE_OPTIONS.find((o) => o.value === stateVal)?.label || "";
+  return (
+    <div
+      className="flex"
+      style={{ width: "288px", gap: "var(--roads-spacing-component-l)" }}
+      data-testid="field-state-zip"
+    >
+      <div
+        className="flex flex-col"
+        style={{ width: "136px", gap: "var(--roads-spacing-component-xs)" }}
+      >
+        <FieldLabel>State</FieldLabel>
+        {isEditing ? (
+          <RoadsDropdown
+            value={stateVal}
+            onChange={onStateChange}
+            options={STATE_OPTIONS}
+            testId="select-state"
+          />
+        ) : (
+          <ReadOnlyDisplay value={stateLabel} showChevron />
+        )}
+      </div>
+      <TextField
+        label="Zip"
+        value={zipVal}
+        isEditing={isEditing}
+        onChange={onZipChange}
+        width="136px"
+        testId="zip"
+      />
+    </div>
+  );
+}
+
+function EditControls({
+  isEditing,
+  onEdit,
+  onSave,
+  onDiscard,
+  testIdPrefix,
+}: {
+  isEditing: boolean;
+  onEdit: () => void;
+  onSave: () => void;
+  onDiscard: () => void;
+  testIdPrefix: string;
+}) {
+  return (
+    <div className="flex items-center justify-end">
+      {!isEditing ? (
+        <button
+          onClick={onEdit}
+          className="body-200-strong flex items-center"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+            color: "var(--roads-text-primary)",
+            gap: "var(--roads-spacing-component-2xs)",
+            cursor: "pointer",
+          }}
+          data-testid={`${testIdPrefix}-button-edit`}
+        >
+          <Pencil style={{ width: 12, height: 12 }} />
+          Edit
+        </button>
+      ) : (
+        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <button
+            onClick={onDiscard}
+            className="body-200-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-error)",
+              border: "1px solid var(--roads-bg-error)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+              color: "var(--roads-text-reverse)",
+              cursor: "pointer",
+            }}
+            data-testid={`${testIdPrefix}-button-discard`}
+          >
+            Discard Changes
+          </button>
+          <button
+            onClick={onSave}
+            className="body-200-strong"
+            style={{
+              backgroundColor: "var(--roads-bg-action)",
+              color: "var(--roads-text-reverse)",
+              border: "1px solid var(--roads-bg-action)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+              cursor: "pointer",
+            }}
+            data-testid={`${testIdPrefix}-button-save`}
+          >
+            Save
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DisabledRadio({
+  groupName,
+  optionValue,
+  selectedValue,
+  label,
+  testId,
+}: {
+  groupName: string;
+  optionValue: string;
+  selectedValue: string;
+  label: string;
+  testId: string;
+}) {
+  const checked = optionValue === selectedValue;
+  return (
+    <label
+      className="flex items-center body-100"
+      style={{
+        gap: "var(--roads-spacing-component-xs)",
+        color: "var(--roads-text-primary)",
+        cursor: "default",
+      }}
+      data-testid={`radio-${testId}`}
+    >
+      <input
+        type="radio"
+        name={groupName}
+        checked={checked}
+        readOnly
+        disabled
+        style={{
+          width: "16px",
+          height: "16px",
+          accentColor: "var(--roads-bg-action)",
+          flexShrink: 0,
+          cursor: "default",
+        }}
+      />
+      {label}
+    </label>
+  );
+}
+
+function YesNoQuestion({
+  question,
+  groupName,
+  selected,
   testId,
 }: {
   question: string;
-  value: "yes" | "no" | "";
-  testId?: string;
+  groupName: string;
+  selected: "yes" | "no";
+  testId: string;
 }) {
   return (
     <div
       className="flex flex-col"
-      style={{ gap: "var(--roads-spacing-component-l)" }}
-      data-testid={testId}
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
+      data-testid={`question-${testId}`}
     >
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {question}
       </span>
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
-        {(["yes", "no"] as const).map((opt) => {
-          const checked = value === opt;
-          return (
-            <div
-              key={opt}
-              className="flex items-center body-100"
-              style={{
-                gap: "var(--roads-spacing-component-xs)",
-                color: "var(--roads-text-tertiary)",
-              }}
-            >
-              <div
-                style={{
-                  width: "var(--roads-spacing-component-l)",
-                  height: "var(--roads-spacing-component-l)",
-                  borderRadius: "var(--roads-radius-round)",
-                  border: "1px solid var(--roads-border-subtle)",
-                  backgroundColor: "var(--roads-bg-primary)",
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "not-allowed",
-                  pointerEvents: "none",
-                }}
-              >
-                {checked && (
-                  <div
-                    style={{
-                      width: "var(--roads-spacing-component-xs)",
-                      height: "var(--roads-spacing-component-xs)",
-                      borderRadius: "var(--roads-radius-round)",
-                      backgroundColor: "var(--roads-bg-disabled)",
-                    }}
-                  />
-                )}
-              </div>
-              {opt.charAt(0).toUpperCase() + opt.slice(1)}
-            </div>
-          );
-        })}
+        <DisabledRadio
+          groupName={groupName}
+          optionValue="yes"
+          selectedValue={selected}
+          label="Yes"
+          testId={`${testId}-yes`}
+        />
+        <DisabledRadio
+          groupName={groupName}
+          optionValue="no"
+          selectedValue={selected}
+          label="No"
+          testId={`${testId}-no`}
+        />
       </div>
     </div>
   );
 }
 
-function StaticCheckbox({ checked, label }: { checked: boolean; label: string }) {
+function DisabledCheckbox({
+  label,
+  checked,
+  testId,
+}: {
+  label: string;
+  checked: boolean;
+  testId: string;
+}) {
+  return (
+    <label
+      className="flex items-center body-100"
+      style={{
+        gap: "var(--roads-spacing-component-xs)",
+        color: "var(--roads-text-primary)",
+        cursor: "default",
+      }}
+      data-testid={`checkbox-${testId}`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        readOnly
+        disabled
+        style={{
+          width: "16px",
+          height: "16px",
+          accentColor: "var(--roads-bg-action)",
+          flexShrink: 0,
+          cursor: "default",
+        }}
+      />
+      {label}
+    </label>
+  );
+}
+
+function MoneyDisplayField({ value, label, testId }: { value: string; label: string; testId: string }) {
   return (
     <div
-      className="flex items-start body-100"
-      style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}
+      className="flex flex-col"
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
+      data-testid={`field-${testId}`}
     >
+      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+        {label}
+      </span>
       <div
+        className="flex items-center"
         style={{
-          width: "var(--roads-spacing-component-l)",
-          height: "var(--roads-spacing-component-l)",
-          flexShrink: 0,
+          maxWidth: "320px",
+          backgroundColor: "var(--roads-bg-light)",
           border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-2xs)",
-          backgroundColor: checked ? "var(--roads-bg-disabled)" : "var(--roads-bg-primary)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginTop: "var(--roads-spacing-component-3xs)",
-          cursor: "not-allowed",
-          pointerEvents: "none",
+          padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+          gap: "var(--roads-spacing-component-xs)",
+          height: "44px",
         }}
       >
-        {checked && (
-          <svg
-            viewBox="0 0 12 9"
-            fill="none"
-            style={{
-              width: "var(--roads-spacing-component-m)",
-              height: "var(--roads-spacing-component-m)",
-              color: "var(--roads-text-reverse)",
-            }}
-          >
-            <path
-              d="M1 4L4.5 7.5L11 1"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        )}
+        <span className="label-strong" style={{ color: "var(--roads-text-secondary)" }}>$</span>
+        <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+          {value || "\u00A0"}
+        </span>
       </div>
-      <span style={{ flex: 1 }}>{label}</span>
     </div>
   );
 }
 
-function SectionCard({ children, testId }: { children: React.ReactNode; testId?: string }) {
+function PersonalInfoSection({
+  borrowerName,
+  isPrimary,
+  data,
+  isEditing,
+  setField,
+  onEdit,
+  onSave,
+  onDiscard,
+}: {
+  borrowerName: string;
+  isPrimary: boolean;
+  data: BorrowerInfo;
+  isEditing: boolean;
+  setField: <K extends keyof BorrowerInfo>(key: K) => (value: BorrowerInfo[K]) => void;
+  onEdit: () => void;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
   return (
     <div
+      className="flex flex-col"
       style={{
-        backgroundColor: "var(--roads-bg-primary)",
-        border: "1px solid var(--roads-border-subtle)",
-        borderRadius: "var(--roads-radius-xs)",
-        padding: "var(--roads-spacing-component-xl)",
+        gap: "var(--roads-spacing-component-2xl)",
+        marginTop: "var(--roads-spacing-component-l)",
       }}
-      data-testid={testId}
     >
-      {children}
+      <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
+        <h3
+          className="headline-300"
+          style={{ color: "var(--roads-text-primary)" }}
+          data-testid="text-borrower-name"
+        >
+          {borrowerName}
+        </h3>
+        {isPrimary && <PrimaryChip />}
+      </div>
+
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
+        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
+          <TextField label="First Name" value={data.firstName} isEditing={isEditing} onChange={setField("firstName")} testId="first-name" />
+          <TextField label="Last Name" value={data.lastName} isEditing={isEditing} onChange={setField("lastName")} testId="last-name" />
+          <TextField label="SSN" value={data.ssn} isEditing={isEditing} onChange={setField("ssn")} testId="ssn" />
+          <DateField label="DOB" value={data.dob} isEditing={isEditing} onChange={setField("dob")} testId="dob" />
+          <TextField label="Phone" value={data.phone} isEditing={isEditing} onChange={setField("phone")} testId="phone" />
+          <TextField label="Email Address" value={data.email} isEditing={isEditing} onChange={setField("email")} testId="email" />
+        </div>
+
+        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
+          <TextField label="Address" value={data.address} isEditing={isEditing} onChange={setField("address")} testId="address" />
+          <TextField label="City" value={data.city} isEditing={isEditing} onChange={setField("city")} testId="city" />
+          <StateZipFields
+            stateVal={data.state}
+            zipVal={data.zip}
+            isEditing={isEditing}
+            onStateChange={setField("state")}
+            onZipChange={setField("zip")}
+          />
+        </div>
+
+        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
+          <DropdownField
+            label="Marital Status"
+            value={data.maritalStatus}
+            options={MARITAL_OPTIONS}
+            isEditing={isEditing}
+            onChange={setField("maritalStatus")}
+            testId="marital-status"
+          />
+          <TextField label="Dependents" value={data.dependents} isEditing={isEditing} onChange={setField("dependents")} testId="dependents" />
+          <TextField label="Dependent's Ages" value={data.dependentsAges} isEditing={isEditing} onChange={setField("dependentsAges")} testId="dependents-ages" />
+          <DropdownField
+            label="Farm Involvement"
+            value={data.farmInvolvement}
+            options={FARM_OPTIONS}
+            isEditing={isEditing}
+            onChange={setField("farmInvolvement")}
+            testId="farm-involvement"
+          />
+        </div>
+      </div>
+
+      <div style={{ marginTop: "var(--roads-spacing-component-3xl)" }}>
+        <EditControls
+          isEditing={isEditing}
+          onEdit={onEdit}
+          onSave={onSave}
+          onDiscard={onDiscard}
+          testIdPrefix="borrower-info"
+        />
+      </div>
     </div>
   );
 }
 
-interface BorrowerInformationContentProps {
-  borrowers: Borrower[];
-}
+const DECLARATION_QUESTIONS: { question: string; testId: string; selected: "yes" | "no" }[] = [
+  { question: "Will you occupy the property as your primary residence?", testId: "occupy-primary", selected: "yes" },
+  { question: "Have you had ownership interest in another property in the last three years?", testId: "ownership-interest", selected: "no" },
+  { question: "Do you have family relationship or business affiliation with the seller of the property?", testId: "seller-affiliation", selected: "no" },
+  { question: "Are you borrowing any money for this real estate transaction or obtaining any money from another party, such as the seller or realtor, that you have not disclosed on this loan application?", testId: "borrowing-undisclosed", selected: "no" },
+  { question: "Have you or will you be applying for a mortgage loan on another property (not the property securing this loan) on or before closing this transaction that is not disclosed on this loan application?", testId: "other-mortgage", selected: "no" },
+  { question: "Have you or will you be applying for any new credit on or before closing this loan that is not disclosed on this application?", testId: "new-credit", selected: "no" },
+  { question: "Are you a co-signer or guarantor on any debt or loan that is not disclosed on this application?", testId: "co-signer", selected: "no" },
+  { question: "Are there any outstanding judgments against you?", testId: "judgments", selected: "no" },
+  { question: "Are you currently delinquent or in default on a Federal debt?", testId: "federal-debt", selected: "no" },
+  { question: "Are you a party to a lawsuit in which you potentially have any personal financial liability?", testId: "lawsuit", selected: "no" },
+  { question: "Have you conveyed title to any property in lieu of foreclosure in the past 7 years?", testId: "conveyed-title", selected: "no" },
+  { question: "Within the past 7 years have you completed a pre-foreclosure sale or short sale, whereby the property was sold to a third party and the Lender agreed to accept less than the outstanding mortgage balance due?", testId: "short-sale", selected: "no" },
+  { question: "Have you had property foreclose upon in the last 7 years?", testId: "foreclosed", selected: "no" },
+  { question: "Have you declared bankruptcy within the past 7 years?", testId: "bankruptcy", selected: "no" },
+];
 
-export function BorrowerInformationContent({ borrowers }: BorrowerInformationContentProps) {
-  const sorted = [...borrowers].sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0));
-  const primaryBorrower = sorted.find((b) => b.isPrimary) ?? sorted[0];
-
-  const [activeBorrowerId, setActiveBorrowerId] = useState<string>(primaryBorrower?.id ?? "");
-  const [isEditing, setIsEditing] = useState(false);
-
-  const defaultFieldsMap = Object.fromEntries(sorted.map((b) => [b.id, borrowerToFields(b)]));
-  const [fieldsMap, setFieldsMap] = useState<Record<string, BorrowerFields>>(defaultFieldsMap);
-  const savedFieldsMap = useRef<Record<string, BorrowerFields>>(
-    JSON.parse(JSON.stringify(defaultFieldsMap))
+function DeclarationsSection() {
+  const yn = (q: typeof DECLARATION_QUESTIONS[number], idx: number) => (
+    <YesNoQuestion
+      key={q.testId}
+      question={q.question}
+      groupName={`decl-${idx}`}
+      selected={q.selected}
+      testId={q.testId}
+    />
   );
 
-  const activeBorrower = sorted.find((b) => b.id === activeBorrowerId) ?? sorted[0];
-  const fields = fieldsMap[activeBorrowerId] ?? borrowerToFields(activeBorrower);
+  const moneyField = (
+    <MoneyDisplayField
+      key="amount-of-money"
+      label="If yes, what is the amount of this money?"
+      value="0.00"
+      testId="amount-of-money"
+    />
+  );
 
-  if (borrowers.length === 0) {
-    return (
-      <div
-        className="flex items-center justify-center body-100"
-        style={{ padding: "var(--roads-spacing-component-3xl)", color: "var(--roads-text-tertiary)" }}
-      >
-        No borrowers found for this loan.
+  const bankruptcyTypes = (
+    <div
+      key="bankruptcy-types"
+      className="flex flex-col"
+      style={{
+        gap: "var(--roads-spacing-component-l)",
+        padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+      }}
+      data-testid="question-bankruptcy-types"
+    >
+      <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+        If yes, identify the type(s) of bankruptcy:
+      </span>
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+        <DisabledCheckbox label="Chapter 7" checked={false} testId="chapter-7" />
+        <DisabledCheckbox label="Chapter 11" checked={false} testId="chapter-11" />
+        <DisabledCheckbox label="Chapter 12" checked={false} testId="chapter-12" />
+        <DisabledCheckbox label="Chapter 13" checked={false} testId="chapter-13" />
       </div>
-    );
-  }
+    </div>
+  );
 
-  const activeStaticData = (BORROWER_SEED[getSeedKey(activeBorrower)] ?? DEFAULT_SEED).staticData;
+  // 2 columns x 8 rows, row-major order matching Figma:
+  // Row 1: Q1 (occupy)            | Q2 (ownership)
+  // Row 2: Q3 (seller affiliation)| Q4 (borrowing money)
+  // Row 3: Money field            | Q5 (other mortgage)
+  // Row 4: Q6 (new credit)        | Q7 (co-signer)
+  // Row 5: Q8 (judgments)         | Q9 (federal debt)
+  // Row 6: Q10 (lawsuit)          | Q11 (conveyed title)
+  // Row 7: Q12 (short sale)       | Q13 (foreclosed)
+  // Row 8: Q14 (bankruptcy)       | bankruptcy types
+  const cells: React.ReactNode[] = [
+    yn(DECLARATION_QUESTIONS[0], 0),
+    yn(DECLARATION_QUESTIONS[1], 1),
+    yn(DECLARATION_QUESTIONS[2], 2),
+    yn(DECLARATION_QUESTIONS[3], 3),
+    moneyField,
+    yn(DECLARATION_QUESTIONS[4], 4),
+    yn(DECLARATION_QUESTIONS[5], 5),
+    yn(DECLARATION_QUESTIONS[6], 6),
+    yn(DECLARATION_QUESTIONS[7], 7),
+    yn(DECLARATION_QUESTIONS[8], 8),
+    yn(DECLARATION_QUESTIONS[9], 9),
+    yn(DECLARATION_QUESTIONS[10], 10),
+    yn(DECLARATION_QUESTIONS[11], 11),
+    yn(DECLARATION_QUESTIONS[12], 12),
+    yn(DECLARATION_QUESTIONS[13], 13),
+    bankruptcyTypes,
+  ];
 
-  const setField = <K extends keyof BorrowerFields>(key: K) => (value: BorrowerFields[K]) => {
-    setFieldsMap((prev) => ({
-      ...prev,
-      [activeBorrowerId]: { ...prev[activeBorrowerId], [key]: value },
-    }));
+  return (
+    <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <h3
+        className="headline-300"
+        style={{ color: "var(--roads-text-primary)" }}
+        data-testid="section-declarations"
+      >
+        Declarations
+      </h3>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridAutoRows: "min-content",
+          alignItems: "start",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-xl)",
+        }}
+      >
+        {cells}
+      </div>
+    </div>
+  );
+}
+
+function MilitarySection() {
+  return (
+    <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <h3
+        className="headline-300"
+        style={{ color: "var(--roads-text-primary)" }}
+        data-testid="section-military"
+      >
+        Military Service
+      </h3>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-2xl)",
+        }}
+      >
+        <YesNoQuestion
+          question="Did you (or your deceased spouse) ever serve, or are you currently serving in the United States Armed Forces?"
+          groupName="military-served"
+          selected="no"
+          testId="military-served"
+        />
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
+          <div
+            className="flex flex-col"
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
+          >
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+              If yes, check all that apply:
+            </span>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+              <DisabledCheckbox
+                label="Currently serving on active duty with projected expiration date of service/tour"
+                checked={false}
+                testId="active-duty"
+              />
+              <DisabledCheckbox
+                label="Currently retired, discharged, or separated from service"
+                checked={false}
+                testId="retired-discharged"
+              />
+              <DisabledCheckbox
+                label="Only period of service was as a non-activated member of the Reserve or National Guard"
+                checked={false}
+                testId="reserve-guard"
+              />
+              <DisabledCheckbox label="Surviving spouse" checked={false} testId="surviving-spouse" />
+            </div>
+          </div>
+          <div
+            className="flex flex-col"
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
+            data-testid="field-projected-expiration"
+          >
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+              Projected Expiration of Service/Tour
+            </span>
+            <div
+              className="flex items-center"
+              style={{
+                maxWidth: "320px",
+                backgroundColor: "var(--roads-bg-light)",
+                border: "1px solid var(--roads-border-subtle)",
+                borderRadius: "var(--roads-radius-2xs)",
+                padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+                gap: "var(--roads-spacing-component-xs)",
+                height: "44px",
+              }}
+            >
+              <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+                {"\u00A0"}
+              </span>
+              <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemographicSection() {
+  return (
+    <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <h3
+        className="headline-300"
+        style={{ color: "var(--roads-text-primary)" }}
+        data-testid="section-demographic"
+      >
+        Demographic Information
+      </h3>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          columnGap: "var(--roads-spacing-component-xl)",
+          rowGap: "var(--roads-spacing-component-2xl)",
+        }}
+      >
+        {/* Left column: Ethnicity, Other hispanic text, Sex */}
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xl)" }}>
+          <div
+            className="flex flex-col"
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
+            data-testid="question-ethnicity"
+          >
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+              Ethnicity (check one or more):
+            </span>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+              <DisabledCheckbox label="Hispanic or Latino" checked={false} testId="eth-hispanic" />
+              <div
+                className="flex flex-col"
+                style={{ gap: "var(--roads-spacing-component-l)", paddingLeft: "var(--roads-spacing-component-xl)" }}
+              >
+                <DisabledCheckbox label="Mexican" checked={false} testId="eth-mexican" />
+                <DisabledCheckbox label="Puerto Rican" checked={false} testId="eth-puerto-rican" />
+                <DisabledCheckbox label="Cuban" checked={false} testId="eth-cuban" />
+                <DisabledCheckbox label="Other Hispanic or Latino" checked={false} testId="eth-other-hispanic" />
+              </div>
+              <DisabledCheckbox
+                label="I do not wish to provide this information"
+                checked={true}
+                testId="eth-no-provide"
+              />
+            </div>
+          </div>
+
+          <MoneyDisplayField
+            label="Other Hispanic or Latino"
+            value=""
+            testId="eth-other-text"
+          />
+
+          <div
+            className="flex flex-col"
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+            }}
+            data-testid="question-sex"
+          >
+            <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+              Sex:
+            </span>
+            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+              <DisabledCheckbox label="Female" checked={false} testId="sex-female" />
+              <DisabledCheckbox label="Male" checked={true} testId="sex-male" />
+              <DisabledCheckbox
+                label="I do not wish to provide this information"
+                checked={false}
+                testId="sex-no-provide"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Right column: Race */}
+        <div
+          className="flex flex-col"
+          style={{
+            gap: "var(--roads-spacing-component-l)",
+            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+          }}
+          data-testid="question-race"
+        >
+          <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+            Race (check one or more):
+          </span>
+          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+            <DisabledCheckbox
+              label="American Indian or Alaska Native"
+              checked={false}
+              testId="race-american-indian"
+            />
+            <DisabledCheckbox label="Asian" checked={false} testId="race-asian" />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                columnGap: "var(--roads-spacing-component-l)",
+                rowGap: "var(--roads-spacing-component-l)",
+                paddingLeft: "var(--roads-spacing-component-xl)",
+              }}
+            >
+              <DisabledCheckbox label="Asian Indian" checked={false} testId="race-asian-indian" />
+              <DisabledCheckbox label="Filipino" checked={false} testId="race-filipino" />
+              <DisabledCheckbox label="Korean" checked={false} testId="race-korean" />
+              <DisabledCheckbox label="Other Asian" checked={false} testId="race-other-asian" />
+              <DisabledCheckbox label="Chinese" checked={false} testId="race-chinese" />
+              <DisabledCheckbox label="Japanese" checked={false} testId="race-japanese" />
+              <DisabledCheckbox label="Vietnamese" checked={false} testId="race-vietnamese" />
+            </div>
+            <DisabledCheckbox
+              label="Black or African American"
+              checked={false}
+              testId="race-black"
+            />
+            <DisabledCheckbox
+              label="Native Hawaiian or Other Pacific Islander"
+              checked={false}
+              testId="race-native-hawaiian-pi"
+            />
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                columnGap: "var(--roads-spacing-component-l)",
+                rowGap: "var(--roads-spacing-component-l)",
+                paddingLeft: "var(--roads-spacing-component-xl)",
+              }}
+            >
+              <DisabledCheckbox label="Native Hawaiian" checked={false} testId="race-hawaiian" />
+              <DisabledCheckbox
+                label="Guamanian or Chamorro"
+                checked={false}
+                testId="race-guamanian"
+              />
+              <DisabledCheckbox label="Samoan" checked={false} testId="race-samoan" />
+              <DisabledCheckbox
+                label="Other Pacific Islander"
+                checked={false}
+                testId="race-other-pi"
+              />
+            </div>
+            <DisabledCheckbox label="White" checked={true} testId="race-white" />
+            <DisabledCheckbox
+              label="I do not wish to provide this information"
+              checked={false}
+              testId="race-no-provide"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div style={{ borderTop: "1px solid var(--roads-border-subtle)", margin: "var(--roads-spacing-component-l) 0" }} />
+
+      <div
+        className="flex flex-col"
+        style={{
+          gap: "var(--roads-spacing-component-l)",
+          padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-l)",
+        }}
+        data-testid="question-collection-method"
+      >
+        <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+          The demographic information was provided through:
+        </span>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+          <DisabledRadio
+            groupName="demographic-method"
+            optionValue="face-to-face"
+            selectedValue="face-to-face"
+            label="Face-to-face interview (includes electronic media w/ video component)"
+            testId="method-face-to-face"
+          />
+          <DisabledRadio
+            groupName="demographic-method"
+            optionValue="telephone"
+            selectedValue="face-to-face"
+            label="Telephone interview"
+            testId="method-telephone"
+          />
+          <DisabledRadio
+            groupName="demographic-method"
+            optionValue="fax-mail"
+            selectedValue="face-to-face"
+            label="Fax or mail"
+            testId="method-fax-mail"
+          />
+          <DisabledRadio
+            groupName="demographic-method"
+            optionValue="email-internet"
+            selectedValue="face-to-face"
+            label="Email or internet"
+            testId="method-email-internet"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function BorrowerInformationContent() {
+  const [activeBorrower, setActiveBorrower] = useState<string>("richard");
+
+  const [richardData, setRichardData] = useState<BorrowerInfo>({ ...RICHARD_DATA });
+  const [janeData, setJaneData] = useState<BorrowerInfo>({ ...JANE_DATA });
+  const richardSaved = useRef<BorrowerInfo>({ ...RICHARD_DATA });
+  const janeSaved = useRef<BorrowerInfo>({ ...JANE_DATA });
+
+  const [isEditingRichard, setIsEditingRichard] = useState(false);
+  const [isEditingJane, setIsEditingJane] = useState(false);
+
+  const isRichard = activeBorrower === "richard";
+  const data = isRichard ? richardData : janeData;
+  const setData = isRichard ? setRichardData : setJaneData;
+  const saved = isRichard ? richardSaved : janeSaved;
+  const isEditing = isRichard ? isEditingRichard : isEditingJane;
+  const setIsEditing = isRichard ? setIsEditingRichard : setIsEditingJane;
+  const borrower = BORROWERS.find((b) => b.id === activeBorrower)!;
+
+  const setField = <K extends keyof BorrowerInfo>(key: K) => (value: BorrowerInfo[K]) => {
+    setData((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleEditToggle = () => {
-    savedFieldsMap.current = JSON.parse(JSON.stringify(fieldsMap));
+  const handleEdit = () => {
+    saved.current = { ...data };
     setIsEditing(true);
   };
 
   const handleSave = () => {
-    savedFieldsMap.current = JSON.parse(JSON.stringify(fieldsMap));
+    saved.current = { ...data };
     setIsEditing(false);
   };
 
   const handleDiscard = () => {
-    setFieldsMap(JSON.parse(JSON.stringify(savedFieldsMap.current)));
+    setData({ ...saved.current });
     setIsEditing(false);
-  };
-
-  const handleTabChange = (id: string) => {
-    if (isEditing) {
-      setFieldsMap(JSON.parse(JSON.stringify(savedFieldsMap.current)));
-      setIsEditing(false);
-    }
-    setActiveBorrowerId(id);
   };
 
   return (
@@ -550,457 +1218,24 @@ export function BorrowerInformationContent({ borrowers }: BorrowerInformationCon
         Borrower Information
       </h2>
 
-      {/* Borrower Tabs */}
-      <div
-        className="flex"
-        style={{ borderBottom: "1px solid var(--roads-border-subtle)" }}
-        data-testid="borrower-tabs"
-      >
-        {sorted.map((b) => {
-          const isActive = b.id === activeBorrowerId;
-          return (
-            <button
-              key={b.id}
-              onClick={() => handleTabChange(b.id)}
-              className="flex items-center label-strong"
-              style={{
-                gap: "var(--roads-spacing-component-xs)",
-                padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-m)",
-                background: "none",
-                border: "none",
-                borderBottom: isActive
-                  ? "var(--roads-spacing-component-3xs) solid var(--roads-border-brand)"
-                  : "var(--roads-spacing-component-3xs) solid var(--roads-border-subtle)",
-                cursor: "pointer",
-                color: isActive ? "var(--roads-text-brand)" : "var(--roads-text-primary)",
-                position: "relative",
-                bottom: "-1px",
-              }}
-              data-testid={`borrower-tab-${b.name.split(" ")[0].toLowerCase()}`}
-            >
-              {b.name}
-              {b.isPrimary && (
-                <span
-                  className="caption-100-strong"
-                  style={{
-                    backgroundColor: "var(--roads-bg-information-subtle)",
-                    color: "var(--roads-text-information)",
-                    borderRadius: "var(--roads-radius-round)",
-                    padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                  }}
-                  data-testid="primary-borrower-chip"
-                >
-                  Primary Borrower
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <BorrowerTabs active={activeBorrower} onChange={setActiveBorrower} />
 
-      {/* Borrower Name Heading */}
-      <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-        <h3
-          className="headline-300"
-          style={{ color: "var(--roads-text-primary)" }}
-          data-testid="borrower-name-heading"
-        >
-          {activeBorrower.name}
-        </h3>
-        {activeBorrower.isPrimary && (
-          <span
-            className="caption-100-strong"
-            style={{
-              backgroundColor: "var(--roads-bg-information-subtle)",
-              color: "var(--roads-text-information)",
-              borderRadius: "var(--roads-radius-round)",
-              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-            }}
-          >
-            Primary Borrower
-          </span>
-        )}
-      </div>
+      <PersonalInfoSection
+        borrowerName={borrower.name}
+        isPrimary={borrower.isPrimary}
+        data={data}
+        isEditing={isEditing}
+        setField={setField}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
+      />
 
-      {/* Personal Information Section */}
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
-        <h3
-          className="headline-300"
-          style={{ color: "var(--roads-text-primary)" }}
-          data-testid="section-personal-information"
-        >
-          Personal Information
-        </h3>
+      <DeclarationsSection />
 
-        {/* Row 1: First Name, Last Name, SSN, Date of Birth, Phone */}
-        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
-          <BorrowerTextField
-            label="First Name"
-            value={fields.firstName}
-            isEditing={isEditing}
-            onChange={setField("firstName")}
-            testId="first-name"
-          />
-          <BorrowerTextField
-            label="Last Name"
-            value={fields.lastName}
-            isEditing={isEditing}
-            onChange={setField("lastName")}
-            testId="last-name"
-          />
-          <BorrowerTextField
-            label="SSN"
-            value={fields.ssn}
-            isEditing={isEditing}
-            onChange={setField("ssn")}
-            testId="ssn"
-          />
-          <BorrowerTextField
-            label="Date of Birth"
-            value={fields.dateOfBirth}
-            isEditing={isEditing}
-            onChange={setField("dateOfBirth")}
-            testId="date-of-birth"
-          />
-          <BorrowerTextField
-            label="Phone Number"
-            value={fields.phone}
-            isEditing={isEditing}
-            onChange={setField("phone")}
-            testId="phone-number"
-          />
-        </div>
+      <MilitarySection />
 
-        {/* Row 2: Email Address */}
-        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
-          <BorrowerTextField
-            label="Email Address"
-            value={fields.email}
-            isEditing={isEditing}
-            onChange={setField("email")}
-            testId="email-address"
-          />
-          <div style={{ flex: "4 4 288px" }} />
-        </div>
-
-        {/* Row 3: Address */}
-        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
-          <BorrowerTextField
-            label="Address"
-            value={fields.address}
-            isEditing={isEditing}
-            onChange={setField("address")}
-            testId="address"
-          />
-          <BorrowerTextField
-            label="City"
-            value={fields.city}
-            isEditing={isEditing}
-            onChange={setField("city")}
-            testId="city"
-          />
-          <BorrowerTextField
-            label="State"
-            value={fields.state}
-            isEditing={isEditing}
-            onChange={setField("state")}
-            testId="state"
-          />
-          <BorrowerTextField
-            label="Zip"
-            value={fields.zip}
-            isEditing={isEditing}
-            onChange={setField("zip")}
-            testId="zip"
-          />
-          <BorrowerTextField
-            label="Country"
-            value={fields.country}
-            isEditing={isEditing}
-            onChange={setField("country")}
-            testId="country"
-          />
-        </div>
-
-        {/* Row 4: Marital Status, Dependents, Dependent's Ages, Farm Involvement */}
-        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
-          <BorrowerDropdownField
-            label="Marital Status"
-            value={fields.maritalStatus}
-            isEditing={isEditing}
-            options={MARITAL_STATUS_OPTIONS}
-            onChange={setField("maritalStatus")}
-            testId="marital-status"
-          />
-          <BorrowerTextField
-            label="Dependents"
-            value={fields.dependents}
-            isEditing={isEditing}
-            onChange={setField("dependents")}
-            testId="dependents"
-          />
-          <BorrowerTextField
-            label="Dependent's Ages"
-            value={fields.dependentsAges}
-            isEditing={isEditing}
-            onChange={setField("dependentsAges")}
-            testId="dependents-ages"
-          />
-          <BorrowerDropdownField
-            label="Farm Involvement"
-            value={fields.farmInvolvement}
-            isEditing={isEditing}
-            options={FARM_INVOLVEMENT_OPTIONS}
-            onChange={setField("farmInvolvement")}
-            testId="farm-involvement"
-          />
-          <div style={{ flex: "1 1 288px" }} />
-        </div>
-
-        {/* Row 5: Citizenship Status, Credit Score Type */}
-        <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
-          <BorrowerDropdownField
-            label="Citizenship Status"
-            value={fields.citizenshipStatus}
-            isEditing={isEditing}
-            options={CITIZENSHIP_STATUS_OPTIONS}
-            onChange={setField("citizenshipStatus")}
-            testId="citizenship-status"
-          />
-          <BorrowerDropdownField
-            label="Credit Score Type"
-            value={fields.creditScoreType}
-            isEditing={isEditing}
-            options={CREDIT_SCORE_TYPE_OPTIONS}
-            onChange={setField("creditScoreType")}
-            testId="credit-score-type"
-          />
-          <div style={{ flex: "3 3 288px" }} />
-        </div>
-      </div>
-
-      {/* Edit / Save Changes / Discard Changes */}
-      <div className="flex items-center justify-end">
-        {isEditing ? (
-          <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-            <button
-              onClick={handleDiscard}
-              className="body-200-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-error)",
-                border: "1px solid var(--roads-bg-error)",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                color: "var(--roads-text-reverse)",
-                cursor: "pointer",
-              }}
-              data-testid="button-discard-borrower"
-            >
-              Discard Changes
-            </button>
-            <button
-              onClick={handleSave}
-              className="body-200-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-action)",
-                color: "var(--roads-text-reverse)",
-                border: "1px solid var(--roads-bg-action)",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                cursor: "pointer",
-              }}
-              data-testid="button-save-borrower"
-            >
-              Save Changes
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleEditToggle}
-            className="body-200-strong flex items-center"
-            style={{
-              backgroundColor: "var(--roads-bg-primary)",
-              border: "1px solid var(--roads-border-dark)",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-              color: "var(--roads-text-primary)",
-              gap: "var(--roads-spacing-component-2xs)",
-              cursor: "pointer",
-            }}
-            data-testid="button-edit-borrower"
-          >
-            <Pencil
-              style={{
-                width: "var(--roads-spacing-component-m)",
-                height: "var(--roads-spacing-component-m)",
-              }}
-            />
-            Edit
-          </button>
-        )}
-      </div>
-
-      {/* Declarations Section — read-only */}
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <h3
-          className="headline-300"
-          style={{ color: "var(--roads-text-primary)" }}
-          data-testid="section-declarations"
-        >
-          Declarations
-        </h3>
-        <SectionCard testId="declarations-card">
-          <div
-            className="grid"
-            style={{
-              gridTemplateColumns: "1fr 1fr",
-              gap: "var(--roads-spacing-component-xl)",
-            }}
-          >
-            {DECLARATION_QUESTIONS.map((q, i) => (
-              <StaticRadioGroup
-                key={i}
-                question={q}
-                value={activeStaticData.declarations[`q${i}`] ?? "no"}
-                testId={`declaration-q${i}`}
-              />
-            ))}
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* Military Service Section — read-only */}
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <h3
-          className="headline-300"
-          style={{ color: "var(--roads-text-primary)" }}
-          data-testid="section-military-service"
-        >
-          Military Service
-        </h3>
-        <SectionCard testId="military-service-card">
-          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
-            <StaticRadioGroup
-              question="Did you (or your deceased spouse) ever serve, or are you currently serving in the United States Armed Forces?"
-              value={activeStaticData.militaryService}
-              testId="military-service-question"
-            />
-            <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-m)" }}>
-              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                If yes, check all that apply:
-              </span>
-              <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-m)" }}>
-                {MILITARY_CHECKBOXES.map((detail) => (
-                  <StaticCheckbox
-                    key={detail}
-                    checked={activeStaticData.militaryDetails.includes(detail)}
-                    label={detail}
-                  />
-                ))}
-              </div>
-              <div
-                className="flex flex-col"
-                style={{ gap: "var(--roads-spacing-component-xs)" }}
-              >
-                <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                  Date
-                </span>
-                <ReadOnlyField value={activeStaticData.militaryDate || "\u00A0"} />
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
-
-      {/* Demographic Information Section — read-only */}
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <h3
-          className="headline-300"
-          style={{ color: "var(--roads-text-primary)" }}
-          data-testid="section-demographic-information"
-        >
-          Demographic Information
-        </h3>
-        <SectionCard testId="demographic-information-card">
-          <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-            {/* Ethnicity */}
-            <div
-              className="flex flex-col"
-              style={{ gap: "var(--roads-spacing-component-xs)" }}
-            >
-              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                Ethnicity (check one or more)
-              </span>
-              <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-                {ETHNICITY_OPTIONS.map((opt) => (
-                  <StaticCheckbox
-                    key={opt}
-                    checked={activeStaticData.ethnicity.includes(opt)}
-                    label={opt}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Sex */}
-            <div
-              className="flex flex-col"
-              style={{ gap: "var(--roads-spacing-component-xs)" }}
-            >
-              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                Sex
-              </span>
-              <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-                {["Female", "Male"].map((opt) => (
-                  <StaticCheckbox
-                    key={opt}
-                    checked={activeStaticData.sex === opt}
-                    label={opt}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Race */}
-            <div
-              className="flex flex-col"
-              style={{ gap: "var(--roads-spacing-component-xs)" }}
-            >
-              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                Race (check one or more)
-              </span>
-              <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-                {RACE_OPTIONS.map((opt) => (
-                  <StaticCheckbox
-                    key={opt}
-                    checked={activeStaticData.race.includes(opt)}
-                    label={opt}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* How information was provided */}
-            <div
-              className="flex flex-col"
-              style={{ gap: "var(--roads-spacing-component-xs)" }}
-            >
-              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
-                The Demographic Information was provided through
-              </span>
-              <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-                {HOW_PROVIDED_OPTIONS.map((opt) => (
-                  <StaticCheckbox
-                    key={opt}
-                    checked={activeStaticData.howInfoProvided === opt}
-                    label={opt}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </SectionCard>
-      </div>
+      <DemographicSection />
     </div>
   );
 }

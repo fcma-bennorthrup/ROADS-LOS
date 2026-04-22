@@ -93,14 +93,14 @@ function DocumentSection({
           style={{ gap: "var(--roads-spacing-component-l)" }}
         >
           <button
-            onClick={handleGenerate}
-            disabled={generationState === "generating"}
+            onClick={() => {
+              if (generationState === "generating") return;
+              handleGenerate();
+            }}
+            aria-disabled={generationState === "generating"}
             className="label-strong"
             style={{
-              backgroundColor:
-                generationState === "generating"
-                  ? "var(--roads-bg-action-disabled)"
-                  : "var(--roads-bg-action)",
+              backgroundColor: "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
               padding:
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
@@ -116,15 +116,15 @@ function DocumentSection({
           </button>
 
           <button
-            onClick={onSecondaryClick}
-            disabled={generationState !== "generated"}
+            onClick={() => {
+              if (generationState !== "generated") return;
+              onSecondaryClick();
+            }}
+            aria-disabled={generationState !== "generated"}
             className="label-strong"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
-              color:
-                generationState !== "generated"
-                  ? "var(--roads-text-tertiary)"
-                  : "var(--roads-text-primary)",
+              color: "var(--roads-text-primary)",
               padding:
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
@@ -132,7 +132,6 @@ function DocumentSection({
               cursor:
                 generationState !== "generated" ? "not-allowed" : "pointer",
               whiteSpace: "nowrap",
-              opacity: generationState !== "generated" ? 0.5 : 1,
             }}
             data-testid={`button-secondary-${testIdPrefix}`}
           >

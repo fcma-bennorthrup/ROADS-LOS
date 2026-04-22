@@ -8,6 +8,7 @@ export interface PendingConflicts {
   operation: "push" | "pull";
   conflicts: ConflictedFile[];
   safeToUpdate: FileEntry[];
+  safeToDelete?: string[];
   remoteHeadSha: string;
   commitMessage?: string;
   createdAt: string;
