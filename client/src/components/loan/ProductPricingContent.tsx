@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { RoadsDatePicker } from "./RoadsDatePicker";
+import rateLockLetterPdf from "@assets/Rate_Lock_Letter_-_Consumer_Redacted_1776876397430.pdf";
 import {
   Dialog,
   DialogContent,
@@ -296,8 +297,9 @@ export function ProductPricingContent() {
         </div>
 
         <div className="flex justify-end" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          {isRateLocked && (
+          {isRateLocked ? (
             <button
+              onClick={() => window.open(rateLockLetterPdf, "_blank", "noopener,noreferrer")}
               className="body-200-strong whitespace-nowrap"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
@@ -305,27 +307,29 @@ export function ProductPricingContent() {
                 borderRadius: "var(--roads-radius-2xs)",
                 padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-m)",
                 color: "var(--roads-text-primary)",
+                cursor: "pointer",
               }}
               data-testid="button-generate-rate-lock-letter"
             >
               View Rate Lock Letter
             </button>
+          ) : (
+            <button
+              onClick={() => setIsLockModalOpen(true)}
+              className="body-200-strong whitespace-nowrap"
+              style={{
+                backgroundColor: "var(--roads-bg-action)",
+                color: "var(--roads-text-reverse)",
+                border: "none",
+                borderRadius: "var(--roads-radius-2xs)",
+                padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                cursor: "pointer",
+              }}
+              data-testid="button-lock-rate"
+            >
+              Lock Rate
+            </button>
           )}
-          <button
-            onClick={() => setIsLockModalOpen(true)}
-            className="body-200-strong whitespace-nowrap"
-            style={{
-              backgroundColor: "var(--roads-bg-action)",
-              color: "var(--roads-text-reverse)",
-              border: "none",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-              cursor: "pointer",
-            }}
-            data-testid="button-lock-rate"
-          >
-            {isRateLocked ? "Edit Rate Lock" : "Lock Rate"}
-          </button>
         </div>
 
         <div className="flex" style={{ gap: "var(--roads-spacing-layout-xs)" }}>
