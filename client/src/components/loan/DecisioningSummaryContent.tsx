@@ -74,7 +74,11 @@ export function DecisioningSummaryContent() {
             Generate Decision Letter
           </button>
           <button
-            onClick={() => window.open("/decision-letter.pdf", "_blank")}
+            onClick={() => {
+              if (!letterGenerated) return;
+              window.open("/decision-letter.pdf", "_blank");
+            }}
+            aria-disabled={!letterGenerated}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
@@ -82,7 +86,7 @@ export function DecisioningSummaryContent() {
               borderRadius: "var(--roads-radius-2xs)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               color: "var(--roads-text-primary)",
-              cursor: "pointer",
+              cursor: letterGenerated ? "pointer" : "not-allowed",
             }}
             data-testid="button-view-decision-letter"
           >
