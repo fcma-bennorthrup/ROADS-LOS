@@ -34,6 +34,7 @@ interface SecondaryAction {
   label: string;
   onClick: () => void;
   testId?: string;
+  marksDelivered?: boolean;
 }
 
 function DocumentSection({
@@ -57,6 +58,7 @@ function DocumentSection({
 }) {
   const [generationState, setGenerationState] = useState<GenerationState>("idle");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -98,6 +100,16 @@ function DocumentSection({
           {generationState === "generated" && `Last Generated: ${lastGenerated}`}
         </p>
 
+        {lastDelivered && (
+          <p
+            className="body-100"
+            style={{ color: "var(--roads-text-secondary)" }}
+            data-testid={`text-${testIdPrefix}-delivered`}
+          >
+            {`Marked Delivered: ${lastDelivered}`}
+          </p>
+        )}
+
         <div
           className="flex items-center"
           style={{ gap: "var(--roads-spacing-component-l)" }}
@@ -135,6 +147,9 @@ function DocumentSection({
               onClick={() => {
                 if (generationState !== "generated") return;
                 action.onClick();
+                if (action.marksDelivered) {
+                  setLastDelivered(formatTimestamp());
+                }
               }}
               aria-disabled={generationState !== "generated"}
               className="label-strong"
@@ -222,6 +237,7 @@ function ClosingDocumentsContent() {
           {
             label: "Deliver Closing Disclosure",
             onClick: () => {},
+            marksDelivered: true,
           },
         ]}
         testIdPrefix="closing-disclosure"
@@ -241,6 +257,7 @@ function ClosingDocumentsContent() {
           {
             label: "Deliver Closing Package",
             onClick: () => {},
+            marksDelivered: true,
           },
         ]}
         testIdPrefix="closing-package"
