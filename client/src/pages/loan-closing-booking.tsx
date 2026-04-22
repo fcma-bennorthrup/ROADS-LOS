@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
+import { ClosingContent } from "@/components/loan/ClosingContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -98,7 +99,11 @@ export default function LoanClosingBookingPage() {
           items={CLOSING_BOOKING_NAV_ITEMS}
         />
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-          <ComingSoon page={activeNavItem} />
+          {activeNavItem === "Closing" ? (
+            <ClosingContent />
+          ) : (
+            <ComingSoon page={activeNavItem} />
+          )}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
