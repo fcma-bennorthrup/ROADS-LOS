@@ -1,4 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
+type BookingState = "idle" | "booking" | "booked";
+
+function AnimatedEllipsis() {
+  const [dots, setDots] = useState(1);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev >= 3 ? 1 : prev + 1));
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
+
+  return <span>{".".repeat(dots)}</span>;
+}
 
 function formatTimestamp(): string {
   const now = new Date();
@@ -14,10 +29,23 @@ function formatTimestamp(): string {
 }
 
 export function BookingContent() {
+  const [bookingState, setBookingState] = useState<BookingState>("idle");
   const [bookedAt, setBookedAt] = useState<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleBookLoan = () => {
-    setBookedAt(formatTimestamp());
+    if (bookingState === "booking") return;
+    setBookingState("booking");
+    timerRef.current = setTimeout(() => {
+      setBookedAt(formatTimestamp());
+      setBookingState("booked");
+    }, 5000);
   };
 
   return (
@@ -41,6 +69,7 @@ export function BookingContent() {
         <div className="flex items-center">
           <button
             onClick={handleBookLoan}
+            aria-disabled={bookingState === "booking"}
             className="label-strong"
             style={{
               backgroundColor: "var(--roads-bg-action)",
@@ -49,7 +78,7 @@ export function BookingContent() {
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
               border: "none",
-              cursor: "pointer",
+              cursor: bookingState === "booking" ? "not-allowed" : "pointer",
               whiteSpace: "nowrap",
             }}
             data-testid="button-book-loan"
@@ -58,7 +87,19 @@ export function BookingContent() {
           </button>
         </div>
 
-        {bookedAt && (
+        {bookingState === "booking" && (
+          <p
+            className="body-100"
+            style={{ color: "var(--roads-text-secondary)" }}
+            data-testid="text-booking-status"
+          >
+            <span>
+              Booking Loan<AnimatedEllipsis />
+            </span>
+          </p>
+        )}
+
+        {bookingState === "booked" && bookedAt && (
           <p
             className="body-100"
             style={{ color: "var(--roads-text-secondary)" }}
