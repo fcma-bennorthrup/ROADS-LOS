@@ -8,7 +8,7 @@ import LoanSummaryPage from "@/pages/loan-summary";
 import LoanOriginationPage from "@/pages/loan-origination";
 import LoanDecisioningPage from "@/pages/loan-decisioning";
 import LoanDocumentsPage from "@/pages/loan-documents";
-import LoanComingSoonPage from "@/pages/loan-coming-soon";
+import LoanClosingBookingPage from "@/pages/loan-closing-booking";
 import LoanHistoryPage from "@/pages/loan-history";
 import { Redirect } from "wouter";
 import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
@@ -25,7 +25,7 @@ function Router() {
       </Route>
       <Route path="/loans/:id/origination" component={LoanOriginationPage} />
       <Route path="/loans/:id/decisioning" component={LoanDecisioningPage} />
-      <Route path="/loans/:id/closing-booking">{() => <LoanComingSoonPage tabName="Closing & Booking" />}</Route>
+      <Route path="/loans/:id/closing-booking" component={LoanClosingBookingPage} />
       <Route path="/loans/:id/documents" component={LoanDocumentsPage} />
       <Route path="/loans/:id/history" component={LoanHistoryPage} />
       <Route path="/loans/:id" component={LoanSummaryPage} />

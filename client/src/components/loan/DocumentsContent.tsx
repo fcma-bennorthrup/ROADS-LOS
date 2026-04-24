@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
+const sampleClosingDisclosurePdf = "/closing-disclosure.pdf";
+const sampleClosingPackagePdf = "/closing-package.pdf";
+
 type GenerationState = "idle" | "generating" | "generated";
 
 function AnimatedEllipsis() {
@@ -28,6 +31,13 @@ function formatTimestamp(): string {
   return `${month}/${day}/${year} ${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 }
 
+interface SecondaryAction {
+  label: string;
+  onClick: () => void;
+  testId?: string;
+  marksDelivered?: boolean;
+}
+
 function DocumentSection({
   title,
   idleText,
@@ -35,18 +45,21 @@ function DocumentSection({
   generateLabel,
   secondaryLabel,
   onSecondaryClick,
+  secondaryActions,
   testIdPrefix,
 }: {
   title: string;
   idleText: string;
   generatingText: string;
   generateLabel: string;
-  secondaryLabel: string;
-  onSecondaryClick: () => void;
+  secondaryLabel?: string;
+  onSecondaryClick?: () => void;
+  secondaryActions?: SecondaryAction[];
   testIdPrefix: string;
 }) {
   const [generationState, setGenerationState] = useState<GenerationState>("idle");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -88,6 +101,16 @@ function DocumentSection({
           {generationState === "generated" && `Last Generated: ${lastGenerated}`}
         </p>
 
+        {lastDelivered && (
+          <p
+            className="body-100"
+            style={{ color: "var(--roads-text-secondary)" }}
+            data-testid={`text-${testIdPrefix}-delivered`}
+          >
+            {`Marked Delivered: ${lastDelivered}`}
+          </p>
+        )}
+
         <div
           className="flex items-center"
           style={{ gap: "var(--roads-spacing-component-l)" }}
@@ -115,28 +138,43 @@ function DocumentSection({
             {generateLabel}
           </button>
 
-          <button
-            onClick={() => {
-              if (generationState !== "generated") return;
-              onSecondaryClick();
-            }}
-            aria-disabled={generationState !== "generated"}
-            className="label-strong"
-            style={{
-              backgroundColor: "var(--roads-bg-primary)",
-              color: "var(--roads-text-primary)",
-              padding:
-                "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              borderRadius: "var(--roads-radius-2xs)",
-              border: "1px solid var(--roads-border-dark)",
-              cursor:
-                generationState !== "generated" ? "not-allowed" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-            data-testid={`button-secondary-${testIdPrefix}`}
-          >
-            {secondaryLabel}
-          </button>
+          {(secondaryActions ??
+            (secondaryLabel && onSecondaryClick
+              ? [{ label: secondaryLabel, onClick: onSecondaryClick }]
+              : [])
+          ).map((action, index) => (
+            <button
+              key={`${testIdPrefix}-secondary-${index}`}
+              onClick={() => {
+                if (generationState !== "generated") return;
+                action.onClick();
+                if (action.marksDelivered) {
+                  setLastDelivered(formatTimestamp());
+                }
+              }}
+              aria-disabled={generationState !== "generated"}
+              className="label-strong"
+              style={{
+                backgroundColor: "var(--roads-bg-primary)",
+                color: "var(--roads-text-primary)",
+                padding:
+                  "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+                borderRadius: "var(--roads-radius-2xs)",
+                border: "1px solid var(--roads-border-dark)",
+                cursor:
+                  generationState !== "generated" ? "not-allowed" : "pointer",
+                whiteSpace: "nowrap",
+              }}
+              data-testid={
+                action.testId ??
+                (index === 0
+                  ? `button-secondary-${testIdPrefix}`
+                  : `button-secondary-${testIdPrefix}-${index}`)
+              }
+            >
+              {action.label}
+            </button>
+          ))}
         </div>
       </div>
     </div>
@@ -176,6 +214,59 @@ function DisclosuresContent() {
   );
 }
 
+function ClosingDocumentsContent() {
+  return (
+    <div
+      className="flex flex-col"
+      style={{
+        padding: "var(--roads-spacing-component-xl)",
+        gap: "var(--roads-spacing-component-xl)",
+      }}
+      data-testid="closing-documents-content"
+    >
+      <DocumentSection
+        title="Closing Disclosure"
+        idleText="No Closing Disclosures have been generated"
+        generatingText="Generating Closing Disclosure"
+        generateLabel="Generate Closing Disclosure"
+        secondaryActions={[
+          {
+            label: "View Closing Disclosure",
+            onClick: () =>
+              window.open(sampleClosingDisclosurePdf, "_blank", "noopener,noreferrer"),
+          },
+          {
+            label: "Deliver Closing Disclosure",
+            onClick: () => {},
+            marksDelivered: true,
+          },
+        ]}
+        testIdPrefix="closing-disclosure"
+      />
+
+      <DocumentSection
+        title="Closing Package"
+        idleText="No Closing Packages have been generated"
+        generatingText="Generating Closing Package"
+        generateLabel="Generate Closing Package"
+        secondaryActions={[
+          {
+            label: "View Closing Package",
+            onClick: () =>
+              window.open(sampleClosingPackagePdf, "_blank", "noopener,noreferrer"),
+          },
+          {
+            label: "Deliver Closing Package",
+            onClick: () => {},
+            marksDelivered: true,
+          },
+        ]}
+        testIdPrefix="closing-package"
+      />
+    </div>
+  );
+}
+
 const DOCUMENTS_NAV_ITEMS = [
   "Disclosures",
   "Closing Documents",
@@ -185,4 +276,4 @@ export function DocumentsContent() {
   return <DisclosuresContent />;
 }
 
-export { DOCUMENTS_NAV_ITEMS };
+export { DOCUMENTS_NAV_ITEMS, ClosingDocumentsContent };

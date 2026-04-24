@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef } from "react";
-import { HelpCircle, Pencil, Lock, Calendar, X } from "lucide-react";
+import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { RoadsDatePicker } from "./RoadsDatePicker";
+const rateLockLetterPdf = "/rate-lock-letter.pdf";
 import {
   Dialog,
   DialogContent,
@@ -295,21 +297,6 @@ export function ProductPricingContent() {
         </div>
 
         <div className="flex justify-end" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          {isRateLocked && (
-            <button
-              className="body-200-strong whitespace-nowrap"
-              style={{
-                backgroundColor: "var(--roads-bg-primary)",
-                border: "1px solid var(--roads-border-dark)",
-                borderRadius: "var(--roads-radius-2xs)",
-                padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-m)",
-                color: "var(--roads-text-primary)",
-              }}
-              data-testid="button-generate-rate-lock-letter"
-            >
-              View Rate Lock Letter
-            </button>
-          )}
           <button
             onClick={() => setIsLockModalOpen(true)}
             className="body-200-strong whitespace-nowrap"
@@ -323,7 +310,22 @@ export function ProductPricingContent() {
             }}
             data-testid="button-lock-rate"
           >
-            {isRateLocked ? "Edit Rate Lock" : "Lock Rate"}
+            Lock Rate
+          </button>
+          <button
+            onClick={() => window.open(rateLockLetterPdf, "_blank", "noopener,noreferrer")}
+            className="body-200-strong whitespace-nowrap"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-m)",
+              color: "var(--roads-text-primary)",
+              cursor: "pointer",
+            }}
+            data-testid="button-generate-rate-lock-letter"
+          >
+            View Rate Lock Letter
           </button>
         </div>
 
@@ -516,36 +518,12 @@ export function ProductPricingContent() {
               <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
                 Rate Lock Expiration Date
               </span>
-              <div className="relative">
-                <div
-                  className="flex items-center w-full"
-                  style={{
-                    border: "1px solid var(--roads-border-dark)",
-                    backgroundColor: "var(--roads-bg-primary)",
-                    borderRadius: "var(--roads-radius-2xs)",
-                    padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-                    height: "44px",
-                  }}
-                >
-                  <input
-                    type="text"
-                    value={lockDate}
-                    onChange={(e) => setLockDate(e.target.value)}
-                    disabled={!isRateLocked}
-                    className="label-strong outline-none"
-                    style={{
-                      flex: 1,
-                      color: "var(--roads-text-primary)",
-                      border: "none",
-                      background: "transparent",
-                      cursor: isRateLocked ? "text" : "not-allowed",
-                      opacity: isRateLocked ? 1 : 0.7,
-                    }}
-                    data-testid="input-lock-date"
-                  />
-                  <Calendar style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
-                </div>
-              </div>
+              <RoadsDatePicker
+                value={lockDate}
+                onChange={setLockDate}
+                disabled={!isRateLocked}
+                testId="input-lock-date"
+              />
             </div>
           </div>
 

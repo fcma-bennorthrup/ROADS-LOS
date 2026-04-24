@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
-import { DocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
+import { DocumentsContent, ClosingDocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -95,7 +95,10 @@ export default function LoanDocumentsPage() {
         />
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
           {activeNavItem === "Disclosures" && <DocumentsContent />}
-          {activeNavItem !== "Disclosures" && <ComingSoon page={activeNavItem} />}
+          {activeNavItem === "Closing Documents" && <ClosingDocumentsContent />}
+          {activeNavItem !== "Disclosures" && activeNavItem !== "Closing Documents" && (
+            <ComingSoon page={activeNavItem} />
+          )}
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
