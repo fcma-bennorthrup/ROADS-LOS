@@ -2,7 +2,7 @@ import { useState, useMemo, useRef } from "react";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { RoadsDatePicker } from "./RoadsDatePicker";
-const rateLockLetterPdf = "/rate-lock-letter.pdf";
+import rateLockLetterPdf from "@assets/Rate_Lock_Letter_-_Consumer_Redacted_1777397784766.pdf";
 import {
   Dialog,
   DialogContent,
