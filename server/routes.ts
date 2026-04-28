@@ -12,10 +12,10 @@ import * as crypto from "crypto";
 const OWNER = "bennorthrup";
 const REPO = "ROADS-LOS";
 
-const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm", "attached_assets"]);
+const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
 const IGNORE_FILES = new Set(["package-lock.json"]);
 const BINARY_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".pdf", ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".webm", ".zip", ".tar", ".gz"]);
-const MAX_FILE_SIZE = 500 * 1024;
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 function shouldIgnorePath(filePath: string): boolean {
   const parts = filePath.split("/");
