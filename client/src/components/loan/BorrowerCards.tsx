@@ -42,13 +42,14 @@ function BorrowerCard({ borrower }: { borrower: Borrower }) {
         {borrower.isPrimary && (
           <span
             data-testid={`badge-primary-borrower-${borrower.id}`}
-            className="body-200-strong"
+            className="body-200-strong flex items-center"
             style={{
-              backgroundColor: "var(--roads-bg-information-subtle)",
-              color: "var(--roads-text-information)",
+              backgroundColor: "var(--roads-bg-brand-subtle)",
+              color: "var(--roads-text-brand)",
               padding: "0 var(--roads-spacing-component-xs)",
               borderRadius: "var(--roads-radius-2xs)",
-              lineHeight: "20px",
+              height: "20px",
+              whiteSpace: "nowrap",
             }}
           >
             Primary Borrower
