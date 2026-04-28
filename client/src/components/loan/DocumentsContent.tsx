@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import sampleClosingDisclosurePdf from "@assets/SampleCD_1777397678654.pdf";
-
-const sampleClosingPackagePdf = "/closing-package.pdf";
+import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf";
 
 type GenerationState = "idle" | "generating" | "generated";
 
