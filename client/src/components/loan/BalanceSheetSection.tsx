@@ -666,7 +666,7 @@ function BalanceSheetRow({
 
   return (
     <div
-      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "stretch" }}
+      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "start" }}
       data-testid={`balance-sheet-row-${testPrefix}`}
     >
       <div
