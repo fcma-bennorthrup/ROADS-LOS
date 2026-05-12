@@ -59,28 +59,40 @@ export async function pushCodebaseWithDeletions(
   const baseTreeSha = currentCommit.tree.sha;
 
   const treeItems: { path: string; mode: string; type: string; sha: string | null }[] = [];
+  const skippedFiles: { path: string; reason: string }[] = [];
 
   for (const file of files) {
     const base64Content = file.encoding === "base64"
       ? file.content
       : Buffer.from(file.content).toString("base64");
-    const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
-      method: "POST",
-      body: {
-        content: base64Content,
-        encoding: "base64",
-      },
-    });
-    if (!blob.sha) {
-      console.error(`Blob creation failed for ${file.path}:`, blob);
-      continue;
+    try {
+      const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
+        method: "POST",
+        body: {
+          content: base64Content,
+          encoding: "base64",
+        },
+      });
+      if (!blob.sha) {
+        console.error(`Blob creation failed for ${file.path}:`, blob);
+        skippedFiles.push({ path: file.path, reason: "no sha returned" });
+        continue;
+      }
+      treeItems.push({
+        path: file.path,
+        mode: "100644",
+        type: "blob",
+        sha: blob.sha,
+      });
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      if (msg.includes("413") || /too large|payload/i.test(msg)) {
+        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
+        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
+        continue;
+      }
+      throw err;
     }
-    treeItems.push({
-      path: file.path,
-      mode: "100644",
-      type: "blob",
-      sha: blob.sha,
-    });
   }
 
   for (const delPath of deletions) {
@@ -93,7 +105,7 @@ export async function pushCodebaseWithDeletions(
   }
 
   if (treeItems.length === 0) {
-    return { commitSha: currentCommitSha, message: "No changes to push", filesCount: 0 };
+    return { commitSha: currentCommitSha, message: "No changes to push", filesCount: 0, skippedFiles };
   }
 
   const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees`, {
@@ -117,7 +129,7 @@ export async function pushCodebaseWithDeletions(
     body: { sha: commit.sha },
   });
 
-  return { commitSha: commit.sha, message: commit.message, filesCount: files.length, deletedCount: deletions.length };
+  return { commitSha: commit.sha, message: commit.message, filesCount: files.length - skippedFiles.length, deletedCount: deletions.length, skippedFiles };
 }
 
 export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
@@ -128,27 +140,39 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
   const baseTreeSha = currentCommit.tree.sha;
 
   const treeItems: { path: string; mode: string; type: string; sha: string }[] = [];
+  const skippedFiles: { path: string; reason: string }[] = [];
   for (const file of files) {
     const base64Content = file.encoding === "base64"
       ? file.content
       : Buffer.from(file.content).toString("base64");
-    const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
-      method: "POST",
-      body: {
-        content: base64Content,
-        encoding: "base64",
-      },
-    });
-    if (!blob.sha) {
-      console.error(`Blob creation failed for ${file.path}:`, blob);
-      continue;
+    try {
+      const blob = await githubRequest(`/repos/${owner}/${repo}/git/blobs`, {
+        method: "POST",
+        body: {
+          content: base64Content,
+          encoding: "base64",
+        },
+      });
+      if (!blob.sha) {
+        console.error(`Blob creation failed for ${file.path}:`, blob);
+        skippedFiles.push({ path: file.path, reason: "no sha returned" });
+        continue;
+      }
+      treeItems.push({
+        path: file.path,
+        mode: "100644",
+        type: "blob",
+        sha: blob.sha,
+      });
+    } catch (err: any) {
+      const msg = err?.message || String(err);
+      if (msg.includes("413") || /too large|payload/i.test(msg)) {
+        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
+        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
+        continue;
+      }
+      throw err;
     }
-    treeItems.push({
-      path: file.path,
-      mode: "100644",
-      type: "blob",
-      sha: blob.sha,
-    });
   }
 
   if (treeItems.length === 0) throw new Error("No files to push");

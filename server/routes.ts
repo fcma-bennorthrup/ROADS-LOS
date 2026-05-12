@@ -15,7 +15,7 @@ const REPO = "ROADS-LOS";
 const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
 const IGNORE_FILES = new Set(["package-lock.json"]);
 const BINARY_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".pdf", ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".webm", ".zip", ".tar", ".gz"]);
-const MAX_FILE_SIZE = 25 * 1024 * 1024;
+const MAX_FILE_SIZE = 7 * 1024 * 1024;
 
 function shouldIgnorePath(filePath: string): boolean {
   const parts = filePath.split("/");
@@ -550,7 +550,7 @@ export async function registerRoutes(
           safeFiles: filteredFiles.map((f) => f.path),
           deletedFiles: dedupedDeletions,
           unchangedFiles: report.unchanged,
-          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${dedupedDeletions.length > 0 ? ` and deleted ${dedupedDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)`,
+          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${dedupedDeletions.length > 0 ? ` and deleted ${dedupedDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}`,
         });
         return;
       }
@@ -611,7 +611,7 @@ export async function registerRoutes(
         safeFiles: changedFiles.map((f) => f.path),
         deletedFiles: deletions,
         unchangedFiles: [],
-        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)`,
+        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
