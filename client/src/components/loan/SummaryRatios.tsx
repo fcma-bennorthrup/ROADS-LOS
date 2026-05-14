@@ -43,12 +43,11 @@ function KeyValueRow({ label, value, testId }: { label: string; value: string; t
 function DataColumn({ children, testId }: { children: React.ReactNode; testId: string }) {
   return (
     <div
-      className="flex flex-col shrink-0"
+      className="flex flex-col min-w-0"
       style={{
         gap: "var(--roads-spacing-component-m)",
         padding: "var(--roads-spacing-component-xs)",
         borderRadius: "var(--roads-radius-xs)",
-        width: "318px",
       }}
       data-testid={testId}
     >
@@ -75,7 +74,7 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
         Summary &amp; Ratios
       </h2>
       <div
-        className="flex flex-wrap"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 w-full"
         style={{ gap: "var(--roads-spacing-component-xl)" }}
       >
         <DataColumn testId="column-ratios">
