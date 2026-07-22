@@ -21,7 +21,8 @@ function shouldIgnorePath(filePath: string): boolean {
   const parts = filePath.split("/");
   const fileName = parts[parts.length - 1];
   if (IGNORE_FILES.has(fileName)) return true;
-  return parts.some((p: string) => IGNORE_DIRS.has(p) || p.startsWith("."));
+  const dirParts = parts.slice(0, -1);
+  return dirParts.some((p: string) => IGNORE_DIRS.has(p) || p.startsWith("."));
 }
 
 function isBinaryFile(filePath: string): boolean {
