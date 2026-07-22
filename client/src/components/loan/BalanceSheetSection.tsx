@@ -664,96 +664,105 @@ function BalanceSheetRow({
 }) {
   const testPrefix = assetLabel.toLowerCase().replace(/[\s-]+/g, "-");
 
+  const liabilityTestPrefix = liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-");
+  const pairCount = Math.max(assets.length, liabilities.length);
+
   return (
     <div
-      style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "40px", alignItems: "stretch" }}
+      style={{
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        columnGap: "40px",
+        rowGap: "var(--roads-spacing-component-s)",
+      }}
       data-testid={`balance-sheet-row-${testPrefix}`}
     >
       <div
-        className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-s)" }}
+        className="flex items-center justify-between"
+        style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
         data-testid={`${testPrefix}-section`}
       >
-        <div
-          className="flex items-center justify-between"
-          style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
+        <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${testPrefix}-heading`}>
+          {assetLabel}
+        </span>
+        <button
+          onClick={onAddAsset}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-action)",
+            color: "var(--roads-text-reverse)",
+            border: "none",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+          }}
+          data-testid={`button-add-${testPrefix}`}
         >
-          <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${testPrefix}-heading`}>
-            {assetLabel}
-          </span>
-          <button
-            onClick={onAddAsset}
-            className="label-strong"
-            style={{
-              backgroundColor: "var(--roads-bg-action)",
-              color: "var(--roads-text-reverse)",
-              border: "none",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              cursor: "pointer",
-            }}
-            data-testid={`button-add-${testPrefix}`}
-          >
-            + Add Asset
-          </button>
-        </div>
-        {assets.map((asset, idx) => (
-          <AssetCard
-            key={asset.id}
-            asset={editTarget?.category === assetCategory && editTarget.index === idx && assetBuffer ? assetBuffer : asset}
-            isEditing={editTarget?.category === assetCategory && editTarget.index === idx}
-            onEdit={() => onEditAsset(assetCategory, idx)}
-            onSave={onSave}
-            onDiscard={onDiscard}
-            onChange={onAssetFieldChange}
-            onDelete={() => onDeleteAsset(idx)}
-            index={idx}
-          />
-        ))}
+          + Add Asset
+        </button>
       </div>
 
       <div
-        className="flex flex-col"
-        style={{ gap: "var(--roads-spacing-component-s)" }}
-        data-testid={`${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}-section`}
+        className="flex items-center justify-between"
+        style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
+        data-testid={`${liabilityTestPrefix}-section`}
       >
-        <div
-          className="flex items-center justify-between"
-          style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
+        <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${liabilityTestPrefix}-heading`}>
+          {liabilityLabel}
+        </span>
+        <button
+          onClick={onAddLiability}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-action)",
+            color: "var(--roads-text-reverse)",
+            border: "none",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+          }}
+          data-testid={`button-add-${liabilityTestPrefix}`}
         >
-          <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}-heading`}>
-            {liabilityLabel}
-          </span>
-          <button
-            onClick={onAddLiability}
-            className="label-strong"
-            style={{
-              backgroundColor: "var(--roads-bg-action)",
-              color: "var(--roads-text-reverse)",
-              border: "none",
-              borderRadius: "var(--roads-radius-2xs)",
-              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-              cursor: "pointer",
-            }}
-            data-testid={`button-add-${liabilityLabel.toLowerCase().replace(/[\s-]+/g, "-")}`}
-          >
-            + Add Liability
-          </button>
-        </div>
-        {liabilities.map((liability, idx) => (
-          <LiabilityCard
-            key={liability.id}
-            liability={editTarget?.category === liabilityCategory && editTarget.index === idx && liabilityBuffer ? liabilityBuffer : liability}
-            isEditing={editTarget?.category === liabilityCategory && editTarget.index === idx}
-            onEdit={() => onEditLiability(liabilityCategory, idx)}
-            onSave={onSave}
-            onDiscard={onDiscard}
-            onChange={onLiabilityFieldChange}
-            onDelete={() => onDeleteLiability(idx)}
-            index={idx}
-          />
-        ))}
+          + Add Liability
+        </button>
       </div>
+
+      {Array.from({ length: pairCount }).flatMap((_, idx) => {
+        const asset = assets[idx];
+        const liability = liabilities[idx];
+        return [
+          asset ? (
+            <AssetCard
+              key={`a-${asset.id}`}
+              asset={editTarget?.category === assetCategory && editTarget.index === idx && assetBuffer ? assetBuffer : asset}
+              isEditing={editTarget?.category === assetCategory && editTarget.index === idx}
+              onEdit={() => onEditAsset(assetCategory, idx)}
+              onSave={onSave}
+              onDiscard={onDiscard}
+              onChange={onAssetFieldChange}
+              onDelete={() => onDeleteAsset(idx)}
+              index={idx}
+            />
+          ) : (
+            <div key={`a-empty-${idx}`} />
+          ),
+          liability ? (
+            <LiabilityCard
+              key={`l-${liability.id}`}
+              liability={editTarget?.category === liabilityCategory && editTarget.index === idx && liabilityBuffer ? liabilityBuffer : liability}
+              isEditing={editTarget?.category === liabilityCategory && editTarget.index === idx}
+              onEdit={() => onEditLiability(liabilityCategory, idx)}
+              onSave={onSave}
+              onDiscard={onDiscard}
+              onChange={onLiabilityFieldChange}
+              onDelete={() => onDeleteLiability(idx)}
+              index={idx}
+            />
+          ) : (
+            <div key={`l-empty-${idx}`} />
+          ),
+        ];
+      })}
     </div>
   );
 }

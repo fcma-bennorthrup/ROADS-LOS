@@ -1,0 +1,1 @@
+- [Asset import drift after task merges](asset-import-drift.md) — merged work may import @assets files with timestamps that don't exist here; repoint to the real filename in attached_assets.

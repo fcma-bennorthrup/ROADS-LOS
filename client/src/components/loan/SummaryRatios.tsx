@@ -14,6 +14,8 @@ export interface SummaryRatiosData {
   finalRate: string;
   principalInterest: string;
   totalMonthlyPayment: string;
+  cashToClose: string;
+  apr: string;
 }
 
 function KeyValueRow({ label, value, testId }: { label: string; value: string; testId: string }) {
@@ -43,12 +45,11 @@ function KeyValueRow({ label, value, testId }: { label: string; value: string; t
 function DataColumn({ children, testId }: { children: React.ReactNode; testId: string }) {
   return (
     <div
-      className="flex flex-col shrink-0"
+      className="flex flex-col min-w-0"
       style={{
         gap: "var(--roads-spacing-component-m)",
         padding: "var(--roads-spacing-component-xs)",
         borderRadius: "var(--roads-radius-xs)",
-        width: "318px",
       }}
       data-testid={testId}
     >
@@ -75,7 +76,7 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
         Summary &amp; Ratios
       </h2>
       <div
-        className="flex flex-wrap"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 w-full"
         style={{ gap: "var(--roads-spacing-component-xl)" }}
       >
         <DataColumn testId="column-ratios">
@@ -96,11 +97,13 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
           <KeyValueRow label="Amount Requested" value={data.amountRequested} testId="amount-requested" />
           <KeyValueRow label="Financed Fees" value={data.financedFees} testId="financed-fees" />
           <KeyValueRow label="Taxes & Insurance" value={data.taxesInsurance} testId="taxes-insurance" />
+          <KeyValueRow label="Cash to Close" value={data.cashToClose} testId="cash-to-close" />
         </DataColumn>
 
         <DataColumn testId="column-product">
           <KeyValueRow label="Product" value={data.product} testId="product" />
           <KeyValueRow label="Final Rate" value={data.finalRate} testId="final-rate" />
+          <KeyValueRow label="APR" value={`${data.apr}%`} testId="apr" />
           <KeyValueRow label="Principal & Interest" value={data.principalInterest} testId="principal-interest" />
           <KeyValueRow label="Total Monthly Payment" value={data.totalMonthlyPayment} testId="total-monthly-payment" />
         </DataColumn>

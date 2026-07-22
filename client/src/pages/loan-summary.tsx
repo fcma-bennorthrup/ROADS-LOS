@@ -99,6 +99,8 @@ export default function LoanSummaryPage() {
             finalRate: `${loan.finalRate}%`,
             principalInterest: formatCurrency(loan.principalInterest),
             totalMonthlyPayment: formatCurrency(loan.totalMonthlyPayment),
+            cashToClose: formatCurrency(loan.cashToClose),
+            apr: loan.apr,
           }}
         />
       </main>

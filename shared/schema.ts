@@ -43,6 +43,8 @@ export const loans = pgTable("loans", {
   totalCv: numeric("total_cv").notNull(),
   cashReserves: numeric("cash_reserves").notNull(),
   totalLoanAmount: numeric("total_loan_amount").notNull(),
+  cashToClose: numeric("cash_to_close").notNull(),
+  apr: numeric("apr").notNull(),
 });
 
 export const insertLoanSchema = createInsertSchema(loans).omit({ id: true });
