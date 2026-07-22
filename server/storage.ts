@@ -49,6 +49,8 @@ export class MemStorage implements IStorage {
       totalCv: "250000.00",
       cashReserves: "5000000.00",
       totalLoanAmount: "150455.00",
+      cashToClose: "8732.00",
+      apr: "7.350",
     };
     this.loans.set(loanId, loan);
 
