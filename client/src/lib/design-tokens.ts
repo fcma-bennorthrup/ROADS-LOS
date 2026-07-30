@@ -24,6 +24,7 @@ export const colors = {
     action: "#005b94",
     errorDisabled: "#ff9c8f",
     discoverySubtle: "#eaeaf9",
+    success: "#2bb656",
   },
   icon: {
     dark: "#273333",
@@ -57,6 +58,11 @@ export const typography = {
     size: "16px",
     weight: 400,
     lineHeight: "16px",
+  },
+  "body-200": {
+    size: "14px",
+    weight: 400,
+    lineHeight: "20px",
   },
   "body-200-strong": {
     size: "14px",

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
+import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -395,26 +396,35 @@ function TabNavigation({
 }
 
 export function BottomToolbar() {
+  const [checklistOpen, setChecklistOpen] = useState(false);
+
   return (
-    <div
-      className="flex items-center overflow-x-auto justify-center"
-      style={{
-        padding: "0 var(--roads-spacing-component-l)",
-        gap: "var(--roads-spacing-component-xl)",
-        borderTop: "1px solid var(--roads-border-subtle)",
-        backgroundColor: "var(--roads-bg-primary)",
-        height: "36px",
-      }}
-      data-testid="bottom-toolbar"
-    >
+    <div className="relative">
+      {checklistOpen && <ChecklistPanel onClose={() => setChecklistOpen(false)} />}
+      <div
+        className="flex items-center overflow-x-auto justify-center"
+        style={{
+          padding: "0 var(--roads-spacing-component-l)",
+          gap: "var(--roads-spacing-component-xl)",
+          borderTop: "1px solid var(--roads-border-subtle)",
+          backgroundColor: "var(--roads-bg-primary)",
+          height: "36px",
+        }}
+        data-testid="bottom-toolbar"
+      >
       {TOOLBAR_ITEMS.map((item) => {
         const Icon = item.icon;
+        const isChecklist = item.label === "Checklist";
         return (
           <button
             key={item.label}
             className="flex items-center caption-100 whitespace-nowrap relative"
+            onClick={isChecklist ? () => setChecklistOpen((v) => !v) : undefined}
             style={{
-              color: "var(--roads-text-primary)",
+              color:
+                isChecklist && checklistOpen
+                  ? "var(--roads-text-brand)"
+                  : "var(--roads-text-primary)",
               gap: "var(--roads-spacing-component-2xs)",
               padding: "0 var(--roads-spacing-component-l)",
               height: "100%",
@@ -433,6 +443,7 @@ export function BottomToolbar() {
           </button>
         );
       })}
+      </div>
     </div>
   );
 }
