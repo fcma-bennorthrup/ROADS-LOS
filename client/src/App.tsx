@@ -14,6 +14,7 @@ import { Redirect } from "wouter";
 import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
 import { useGitHubSync } from "@/hooks/use-github-sync";
 import { GitHubSyncContext } from "@/contexts/github-sync-context";
+import { ChecklistProvider } from "@/contexts/checklist-context";
 
 export { useGitHubSyncContext } from "@/contexts/github-sync-context";
 
@@ -46,7 +47,9 @@ function AppContent() {
         hasPendingConflicts: sync.hasPendingConflicts,
       }}
     >
-      <Router />
+      <ChecklistProvider>
+        <Router />
+      </ChecklistProvider>
       <ConflictResolutionDialog
         open={sync.conflictDialogOpen}
         onOpenChange={sync.setConflictDialogOpen}

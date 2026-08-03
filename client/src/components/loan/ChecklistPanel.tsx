@@ -1,203 +1,6 @@
 import { useState } from "react";
 import { X, Check, Minus, ChevronDown } from "lucide-react";
-
-export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "complete";
-
-export interface ChecklistAction {
-  label: string;
-  description: string;
-  status: ChecklistStatus;
-}
-
-export interface ChecklistTask {
-  name: string;
-  status: ChecklistStatus;
-  actions: ChecklistAction[];
-}
-
-const CHECKLIST_TASKS: ChecklistTask[] = [
-  {
-    name: "Eligibility & Scope",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Verify borrower eligibility", status: "complete" },
-      { label: "Action #2", description: "Confirm loan scope", status: "complete" },
-    ],
-  },
-  {
-    name: "TC/TN",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Prepare terms and conditions", status: "complete" },
-      { label: "Action #2", description: "Review terms and conditions", status: "complete" },
-      { label: "Action #3", description: "Send terms notification", status: "complete" },
-    ],
-  },
-  {
-    name: "HMDA",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Collect HMDA data", status: "complete" },
-      { label: "Action #2", description: "Submit HMDA report", status: "complete" },
-    ],
-  },
-  {
-    name: "Loan Decision",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Record loan decision", status: "complete" },
-    ],
-  },
-  {
-    name: "Decision Letter",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Generate decision letter", status: "complete" },
-      { label: "Action #2", description: "Send decision letter", status: "complete" },
-    ],
-  },
-  {
-    name: "Required Docs",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Request required documents", status: "complete" },
-      { label: "Action #2", description: "Verify received documents", status: "complete" },
-    ],
-  },
-  {
-    name: "Fees",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Enter loan fees", status: "complete" },
-      { label: "Action #2", description: "Review and finalize fees", status: "in-progress" },
-    ],
-  },
-  {
-    name: "Property Taxes",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Pull property tax records", status: "complete" },
-      { label: "Action #2", description: "Verify tax amounts", status: "in-progress" },
-    ],
-  },
-  {
-    name: "Loan Estimate",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Generate loan estimate", status: "complete" },
-      { label: "Action #2", description: "Deliver loan estimate", status: "in-progress" },
-    ],
-  },
-  {
-    name: "Title Work",
-    status: "blocked",
-    actions: [
-      { label: "Action #1", description: "Order title work", status: "complete" },
-      { label: "Action #2", description: "Review title commitment", status: "blocked" },
-      { label: "Action #3", description: "Clear title exceptions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Appraisal Evaluation",
-    status: "blocked",
-    actions: [
-      { label: "Action #1", description: "Order appraisal evaluation", status: "in-progress" },
-      { label: "Action #2", description: "Complete appraisal evaluation", status: "blocked" },
-      { label: "Action #3", description: "Deliver appraisal evaluation", status: "not-started" },
-    ],
-  },
-  {
-    name: "Rate Lock",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Confirm rate with borrower", status: "not-started" },
-      { label: "Action #2", description: "Lock rate", status: "not-started" },
-      { label: "Action #3", description: "Send rate lock letter", status: "not-started" },
-    ],
-  },
-  {
-    name: "PTF Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify prior-to-funding conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear prior-to-funding conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Closing Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify closing conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear closing conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Prelim CD",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Prepare preliminary closing disclosure", status: "not-started" },
-      { label: "Action #2", description: "Deliver preliminary closing disclosure", status: "not-started" },
-    ],
-  },
-  {
-    name: "Closing Disclosure",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Generate closing disclosure", status: "not-started" },
-      { label: "Action #2", description: "Deliver closing disclosure", status: "not-started" },
-    ],
-  },
-  {
-    name: "Closing Package",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Assemble closing package", status: "not-started" },
-      { label: "Action #2", description: "Review closing package", status: "not-started" },
-      { label: "Action #3", description: "Send closing package", status: "not-started" },
-    ],
-  },
-  {
-    name: "Wires",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Set up wire instructions", status: "not-started" },
-      { label: "Action #2", description: "Verify wire instructions", status: "not-started" },
-      { label: "Action #3", description: "Submit wire request", status: "not-started" },
-      { label: "Action #4", description: "Confirm wire receipt", status: "not-started" },
-    ],
-  },
-  {
-    name: "Pre-Closing Review",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Complete pre-closing checklist", status: "not-started" },
-      { label: "Action #2", description: "Sign off on pre-closing review", status: "not-started" },
-    ],
-  },
-  {
-    name: "Post Closing Review",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Complete post-closing checklist", status: "not-started" },
-      { label: "Action #2", description: "Sign off on post-closing review", status: "not-started" },
-    ],
-  },
-  {
-    name: "Booking",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Book loan in core system", status: "not-started" },
-    ],
-  },
-  {
-    name: "Loan Certification",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Prepare certification documents", status: "not-started" },
-      { label: "Action #2", description: "Certify loan", status: "not-started" },
-    ],
-  },
-];
+import { useChecklist, ChecklistStatus, ChecklistAction } from "@/contexts/checklist-context";
 
 function StatusIcon({ status, size = 20 }: { status: ChecklistStatus; size?: number }) {
   const common: React.CSSProperties = {
@@ -344,9 +147,10 @@ function ActionTimeline({ actions }: { actions: ChecklistAction[] }) {
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
+  const { tasks } = useChecklist();
 
-  const completedCount = CHECKLIST_TASKS.filter((t) => t.status === "complete").length;
-  const percent = Math.round((completedCount / CHECKLIST_TASKS.length) * 100);
+  const completedCount = tasks.filter((t) => t.status === "complete").length;
+  const percent = Math.round((completedCount / tasks.length) * 100);
 
   return (
     <div
@@ -425,7 +229,7 @@ export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; cent
           gap: "var(--roads-spacing-component-xs)",
         }}
       >
-        {CHECKLIST_TASKS.map((task, i) => {
+        {tasks.map((task, i) => {
           const isExpanded = expanded === i;
           const actionsComplete = task.actions.filter((a) => a.status === "complete").length;
           return (

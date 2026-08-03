@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
+import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 
 function CollateralField({
   label,
@@ -359,12 +360,55 @@ const EMPTY_EVALUATION: EvaluationData = {
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
 const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
 
-const TASK_BUTTON_ROWS: { label: string; buttons: string[] }[] = [
-  { label: "Title", buttons: ["Order Title", "Submit Title", "Review Title"] },
-  { label: "Evaluation", buttons: ["Order Evaluation", "Complete Evaluation", "Deliver Evaluation"] },
+// Maps each Collateral task button to a checklist task name + action index.
+const TASK_BUTTON_ROWS: {
+  label: string;
+  buttons: { label: string; taskName: string; actionIndex: number }[];
+}[] = [
+  {
+    label: "Title",
+    buttons: [
+      { label: "Order Title",  taskName: "Title Work", actionIndex: 0 },
+      { label: "Submit Title", taskName: "Title Work", actionIndex: 1 },
+      { label: "Review Title", taskName: "Title Work", actionIndex: 2 },
+    ],
+  },
+  {
+    label: "Evaluation",
+    buttons: [
+      { label: "Order Evaluation",    taskName: "Appraisal Evaluation", actionIndex: 0 },
+      { label: "Complete Evaluation", taskName: "Appraisal Evaluation", actionIndex: 1 },
+      { label: "Deliver Evaluation",  taskName: "Appraisal Evaluation", actionIndex: 2 },
+    ],
+  },
 ];
 
+function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
+  if (status === "complete") {
+    return {
+      backgroundColor: "var(--roads-bg-success)",
+      border: "1px solid var(--roads-bg-success)",
+      color: "var(--roads-text-reverse)",
+      cursor: "default",
+    };
+  }
+  if (status === "in-progress") {
+    return {
+      backgroundColor: "var(--roads-bg-primary)",
+      border: "1px solid var(--roads-text-information)",
+      color: "var(--roads-text-information)",
+    };
+  }
+  return {
+    backgroundColor: "var(--roads-bg-primary)",
+    border: "1px solid var(--roads-border-dark)",
+    color: "var(--roads-text-primary)",
+  };
+}
+
 function TaskButtonsSection() {
+  const { cycleActionStatus, getActionStatus } = useChecklist();
+
   return (
     <div
       className="flex flex-col"
@@ -396,30 +440,31 @@ function TaskButtonsSection() {
           >
             <span
               className="body-200-strong"
-              style={{
-                color: "var(--roads-text-primary)",
-                minWidth: "96px",
-              }}
+              style={{ color: "var(--roads-text-primary)", minWidth: "96px" }}
             >
               {row.label}
             </span>
-            {row.buttons.map((label) => (
-              <button
-                key={label}
-                className="body-200-strong"
-                onClick={() => {}}
-                style={{
-                  backgroundColor: "var(--roads-bg-primary)",
-                  border: "1px solid var(--roads-border-dark)",
-                  borderRadius: "var(--roads-radius-2xs)",
-                  padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                  color: "var(--roads-text-primary)",
-                }}
-                data-testid={`button-${label.toLowerCase().replace(/\s+/g, "-")}`}
-              >
-                {label}
-              </button>
-            ))}
+            {row.buttons.map((btn) => {
+              const status = getActionStatus(btn.taskName, btn.actionIndex);
+              const isComplete = status === "complete";
+              return (
+                <button
+                  key={btn.label}
+                  className="body-200-strong"
+                  onClick={() => !isComplete && cycleActionStatus(btn.taskName, btn.actionIndex)}
+                  disabled={isComplete}
+                  style={{
+                    borderRadius: "var(--roads-radius-2xs)",
+                    padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                    transition: "background-color 150ms ease, border-color 150ms ease, color 150ms ease",
+                    ...taskButtonStyle(status),
+                  }}
+                  data-testid={`button-${btn.label.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
           </div>
         ))}
       </div>
