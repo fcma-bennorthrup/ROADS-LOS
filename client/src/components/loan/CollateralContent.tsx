@@ -359,6 +359,74 @@ const EMPTY_EVALUATION: EvaluationData = {
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
 const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
 
+const TASK_BUTTON_ROWS: { label: string; buttons: string[] }[] = [
+  { label: "Title", buttons: ["Order Title", "Submit Title", "Review Title"] },
+  { label: "Evaluation", buttons: ["Order Evaluation", "Complete Evaluation", "Deliver Evaluation"] },
+];
+
+function TaskButtonsSection() {
+  return (
+    <div
+      className="flex flex-col"
+      style={{ gap: "var(--roads-spacing-component-l)" }}
+      data-testid="section-task-buttons"
+    >
+      <h2
+        className="headline-300"
+        style={{
+          color: "var(--roads-text-primary)",
+          padding: "0 var(--roads-spacing-component-3xl)",
+        }}
+      >
+        Task Buttons
+      </h2>
+      <div
+        className="flex flex-col"
+        style={{
+          padding: "0 var(--roads-spacing-component-3xl)",
+          gap: "var(--roads-spacing-component-xs)",
+        }}
+      >
+        {TASK_BUTTON_ROWS.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center flex-wrap"
+            style={{ gap: "var(--roads-spacing-component-xs)" }}
+            data-testid={`task-button-row-${row.label.toLowerCase()}`}
+          >
+            <span
+              className="body-200-strong"
+              style={{
+                color: "var(--roads-text-primary)",
+                minWidth: "96px",
+              }}
+            >
+              {row.label}
+            </span>
+            {row.buttons.map((label) => (
+              <button
+                key={label}
+                className="body-200-strong"
+                onClick={() => {}}
+                style={{
+                  backgroundColor: "var(--roads-bg-primary)",
+                  border: "1px solid var(--roads-border-dark)",
+                  borderRadius: "var(--roads-radius-2xs)",
+                  padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                  color: "var(--roads-text-primary)",
+                }}
+                data-testid={`button-${label.toLowerCase().replace(/\s+/g, "-")}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CollateralContent() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressFields, setAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
@@ -541,6 +609,8 @@ export function CollateralContent() {
           testIdPrefix="value"
         />
       </div>
+
+      <TaskButtonsSection />
     </div>
   );
 }
