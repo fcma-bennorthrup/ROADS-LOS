@@ -407,7 +407,7 @@ function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
 }
 
 function TaskButtonsSection() {
-  const { cycleActionStatus, getActionStatus } = useChecklist();
+  const { completeAction, getActionStatus } = useChecklist();
 
   return (
     <div
@@ -451,7 +451,7 @@ function TaskButtonsSection() {
                 <button
                   key={btn.label}
                   className="body-200-strong"
-                  onClick={() => !isComplete && cycleActionStatus(btn.taskName, btn.actionIndex)}
+                  onClick={() => !isComplete && completeAction(btn.taskName, btn.actionIndex)}
                   disabled={isComplete}
                   style={{
                     borderRadius: "var(--roads-radius-2xs)",

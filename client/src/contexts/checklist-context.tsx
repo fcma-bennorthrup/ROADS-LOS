@@ -210,8 +210,11 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
-  /** Advance a single action's status (not-started → in-progress → complete). */
-  cycleActionStatus: (taskName: string, actionIndex: number) => void;
+  /**
+   * Mark an action complete and automatically advance the next action to
+   * in-progress. If the action is already complete, this is a no-op.
+   */
+  completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
   getActionStatus: (taskName: string, actionIndex: number) => ChecklistStatus;
 }
@@ -221,19 +224,15 @@ const ChecklistContext = createContext<ChecklistContextValue | null>(null);
 export function ChecklistProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(INITIAL_TASKS);
 
-  const cycleActionStatus = (taskName: string, actionIndex: number) => {
+  const completeAction = (taskName: string, actionIndex: number) => {
     setTasks((prev) =>
       prev.map((task) => {
         if (task.name !== taskName) return task;
         const updatedActions = task.actions.map((action, i) => {
-          if (i !== actionIndex) return action;
-          const next: ChecklistStatus =
-            action.status === "not-started"
-              ? "in-progress"
-              : action.status === "in-progress"
-                ? "complete"
-                : "complete"; // already complete — stays complete
-          return { ...action, status: next };
+          if (i === actionIndex) return { ...action, status: "complete" as ChecklistStatus };
+          if (i === actionIndex + 1 && action.status === "not-started")
+            return { ...action, status: "in-progress" as ChecklistStatus };
+          return action;
         });
         return { ...task, actions: updatedActions, status: deriveTaskStatus(updatedActions) };
       })
@@ -246,7 +245,7 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChecklistContext.Provider value={{ tasks, cycleActionStatus, getActionStatus }}>
+    <ChecklistContext.Provider value={{ tasks, completeAction, getActionStatus }}>
       {children}
     </ChecklistContext.Provider>
   );
