@@ -342,7 +342,7 @@ function ActionTimeline({ actions }: { actions: ChecklistAction[] }) {
   );
 }
 
-export function ChecklistPanel({ onClose }: { onClose: () => void }) {
+export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const completedCount = CHECKLIST_TASKS.filter((t) => t.status === "complete").length;
@@ -353,10 +353,11 @@ export function ChecklistPanel({ onClose }: { onClose: () => void }) {
       style={{
         position: "absolute",
         bottom: "100%",
-        right: "var(--roads-spacing-component-xl)",
+        left: centerX !== undefined ? centerX : "50%",
+        transform: "translateX(-50%)",
         marginBottom: "var(--roads-spacing-component-xs)",
         width: 420,
-        maxWidth: "calc(100vw - 48px)",
+        maxWidth: "calc(100vw - 32px)",
         maxHeight: "70vh",
         display: "flex",
         flexDirection: "column",
@@ -368,7 +369,7 @@ export function ChecklistPanel({ onClose }: { onClose: () => void }) {
       }}
       data-testid="checklist-panel"
     >
-      <style>{`@keyframes checklist-slide-up { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`}</style>
+      <style>{`@keyframes checklist-slide-up { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }`}</style>
       <div
         className="flex flex-col"
         style={{

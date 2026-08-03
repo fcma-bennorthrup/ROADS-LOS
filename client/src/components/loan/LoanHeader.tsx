@@ -397,10 +397,27 @@ function TabNavigation({
 
 export function BottomToolbar() {
   const [checklistOpen, setChecklistOpen] = useState(false);
+  const checklistBtnRef = useRef<HTMLButtonElement>(null);
+  const toolbarWrapperRef = useRef<HTMLDivElement>(null);
+  const [panelCenterX, setPanelCenterX] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (checklistOpen && checklistBtnRef.current && toolbarWrapperRef.current) {
+      const btn = checklistBtnRef.current.getBoundingClientRect();
+      const wrapper = toolbarWrapperRef.current.getBoundingClientRect();
+      setPanelCenterX(btn.left - wrapper.left + btn.width / 2);
+    }
+  }, [checklistOpen]);
 
   return (
-    <div className="relative">
-      {checklistOpen && <ChecklistPanel onClose={() => setChecklistOpen(false)} />}
+    <div className="relative" ref={toolbarWrapperRef}>
+      {/* Panel renders here — outside the overflow-x:auto toolbar div — to avoid clipping */}
+      {checklistOpen && panelCenterX !== null && (
+        <ChecklistPanel
+          onClose={() => setChecklistOpen(false)}
+          centerX={panelCenterX}
+        />
+      )}
       <div
         className="flex items-center overflow-x-auto justify-center"
         style={{
@@ -412,37 +429,38 @@ export function BottomToolbar() {
         }}
         data-testid="bottom-toolbar"
       >
-      {TOOLBAR_ITEMS.map((item) => {
-        const Icon = item.icon;
-        const isChecklist = item.label === "Checklist";
-        return (
-          <button
-            key={item.label}
-            className="flex items-center caption-100 whitespace-nowrap relative"
-            onClick={isChecklist ? () => setChecklistOpen((v) => !v) : undefined}
-            style={{
-              color:
-                isChecklist && checklistOpen
-                  ? "var(--roads-text-brand)"
-                  : "var(--roads-text-primary)",
-              gap: "var(--roads-spacing-component-2xs)",
-              padding: "0 var(--roads-spacing-component-l)",
-              height: "100%",
-            }}
-            data-testid={`toolbar-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
-          >
-            <Icon className="w-5 h-5" />
-            <span>{item.label}</span>
-            {"hasIndicator" in item && item.hasIndicator && (
-              <span
-                className="w-1 h-1 rounded-full"
-                style={{ backgroundColor: "var(--roads-bg-error)" }}
-                data-testid="indicator-errors"
-              />
-            )}
-          </button>
-        );
-      })}
+        {TOOLBAR_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isChecklist = item.label === "Checklist";
+          return (
+            <button
+              key={item.label}
+              ref={isChecklist ? checklistBtnRef : undefined}
+              className="flex items-center caption-100 whitespace-nowrap"
+              onClick={isChecklist ? () => setChecklistOpen((v) => !v) : undefined}
+              style={{
+                color:
+                  isChecklist && checklistOpen
+                    ? "var(--roads-text-brand)"
+                    : "var(--roads-text-primary)",
+                gap: "var(--roads-spacing-component-2xs)",
+                padding: "0 var(--roads-spacing-component-l)",
+                height: "100%",
+              }}
+              data-testid={`toolbar-${item.label.toLowerCase().replace(/\s+/g, "-")}`}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+              {"hasIndicator" in item && item.hasIndicator && (
+                <span
+                  className="w-1 h-1 rounded-full"
+                  style={{ backgroundColor: "var(--roads-bg-error)" }}
+                  data-testid="indicator-errors"
+                />
+              )}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
