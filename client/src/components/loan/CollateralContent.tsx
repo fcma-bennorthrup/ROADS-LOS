@@ -406,8 +406,12 @@ function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
   };
 }
 
+const COLLATERAL_TASK_NAMES = TASK_BUTTON_ROWS.map((r) =>
+  r.buttons[0].taskName
+);
+
 function TaskButtonsSection() {
-  const { completeAction, getActionStatus } = useChecklist();
+  const { completeAction, getActionStatus, resetTasks } = useChecklist();
 
   return (
     <div
@@ -415,15 +419,31 @@ function TaskButtonsSection() {
       style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid="section-task-buttons"
     >
-      <h2
-        className="headline-300"
-        style={{
-          color: "var(--roads-text-primary)",
-          padding: "0 var(--roads-spacing-component-3xl)",
-        }}
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: "0 var(--roads-spacing-component-3xl)" }}
       >
-        Task Buttons
-      </h2>
+        <h2
+          className="headline-300"
+          style={{ color: "var(--roads-text-primary)" }}
+        >
+          Task Buttons
+        </h2>
+        <button
+          onClick={() => resetTasks(COLLATERAL_TASK_NAMES)}
+          className="body-200-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+            color: "var(--roads-text-primary)",
+          }}
+          data-testid="button-reset-checklist"
+        >
+          Reset
+        </button>
+      </div>
       <div
         className="flex flex-col"
         style={{

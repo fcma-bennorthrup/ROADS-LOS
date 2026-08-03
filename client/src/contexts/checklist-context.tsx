@@ -217,6 +217,11 @@ interface ChecklistContextValue {
   completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
   getActionStatus: (taskName: string, actionIndex: number) => ChecklistStatus;
+  /**
+   * Reset the given task names back to their initial not-started state so
+   * demos can be rerun without a full page reload.
+   */
+  resetTasks: (taskNames: string[]) => void;
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
@@ -244,8 +249,18 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     return task?.actions[actionIndex]?.status ?? "not-started";
   };
 
+  const resetTasks = (taskNames: string[]) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (!taskNames.includes(task.name)) return task;
+        const initial = INITIAL_TASKS.find((t) => t.name === task.name);
+        return initial ? { ...initial, actions: initial.actions.map((a) => ({ ...a })) } : task;
+      })
+    );
+  };
+
   return (
-    <ChecklistContext.Provider value={{ tasks, completeAction, getActionStatus }}>
+    <ChecklistContext.Provider value={{ tasks, completeAction, getActionStatus, resetTasks }}>
       {children}
     </ChecklistContext.Provider>
   );
