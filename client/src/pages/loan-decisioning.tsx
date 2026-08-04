@@ -5,6 +5,7 @@ import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DecisioningSummaryContent } from "@/components/loan/DecisioningSummaryContent";
 import { BorrowerFinancialsContent } from "@/components/loan/BorrowerFinancialsContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -104,6 +105,7 @@ export default function LoanDecisioningPage() {
           {activeNavItem === "Borrower Financials" && <BorrowerFinancialsContent />}
           {activeNavItem !== "Decisioning Summary" && activeNavItem !== "Borrower Financials" && <ComingSoon page={activeNavItem} />}
         </div>
+        <LoanActivityPanel />
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
         <BottomToolbar />

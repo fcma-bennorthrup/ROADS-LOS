@@ -8,6 +8,7 @@ import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
 import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -106,6 +107,7 @@ export default function LoanOriginationPage() {
       <div className="flex flex-1 min-h-0">
         <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
         <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
+
           {activeNavItem === "Collateral" && <CollateralContent />}
           {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
           {activeNavItem === "Loan Details" && (
@@ -115,6 +117,7 @@ export default function LoanOriginationPage() {
           {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
           {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
         </div>
+        <LoanActivityPanel />
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
         <BottomToolbar />

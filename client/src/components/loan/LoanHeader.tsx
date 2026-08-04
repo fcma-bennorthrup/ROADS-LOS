@@ -16,6 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -126,6 +127,7 @@ export function LoanHeader({
 
 function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   const [syncPanelOpen, setSyncPanelOpen] = useState(false);
+  const { activityPanelOpen, toggleActivityPanel } = useActivityPanel();
   return (
     <div
       className="flex items-center justify-between flex-wrap gap-2"
@@ -183,7 +185,12 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
           <button data-testid="button-messages" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
             <MessageSquare className="w-5 h-5" />
           </button>
-          <button data-testid="button-sidebar-toggle" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
+          <button
+            data-testid="button-sidebar-toggle"
+            className="flex items-center justify-center"
+            onClick={toggleActivityPanel}
+            style={{ color: activityPanelOpen ? "var(--roads-text-brand)" : "var(--roads-icon-dark)" }}
+          >
             <PanelRight className="w-5 h-5" />
           </button>
           <MoreOptionsMenu

@@ -5,6 +5,7 @@ import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { ClosingContent } from "@/components/loan/ClosingContent";
 import { BookingContent } from "@/components/loan/BookingContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -108,6 +109,7 @@ export default function LoanClosingBookingPage() {
             <ComingSoon page={activeNavItem} />
           )}
         </div>
+        <LoanActivityPanel />
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
         <BottomToolbar />

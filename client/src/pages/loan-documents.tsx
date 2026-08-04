@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DocumentsContent, ClosingDocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -100,6 +101,7 @@ export default function LoanDocumentsPage() {
             <ComingSoon page={activeNavItem} />
           )}
         </div>
+        <LoanActivityPanel />
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
         <BottomToolbar />

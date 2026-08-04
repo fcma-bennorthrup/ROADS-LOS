@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { HistoryContent } from "@/components/loan/HistoryContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -66,8 +67,11 @@ export default function LoanHistoryPage() {
         tridDaysRemaining={loan.tridDaysRemaining}
         activeTab="History"
       />
-      <div className="flex-1 overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-        <HistoryContent />
+      <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
+          <HistoryContent />
+        </div>
+        <LoanActivityPanel />
       </div>
       <div className="fixed bottom-0 left-0 w-full z-10">
         <BottomToolbar />
