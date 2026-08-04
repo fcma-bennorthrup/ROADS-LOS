@@ -206,6 +206,26 @@ export function LoanActivityPanel() {
             }}
             data-testid="input-activity-search"
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              style={{
+                color: "var(--roads-icon-dark)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                padding: 0,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+              data-testid="button-clear-search"
+            >
+              <X style={{ width: 16, height: 16 }} />
+            </button>
+          )}
         </div>
       </div>
 

@@ -59,58 +59,60 @@ export default function LoanSummaryPage() {
 
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden"
+      className="h-screen flex flex-row overflow-hidden"
       style={{ backgroundColor: "var(--roads-bg-page)" }}
       data-testid="loan-summary-page"
     >
-      <LoanHeader
-        loanNumber={loan.loanNumber}
-        cifNumber={loan.cifNumber}
-        loanType={loan.loanType}
-        borrowerName={loan.primaryBorrowerName}
-        amount={formatCurrency(loan.displayAmount)}
-        applicationType={loan.applicationType}
-        ecoaDaysRemaining={loan.ecoaDaysRemaining}
-        tridDaysRemaining={loan.tridDaysRemaining}
-      />
-      <div className="flex flex-1 min-h-0">
-        <main
-          className="flex-1 flex flex-col overflow-y-auto"
-          style={{
-            paddingTop: "var(--roads-spacing-component-xl)",
-            gap: "var(--roads-spacing-component-xl)",
-            paddingBottom: "60px",
-          }}
-          data-testid="loan-content"
-        >
-          <BorrowerCards borrowers={loan.borrowers} />
-          <SummaryRatios
-            data={{
-              piti: loan.piti,
-              dti: loan.dti,
-              lcv: loan.lcv,
-              pweCbScore: loan.pweCbScore,
-              ruleOfXx: loan.ruleOfXx,
-              totalCv: formatCurrency(loan.totalCv),
-              cashReserves: formatCurrency(loan.cashReserves),
-              totalLoanAmount: formatCurrency(loan.totalLoanAmount),
-              amountRequested: formatCurrency(loan.amountRequested),
-              financedFees: formatCurrency(loan.financedFees),
-              taxesInsurance: formatCurrency(loan.taxesInsurance),
-              product: loan.product,
-              finalRate: `${loan.finalRate}%`,
-              principalInterest: formatCurrency(loan.principalInterest),
-              totalMonthlyPayment: formatCurrency(loan.totalMonthlyPayment),
-              cashToClose: formatCurrency(loan.cashToClose),
-              apr: loan.apr,
+      <div className="flex-1 flex flex-col min-w-0">
+        <LoanHeader
+          loanNumber={loan.loanNumber}
+          cifNumber={loan.cifNumber}
+          loanType={loan.loanType}
+          borrowerName={loan.primaryBorrowerName}
+          amount={formatCurrency(loan.displayAmount)}
+          applicationType={loan.applicationType}
+          ecoaDaysRemaining={loan.ecoaDaysRemaining}
+          tridDaysRemaining={loan.tridDaysRemaining}
+        />
+        <div className="flex flex-1 min-h-0">
+          <main
+            className="flex-1 flex flex-col overflow-y-auto"
+            style={{
+              paddingTop: "var(--roads-spacing-component-xl)",
+              gap: "var(--roads-spacing-component-xl)",
+              paddingBottom: "60px",
             }}
-          />
-        </main>
-        <LoanActivityPanel />
+            data-testid="loan-content"
+          >
+            <BorrowerCards borrowers={loan.borrowers} />
+            <SummaryRatios
+              data={{
+                piti: loan.piti,
+                dti: loan.dti,
+                lcv: loan.lcv,
+                pweCbScore: loan.pweCbScore,
+                ruleOfXx: loan.ruleOfXx,
+                totalCv: formatCurrency(loan.totalCv),
+                cashReserves: formatCurrency(loan.cashReserves),
+                totalLoanAmount: formatCurrency(loan.totalLoanAmount),
+                amountRequested: formatCurrency(loan.amountRequested),
+                financedFees: formatCurrency(loan.financedFees),
+                taxesInsurance: formatCurrency(loan.taxesInsurance),
+                product: loan.product,
+                finalRate: `${loan.finalRate}%`,
+                principalInterest: formatCurrency(loan.principalInterest),
+                totalMonthlyPayment: formatCurrency(loan.totalMonthlyPayment),
+                cashToClose: formatCurrency(loan.cashToClose),
+                apr: loan.apr,
+              }}
+            />
+          </main>
+        </div>
+        <div className="fixed bottom-0 left-0 w-full z-10">
+          <BottomToolbar />
+        </div>
       </div>
-      <div className="fixed bottom-0 left-0 w-full z-10">
-        <BottomToolbar />
-      </div>
+      <LoanActivityPanel />
     </div>
   );
 }
