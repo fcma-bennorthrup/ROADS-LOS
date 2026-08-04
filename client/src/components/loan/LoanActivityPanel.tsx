@@ -70,13 +70,23 @@ const ACTIVITY_ITEMS: ActivityItem[] = [
 export function LoanActivityPanel() {
   const { activityPanelOpen, closeActivityPanel } = useActivityPanel();
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
+  const [search, setSearch] = useState("");
 
   if (!activityPanelOpen) return null;
 
+  const query = search.trim().toLowerCase();
+  const filteredItems = query
+    ? ACTIVITY_ITEMS.filter(
+        (item) =>
+          item.title.toLowerCase().includes(query) ||
+          item.description.toLowerCase().includes(query)
+      )
+    : ACTIVITY_ITEMS;
+
   const sortedItems =
     sort === "newest"
-      ? [...ACTIVITY_ITEMS].sort((a, b) => b.date.getTime() - a.date.getTime())
-      : [...ACTIVITY_ITEMS].sort((a, b) => a.date.getTime() - b.date.getTime());
+      ? [...filteredItems].sort((a, b) => b.date.getTime() - a.date.getTime())
+      : [...filteredItems].sort((a, b) => a.date.getTime() - b.date.getTime());
 
   return (
     <div
@@ -181,6 +191,8 @@ export function LoanActivityPanel() {
             type="text"
             placeholder="Search"
             className="body-200"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             style={{
               flex: 1,
               border: "none",
@@ -203,6 +215,17 @@ export function LoanActivityPanel() {
         style={{ padding: "var(--roads-spacing-component-m)" }}
         data-testid="activity-list"
       >
+        {sortedItems.length === 0 && (
+          <div
+            className="flex flex-col items-center justify-center flex-1"
+            style={{ padding: "var(--roads-spacing-component-xl)", textAlign: "center" }}
+            data-testid="activity-no-results"
+          >
+            <span className="body-200" style={{ color: "var(--roads-text-secondary)" }}>
+              No results found
+            </span>
+          </div>
+        )}
         {sortedItems.map((item) => (
           <div
             key={item.id}
