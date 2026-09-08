@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
+import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 
 function CollateralField({
   label,
@@ -359,6 +360,138 @@ const EMPTY_EVALUATION: EvaluationData = {
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
 const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
 
+// Maps each Collateral task button to a checklist task name + action index.
+const TASK_BUTTON_ROWS: {
+  label: string;
+  buttons: { label: string; taskName: string; actionIndex: number }[];
+}[] = [
+  {
+    label: "Title",
+    buttons: [
+      { label: "Order Title",  taskName: "Title Work", actionIndex: 0 },
+      { label: "Submit Title", taskName: "Title Work", actionIndex: 1 },
+      { label: "Review Title", taskName: "Title Work", actionIndex: 2 },
+    ],
+  },
+  {
+    label: "Evaluation",
+    buttons: [
+      { label: "Order Evaluation",    taskName: "Appraisal Evaluation", actionIndex: 0 },
+      { label: "Complete Evaluation", taskName: "Appraisal Evaluation", actionIndex: 1 },
+      { label: "Deliver Evaluation",  taskName: "Appraisal Evaluation", actionIndex: 2 },
+    ],
+  },
+];
+
+function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
+  if (status === "complete") {
+    return {
+      backgroundColor: "var(--roads-bg-success)",
+      border: "1px solid var(--roads-bg-success)",
+      color: "var(--roads-text-reverse)",
+      cursor: "default",
+    };
+  }
+  if (status === "in-progress") {
+    return {
+      backgroundColor: "var(--roads-bg-primary)",
+      border: "1px solid var(--roads-text-information)",
+      color: "var(--roads-text-information)",
+    };
+  }
+  return {
+    backgroundColor: "var(--roads-bg-primary)",
+    border: "1px solid var(--roads-border-dark)",
+    color: "var(--roads-text-primary)",
+  };
+}
+
+const COLLATERAL_TASK_NAMES = TASK_BUTTON_ROWS.map((r) =>
+  r.buttons[0].taskName
+);
+
+function TaskButtonsSection() {
+  const { completeAction, getActionStatus, resetTasks } = useChecklist();
+
+  return (
+    <div
+      className="flex flex-col"
+      style={{ gap: "var(--roads-spacing-component-l)" }}
+      data-testid="section-task-buttons"
+    >
+      <div
+        className="flex items-center justify-between"
+        style={{ padding: "0 var(--roads-spacing-component-3xl)" }}
+      >
+        <h2
+          className="headline-300"
+          style={{ color: "var(--roads-text-primary)" }}
+        >
+          Task Buttons
+        </h2>
+        <button
+          onClick={() => resetTasks(COLLATERAL_TASK_NAMES)}
+          className="body-200-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+            color: "var(--roads-text-primary)",
+          }}
+          data-testid="button-reset-checklist"
+        >
+          Reset
+        </button>
+      </div>
+      <div
+        className="flex flex-col"
+        style={{
+          padding: "0 var(--roads-spacing-component-3xl)",
+          gap: "var(--roads-spacing-component-xs)",
+        }}
+      >
+        {TASK_BUTTON_ROWS.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-center flex-wrap"
+            style={{ gap: "var(--roads-spacing-component-xs)" }}
+            data-testid={`task-button-row-${row.label.toLowerCase()}`}
+          >
+            <span
+              className="body-200-strong"
+              style={{ color: "var(--roads-text-primary)", minWidth: "96px" }}
+            >
+              {row.label}
+            </span>
+            {row.buttons.map((btn) => {
+              const status = getActionStatus(btn.taskName, btn.actionIndex);
+              const isComplete = status === "complete";
+              return (
+                <button
+                  key={btn.label}
+                  className="body-200-strong"
+                  onClick={() => !isComplete && completeAction(btn.taskName, btn.actionIndex)}
+                  disabled={isComplete}
+                  style={{
+                    borderRadius: "var(--roads-radius-2xs)",
+                    padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                    transition: "background-color 150ms ease, border-color 150ms ease, color 150ms ease",
+                    ...taskButtonStyle(status),
+                  }}
+                  data-testid={`button-${btn.label.toLowerCase().replace(/\s+/g, "-")}`}
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CollateralContent() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressFields, setAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
@@ -541,6 +674,8 @@ export function CollateralContent() {
           testIdPrefix="value"
         />
       </div>
+
+      <TaskButtonsSection />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
 import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -88,37 +89,40 @@ export default function LoanOriginationPage() {
 
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden"
+      className="h-screen flex flex-row overflow-hidden"
       style={{ backgroundColor: "var(--roads-bg-page)" }}
       data-testid="loan-origination-page"
     >
-      <LoanHeader
-        loanNumber={loan.loanNumber}
-        cifNumber={loan.cifNumber}
-        loanType={loan.loanType}
-        borrowerName={loan.primaryBorrowerName}
-        amount={formatCurrency(loan.displayAmount)}
-        applicationType={loan.applicationType}
-        ecoaDaysRemaining={loan.ecoaDaysRemaining}
-        tridDaysRemaining={loan.tridDaysRemaining}
-        activeTab="Origination"
-      />
-      <div className="flex flex-1 min-h-0">
-        <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
-        <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-          {activeNavItem === "Collateral" && <CollateralContent />}
-          {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
-          {activeNavItem === "Loan Details" && (
-            <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
-          )}
-          {activeNavItem === "Fees" && <FeesContent />}
-          {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
-          {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
+      <div className="flex-1 flex flex-col min-w-0">
+        <LoanHeader
+          loanNumber={loan.loanNumber}
+          cifNumber={loan.cifNumber}
+          loanType={loan.loanType}
+          borrowerName={loan.primaryBorrowerName}
+          amount={formatCurrency(loan.displayAmount)}
+          applicationType={loan.applicationType}
+          ecoaDaysRemaining={loan.ecoaDaysRemaining}
+          tridDaysRemaining={loan.tridDaysRemaining}
+          activeTab="Origination"
+        />
+        <div className="flex flex-1 min-h-0">
+          <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
+          <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
+            {activeNavItem === "Collateral" && <CollateralContent />}
+            {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
+            {activeNavItem === "Loan Details" && (
+              <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
+            )}
+            {activeNavItem === "Fees" && <FeesContent />}
+            {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
+            {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
+          </div>
+        </div>
+        <div className="fixed bottom-0 left-0 w-full z-10">
+          <BottomToolbar />
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 w-full z-10">
-        <BottomToolbar />
-      </div>
+      <LoanActivityPanel />
     </div>
   );
 }

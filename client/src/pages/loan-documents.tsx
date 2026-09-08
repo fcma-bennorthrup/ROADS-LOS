@@ -4,6 +4,7 @@ import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DocumentsContent, ClosingDocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
+import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import type { Loan, Borrower } from "@shared/schema";
 
 interface LoanWithBorrowers extends Loan {
@@ -72,38 +73,41 @@ export default function LoanDocumentsPage() {
 
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden"
+      className="h-screen flex flex-row overflow-hidden"
       style={{ backgroundColor: "var(--roads-bg-page)" }}
       data-testid="loan-documents-page"
     >
-      <LoanHeader
-        loanNumber={loan.loanNumber}
-        cifNumber={loan.cifNumber}
-        loanType={loan.loanType}
-        borrowerName={loan.primaryBorrowerName}
-        amount={formatCurrency(loan.displayAmount)}
-        applicationType={loan.applicationType}
-        ecoaDaysRemaining={loan.ecoaDaysRemaining}
-        tridDaysRemaining={loan.tridDaysRemaining}
-        activeTab="Documents"
-      />
-      <div className="flex flex-1 min-h-0">
-        <SideNav
-          activeItem={activeNavItem}
-          onItemChange={setActiveNavItem}
-          items={DOCUMENTS_NAV_ITEMS}
+      <div className="flex-1 flex flex-col min-w-0">
+        <LoanHeader
+          loanNumber={loan.loanNumber}
+          cifNumber={loan.cifNumber}
+          loanType={loan.loanType}
+          borrowerName={loan.primaryBorrowerName}
+          amount={formatCurrency(loan.displayAmount)}
+          applicationType={loan.applicationType}
+          ecoaDaysRemaining={loan.ecoaDaysRemaining}
+          tridDaysRemaining={loan.tridDaysRemaining}
+          activeTab="Documents"
         />
-        <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-          {activeNavItem === "Disclosures" && <DocumentsContent />}
-          {activeNavItem === "Closing Documents" && <ClosingDocumentsContent />}
-          {activeNavItem !== "Disclosures" && activeNavItem !== "Closing Documents" && (
-            <ComingSoon page={activeNavItem} />
-          )}
+        <div className="flex flex-1 min-h-0">
+          <SideNav
+            activeItem={activeNavItem}
+            onItemChange={setActiveNavItem}
+            items={DOCUMENTS_NAV_ITEMS}
+          />
+          <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
+            {activeNavItem === "Disclosures" && <DocumentsContent />}
+            {activeNavItem === "Closing Documents" && <ClosingDocumentsContent />}
+            {activeNavItem !== "Disclosures" && activeNavItem !== "Closing Documents" && (
+              <ComingSoon page={activeNavItem} />
+            )}
+          </div>
+        </div>
+        <div className="fixed bottom-0 left-0 w-full z-10">
+          <BottomToolbar />
         </div>
       </div>
-      <div className="fixed bottom-0 left-0 w-full z-10">
-        <BottomToolbar />
-      </div>
+      <LoanActivityPanel />
     </div>
   );
 }

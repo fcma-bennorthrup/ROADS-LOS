@@ -24,6 +24,7 @@
   --roads-bg-error-disabled: #ff9c8f;
   --roads-bg-discovery-subtle: #eaeaf9;
   --roads-bg-discovery: #6f5ed3;
+  --roads-bg-success: #2bb656;
 
   --roads-icon-dark: #273333;
   --roads-icon-brand: #005b94;
@@ -86,6 +87,13 @@
     font-size: 16px;
     font-weight: 400;
     line-height: 16px;
+  }
+
+  .body-200 {
+    font-family: var(--roads-font-family);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 20px;
   }
 
   .body-200-strong {
