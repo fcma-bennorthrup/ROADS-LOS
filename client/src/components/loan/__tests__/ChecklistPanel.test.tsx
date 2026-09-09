@@ -80,4 +80,27 @@ describe("ChecklistPanel", () => {
     expect(within(earlyDisclosures).getByText("Generate Early Disclosures")).toBeInTheDocument();
     expect(within(earlyDisclosures).getByText("Deliver Early Disclosures")).toBeInTheDocument();
   });
+
+  it("shows status chips below complete and in-progress actions but not not-started actions", () => {
+    render(
+      <ChecklistProvider>
+        <ChecklistPanel onClose={() => undefined} />
+      </ChecklistProvider>,
+    );
+
+    const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
+    fireEvent.click(within(loanEstimate).getByRole("button"));
+
+    const loanEstimateRows = within(loanEstimate).getAllByTestId(/^action-row-/);
+    expect(within(loanEstimateRows[0]).getByText("Generate loan estimate")).toBeInTheDocument();
+    expect(within(loanEstimateRows[0]).getByTestId("chip-complete")).toHaveTextContent("Complete");
+    expect(within(loanEstimateRows[1]).getByText("Deliver loan estimate")).toBeInTheDocument();
+    expect(within(loanEstimateRows[1]).getByTestId("chip-in-progress")).toHaveTextContent(
+      "In Progress",
+    );
+
+    const earlyDisclosures = screen.getByTestId("checklist-task-early-disclosures");
+    fireEvent.click(within(earlyDisclosures).getByRole("button"));
+    expect(within(earlyDisclosures).queryByTestId(/^chip-/)).not.toBeInTheDocument();
+  });
 });

@@ -55,8 +55,9 @@ function StatusIcon({ status, size = 20 }: { status: ChecklistStatus; size?: num
 }
 
 function StatusChip({ status }: { status: ChecklistStatus }) {
-  if (status === "complete" || status === "not-started") return null;
+  if (status === "not-started") return null;
   const isBlocked = status === "blocked";
+  const isComplete = status === "complete";
   return (
     <span
       className="caption-100-strong"
@@ -64,12 +65,20 @@ function StatusChip({ status }: { status: ChecklistStatus }) {
         display: "inline-block",
         padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
         borderRadius: "var(--roads-radius-2xs)",
-        backgroundColor: isBlocked ? "var(--roads-bg-error-subtle)" : "var(--roads-bg-information-subtle)",
-        color: isBlocked ? "var(--roads-text-error)" : "var(--roads-text-information)",
+        backgroundColor: isComplete
+          ? "var(--roads-bg-success)"
+          : isBlocked
+            ? "var(--roads-bg-error-subtle)"
+            : "var(--roads-bg-information-subtle)",
+        color: isComplete
+          ? "var(--roads-text-reverse)"
+          : isBlocked
+            ? "var(--roads-text-error)"
+            : "var(--roads-text-information)",
       }}
       data-testid={`chip-${status}`}
     >
-      {isBlocked ? "Blocked" : "In Progress"}
+      {isComplete ? "Complete" : isBlocked ? "Blocked" : "In Progress"}
     </span>
   );
 }
