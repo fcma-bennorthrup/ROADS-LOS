@@ -56,6 +56,14 @@ const INITIAL_TASKS: ChecklistTask[] = [
     ],
   },
   {
+    name: "Early Disclosures",
+    status: "not-started",
+    actions: [
+      { label: "Action #1", description: "Generate Early Disclosures", status: "not-started" },
+      { label: "Action #2", description: "Deliver Early Disclosures", status: "not-started" },
+    ],
+  },
+  {
     // Title Work — reset to not-started so Collateral task buttons drive it
     name: "Title Work",
     status: "not-started",
