@@ -33,14 +33,6 @@ const INITIAL_TASKS: ChecklistTask[] = [
     ],
   },
   {
-    name: "HMDA",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Collect HMDA data", status: "complete" },
-      { label: "Action #2", description: "Submit HMDA report", status: "complete" },
-    ],
-  },
-  {
     name: "Loan Decision",
     status: "complete",
     actions: [
@@ -53,30 +45,6 @@ const INITIAL_TASKS: ChecklistTask[] = [
     actions: [
       { label: "Action #1", description: "Generate decision letter", status: "complete" },
       { label: "Action #2", description: "Send decision letter", status: "complete" },
-    ],
-  },
-  {
-    name: "Required Docs",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Request required documents", status: "complete" },
-      { label: "Action #2", description: "Verify received documents", status: "complete" },
-    ],
-  },
-  {
-    name: "Fees",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Enter loan fees", status: "complete" },
-      { label: "Action #2", description: "Review and finalize fees", status: "in-progress" },
-    ],
-  },
-  {
-    name: "Property Taxes",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Pull property tax records", status: "complete" },
-      { label: "Action #2", description: "Verify tax amounts", status: "in-progress" },
     ],
   },
   {
@@ -114,30 +82,6 @@ const INITIAL_TASKS: ChecklistTask[] = [
       { label: "Action #1", description: "Confirm rate with borrower", status: "not-started" },
       { label: "Action #2", description: "Lock rate", status: "not-started" },
       { label: "Action #3", description: "Send rate lock letter", status: "not-started" },
-    ],
-  },
-  {
-    name: "PTF Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify prior-to-funding conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear prior-to-funding conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Closing Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify closing conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear closing conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Prelim CD",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Prepare preliminary closing disclosure", status: "not-started" },
-      { label: "Action #2", description: "Deliver preliminary closing disclosure", status: "not-started" },
     ],
   },
   {
@@ -181,13 +125,6 @@ const INITIAL_TASKS: ChecklistTask[] = [
     actions: [
       { label: "Action #1", description: "Complete post-closing checklist", status: "not-started" },
       { label: "Action #2", description: "Sign off on post-closing review", status: "not-started" },
-    ],
-  },
-  {
-    name: "Booking",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Book loan in core system", status: "not-started" },
     ],
   },
   {
