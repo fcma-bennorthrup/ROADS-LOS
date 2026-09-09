@@ -33,7 +33,6 @@ const ACTIVITY_ITEMS: ActivityItem[] = [
     description: "Loan has been approved",
     timestamp: "July 7, 2025 9:33am",
     date: new Date("2025-07-07T09:33:00"),
-    link: { label: "View Conditions" },
   },
   {
     id: 5,

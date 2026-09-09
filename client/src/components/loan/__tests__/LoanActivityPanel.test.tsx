@@ -94,6 +94,20 @@ describe("LoanActivityPanel – search filter", () => {
   });
 });
 
+describe("LoanActivityPanel – activity actions", () => {
+  it("does not show a conditions link for an approved loan decision", () => {
+    renderPanel();
+
+    const loanDecision = screen.getByTestId("activity-item-4");
+    expect(within(loanDecision).getByText("Loan has been approved")).toBeInTheDocument();
+    expect(within(loanDecision).queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByText("View Conditions")).not.toBeInTheDocument();
+
+    expect(screen.getAllByText("View Document")).toHaveLength(2);
+    expect(screen.getByText("View Credit Report")).toBeInTheDocument();
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Sort order
 // ─────────────────────────────────────────────────────────────────────────────
