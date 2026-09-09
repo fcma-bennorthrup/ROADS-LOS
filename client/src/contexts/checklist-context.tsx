@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 
-export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "complete";
+export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
 export interface ChecklistAction {
   label: string;
@@ -149,7 +149,9 @@ const INITIAL_TASKS: ChecklistTask[] = [
 function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
   if (actions.every((a) => a.status === "complete")) return "complete";
   if (actions.some((a) => a.status === "blocked")) return "blocked";
-  if (actions.some((a) => a.status === "in-progress" || a.status === "complete")) return "in-progress";
+  if (actions.some((a) => a.status === "in-progress" || a.status === "re-fire" || a.status === "complete")) {
+    return "in-progress";
+  }
   return "not-started";
 }
 

@@ -1,7 +1,8 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ChecklistPanel } from "../ChecklistPanel";
-import { ChecklistProvider } from "@/contexts/checklist-context";
+import { ActionTimeline } from "../ChecklistActionTimeline";
+import { ChecklistAction, ChecklistProvider } from "@/contexts/checklist-context";
 
 const REMAINING_TASKS = [
   "Eligibility & Scope",
@@ -102,5 +103,22 @@ describe("ChecklistPanel", () => {
     const earlyDisclosures = screen.getByTestId("checklist-task-early-disclosures");
     fireEvent.click(within(earlyDisclosures).getByRole("button"));
     expect(within(earlyDisclosures).queryByTestId(/^chip-/)).not.toBeInTheDocument();
+  });
+
+  it("renders the Figma Blocked and Re-fire action variants", () => {
+    const actions: ChecklistAction[] = [
+      { label: "Action #1", description: "Resolve blocking issue", status: "blocked" },
+      { label: "Action #2", description: "Send disclosures again", status: "re-fire" },
+    ];
+
+    render(<ActionTimeline actions={actions} />);
+
+    const rows = screen.getAllByTestId(/^action-row-/);
+    expect(within(rows[0]).getByTestId("status-icon-blocked")).toBeInTheDocument();
+    expect(within(rows[0]).getByTestId("chip-blocked")).toHaveTextContent("Blocked");
+    expect(within(rows[0]).getByTestId("action-tracker-blocked")).toBeInTheDocument();
+    expect(within(rows[1]).getByTestId("status-icon-re-fire")).toBeInTheDocument();
+    expect(within(rows[1]).getByTestId("chip-re-fire")).toHaveTextContent("Re-fire");
+    expect(within(rows[1]).getByTestId("action-tracker-re-fire")).toBeInTheDocument();
   });
 });
