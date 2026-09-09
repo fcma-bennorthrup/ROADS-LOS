@@ -29,21 +29,22 @@ function renderPanel() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("LoanActivityPanel – search filter", () => {
-  it("renders all 7 items when search is empty", () => {
+  it("renders the six approved items when search is empty", () => {
     renderPanel();
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(7);
+    expect(items.length).toBe(6);
+    expect(screen.queryByText("Appraisal Requested")).not.toBeInTheDocument();
+    expect(screen.getByText("Loan has been approved")).toBeInTheDocument();
   });
 
-  it("narrows results by title (case-insensitive)", async () => {
+  it("does not return the removed appraisal activity", async () => {
     const user = userEvent.setup();
     renderPanel();
 
     await user.type(screen.getByTestId("input-activity-search"), "appraisal");
 
-    const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(1);
-    expect(within(items[0]).getByText("Appraisal Requested")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
+    expect(within(screen.getByTestId("activity-list")).queryAllByTestId(/^activity-item-/)).toHaveLength(0);
   });
 
   it("narrows results by description (case-insensitive)", async () => {
@@ -74,11 +75,11 @@ describe("LoanActivityPanel – search filter", () => {
     renderPanel();
     const input = screen.getByTestId("input-activity-search");
 
-    await user.type(input, "appraisal");
+    await user.type(input, "loan decision");
     expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
 
     await user.clear(input);
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(7);
+    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(6);
   });
 
   it("shows 'No results found' empty state when nothing matches", async () => {
@@ -102,8 +103,8 @@ describe("LoanActivityPanel – sort order", () => {
     renderPanel();
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
 
-    // Item 1 (July 9) is newest → first; Item 7 (July 2, 10:05) is oldest → last
-    expect(items[0]).toHaveAttribute("data-testid", "activity-item-1");
+    // Item 2 (July 8) is newest → first; Item 7 (July 2, 10:05) is oldest → last
+    expect(items[0]).toHaveAttribute("data-testid", "activity-item-2");
     expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-7");
   });
 
@@ -114,9 +115,9 @@ describe("LoanActivityPanel – sort order", () => {
     await user.selectOptions(screen.getByTestId("select-sort"), "oldest");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    // Item 7 (July 2, 10:05) is oldest → first; Item 1 (July 9) is newest → last
+    // Item 7 (July 2, 10:05) is oldest → first; Item 2 (July 8) is newest → last
     expect(items[0]).toHaveAttribute("data-testid", "activity-item-7");
-    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-2");
   });
 
   it("restores newest-first when toggled back to 'Newest'", async () => {
@@ -128,7 +129,7 @@ describe("LoanActivityPanel – sort order", () => {
     await user.selectOptions(select, "newest");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items[0]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[0]).toHaveAttribute("data-testid", "activity-item-2");
     expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-7");
   });
 });
@@ -188,15 +189,15 @@ describe("LoanActivityPanel – search and sort combined", () => {
     // Set sort to oldest first, then filter, then clear
     await user.selectOptions(screen.getByTestId("select-sort"), "oldest");
     const input = screen.getByTestId("input-activity-search");
-    await user.type(input, "appraisal");
+    await user.type(input, "loan decision");
     expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
 
     await user.clear(input);
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(7);
+    expect(items.length).toBe(6);
     // Still oldest-first
     expect(items[0]).toHaveAttribute("data-testid", "activity-item-7");
-    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-2");
   });
 });

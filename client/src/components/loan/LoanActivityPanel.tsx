@@ -13,13 +13,6 @@ interface ActivityItem {
 
 const ACTIVITY_ITEMS: ActivityItem[] = [
   {
-    id: 1,
-    title: "Appraisal Requested",
-    description: "Appraisal has been requested",
-    timestamp: "July 9, 2025 10:30pm",
-    date: new Date("2025-07-09T22:30:00"),
-  },
-  {
     id: 2,
     title: "Intent to Proceed",
     description: "Intent to Proceed has been provided by Richard Jamerson | CIF: 123456",
@@ -37,7 +30,7 @@ const ACTIVITY_ITEMS: ActivityItem[] = [
   {
     id: 4,
     title: "Loan Decision",
-    description: "Loan has been Pre-approved with Conditions",
+    description: "Loan has been approved",
     timestamp: "July 7, 2025 9:33am",
     date: new Date("2025-07-07T09:33:00"),
     link: { label: "View Conditions" },
