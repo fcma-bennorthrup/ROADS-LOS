@@ -1,9 +1,45 @@
 import { useState } from "react";
+import { useChecklist } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
+
+function formatActivityTimestamp(date: Date): string {
+  return date.toLocaleString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).replace(" AM", "am").replace(" PM", "pm");
+}
 
 export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
+  const { setActionStatus, getActionStatus } = useChecklist();
+  const { addActivity } = useActivityPanel();
+
+  const handlePullCredit = () => {
+    setCreditPulled(true);
+    if (getActionStatus("Loan Decision", 0) !== "complete") {
+      setActionStatus("Loan Decision", 0, "in-progress");
+    }
+  };
+
+  const handleDecisionLoan = () => {
+    const decisionedAt = new Date();
+    setIsDecisioned(true);
+    setActionStatus("Loan Decision", 0, "complete");
+    setActionStatus("Decision Letter", 0, "in-progress");
+    addActivity({
+      id: "loan-decision",
+      title: "Loan Decision",
+      description: "Loan is approved",
+      timestamp: formatActivityTimestamp(decisionedAt),
+      date: decisionedAt,
+    });
+  };
 
   return (
     <div
@@ -44,7 +80,7 @@ export function DecisioningSummaryContent() {
           style={{ gap: "var(--roads-spacing-component-l)" }}
         >
           <button
-            onClick={() => setIsDecisioned(true)}
+            onClick={handleDecisionLoan}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-action)",
@@ -111,7 +147,7 @@ export function DecisioningSummaryContent() {
         </div>
         <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
-            onClick={() => setCreditPulled(true)}
+            onClick={handlePullCredit}
             disabled={creditPulled}
             className="body-200-strong whitespace-nowrap"
             style={{

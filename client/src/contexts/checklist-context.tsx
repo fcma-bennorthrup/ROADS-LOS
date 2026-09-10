@@ -157,6 +157,8 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
+  /** Set an action to an explicit status and derive its parent task status. */
+  setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
    * Mark an action complete and automatically advance the next action to
    * in-progress. If the action is already complete, this is a no-op.
@@ -175,6 +177,22 @@ const ChecklistContext = createContext<ChecklistContextValue | null>(null);
 
 export function ChecklistProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(INITIAL_TASKS);
+
+  const setActionStatus = (
+    taskName: string,
+    actionIndex: number,
+    status: ChecklistStatus,
+  ) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.name !== taskName) return task;
+        const updatedActions = task.actions.map((action, index) =>
+          index === actionIndex ? { ...action, status } : action,
+        );
+        return { ...task, actions: updatedActions, status: deriveTaskStatus(updatedActions) };
+      }),
+    );
+  };
 
   const completeAction = (taskName: string, actionIndex: number) => {
     setTasks((prev) =>
@@ -207,7 +225,9 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChecklistContext.Provider value={{ tasks, completeAction, getActionStatus, resetTasks }}>
+    <ChecklistContext.Provider
+      value={{ tasks, setActionStatus, completeAction, getActionStatus, resetTasks }}
+    >
       {children}
     </ChecklistContext.Provider>
   );
