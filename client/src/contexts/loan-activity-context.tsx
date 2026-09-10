@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useLocation } from "wouter";
 
 export interface ActivityItem {
   id: number | string;
@@ -42,6 +43,61 @@ const INITIAL_ACTIVITY_ITEMS: ActivityItem[] = [
   },
 ];
 
+const ACTIVITY_STORAGE_PREFIX = "loan-runtime-activity";
+
+function getLoanStorageKey(location: string): string {
+  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  return `${ACTIVITY_STORAGE_PREFIX}:${loanId}`;
+}
+
+function loadActivityItems(storageKey: string): ActivityItem[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]") as unknown;
+    if (!Array.isArray(saved)) return INITIAL_ACTIVITY_ITEMS;
+
+    const runtimeItems = saved.flatMap((item): ActivityItem[] => {
+      if (
+        typeof item !== "object" ||
+        item === null ||
+        !("id" in item) ||
+        (typeof item.id !== "number" && typeof item.id !== "string") ||
+        !("title" in item) ||
+        typeof item.title !== "string" ||
+        !("description" in item) ||
+        typeof item.description !== "string" ||
+        !("timestamp" in item) ||
+        typeof item.timestamp !== "string" ||
+        !("date" in item) ||
+        (typeof item.date !== "string" && typeof item.date !== "number")
+      ) {
+        return [];
+      }
+
+      const date = new Date(item.date);
+      if (Number.isNaN(date.getTime())) return [];
+
+      const link =
+        "link" in item &&
+        typeof item.link === "object" &&
+        item.link !== null &&
+        "label" in item.link &&
+        typeof item.link.label === "string"
+          ? { label: item.link.label }
+          : undefined;
+
+      return [{ id: item.id, title: item.title, description: item.description, timestamp: item.timestamp, date, link }];
+    });
+
+    const initialIds = new Set(INITIAL_ACTIVITY_ITEMS.map((item) => item.id));
+    return [
+      ...INITIAL_ACTIVITY_ITEMS,
+      ...runtimeItems.filter((item) => !initialIds.has(item.id)),
+    ];
+  } catch {
+    return INITIAL_ACTIVITY_ITEMS;
+  }
+}
+
 interface LoanActivityContextValue {
   activityPanelOpen: boolean;
   activityItems: ActivityItem[];
@@ -52,9 +108,29 @@ interface LoanActivityContextValue {
 
 const LoanActivityContext = createContext<LoanActivityContextValue | null>(null);
 
-export function LoanActivityProvider({ children }: { children: ReactNode }) {
+function LoanActivityStateProvider({
+  children,
+  storageKey,
+}: {
+  children: ReactNode;
+  storageKey: string;
+}) {
   const [activityPanelOpen, setActivityPanelOpen] = useState(false);
-  const [activityItems, setActivityItems] = useState<ActivityItem[]>(INITIAL_ACTIVITY_ITEMS);
+  const [activityItems, setActivityItems] = useState<ActivityItem[]>(() =>
+    loadActivityItems(storageKey),
+  );
+
+  useEffect(() => {
+    try {
+      const initialIds = new Set(INITIAL_ACTIVITY_ITEMS.map((item) => item.id));
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(activityItems.filter((item) => !initialIds.has(item.id))),
+      );
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+  }, [activityItems, storageKey]);
 
   const toggleActivityPanel = () => setActivityPanelOpen((prev) => !prev);
   const closeActivityPanel = () => setActivityPanelOpen(false);
@@ -70,6 +146,17 @@ export function LoanActivityProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </LoanActivityContext.Provider>
+  );
+}
+
+export function LoanActivityProvider({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
+  const storageKey = getLoanStorageKey(location);
+
+  return (
+    <LoanActivityStateProvider key={storageKey} storageKey={storageKey}>
+      {children}
+    </LoanActivityStateProvider>
   );
 }
 

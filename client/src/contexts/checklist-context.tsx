@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useLocation } from "wouter";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -145,6 +146,50 @@ const INITIAL_TASKS: ChecklistTask[] = [
   },
 ];
 
+const CHECKLIST_STORAGE_PREFIX = "loan-checklist-statuses";
+const CHECKLIST_STATUSES: ChecklistStatus[] = [
+  "not-started",
+  "in-progress",
+  "blocked",
+  "re-fire",
+  "complete",
+];
+
+function getLoanStorageKey(location: string): string {
+  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  return `${CHECKLIST_STORAGE_PREFIX}:${loanId}`;
+}
+
+function loadTasks(storageKey: string): ChecklistTask[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, unknown>;
+
+    return INITIAL_TASKS.map((task) => {
+      const statuses = saved[task.name];
+      if (!Array.isArray(statuses)) {
+        return { ...task, actions: task.actions.map((action) => ({ ...action })) };
+      }
+
+      const actions = task.actions.map((action, index) => {
+        const status = statuses[index];
+        return {
+          ...action,
+          status:
+            typeof status === "string" && CHECKLIST_STATUSES.includes(status as ChecklistStatus)
+              ? (status as ChecklistStatus)
+              : action.status,
+        };
+      });
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    });
+  } catch {
+    return INITIAL_TASKS.map((task) => ({
+      ...task,
+      actions: task.actions.map((action) => ({ ...action })),
+    }));
+  }
+}
+
 /** Derive the parent task status from its actions. */
 function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
   if (actions.every((a) => a.status === "complete")) return "complete";
@@ -175,8 +220,29 @@ interface ChecklistContextValue {
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
 
-export function ChecklistProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<ChecklistTask[]>(INITIAL_TASKS);
+function ChecklistStateProvider({
+  children,
+  storageKey,
+}: {
+  children: ReactNode;
+  storageKey: string;
+}) {
+  const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(
+          Object.fromEntries(
+            tasks.map((task) => [task.name, task.actions.map((action) => action.status)]),
+          ),
+        ),
+      );
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+  }, [storageKey, tasks]);
 
   const setActionStatus = (
     taskName: string,
@@ -230,6 +296,17 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </ChecklistContext.Provider>
+  );
+}
+
+export function ChecklistProvider({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
+  const storageKey = getLoanStorageKey(location);
+
+  return (
+    <ChecklistStateProvider key={storageKey} storageKey={storageKey}>
+      {children}
+    </ChecklistStateProvider>
   );
 }
 
