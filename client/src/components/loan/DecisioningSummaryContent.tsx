@@ -17,7 +17,7 @@ export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
-  const { setActionStatus, getActionStatus } = useChecklist();
+  const { setActionStatus, completeAction, getActionStatus } = useChecklist();
   const { addActivity } = useActivityPanel();
 
   const handlePullCredit = () => {
@@ -38,6 +38,35 @@ export function DecisioningSummaryContent() {
       description: "Loan is approved",
       timestamp: formatActivityTimestamp(decisionedAt),
       date: decisionedAt,
+    });
+  };
+
+  const handleGenerateDecisionLetter = () => {
+    setLetterGenerated(true);
+    if (getActionStatus("Decision Letter", 0) === "complete") return;
+
+    const generatedAt = new Date();
+    completeAction("Decision Letter", 0);
+    addActivity({
+      id: "decision-letter-generated",
+      title: "Document Generated",
+      description: "Decision letter generated",
+      timestamp: formatActivityTimestamp(generatedAt),
+      date: generatedAt,
+    });
+  };
+
+  const handleDeliverDecisionLetter = () => {
+    if (!letterGenerated || getActionStatus("Decision Letter", 1) === "complete") return;
+
+    const deliveredAt = new Date();
+    setActionStatus("Decision Letter", 1, "complete");
+    addActivity({
+      id: "decision-letter-delivered",
+      title: "Document Delivered",
+      description: "Decision letter delivered",
+      timestamp: formatActivityTimestamp(deliveredAt),
+      date: deliveredAt,
     });
   };
 
@@ -95,7 +124,7 @@ export function DecisioningSummaryContent() {
             Decision Loan
           </button>
           <button
-            onClick={() => setLetterGenerated(true)}
+            onClick={handleGenerateDecisionLetter}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
@@ -129,9 +158,7 @@ export function DecisioningSummaryContent() {
             View Decision Letter
           </button>
           <button
-            onClick={() => {
-              if (!letterGenerated) return;
-            }}
+            onClick={handleDeliverDecisionLetter}
             aria-disabled={!letterGenerated}
             className="body-200-strong whitespace-nowrap"
             style={{

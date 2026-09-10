@@ -59,6 +59,52 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     expect(deliver).toHaveAttribute("aria-disabled", "false");
   });
 
+  it("records Decision Letter generation and delivery in the checklist and activity", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 10, 16, 32));
+    renderDecisioningFlow();
+
+    const generate = screen.getByRole("button", { name: "Generate Decision Letter" });
+    const deliver = screen.getByRole("button", { name: "Deliver Decision Letter" });
+
+    fireEvent.click(generate);
+    fireEvent.click(generate);
+
+    const decisionLetter = screen.getByTestId("checklist-task-decision-letter");
+    expect(within(decisionLetter).getByText("1 of 2 Complete")).toBeInTheDocument();
+    expect(within(decisionLetter).getByTestId("status-icon-in-progress")).toBeInTheDocument();
+
+    expect(screen.getByText("Document Generated")).toBeInTheDocument();
+    expect(screen.getByText("Decision letter generated")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 4:32pm")).toBeInTheDocument();
+
+    vi.setSystemTime(new Date(2026, 8, 10, 16, 40));
+    fireEvent.click(deliver);
+    fireEvent.click(deliver);
+
+    expect(within(decisionLetter).getByText("2 of 2 Complete")).toBeInTheDocument();
+    expect(within(decisionLetter).getByTestId("status-icon-complete")).toBeInTheDocument();
+    fireEvent.click(within(decisionLetter).getByRole("button"));
+    expect(within(decisionLetter).getAllByTestId("chip-complete")).toHaveLength(2);
+
+    expect(screen.getByText("Document Delivered")).toBeInTheDocument();
+    expect(screen.getByText("Decision letter delivered")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 4:40pm")).toBeInTheDocument();
+
+    const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(
+      /^activity-item-/,
+    );
+    expect(activityItems).toHaveLength(6);
+    expect(activityItems[0]).toHaveAttribute(
+      "data-testid",
+      "activity-item-decision-letter-delivered",
+    );
+    expect(activityItems[1]).toHaveAttribute(
+      "data-testid",
+      "activity-item-decision-letter-generated",
+    );
+  });
+
   it("moves Loan Decision to in progress after pulling credit", () => {
     renderDecisioningFlow();
 
