@@ -17,7 +17,7 @@ export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
-  const { setActionStatus, getActionStatus } = useChecklist();
+  const { setActionStatus, completeAction, getActionStatus } = useChecklist();
   const { addActivity } = useActivityPanel();
 
   const handlePullCredit = () => {
@@ -38,6 +38,19 @@ export function DecisioningSummaryContent() {
       description: "Loan is approved",
       timestamp: formatActivityTimestamp(decisionedAt),
       date: decisionedAt,
+    });
+  };
+
+  const handleGenerateDecisionLetter = () => {
+    const generatedAt = new Date();
+    setLetterGenerated(true);
+    completeAction("Decision Letter", 0);
+    addActivity({
+      id: "decision-letter-generated",
+      title: "Decision Letter",
+      description: "Decision Letter has been generated",
+      timestamp: formatActivityTimestamp(generatedAt),
+      date: generatedAt,
     });
   };
 
@@ -95,7 +108,7 @@ export function DecisioningSummaryContent() {
             Decision Loan
           </button>
           <button
-            onClick={() => setLetterGenerated(true)}
+            onClick={handleGenerateDecisionLetter}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",

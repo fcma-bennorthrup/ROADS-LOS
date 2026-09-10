@@ -32,6 +32,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+
 describe("DecisioningSummaryContent checklist and activity wiring", () => {
   it("moves Loan Decision to in progress after pulling credit", () => {
     renderDecisioningFlow();
@@ -72,5 +73,36 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     );
     expect(activityItems).toHaveLength(5);
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-decision");
+  });
+
+  it("completes Decision Letter action one, starts action two, and records one generated activity", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 10, 16, 45));
+    renderDecisioningFlow();
+
+    const generateButton = screen.getByRole("button", { name: "Generate Decision Letter" });
+    fireEvent.click(generateButton);
+    fireEvent.click(generateButton);
+
+    const decisionLetter = screen.getByTestId("checklist-task-decision-letter");
+    expect(within(decisionLetter).getByText("1 of 2 Complete")).toBeInTheDocument();
+    expect(within(decisionLetter).getByTestId("status-icon-in-progress")).toBeInTheDocument();
+
+    fireEvent.click(within(decisionLetter).getByRole("button"));
+    const letterRows = within(decisionLetter).getAllByTestId(/^action-row-/);
+    expect(within(letterRows[0]).getByTestId("chip-complete")).toHaveTextContent("Complete");
+    expect(within(letterRows[1]).getByTestId("chip-in-progress")).toHaveTextContent("In Progress");
+
+    expect(screen.getAllByText("Decision Letter")).toHaveLength(2);
+    expect(screen.getByText("Decision Letter has been generated")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 4:45pm")).toBeInTheDocument();
+    const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(
+      /^activity-item-/,
+    );
+    expect(activityItems).toHaveLength(5);
+    expect(activityItems[0]).toHaveAttribute(
+      "data-testid",
+      "activity-item-decision-letter-generated",
+    );
   });
 });
