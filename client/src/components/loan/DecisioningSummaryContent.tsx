@@ -128,6 +128,24 @@ export function DecisioningSummaryContent() {
           >
             View Decision Letter
           </button>
+          <button
+            onClick={() => {
+              if (!letterGenerated) return;
+            }}
+            aria-disabled={!letterGenerated}
+            className="body-200-strong whitespace-nowrap"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              color: "var(--roads-text-primary)",
+              cursor: letterGenerated ? "pointer" : "not-allowed",
+            }}
+            data-testid="button-deliver-decision-letter"
+          >
+            Deliver Decision Letter
+          </button>
         </div>
       </div>
 

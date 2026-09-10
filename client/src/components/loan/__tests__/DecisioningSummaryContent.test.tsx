@@ -33,6 +33,32 @@ afterEach(() => {
 });
 
 describe("DecisioningSummaryContent checklist and activity wiring", () => {
+  it("enables the matching Deliver Decision Letter button after generation", () => {
+    renderDecisioningFlow();
+
+    const generate = screen.getByRole("button", { name: "Generate Decision Letter" });
+    const view = screen.getByRole("button", { name: "View Decision Letter" });
+    const deliver = screen.getByRole("button", { name: "Deliver Decision Letter" });
+
+    expect(view.compareDocumentPosition(deliver) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(deliver).toHaveClass(...view.className.split(" "));
+    for (const property of [
+      "backgroundColor",
+      "border",
+      "borderRadius",
+      "padding",
+      "color",
+    ] as const) {
+      expect(deliver.style[property]).toBe(view.style[property]);
+    }
+    expect(deliver).toHaveAttribute("aria-disabled", "true");
+
+    fireEvent.click(generate);
+
+    expect(view).toHaveAttribute("aria-disabled", "false");
+    expect(deliver).toHaveAttribute("aria-disabled", "false");
+  });
+
   it("moves Loan Decision to in progress after pulling credit", () => {
     renderDecisioningFlow();
 
