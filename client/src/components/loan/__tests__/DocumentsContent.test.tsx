@@ -1,6 +1,32 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DocumentsContent } from "../DisclosureDocumentsContent";
+import { ChecklistPanel } from "../ChecklistPanel";
+import { LoanActivityPanel } from "../LoanActivityPanel";
+import { ChecklistProvider } from "@/contexts/checklist-context";
+import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";
+import { useEffect } from "react";
+
+function OpenActivityPanel() {
+  const { toggleActivityPanel } = useActivityPanel();
+  useEffect(() => {
+    toggleActivityPanel();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return <LoanActivityPanel />;
+}
+
+function renderDocuments() {
+  return render(
+    <LoanActivityProvider>
+      <ChecklistProvider>
+        <DocumentsContent />
+        <ChecklistPanel onClose={() => undefined} />
+        <OpenActivityPanel />
+      </ChecklistProvider>
+    </LoanActivityProvider>,
+  );
+}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -8,7 +34,7 @@ afterEach(() => {
 
 describe("DocumentsContent disclosure delivery actions", () => {
   it("places matching delivery buttons after the existing Download and View buttons", () => {
-    render(<DocumentsContent />);
+    renderDocuments();
 
     const download = screen.getByRole("button", { name: "Download At-App Disclosures" });
     const deliverAtApp = screen.getByRole("button", { name: "Deliver At-App Disclosures" });
@@ -44,7 +70,7 @@ describe("DocumentsContent disclosure delivery actions", () => {
   ])("records delivery after $generateLabel finishes", ({ prefix, generateLabel, deliverLabel }) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-09T15:45:00"));
-    render(<DocumentsContent />);
+    renderDocuments();
 
     const generate = screen.getByRole("button", { name: generateLabel });
     const deliver = screen.getByRole("button", { name: deliverLabel });
@@ -62,5 +88,51 @@ describe("DocumentsContent disclosure delivery actions", () => {
     expect(screen.getByTestId(`text-${prefix}-delivered`)).toHaveTextContent(
       "Marked Delivered: 09/09/2026 03:45 PM",
     );
+  });
+
+  it("synchronizes Loan Estimate generation and delivery without duplicates", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 10, 16, 32));
+    renderDocuments();
+
+    const generate = screen.getByRole("button", { name: "Generate Loan Estimate" });
+    const deliver = screen.getByRole("button", { name: "Deliver Loan Estimate" });
+    const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
+
+    fireEvent.click(generate);
+    expect(within(loanEstimate).getByText("0 of 2 Complete")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(within(loanEstimate).getByText("1 of 2 Complete")).toBeInTheDocument();
+    expect(screen.getByText("Loan Estimate generated")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 4:32pm")).toBeInTheDocument();
+
+    fireEvent.click(generate);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(screen.getAllByText("Loan Estimate generated")).toHaveLength(1);
+
+    vi.setSystemTime(new Date(2026, 8, 10, 16, 40));
+    fireEvent.click(deliver);
+    fireEvent.click(deliver);
+
+    expect(within(loanEstimate).getByText("2 of 2 Complete")).toBeInTheDocument();
+    expect(within(loanEstimate).getByTestId("status-icon-complete")).toBeInTheDocument();
+    expect(screen.getByTestId("text-loan-estimate-delivered")).toHaveTextContent(
+      "Marked Delivered: 09/10/2026 04:40 PM",
+    );
+    expect(screen.getByText("Loan Estimate delivered")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 4:40pm")).toBeInTheDocument();
+    expect(screen.getAllByText("Loan Estimate delivered")).toHaveLength(1);
+
+    const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(
+      /^activity-item-/,
+    );
+    expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-estimate-delivered");
+    expect(activityItems[1]).toHaveAttribute("data-testid", "activity-item-loan-estimate-generated");
   });
 });

@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useChecklist } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
 
 type GenerationState = "idle" | "generating" | "generated";
 
@@ -28,6 +30,17 @@ function formatTimestamp(): string {
   return `${month}/${day}/${year} ${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
 }
 
+function formatActivityTimestamp(date: Date): string {
+  return date.toLocaleString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).replace(" AM", "am").replace(" PM", "pm");
+}
+
 interface SecondaryAction {
   label: string;
   onClick: () => void;
@@ -42,6 +55,7 @@ export function DocumentSection({
   generateLabel,
   secondaryActions,
   testIdPrefix,
+  onGenerated,
 }: {
   title: string;
   idleText: string;
@@ -49,6 +63,7 @@ export function DocumentSection({
   generateLabel: string;
   secondaryActions?: SecondaryAction[];
   testIdPrefix: string;
+  onGenerated?: (generatedAt: Date) => void;
 }) {
   const [generationState, setGenerationState] = useState<GenerationState>("idle");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
@@ -64,8 +79,10 @@ export function DocumentSection({
   const handleGenerate = () => {
     setGenerationState("generating");
     timerRef.current = setTimeout(() => {
+      const generatedAt = new Date();
       setLastGenerated(formatTimestamp());
       setGenerationState("generated");
+      onGenerated?.(generatedAt);
     }, 5000);
   };
 
@@ -166,6 +183,36 @@ export function DocumentSection({
 }
 
 export function DocumentsContent() {
+  const { completeAction, getActionStatus } = useChecklist();
+  const { addActivity } = useActivityPanel();
+
+  const handleLoanEstimateGenerated = (generatedAt: Date) => {
+    if (getActionStatus("Loan Estimate", 0) === "complete") return;
+
+    completeAction("Loan Estimate", 0);
+    addActivity({
+      id: "loan-estimate-generated",
+      title: "Document Generated",
+      description: "Loan Estimate generated",
+      timestamp: formatActivityTimestamp(generatedAt),
+      date: generatedAt,
+    });
+  };
+
+  const handleLoanEstimateDelivered = () => {
+    if (getActionStatus("Loan Estimate", 1) === "complete") return;
+
+    const deliveredAt = new Date();
+    completeAction("Loan Estimate", 1);
+    addActivity({
+      id: "loan-estimate-delivered",
+      title: "Document Delivered",
+      description: "Loan Estimate delivered",
+      timestamp: formatActivityTimestamp(deliveredAt),
+      date: deliveredAt,
+    });
+  };
+
   return (
     <div
       className="flex flex-col"
@@ -206,11 +253,12 @@ export function DocumentsContent() {
           },
           {
             label: "Deliver Loan Estimate",
-            onClick: () => {},
+            onClick: handleLoanEstimateDelivered,
             marksDelivered: true,
           },
         ]}
         testIdPrefix="loan-estimate"
+        onGenerated={handleLoanEstimateGenerated}
       />
     </div>
   );
