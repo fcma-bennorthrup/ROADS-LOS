@@ -30,6 +30,7 @@ function renderDecisioningFlow() {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("DecisioningSummaryContent checklist and activity wiring", () => {
@@ -153,5 +154,38 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     );
     expect(activityItems).toHaveLength(5);
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-decision");
+  });
+
+  it("returns the mounted decisioning UI, checklist, and activity to the initial demo state", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderDecisioningFlow();
+
+    fireEvent.click(screen.getByRole("button", { name: "Pull Credit" }));
+    fireEvent.click(screen.getByRole("button", { name: "Decision Loan" }));
+    fireEvent.click(screen.getByRole("button", { name: "Generate Decision Letter" }));
+
+    expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("Loan Approved");
+    expect(screen.getByTestId("text-credit-score-value")).toHaveTextContent("742");
+    expect(screen.getByRole("button", { name: "View Decision Letter" })).toHaveAttribute(
+      "aria-disabled",
+      "false",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset Demo" }));
+
+    expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("--");
+    expect(screen.getByTestId("text-credit-score-value")).toHaveTextContent("--");
+    expect(screen.getByRole("button", { name: "Pull Credit" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "View Decision Letter" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Deliver Decision Letter" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    expect(screen.getByTestId("checklist-task-loan-decision")).toHaveTextContent("0 of 1 Complete");
+    expect(screen.queryByText("Loan is approved")).not.toBeInTheDocument();
+    expect(screen.queryByText("Decision letter generated")).not.toBeInTheDocument();
   });
 });

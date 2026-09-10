@@ -30,6 +30,7 @@ function renderDocuments() {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("DocumentsContent disclosure delivery actions", () => {
@@ -180,5 +181,53 @@ describe("DocumentsContent disclosure delivery actions", () => {
     );
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-early-disclosures-delivered");
     expect(activityItems[1]).toHaveAttribute("data-testid", "activity-item-early-disclosures-generated");
+  });
+
+  it("clears mounted document state and cancels pending generation on Reset Demo", () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    renderDocuments();
+
+    const generateEstimate = screen.getByRole("button", { name: "Generate Loan Estimate" });
+    const deliverEstimate = screen.getByRole("button", { name: "Deliver Loan Estimate" });
+    const generateDisclosures = screen.getByRole("button", {
+      name: "Generate At-App Disclosures",
+    });
+
+    fireEvent.click(generateEstimate);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    fireEvent.click(deliverEstimate);
+    expect(screen.getByTestId("text-loan-estimate-status")).toHaveTextContent("Last Generated:");
+    expect(screen.getByTestId("text-loan-estimate-delivered")).toBeInTheDocument();
+
+    fireEvent.click(generateDisclosures);
+    expect(screen.getByTestId("text-at-app-disclosures-status")).toHaveTextContent(
+      "Generating At-App Disclosures",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset Demo" }));
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(screen.getByTestId("text-loan-estimate-status")).toHaveTextContent(
+      "No Loan Estimates have been generated",
+    );
+    expect(screen.queryByTestId("text-loan-estimate-delivered")).not.toBeInTheDocument();
+    expect(deliverEstimate).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByTestId("text-at-app-disclosures-status")).toHaveTextContent(
+      "No At-App Disclosures have been generated",
+    );
+    expect(screen.getByTestId("checklist-task-loan-estimate")).toHaveTextContent(
+      "0 of 2 Complete",
+    );
+    expect(screen.getByTestId("checklist-task-early-disclosures")).toHaveTextContent(
+      "0 of 2 Complete",
+    );
+    expect(screen.queryByText("Loan Estimate generated")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loan Estimate delivered")).not.toBeInTheDocument();
+    expect(screen.queryByText("Early Disclosures generated")).not.toBeInTheDocument();
   });
 });

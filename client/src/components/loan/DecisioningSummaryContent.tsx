@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 
@@ -17,8 +17,14 @@ export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
-  const { setActionStatus, completeAction, getActionStatus } = useChecklist();
+  const { setActionStatus, completeAction, getActionStatus, demoResetVersion } = useChecklist();
   const { addActivity } = useActivityPanel();
+
+  useEffect(() => {
+    setIsDecisioned(false);
+    setLetterGenerated(false);
+    setCreditPulled(false);
+  }, [demoResetVersion]);
 
   const handlePullCredit = () => {
     setCreditPulled(true);

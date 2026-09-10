@@ -104,6 +104,7 @@ interface LoanActivityContextValue {
   toggleActivityPanel: () => void;
   closeActivityPanel: () => void;
   addActivity: (item: ActivityItem) => void;
+  removeActivities: (ids: Array<ActivityItem["id"]>) => void;
 }
 
 const LoanActivityContext = createContext<LoanActivityContextValue | null>(null);
@@ -139,10 +140,21 @@ function LoanActivityStateProvider({
       prev.some((existing) => existing.id === item.id) ? prev : [...prev, item],
     );
   };
+  const removeActivities = (ids: Array<ActivityItem["id"]>) => {
+    const idsToRemove = new Set(ids);
+    setActivityItems((prev) => prev.filter((item) => !idsToRemove.has(item.id)));
+  };
 
   return (
     <LoanActivityContext.Provider
-      value={{ activityPanelOpen, activityItems, toggleActivityPanel, closeActivityPanel, addActivity }}
+      value={{
+        activityPanelOpen,
+        activityItems,
+        toggleActivityPanel,
+        closeActivityPanel,
+        addActivity,
+        removeActivities,
+      }}
     >
       {children}
     </LoanActivityContext.Provider>

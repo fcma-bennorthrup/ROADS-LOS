@@ -56,6 +56,7 @@ export function DocumentSection({
   secondaryActions,
   testIdPrefix,
   onGenerated,
+  resetVersion,
 }: {
   title: string;
   idleText: string;
@@ -64,11 +65,22 @@ export function DocumentSection({
   secondaryActions?: SecondaryAction[];
   testIdPrefix: string;
   onGenerated?: (generatedAt: Date) => void;
+  resetVersion?: number;
 }) {
   const [generationState, setGenerationState] = useState<GenerationState>("idle");
   const [lastGenerated, setLastGenerated] = useState<string | null>(null);
   const [lastDelivered, setLastDelivered] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    setGenerationState("idle");
+    setLastGenerated(null);
+    setLastDelivered(null);
+  }, [resetVersion]);
 
   useEffect(() => {
     return () => {
@@ -183,7 +195,7 @@ export function DocumentSection({
 }
 
 export function DocumentsContent() {
-  const { completeAction, getActionStatus } = useChecklist();
+  const { completeAction, getActionStatus, demoResetVersion } = useChecklist();
   const { addActivity } = useActivityPanel();
 
   const handleEarlyDisclosuresGenerated = (generatedAt: Date) => {
@@ -267,6 +279,7 @@ export function DocumentsContent() {
         ]}
         testIdPrefix="at-app-disclosures"
         onGenerated={handleEarlyDisclosuresGenerated}
+        resetVersion={demoResetVersion}
       />
 
       <DocumentSection
@@ -287,6 +300,7 @@ export function DocumentsContent() {
         ]}
         testIdPrefix="loan-estimate"
         onGenerated={handleLoanEstimateGenerated}
+        resetVersion={demoResetVersion}
       />
     </div>
   );

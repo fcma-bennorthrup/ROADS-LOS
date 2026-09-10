@@ -202,6 +202,7 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
+  demoResetVersion: number;
   /** Set an action to an explicit status and derive its parent task status. */
   setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
@@ -228,6 +229,7 @@ function ChecklistStateProvider({
   storageKey: string;
 }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
+  const [demoResetVersion, setDemoResetVersion] = useState(0);
 
   useEffect(() => {
     try {
@@ -288,11 +290,19 @@ function ChecklistStateProvider({
         return initial ? { ...initial, actions: initial.actions.map((a) => ({ ...a })) } : task;
       })
     );
+    setDemoResetVersion((version) => version + 1);
   };
 
   return (
     <ChecklistContext.Provider
-      value={{ tasks, setActionStatus, completeAction, getActionStatus, resetTasks }}
+      value={{
+        tasks,
+        demoResetVersion,
+        setActionStatus,
+        completeAction,
+        getActionStatus,
+        resetTasks,
+      }}
     >
       {children}
     </ChecklistContext.Provider>

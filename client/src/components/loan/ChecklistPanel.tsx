@@ -1,14 +1,43 @@
 import { useState } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { useChecklist } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { ActionTimeline, StatusIcon } from "./ChecklistActionTimeline";
+
+const DEMO_TASK_NAMES = [
+  "Loan Decision",
+  "Decision Letter",
+  "Loan Estimate",
+  "Early Disclosures",
+];
+
+const DEMO_ACTIVITY_IDS = [
+  "loan-decision",
+  "decision-letter-generated",
+  "decision-letter-delivered",
+  "loan-estimate-generated",
+  "loan-estimate-delivered",
+  "early-disclosures-generated",
+  "early-disclosures-delivered",
+];
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const { tasks } = useChecklist();
+  const { tasks, resetTasks } = useChecklist();
+  const { removeActivities } = useActivityPanel();
 
   const completedCount = tasks.filter((t) => t.status === "complete").length;
   const percent = Math.round((completedCount / tasks.length) * 100);
+  const handleResetDemo = () => {
+    const confirmed = window.confirm(
+      "Reset Loan Decision, Decision Letter, Loan Estimate, and Early Disclosures progress and remove their Loan Activity entries?",
+    );
+    if (!confirmed) return;
+
+    resetTasks(DEMO_TASK_NAMES);
+    removeActivities(DEMO_ACTIVITY_IDS);
+    setExpanded(null);
+  };
 
   return (
     <div
@@ -45,14 +74,32 @@ export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; cent
           <h2 className="headline-200" style={{ color: "var(--roads-text-primary)" }}>
             Loan Checklist
           </h2>
-          <button
-            onClick={onClose}
-            aria-label="Close checklist"
-            style={{ color: "var(--roads-icon-dark)", padding: "var(--roads-spacing-component-2xs)" }}
-            data-testid="button-close-checklist"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+            <button
+              onClick={handleResetDemo}
+              className="caption-100-strong"
+              style={{
+                backgroundColor: "var(--roads-bg-primary)",
+                border: "1px solid var(--roads-border-dark)",
+                borderRadius: "var(--roads-radius-2xs)",
+                color: "var(--roads-text-primary)",
+                padding:
+                  "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
+                whiteSpace: "nowrap",
+              }}
+              data-testid="button-reset-demo"
+            >
+              Reset Demo
+            </button>
+            <button
+              onClick={onClose}
+              aria-label="Close checklist"
+              style={{ color: "var(--roads-icon-dark)", padding: "var(--roads-spacing-component-2xs)" }}
+              data-testid="button-close-checklist"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-2xs)" }}>
           <span className="caption-100" style={{ color: "var(--roads-text-secondary)" }} data-testid="text-percent-complete">
