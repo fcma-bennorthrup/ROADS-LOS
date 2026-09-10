@@ -186,6 +186,33 @@ export function DocumentsContent() {
   const { completeAction, getActionStatus } = useChecklist();
   const { addActivity } = useActivityPanel();
 
+  const handleEarlyDisclosuresGenerated = (generatedAt: Date) => {
+    if (getActionStatus("Early Disclosures", 0) === "complete") return;
+
+    completeAction("Early Disclosures", 0);
+    addActivity({
+      id: "early-disclosures-generated",
+      title: "Document Generated",
+      description: "Early Disclosures generated",
+      timestamp: formatActivityTimestamp(generatedAt),
+      date: generatedAt,
+    });
+  };
+
+  const handleEarlyDisclosuresDelivered = () => {
+    if (getActionStatus("Early Disclosures", 1) === "complete") return;
+
+    const deliveredAt = new Date();
+    completeAction("Early Disclosures", 1);
+    addActivity({
+      id: "early-disclosures-delivered",
+      title: "Document Delivered",
+      description: "Early Disclosures delivered",
+      timestamp: formatActivityTimestamp(deliveredAt),
+      date: deliveredAt,
+    });
+  };
+
   const handleLoanEstimateGenerated = (generatedAt: Date) => {
     if (getActionStatus("Loan Estimate", 0) === "complete") return;
 
@@ -234,11 +261,12 @@ export function DocumentsContent() {
           },
           {
             label: "Deliver At-App Disclosures",
-            onClick: () => {},
+            onClick: handleEarlyDisclosuresDelivered,
             marksDelivered: true,
           },
         ]}
         testIdPrefix="at-app-disclosures"
+        onGenerated={handleEarlyDisclosuresGenerated}
       />
 
       <DocumentSection

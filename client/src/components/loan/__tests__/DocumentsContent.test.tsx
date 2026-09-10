@@ -135,4 +135,50 @@ describe("DocumentsContent disclosure delivery actions", () => {
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-estimate-delivered");
     expect(activityItems[1]).toHaveAttribute("data-testid", "activity-item-loan-estimate-generated");
   });
+
+  it("synchronizes Early Disclosures generation and delivery without duplicates", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 10, 14, 15));
+    renderDocuments();
+
+    const generate = screen.getByRole("button", { name: "Generate At-App Disclosures" });
+    const deliver = screen.getByRole("button", { name: "Deliver At-App Disclosures" });
+    const earlyDisclosures = screen.getByTestId("checklist-task-early-disclosures");
+
+    fireEvent.click(generate);
+    expect(within(earlyDisclosures).getByText("0 of 2 Complete")).toBeInTheDocument();
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(within(earlyDisclosures).getByText("1 of 2 Complete")).toBeInTheDocument();
+    expect(screen.getByText("Early Disclosures generated")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 2:15pm")).toBeInTheDocument();
+
+    fireEvent.click(generate);
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(screen.getAllByText("Early Disclosures generated")).toHaveLength(1);
+
+    vi.setSystemTime(new Date(2026, 8, 10, 14, 25));
+    fireEvent.click(deliver);
+    fireEvent.click(deliver);
+
+    expect(within(earlyDisclosures).getByText("2 of 2 Complete")).toBeInTheDocument();
+    expect(within(earlyDisclosures).getByTestId("status-icon-complete")).toBeInTheDocument();
+    expect(screen.getByTestId("text-at-app-disclosures-delivered")).toHaveTextContent(
+      "Marked Delivered: 09/10/2026 02:25 PM",
+    );
+    expect(screen.getByText("Early Disclosures delivered")).toBeInTheDocument();
+    expect(screen.getByText("September 10, 2026 at 2:25pm")).toBeInTheDocument();
+    expect(screen.getAllByText("Early Disclosures delivered")).toHaveLength(1);
+
+    const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(
+      /^activity-item-/,
+    );
+    expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-early-disclosures-delivered");
+    expect(activityItems[1]).toHaveAttribute("data-testid", "activity-item-early-disclosures-generated");
+  });
 });
