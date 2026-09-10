@@ -20,21 +20,6 @@ const ACTIVITY_ITEMS: ActivityItem[] = [
     date: new Date("2025-07-08T15:30:00"),
   },
   {
-    id: 3,
-    title: "Document Generated",
-    description: "Loan Estimate has been generated",
-    timestamp: "July 7, 2025 11:45am",
-    date: new Date("2025-07-07T11:45:00"),
-    link: { label: "View Document" },
-  },
-  {
-    id: 4,
-    title: "Loan Decision",
-    description: "Loan has been approved",
-    timestamp: "July 7, 2025 9:33am",
-    date: new Date("2025-07-07T09:33:00"),
-  },
-  {
     id: 5,
     title: "Document Received",
     description: "Tax documents have been uploaded for Richard Jamerson | CIF: 123456",

@@ -29,12 +29,13 @@ function renderPanel() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("LoanActivityPanel – search filter", () => {
-  it("renders the six approved items when search is empty", () => {
+  it("renders the four remaining approved items when search is empty", () => {
     renderPanel();
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(6);
+    expect(items.length).toBe(4);
     expect(screen.queryByText("Appraisal Requested")).not.toBeInTheDocument();
-    expect(screen.getByText("Loan has been approved")).toBeInTheDocument();
+    expect(screen.queryByText("Loan Decision")).not.toBeInTheDocument();
+    expect(screen.queryByText("Document Generated")).not.toBeInTheDocument();
   });
 
   it("does not return the removed appraisal activity", async () => {
@@ -47,27 +48,24 @@ describe("LoanActivityPanel – search filter", () => {
     expect(within(screen.getByTestId("activity-list")).queryAllByTestId(/^activity-item-/)).toHaveLength(0);
   });
 
-  it("narrows results by description (case-insensitive)", async () => {
+  it("does not return the removed Loan Estimate activity", async () => {
     const user = userEvent.setup();
     renderPanel();
 
-    // "loan estimate" appears only in the description of item 3
     await user.type(screen.getByTestId("input-activity-search"), "LOAN ESTIMATE");
 
-    const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(1);
-    expect(within(items[0]).getByText("Document Generated")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
   });
 
   it("matches partial strings and returns multiple results", async () => {
     const user = userEvent.setup();
     renderPanel();
 
-    // "document" matches titles of "Document Generated" and "Document Received"
     await user.type(screen.getByTestId("input-activity-search"), "document");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(2);
+    expect(items.length).toBe(1);
+    expect(within(items[0]).getByText("Document Received")).toBeInTheDocument();
   });
 
   it("restores the full list when search input is cleared", async () => {
@@ -76,10 +74,10 @@ describe("LoanActivityPanel – search filter", () => {
     const input = screen.getByTestId("input-activity-search");
 
     await user.type(input, "loan decision");
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
 
     await user.clear(input);
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(6);
+    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(4);
   });
 
   it("shows 'No results found' empty state when nothing matches", async () => {
@@ -95,15 +93,10 @@ describe("LoanActivityPanel – search filter", () => {
 });
 
 describe("LoanActivityPanel – activity actions", () => {
-  it("does not show a conditions link for an approved loan decision", () => {
+  it("keeps actions for the remaining document and credit activities", () => {
     renderPanel();
 
-    const loanDecision = screen.getByTestId("activity-item-4");
-    expect(within(loanDecision).getByText("Loan has been approved")).toBeInTheDocument();
-    expect(within(loanDecision).queryByRole("button")).not.toBeInTheDocument();
-    expect(screen.queryByText("View Conditions")).not.toBeInTheDocument();
-
-    expect(screen.getAllByText("View Document")).toHaveLength(2);
+    expect(screen.getAllByText("View Document")).toHaveLength(1);
     expect(screen.getByText("View Credit Report")).toBeInTheDocument();
   });
 });
@@ -204,12 +197,12 @@ describe("LoanActivityPanel – search and sort combined", () => {
     await user.selectOptions(screen.getByTestId("select-sort"), "oldest");
     const input = screen.getByTestId("input-activity-search");
     await user.type(input, "loan decision");
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
 
     await user.clear(input);
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(6);
+    expect(items.length).toBe(4);
     // Still oldest-first
     expect(items[0]).toHaveAttribute("data-testid", "activity-item-7");
     expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-2");

@@ -34,25 +34,25 @@ const INITIAL_TASKS: ChecklistTask[] = [
   },
   {
     name: "Loan Decision",
-    status: "complete",
+    status: "not-started",
     actions: [
-      { label: "Action #1", description: "Record loan decision", status: "complete" },
+      { label: "Action #1", description: "Record loan decision", status: "not-started" },
     ],
   },
   {
     name: "Decision Letter",
-    status: "complete",
+    status: "not-started",
     actions: [
-      { label: "Action #1", description: "Generate decision letter", status: "complete" },
-      { label: "Action #2", description: "Send decision letter", status: "complete" },
+      { label: "Action #1", description: "Generate decision letter", status: "not-started" },
+      { label: "Action #2", description: "Send decision letter", status: "not-started" },
     ],
   },
   {
     name: "Loan Estimate",
-    status: "in-progress",
+    status: "not-started",
     actions: [
-      { label: "Action #1", description: "Generate loan estimate", status: "complete" },
-      { label: "Action #2", description: "Deliver loan estimate", status: "in-progress" },
+      { label: "Action #1", description: "Generate loan estimate", status: "not-started" },
+      { label: "Action #2", description: "Deliver loan estimate", status: "not-started" },
     ],
   },
   {

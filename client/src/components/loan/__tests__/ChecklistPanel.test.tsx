@@ -82,27 +82,27 @@ describe("ChecklistPanel", () => {
     expect(within(earlyDisclosures).getByText("Deliver Early Disclosures")).toBeInTheDocument();
   });
 
-  it("shows status chips below complete and in-progress actions but not not-started actions", () => {
+  it("renders the reset decision and estimate tasks with only not-started actions", () => {
     render(
       <ChecklistProvider>
         <ChecklistPanel onClose={() => undefined} />
       </ChecklistProvider>,
     );
 
-    const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
-    fireEvent.click(within(loanEstimate).getByRole("button"));
-
-    const loanEstimateRows = within(loanEstimate).getAllByTestId(/^action-row-/);
-    expect(within(loanEstimateRows[0]).getByText("Generate loan estimate")).toBeInTheDocument();
-    expect(within(loanEstimateRows[0]).getByTestId("chip-complete")).toHaveTextContent("Complete");
-    expect(within(loanEstimateRows[1]).getByText("Deliver loan estimate")).toBeInTheDocument();
-    expect(within(loanEstimateRows[1]).getByTestId("chip-in-progress")).toHaveTextContent(
-      "In Progress",
-    );
-
-    const earlyDisclosures = screen.getByTestId("checklist-task-early-disclosures");
-    fireEvent.click(within(earlyDisclosures).getByRole("button"));
-    expect(within(earlyDisclosures).queryByTestId(/^chip-/)).not.toBeInTheDocument();
+    for (const [testId, expectedCount] of [
+      ["checklist-task-loan-decision", "0 of 1 Complete"],
+      ["checklist-task-decision-letter", "0 of 2 Complete"],
+      ["checklist-task-loan-estimate", "0 of 2 Complete"],
+    ] as const) {
+      const task = screen.getByTestId(testId);
+      expect(within(task).getByText(expectedCount)).toBeInTheDocument();
+      expect(within(task).getByTestId("status-icon-not-started")).toBeInTheDocument();
+      fireEvent.click(within(task).getByRole("button"));
+      expect(within(task).queryByTestId(/^chip-/)).not.toBeInTheDocument();
+      expect(within(task).getAllByTestId("status-icon-not-started")).toHaveLength(
+        Number(expectedCount.slice(5, 6)) + 1,
+      );
+    }
   });
 
   it("renders the Figma Blocked and Re-fire action variants", () => {
