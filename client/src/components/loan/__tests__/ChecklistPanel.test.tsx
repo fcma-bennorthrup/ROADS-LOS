@@ -61,6 +61,12 @@ function DemoStateControls() {
             "loan-estimate-delivered",
             "early-disclosures-generated",
             "early-disclosures-delivered",
+            "title-work-requested",
+            "title-work-submitted",
+            "title-work-cleared",
+            "appraisal-evaluation-ordered",
+            "appraisal-evaluation-complete",
+            "appraisal-evaluation-delivered",
             "unrelated-runtime-entry",
           ]) {
             addActivity({
@@ -207,6 +213,12 @@ describe("ChecklistPanel", () => {
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("decision-letter-generated");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("loan-estimate-generated");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("early-disclosures-generated");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("title-work-requested");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("title-work-submitted");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("title-work-cleared");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("appraisal-evaluation-ordered");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("appraisal-evaluation-complete");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("appraisal-evaluation-delivered");
 
     unmount();
     renderChecklist(<DemoStateControls />);

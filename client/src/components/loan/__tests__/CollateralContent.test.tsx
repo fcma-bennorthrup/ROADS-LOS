@@ -3,7 +3,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollateralContent } from "../CollateralContent";
 import { ChecklistPanel } from "../ChecklistPanel";
 import { ChecklistProvider } from "@/contexts/checklist-context";
-import { LoanActivityProvider } from "@/contexts/loan-activity-context";
+import {
+  LoanActivityProvider,
+  useActivityPanel,
+} from "@/contexts/loan-activity-context";
+
+function ActivityState() {
+  const { activityItems } = useActivityPanel();
+  return (
+    <div data-testid="activity-state">
+      {activityItems.map((item) => (
+        <div key={item.id} data-testid={`activity-state-${item.id}`}>
+          {item.title}|{item.description}|{item.timestamp}|{item.date.toISOString()}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function renderCollateral() {
   return render(
@@ -11,6 +27,7 @@ function renderCollateral() {
       <ChecklistProvider>
         <CollateralContent />
         <ChecklistPanel onClose={() => undefined} />
+        <ActivityState />
       </ChecklistProvider>
     </LoanActivityProvider>,
   );
@@ -23,6 +40,7 @@ function editAndSaveAddress(address = "100 Main Street") {
 }
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -68,6 +86,50 @@ describe("CollateralContent Subject Property workflow", () => {
     }
   });
 
+  it("adds the six requested activities with the action click timestamp", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-14T14:35:00"));
+    renderCollateral();
+
+    for (const buttonName of [
+      "Order Title",
+      "Submit Title",
+      "Review Title",
+      "Order Evaluation",
+      "Complete Evaluation",
+      "Deliver Evaluation",
+    ]) {
+      fireEvent.click(screen.getByRole("button", { name: buttonName }));
+    }
+
+    const expectedActivities = [
+      ["title-work-requested", "Title Work Requested", "Title work requested"],
+      ["title-work-submitted", "Title Work Submitted", "Title work submitted for review"],
+      ["title-work-cleared", "Title Work Cleared", "Title work cleared"],
+      [
+        "appraisal-evaluation-ordered",
+        "Appraisal Evaluation Ordered",
+        "Appraisal evaluation ordered",
+      ],
+      [
+        "appraisal-evaluation-complete",
+        "Appraisal Evaluation Complete",
+        "Appraisal evaluation complete",
+      ],
+      [
+        "appraisal-evaluation-delivered",
+        "Appraisal Evaluation Delivered",
+        "Appraisal evaluation delivered to borrower",
+      ],
+    ];
+
+    for (const [id, title, description] of expectedActivities) {
+      const activity = screen.getByTestId(`activity-state-${id}`);
+      expect(activity).toHaveTextContent(`${title}|${description}|September 14, 2026 at 2:35pm`);
+      expect(activity).toHaveTextContent("2026-09-14T14:35:00.000Z");
+    }
+  });
+
   it("keeps the address and collateral tasks unchanged when Reset Demo is cancelled", () => {
     vi.spyOn(window, "confirm").mockReturnValue(false);
     renderCollateral();
@@ -88,6 +150,8 @@ describe("CollateralContent Subject Property workflow", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const { unmount } = renderCollateral();
     editAndSaveAddress();
+    fireEvent.click(screen.getByRole("button", { name: "Order Title" }));
+    expect(screen.getByTestId("activity-state-title-work-requested")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Demo" }));
 
@@ -97,11 +161,18 @@ describe("CollateralContent Subject Property workflow", () => {
     expect(screen.getByTestId("checklist-task-appraisal-evaluation")).toHaveTextContent(
       "0 of 3 Complete",
     );
+    expect(screen.queryByTestId("activity-state-title-work-requested")).not.toBeInTheDocument();
 
     unmount();
     renderCollateral();
 
     fireEvent.click(screen.getByTestId("address-button-edit"));
     expect(screen.getByTestId("input-address-1")).toHaveValue("");
+    fireEvent.change(screen.getByTestId("input-address-1"), {
+      target: { value: "300 Pine Street" },
+    });
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    fireEvent.click(screen.getByRole("button", { name: "Order Title" }));
+    expect(screen.getByTestId("activity-state-title-work-requested")).toBeInTheDocument();
   });
 });

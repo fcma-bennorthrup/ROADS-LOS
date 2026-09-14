@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useLocation } from "wouter";
 
 function CollateralField({
@@ -386,25 +387,85 @@ const EMPTY_EVALUATION: EvaluationData = {
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
 const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
 
+function formatActivityTimestamp(date: Date): string {
+  return date.toLocaleString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).replace(" AM", "am").replace(" PM", "pm");
+}
+
 // Maps each Collateral task button to a checklist task name + action index.
 const TASK_BUTTON_ROWS: {
   label: string;
-  buttons: { label: string; taskName: string; actionIndex: number }[];
+  buttons: {
+    label: string;
+    taskName: string;
+    actionIndex: number;
+    activityId: string;
+    activityTitle: string;
+    activityDescription: string;
+  }[];
 }[] = [
   {
     label: "Title",
     buttons: [
-      { label: "Order Title",  taskName: "Title Work", actionIndex: 0 },
-      { label: "Submit Title", taskName: "Title Work", actionIndex: 1 },
-      { label: "Review Title", taskName: "Title Work", actionIndex: 2 },
+      {
+        label: "Order Title",
+        taskName: "Title Work",
+        actionIndex: 0,
+        activityId: "title-work-requested",
+        activityTitle: "Title Work Requested",
+        activityDescription: "Title work requested",
+      },
+      {
+        label: "Submit Title",
+        taskName: "Title Work",
+        actionIndex: 1,
+        activityId: "title-work-submitted",
+        activityTitle: "Title Work Submitted",
+        activityDescription: "Title work submitted for review",
+      },
+      {
+        label: "Review Title",
+        taskName: "Title Work",
+        actionIndex: 2,
+        activityId: "title-work-cleared",
+        activityTitle: "Title Work Cleared",
+        activityDescription: "Title work cleared",
+      },
     ],
   },
   {
     label: "Evaluation",
     buttons: [
-      { label: "Order Evaluation",    taskName: "Appraisal Evaluation", actionIndex: 0 },
-      { label: "Complete Evaluation", taskName: "Appraisal Evaluation", actionIndex: 1 },
-      { label: "Deliver Evaluation",  taskName: "Appraisal Evaluation", actionIndex: 2 },
+      {
+        label: "Order Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 0,
+        activityId: "appraisal-evaluation-ordered",
+        activityTitle: "Appraisal Evaluation Ordered",
+        activityDescription: "Appraisal evaluation ordered",
+      },
+      {
+        label: "Complete Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 1,
+        activityId: "appraisal-evaluation-complete",
+        activityTitle: "Appraisal Evaluation Complete",
+        activityDescription: "Appraisal evaluation complete",
+      },
+      {
+        label: "Deliver Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 2,
+        activityId: "appraisal-evaluation-delivered",
+        activityTitle: "Appraisal Evaluation Delivered",
+        activityDescription: "Appraisal evaluation delivered to borrower",
+      },
     ],
   },
 ];
@@ -438,6 +499,21 @@ const COLLATERAL_TASK_NAMES = TASK_BUTTON_ROWS.map((r) =>
 
 function TaskButtonsSection() {
   const { completeAction, getActionStatus, resetTasks } = useChecklist();
+  const { addActivity } = useActivityPanel();
+
+  const handleCompleteAction = (button: (typeof TASK_BUTTON_ROWS)[number]["buttons"][number]) => {
+    if (getActionStatus(button.taskName, button.actionIndex) === "complete") return;
+
+    const completedAt = new Date();
+    completeAction(button.taskName, button.actionIndex);
+    addActivity({
+      id: button.activityId,
+      title: button.activityTitle,
+      description: button.activityDescription,
+      timestamp: formatActivityTimestamp(completedAt),
+      date: completedAt,
+    });
+  };
 
   return (
     <div
@@ -497,7 +573,7 @@ function TaskButtonsSection() {
                 <button
                   key={btn.label}
                   className="body-200-strong"
-                  onClick={() => !isComplete && completeAction(btn.taskName, btn.actionIndex)}
+                  onClick={() => handleCompleteAction(btn)}
                   disabled={isComplete}
                   style={{
                     borderRadius: "var(--roads-radius-2xs)",

@@ -21,6 +21,12 @@ const DEMO_ACTIVITY_IDS = [
   "loan-estimate-delivered",
   "early-disclosures-generated",
   "early-disclosures-delivered",
+  "title-work-requested",
+  "title-work-submitted",
+  "title-work-cleared",
+  "appraisal-evaluation-ordered",
+  "appraisal-evaluation-complete",
+  "appraisal-evaluation-delivered",
 ];
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
