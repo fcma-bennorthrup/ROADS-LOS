@@ -5,6 +5,15 @@ import { formatActivityTimestamp } from "@/lib/loan-activity";
 
 type GenerationState = "idle" | "generating" | "generated";
 
+function getActivityId(baseId: string, existingIds: Array<number | string>): string {
+  if (!existingIds.includes(baseId)) return baseId;
+  const refirePrefix = `${baseId}-refire-`;
+  const refireCount = existingIds.filter(
+    (id) => typeof id === "string" && id.startsWith(refirePrefix),
+  ).length;
+  return `${refirePrefix}${refireCount + 1}`;
+}
+
 function AnimatedEllipsis() {
   const [dots, setDots] = useState(1);
 
@@ -186,7 +195,7 @@ export function DocumentSection({
 
 export function DocumentsContent() {
   const { completeAction, getActionStatus, demoResetVersion } = useChecklist();
-  const { addActivity } = useActivityPanel();
+  const { addActivity, activityItems } = useActivityPanel();
 
   const handleEarlyDisclosuresGenerated = (generatedAt: Date) => {
     if (getActionStatus("Early Disclosures", 0) === "complete") return;
@@ -216,11 +225,18 @@ export function DocumentsContent() {
   };
 
   const handleLoanEstimateGenerated = (generatedAt: Date) => {
-    if (getActionStatus("Loan Estimate", 0) === "complete") return;
+    const actionStatus = getActionStatus("Loan Estimate", 0);
+    if (actionStatus === "complete") return;
+    const isRepeat = activityItems.some((item) => item.id === "loan-estimate-generated");
 
     completeAction("Loan Estimate", 0);
     addActivity({
-      id: "loan-estimate-generated",
+      id: isRepeat
+        ? getActivityId(
+            "loan-estimate-generated",
+            activityItems.map((item) => item.id),
+          )
+        : "loan-estimate-generated",
       title: "Document Generated",
       description: "Loan Estimate generated",
       timestamp: formatActivityTimestamp(generatedAt),
@@ -232,9 +248,15 @@ export function DocumentsContent() {
     if (getActionStatus("Loan Estimate", 1) === "complete") return;
 
     const deliveredAt = new Date();
+    const isRepeat = activityItems.some((item) => item.id === "loan-estimate-delivered");
     completeAction("Loan Estimate", 1);
     addActivity({
-      id: "loan-estimate-delivered",
+      id: isRepeat
+        ? getActivityId(
+            "loan-estimate-delivered",
+            activityItems.map((item) => item.id),
+          )
+        : "loan-estimate-delivered",
       title: "Document Delivered",
       description: "Loan Estimate delivered",
       timestamp: formatActivityTimestamp(deliveredAt),

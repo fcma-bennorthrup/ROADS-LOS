@@ -1,8 +1,7 @@
-import { useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { RoadsDatePicker } from "./RoadsDatePicker";
-import rateLockLetterPdf from "@assets/Rate_Lock_Letter_-_Consumer_Redacted_1776876397430.pdf";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +9,14 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useChecklist } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { formatActivityTimestamp } from "@/lib/loan-activity";
+
+const rateLockLetterPdf = new URL(
+  "../../../../attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1776876397430.pdf",
+  import.meta.url,
+).href;
 
 interface ProductEntry {
   productType: string;
@@ -136,13 +143,30 @@ function ProductField({
 }
 
 export function ProductPricingContent() {
+  const {
+    demoResetVersion,
+    getActionStatus,
+    refireCompletedTask,
+    setActionStatus,
+  } = useChecklist();
+  const { addActivity } = useActivityPanel();
   const [isEditing, setIsEditing] = useState(false);
   const [productType, setProductType] = useState("fixed");
   const [selectedProductId, setSelectedProductId] = useState("4370");
   const [termOverride, setTermOverride] = useState<string | null>(null);
-  const [isRateLocked, setIsRateLocked] = useState(false);
+  const [isRateLocked, setIsRateLocked] = useState(
+    () => getActionStatus("Rate Lock", 1) === "complete",
+  );
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockDate, setLockDate] = useState(getLockDate());
+
+  useEffect(() => {
+    if (demoResetVersion === 0) return;
+    setIsRateLocked(false);
+    setIsEditing(false);
+    setIsLockModalOpen(false);
+    setLockDate(getLockDate());
+  }, [demoResetVersion]);
 
   const filteredProducts = useMemo(
     () => productData.filter((p) => p.productType === productType),
@@ -188,9 +212,20 @@ export function ProductPricingContent() {
   };
 
   const handleLockRate = () => {
+    const lockedAt = new Date();
     setIsRateLocked(true);
     setIsEditing(false);
     setIsLockModalOpen(false);
+    setActionStatus("Rate Lock", 0, "complete");
+    setActionStatus("Rate Lock", 1, "complete");
+    refireCompletedTask("Loan Estimate", ["re-fire", "not-started"]);
+    addActivity({
+      id: "rate-lock",
+      title: "Rate Lock",
+      description: "Rate is locked",
+      timestamp: formatActivityTimestamp(lockedAt),
+      date: lockedAt,
+    });
   };
 
   return (
@@ -310,7 +345,7 @@ export function ProductPricingContent() {
             }}
             data-testid="button-lock-rate"
           >
-            Lock Rate
+            {isRateLocked ? "Update Rate Lock" : "Lock Rate"}
           </button>
           <button
             onClick={() => window.open(rateLockLetterPdf, "_blank", "noopener,noreferrer")}

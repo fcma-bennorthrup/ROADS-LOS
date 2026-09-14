@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DocumentsContent } from "../DisclosureDocumentsContent";
 import { ChecklistPanel } from "../ChecklistPanel";
 import { LoanActivityPanel } from "../LoanActivityPanel";
-import { ChecklistProvider } from "@/contexts/checklist-context";
+import { ChecklistProvider, useChecklist } from "@/contexts/checklist-context";
 import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";
 import { useEffect } from "react";
 
@@ -16,11 +16,56 @@ function OpenActivityPanel() {
   return <LoanActivityPanel />;
 }
 
+function LoanEstimateRefireControls() {
+  const { setActionStatus } = useChecklist();
+  const { addActivity } = useActivityPanel();
+
+  return (
+    <button
+      onClick={() => {
+        setActionStatus("Loan Estimate", 0, "complete");
+        setActionStatus("Loan Estimate", 1, "complete");
+        addActivity({
+          id: "loan-estimate-generated",
+          title: "Document Generated",
+          description: "Loan Estimate generated",
+          timestamp: "September 10, 2026 at 4:32pm",
+          date: new Date("2026-09-10T16:32:00"),
+        });
+        addActivity({
+          id: "loan-estimate-delivered",
+          title: "Document Delivered",
+          description: "Loan Estimate delivered",
+          timestamp: "September 10, 2026 at 4:40pm",
+          date: new Date("2026-09-10T16:40:00"),
+        });
+      }}
+    >
+      Seed completed Loan Estimate
+    </button>
+  );
+}
+
+function RefireLoanEstimateButton() {
+  const { refireCompletedTask } = useChecklist();
+  return (
+    <button
+      onClick={() =>
+        refireCompletedTask("Loan Estimate", ["re-fire", "not-started"])
+      }
+    >
+      Re-fire Loan Estimate
+    </button>
+  );
+}
+
 function renderDocuments() {
   return render(
     <LoanActivityProvider>
       <ChecklistProvider>
         <DocumentsContent />
+        <LoanEstimateRefireControls />
+        <RefireLoanEstimateButton />
         <ChecklistPanel onClose={() => undefined} />
         <OpenActivityPanel />
       </ChecklistProvider>
@@ -135,6 +180,37 @@ describe("DocumentsContent disclosure delivery actions", () => {
     );
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-estimate-delivered");
     expect(activityItems[1]).toHaveAttribute("data-testid", "activity-item-loan-estimate-generated");
+  });
+
+  it("preserves the original Loan Estimate history when a re-fired cycle completes", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 14, 11, 5));
+    renderDocuments();
+
+    fireEvent.click(screen.getByRole("button", { name: "Seed completed Loan Estimate" }));
+    fireEvent.click(screen.getByRole("button", { name: "Re-fire Loan Estimate" }));
+
+    const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
+    expect(within(loanEstimate).getByText("0 of 2 Complete")).toBeInTheDocument();
+    expect(within(loanEstimate).getByTestId("status-icon-re-fire")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Generate Loan Estimate" }));
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Deliver Loan Estimate" }));
+
+    expect(within(loanEstimate).getByText("2 of 2 Complete")).toBeInTheDocument();
+    expect(screen.getAllByText("Loan Estimate generated")).toHaveLength(2);
+    expect(screen.getAllByText("Loan Estimate delivered")).toHaveLength(2);
+    expect(
+      screen.getByTestId("activity-item-loan-estimate-generated-refire-1"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("activity-item-loan-estimate-delivered-refire-1"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("activity-item-loan-estimate-generated")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-item-loan-estimate-delivered")).toBeInTheDocument();
   });
 
   it("synchronizes Early Disclosures generation and delivery without duplicates", () => {

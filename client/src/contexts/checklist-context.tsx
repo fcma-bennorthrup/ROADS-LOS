@@ -194,7 +194,8 @@ function loadTasks(storageKey: string): ChecklistTask[] {
 function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
   if (actions.every((a) => a.status === "complete")) return "complete";
   if (actions.some((a) => a.status === "blocked")) return "blocked";
-  if (actions.some((a) => a.status === "in-progress" || a.status === "re-fire" || a.status === "complete")) {
+  if (actions.some((a) => a.status === "re-fire")) return "re-fire";
+  if (actions.some((a) => a.status === "in-progress" || a.status === "complete")) {
     return "in-progress";
   }
   return "not-started";
@@ -212,6 +213,8 @@ interface ChecklistContextValue {
   completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
   getActionStatus: (taskName: string, actionIndex: number) => ChecklistStatus;
+  /** Reopen a completed task with explicit action statuses. */
+  refireCompletedTask: (taskName: string, actionStatuses: ChecklistStatus[]) => void;
   /**
    * Reset the given task names back to their initial not-started state so
    * demos can be rerun without a full page reload.
@@ -284,6 +287,22 @@ function ChecklistStateProvider({
     return task?.actions[actionIndex]?.status ?? "not-started";
   };
 
+  const refireCompletedTask = (
+    taskName: string,
+    actionStatuses: ChecklistStatus[],
+  ) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.name !== taskName || task.status !== "complete") return task;
+        const updatedActions = task.actions.map((action, index) => ({
+          ...action,
+          status: actionStatuses[index] ?? action.status,
+        }));
+        return { ...task, actions: updatedActions, status: deriveTaskStatus(updatedActions) };
+      }),
+    );
+  };
+
   const resetTasks = (taskNames: string[]) => {
     setTasks((prev) =>
       prev.map((task) => {
@@ -307,6 +326,7 @@ function ChecklistStateProvider({
         setActionStatus,
         completeAction,
         getActionStatus,
+        refireCompletedTask,
         resetTasks,
         resetDemoTasks,
       }}
