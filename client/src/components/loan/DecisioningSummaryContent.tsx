@@ -1,17 +1,7 @@
 import { useEffect, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
-
-function formatActivityTimestamp(date: Date): string {
-  return date.toLocaleString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).replace(" AM", "am").replace(" PM", "pm");
-}
+import { formatActivityTimestamp } from "@/lib/loan-activity";
 
 export function DecisioningSummaryContent() {
   const [isDecisioned, setIsDecisioned] = useState(false);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { formatActivityTimestamp } from "@/lib/loan-activity";
 
 type GenerationState = "idle" | "generating" | "generated";
 
@@ -28,17 +29,6 @@ function formatTimestamp(): string {
   if (hours === 0) hours = 12;
   const minutes = String(now.getMinutes()).padStart(2, "0");
   return `${month}/${day}/${year} ${String(hours).padStart(2, "0")}:${minutes} ${ampm}`;
-}
-
-function formatActivityTimestamp(date: Date): string {
-  return date.toLocaleString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).replace(" AM", "am").replace(" PM", "pm");
 }
 
 interface SecondaryAction {

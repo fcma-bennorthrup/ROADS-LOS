@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useLocation } from "wouter";
 
 function CollateralField({
@@ -386,17 +387,6 @@ const EMPTY_EVALUATION: EvaluationData = {
 
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };
 const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUATION };
-
-function formatActivityTimestamp(date: Date): string {
-  return date.toLocaleString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).replace(" AM", "am").replace(" PM", "pm");
-}
 
 // Maps each Collateral task button to a checklist task name + action index.
 const TASK_BUTTON_ROWS: {
