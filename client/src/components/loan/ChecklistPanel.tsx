@@ -9,6 +9,8 @@ const DEMO_TASK_NAMES = [
   "Decision Letter",
   "Loan Estimate",
   "Early Disclosures",
+  "Title Work",
+  "Appraisal Evaluation",
 ];
 
 const DEMO_ACTIVITY_IDS = [
@@ -23,18 +25,18 @@ const DEMO_ACTIVITY_IDS = [
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const { tasks, resetTasks } = useChecklist();
+  const { tasks, resetDemoTasks } = useChecklist();
   const { removeActivities } = useActivityPanel();
 
   const completedCount = tasks.filter((t) => t.status === "complete").length;
   const percent = Math.round((completedCount / tasks.length) * 100);
   const handleResetDemo = () => {
     const confirmed = window.confirm(
-      "Reset Loan Decision, Decision Letter, Loan Estimate, and Early Disclosures progress and remove their Loan Activity entries?",
+      "Reset demo progress, Subject Property, and matching Loan Activity entries?",
     );
     if (!confirmed) return;
 
-    resetTasks(DEMO_TASK_NAMES);
+    resetDemoTasks(DEMO_TASK_NAMES);
     removeActivities(DEMO_ACTIVITY_IDS);
     setExpanded(null);
   };

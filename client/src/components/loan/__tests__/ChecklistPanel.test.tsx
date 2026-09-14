@@ -198,7 +198,10 @@ describe("ChecklistPanel", () => {
     ]) {
       expect(screen.getByTestId(testId)).toHaveTextContent(expectedCount);
     }
-    expect(screen.getByTestId("checklist-task-title-work")).toHaveTextContent("1 of 3 Complete");
+    expect(screen.getByTestId("checklist-task-title-work")).toHaveTextContent("0 of 3 Complete");
+    expect(screen.getByTestId("checklist-task-appraisal-evaluation")).toHaveTextContent(
+      "0 of 3 Complete",
+    );
     expect(screen.getByTestId("activity-ids")).toHaveTextContent("unrelated-runtime-entry");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("loan-decision");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("decision-letter-generated");

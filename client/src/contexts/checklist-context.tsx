@@ -217,6 +217,8 @@ interface ChecklistContextValue {
    * demos can be rerun without a full page reload.
    */
   resetTasks: (taskNames: string[]) => void;
+  /** Reset tasks and notify mounted demo surfaces to clear their local state. */
+  resetDemoTasks: (taskNames: string[]) => void;
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
@@ -290,6 +292,10 @@ function ChecklistStateProvider({
         return initial ? { ...initial, actions: initial.actions.map((a) => ({ ...a })) } : task;
       })
     );
+  };
+
+  const resetDemoTasks = (taskNames: string[]) => {
+    resetTasks(taskNames);
     setDemoResetVersion((version) => version + 1);
   };
 
@@ -302,6 +308,7 @@ function ChecklistStateProvider({
         completeAction,
         getActionStatus,
         resetTasks,
+        resetDemoTasks,
       }}
     >
       {children}

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
+import { useLocation } from "wouter";
 
 function CollateralField({
   label,
@@ -347,6 +348,31 @@ const EMPTY_ADDRESS: AddressData = {
   zip: "",
 };
 
+const SUBJECT_PROPERTY_STORAGE_PREFIX = "loan-subject-property";
+
+function getSubjectPropertyStorageKey(location: string): string {
+  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  return `${SUBJECT_PROPERTY_STORAGE_PREFIX}:${loanId}`;
+}
+
+function loadSubjectProperty(storageKey: string): AddressData {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as unknown;
+    if (
+      typeof saved === "object" &&
+      saved !== null &&
+      Object.keys(EMPTY_ADDRESS).every(
+        (key) => key in saved && typeof (saved as Record<string, unknown>)[key] === "string",
+      )
+    ) {
+      return { ...(saved as AddressData) };
+    }
+  } catch {
+    // Fall through to the prototype defaults.
+  }
+  return { ...DEFAULT_ADDRESS };
+}
+
 const EMPTY_EVALUATION: EvaluationData = {
   estimatedValue: "",
   evaluationDate: "",
@@ -493,9 +519,16 @@ function TaskButtonsSection() {
 }
 
 export function CollateralContent() {
+  const [location] = useLocation();
+  const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
+  const { demoResetVersion, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressFields, setAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
-  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
+  const [addressFields, setAddressFields] = useState<AddressData>(() =>
+    loadSubjectProperty(subjectPropertyStorageKey),
+  );
+  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>(() =>
+    loadSubjectProperty(subjectPropertyStorageKey),
+  );
 
   const [isSplit, setIsSplit] = useState(false);
   const [activeEvalTab, setActiveEvalTab] = useState(1);
@@ -509,6 +542,35 @@ export function CollateralContent() {
 
   const updateAddressField = (key: keyof AddressData) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    if (demoResetVersion === 0) return;
+    const clearedAddress = { ...EMPTY_ADDRESS };
+    setAddressFields(clearedAddress);
+    setSavedAddressFields(clearedAddress);
+    setIsEditingAddress(false);
+    try {
+      localStorage.setItem(subjectPropertyStorageKey, JSON.stringify(clearedAddress));
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+  }, [demoResetVersion, subjectPropertyStorageKey]);
+
+  const handleAddressSave = () => {
+    const savedAddress = { ...addressFields };
+    setSavedAddressFields(savedAddress);
+    setIsEditingAddress(false);
+    try {
+      localStorage.setItem(subjectPropertyStorageKey, JSON.stringify(savedAddress));
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+    for (const taskName of ["Title Work", "Appraisal Evaluation"]) {
+      if (getActionStatus(taskName, 0) === "not-started") {
+        setActionStatus(taskName, 0, "in-progress");
+      }
+    }
   };
 
   const activeEvalFields = activeEvalTab === 1 ? eval1Fields : eval2Fields;
@@ -581,7 +643,7 @@ export function CollateralContent() {
         <EditControls
           isEditing={isEditingAddress}
           onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
-          onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
+          onSave={handleAddressSave}
           onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
           testIdPrefix="address"
         />
