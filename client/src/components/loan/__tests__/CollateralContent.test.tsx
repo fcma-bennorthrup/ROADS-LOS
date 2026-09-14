@@ -45,6 +45,14 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
+  it("uses Reset Demo as the only reset control", () => {
+    renderCollateral();
+
+    expect(screen.queryByTestId("button-reset-checklist")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Reset$/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Reset Demo" })).toBeInTheDocument();
+  });
+
   it("starts Title Work and Appraisal Evaluation when the edited address is saved", () => {
     renderCollateral();
 

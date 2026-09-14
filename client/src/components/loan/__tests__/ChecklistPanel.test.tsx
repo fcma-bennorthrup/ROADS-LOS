@@ -45,6 +45,7 @@ function DemoStateControls() {
     <>
       <button
         onClick={() => {
+          setActionStatus("Eligibility & Scope", 0, "not-started");
           setActionStatus("Loan Decision", 0, "complete");
           setActionStatus("Decision Letter", 0, "complete");
           setActionStatus("Decision Letter", 1, "complete");
@@ -53,6 +54,7 @@ function DemoStateControls() {
           setActionStatus("Early Disclosures", 0, "complete");
           setActionStatus("Early Disclosures", 1, "complete");
           setActionStatus("Title Work", 0, "complete");
+          setActionStatus("Rate Lock", 0, "complete");
           for (const id of [
             "loan-decision",
             "decision-letter-generated",
@@ -187,9 +189,10 @@ describe("ChecklistPanel", () => {
 
     expect(screen.getByTestId("checklist-task-loan-decision")).toHaveTextContent("1 of 1 Complete");
     expect(screen.getByTestId("activity-ids")).toHaveTextContent("loan-decision");
+    expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("1 of 3 Complete");
   });
 
-  it("resets only the demo workflow tasks and removes only their runtime activities", () => {
+  it("resets every task and removes every runtime activity while preserving history", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const { unmount } = renderChecklist(<DemoStateControls />);
 
@@ -208,7 +211,12 @@ describe("ChecklistPanel", () => {
     expect(screen.getByTestId("checklist-task-appraisal-evaluation")).toHaveTextContent(
       "0 of 3 Complete",
     );
-    expect(screen.getByTestId("activity-ids")).toHaveTextContent("unrelated-runtime-entry");
+    expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("0 of 3 Complete");
+    expect(screen.getByTestId("checklist-task-eligibility-scope")).toHaveTextContent(
+      "2 of 2 Complete",
+    );
+    expect(screen.getByTestId("activity-ids")).toHaveTextContent("2,5,6,7");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("unrelated-runtime-entry");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("loan-decision");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("decision-letter-generated");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("loan-estimate-generated");
@@ -224,7 +232,8 @@ describe("ChecklistPanel", () => {
     renderChecklist(<DemoStateControls />);
 
     expect(screen.getByTestId("checklist-task-loan-decision")).toHaveTextContent("0 of 1 Complete");
-    expect(screen.getByTestId("activity-ids")).toHaveTextContent("unrelated-runtime-entry");
+    expect(screen.getByTestId("activity-ids")).toHaveTextContent("2,5,6,7");
+    expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("unrelated-runtime-entry");
     expect(screen.getByTestId("activity-ids")).not.toHaveTextContent("loan-decision");
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Demo" }));

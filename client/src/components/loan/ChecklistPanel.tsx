@@ -4,46 +4,21 @@ import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { ActionTimeline, StatusIcon } from "./ChecklistActionTimeline";
 
-const DEMO_TASK_NAMES = [
-  "Loan Decision",
-  "Decision Letter",
-  "Loan Estimate",
-  "Early Disclosures",
-  "Title Work",
-  "Appraisal Evaluation",
-];
-
-const DEMO_ACTIVITY_IDS = [
-  "loan-decision",
-  "decision-letter-generated",
-  "decision-letter-delivered",
-  "loan-estimate-generated",
-  "loan-estimate-delivered",
-  "early-disclosures-generated",
-  "early-disclosures-delivered",
-  "title-work-requested",
-  "title-work-submitted",
-  "title-work-cleared",
-  "appraisal-evaluation-ordered",
-  "appraisal-evaluation-complete",
-  "appraisal-evaluation-delivered",
-];
-
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
   const { tasks, resetDemoTasks } = useChecklist();
-  const { removeActivities } = useActivityPanel();
+  const { resetRuntimeActivities } = useActivityPanel();
 
   const completedCount = tasks.filter((t) => t.status === "complete").length;
   const percent = Math.round((completedCount / tasks.length) * 100);
   const handleResetDemo = () => {
     const confirmed = window.confirm(
-      "Reset demo progress, Subject Property, and matching Loan Activity entries?",
+      "Reset all demo tasks, Subject Property, and demo-generated Loan Activity entries?",
     );
     if (!confirmed) return;
 
-    resetDemoTasks(DEMO_TASK_NAMES);
-    removeActivities(DEMO_ACTIVITY_IDS);
+    resetDemoTasks(tasks.map((task) => task.name));
+    resetRuntimeActivities();
     setExpanded(null);
   };
 
