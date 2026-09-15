@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { dismissToasts } from "@/hooks/use-toast";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -333,6 +334,7 @@ function ChecklistStateProvider({
   };
 
   const resetDemoTasks = (taskNames: string[]) => {
+    dismissToasts();
     resetTasks(taskNames);
     setDemoResetVersion((version) => version + 1);
   };

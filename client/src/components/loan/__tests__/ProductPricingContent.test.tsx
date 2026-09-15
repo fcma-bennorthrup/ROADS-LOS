@@ -163,6 +163,7 @@ describe("ProductPricingContent rate lock workflow", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Demo" }));
 
+    expect(screen.queryByTestId("toast-information")).not.toBeInTheDocument();
     expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("0 of 3 Complete");
     expect(screen.getByTestId("checklist-task-loan-estimate")).toHaveTextContent("0 of 2 Complete");
     expect(screen.getByTestId("activity-state")).not.toHaveTextContent("rate-lock|");
