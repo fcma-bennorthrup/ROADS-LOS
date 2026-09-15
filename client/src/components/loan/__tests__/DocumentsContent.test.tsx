@@ -198,9 +198,18 @@ describe("DocumentsContent disclosure delivery actions", () => {
     act(() => {
       vi.advanceTimersByTime(5000);
     });
+
+    expect(within(loanEstimate).getByText("1 of 2 Complete")).toBeInTheDocument();
+    expect(within(loanEstimate).getByTestId("status-icon-re-fire")).toBeInTheDocument();
+    fireEvent.click(within(loanEstimate).getByRole("button"));
+    const refiredRows = within(loanEstimate).getAllByTestId(/^action-row-/);
+    expect(within(refiredRows[0]).getByTestId("chip-complete")).toBeInTheDocument();
+    expect(within(refiredRows[1]).getByTestId("chip-re-fire")).toHaveTextContent("Re-fire");
+
     fireEvent.click(screen.getByRole("button", { name: "Deliver Loan Estimate" }));
 
     expect(within(loanEstimate).getByText("2 of 2 Complete")).toBeInTheDocument();
+    expect(within(loanEstimate).getAllByTestId("status-icon-complete")).toHaveLength(3);
     expect(screen.getAllByText("Loan Estimate generated")).toHaveLength(2);
     expect(screen.getAllByText("Loan Estimate delivered")).toHaveLength(2);
     expect(

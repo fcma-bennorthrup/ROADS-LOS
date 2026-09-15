@@ -208,7 +208,9 @@ interface ChecklistContextValue {
   setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
    * Mark an action complete and automatically advance the next action to
-   * in-progress. If the action is already complete, this is a no-op.
+   * in-progress. During a Loan Estimate re-fire cycle, advance all subsequent
+   * incomplete actions to re-fire instead. If the action is already complete,
+   * this is a no-op.
    */
   completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
@@ -271,8 +273,22 @@ function ChecklistStateProvider({
     setTasks((prev) =>
       prev.map((task) => {
         if (task.name !== taskName) return task;
+        const completedAction = task.actions[actionIndex];
+        if (!completedAction || completedAction.status === "complete") return task;
+
+        const continuesLoanEstimateRefire =
+          task.name === "Loan Estimate" &&
+          task.status === "re-fire" &&
+          completedAction.status === "re-fire";
         const updatedActions = task.actions.map((action, i) => {
           if (i === actionIndex) return { ...action, status: "complete" as ChecklistStatus };
+          if (
+            continuesLoanEstimateRefire &&
+            i > actionIndex &&
+            action.status !== "complete"
+          ) {
+            return { ...action, status: "re-fire" as ChecklistStatus };
+          }
           if (i === actionIndex + 1 && action.status === "not-started")
             return { ...action, status: "in-progress" as ChecklistStatus };
           return action;

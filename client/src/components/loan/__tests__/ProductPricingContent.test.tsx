@@ -18,7 +18,7 @@ vi.mock("@/components/GitHubSyncPanel", () => ({
 }));
 
 function WorkflowControls() {
-  const { tasks, setActionStatus } = useChecklist();
+  const { tasks, setActionStatus, completeAction } = useChecklist();
   const { activityItems, addActivity } = useActivityPanel();
   const loanEstimate = tasks.find((task) => task.name === "Loan Estimate");
 
@@ -74,8 +74,11 @@ function WorkflowControls() {
           )
           .join(";")}
       </span>
-      <button onClick={() => setActionStatus("Loan Estimate", 0, "complete")}>
+      <button onClick={() => completeAction("Loan Estimate", 0)}>
         Advance re-fired estimate
+      </button>
+      <button onClick={() => completeAction("Loan Estimate", 1)}>
+        Finish re-fired estimate
       </button>
     </>
   );
@@ -203,7 +206,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("3 TRID Days Remaining");
   });
 
-  it("hides the TRID chip when the re-fired Loan Estimate advances", () => {
+  it("keeps the TRID chip until every re-fired Loan Estimate action is complete", () => {
     renderProductPricing();
     fireEvent.click(screen.getByRole("button", { name: "Seed complete estimate" }));
     confirmRateLock();
@@ -212,7 +215,14 @@ describe("ProductPricingContent rate lock workflow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Advance re-fired estimate" }));
 
     expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
-      "in-progress:complete,not-started",
+      "re-fire:complete,re-fire",
+    );
+    expect(screen.getByTestId("chip-trid-days")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Finish re-fired estimate" }));
+
+    expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
+      "complete:complete,complete",
     );
     expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
   });
