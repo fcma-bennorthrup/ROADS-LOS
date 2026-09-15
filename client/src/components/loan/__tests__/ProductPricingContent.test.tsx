@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProductPricingContent } from "../ProductPricingContent";
 import { ChecklistPanel } from "../ChecklistPanel";
+import { LoanHeader } from "../LoanHeader";
 import {
   ChecklistProvider,
   ChecklistStatus,
@@ -11,6 +12,10 @@ import {
   LoanActivityProvider,
   useActivityPanel,
 } from "@/contexts/loan-activity-context";
+
+vi.mock("@/components/GitHubSyncPanel", () => ({
+  GitHubSyncPanel: () => null,
+}));
 
 function WorkflowControls() {
   const { tasks, setActionStatus } = useChecklist();
@@ -69,6 +74,9 @@ function WorkflowControls() {
           )
           .join(";")}
       </span>
+      <button onClick={() => setActionStatus("Loan Estimate", 0, "complete")}>
+        Advance re-fired estimate
+      </button>
     </>
   );
 }
@@ -77,6 +85,7 @@ function renderProductPricing() {
   return render(
     <LoanActivityProvider>
       <ChecklistProvider>
+        <LoanHeader />
         <ProductPricingContent />
         <WorkflowControls />
         <ChecklistPanel onClose={() => undefined} />
@@ -102,7 +111,10 @@ describe("ProductPricingContent rate lock workflow", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     renderProductPricing();
 
+    expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
+    expect(screen.getByTestId("chip-ecoa-days")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Seed complete estimate" }));
+    expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
     confirmRateLock();
 
     const rateLock = screen.getByTestId("checklist-task-rate-lock");
@@ -120,6 +132,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     const estimateRows = within(loanEstimate).getAllByTestId(/^action-row-/);
     expect(within(estimateRows[0]).getByTestId("chip-re-fire")).toHaveTextContent("Re-fire");
     expect(within(estimateRows[1]).getByTestId("status-icon-not-started")).toBeInTheDocument();
+    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("3 TRID Days Remaining");
 
     const activityState = screen.getByTestId("activity-state");
     expect(activityState).toHaveTextContent(
@@ -145,6 +158,8 @@ describe("ProductPricingContent rate lock workflow", () => {
     expect(screen.getByTestId("activity-state")).not.toHaveTextContent("loan-estimate-generated");
     expect(screen.getByTestId("button-lock-rate")).toHaveTextContent("Lock Rate");
     expect(screen.queryByTestId("icon-rate-locked")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
+    expect(screen.getByTestId("chip-ecoa-days")).toBeInTheDocument();
     expect(screen.getByTestId("button-edit-product")).not.toBeDisabled();
   });
 
@@ -160,6 +175,11 @@ describe("ProductPricingContent rate lock workflow", () => {
         `${status}:${status},not-started`,
       );
       expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("2 of 3 Complete");
+      if (status === "re-fire") {
+        expect(screen.getByTestId("chip-trid-days")).toBeInTheDocument();
+      } else {
+        expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
+      }
     },
   );
 
@@ -180,5 +200,20 @@ describe("ProductPricingContent rate lock workflow", () => {
     );
     expect(screen.getByTestId("button-lock-rate")).toHaveTextContent("Update Rate Lock");
     expect(screen.getByTestId("icon-rate-locked")).toBeInTheDocument();
+    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("3 TRID Days Remaining");
+  });
+
+  it("hides the TRID chip when the re-fired Loan Estimate advances", () => {
+    renderProductPricing();
+    fireEvent.click(screen.getByRole("button", { name: "Seed complete estimate" }));
+    confirmRateLock();
+    expect(screen.getByTestId("chip-trid-days")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Advance re-fired estimate" }));
+
+    expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
+      "in-progress:complete,not-started",
+    );
+    expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
   });
 });

@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { useChecklist } from "@/contexts/checklist-context";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -82,6 +83,9 @@ export function LoanHeader({
 }: LoanHeaderProps) {
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [, navigate] = useLocation();
+  const { tasks } = useChecklist();
+  const showTridDaysRemaining =
+    tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
 
   const handleTabClick = (tab: string) => {
     setCurrentTab(tab);
@@ -115,6 +119,7 @@ export function LoanHeader({
           applicationType={applicationType}
           ecoaDaysRemaining={ecoaDaysRemaining}
           tridDaysRemaining={tridDaysRemaining}
+          showTridDaysRemaining={showTridDaysRemaining}
         />
         <TabNavigation
           activeTab={currentTab}
@@ -272,6 +277,7 @@ interface HeaderTextBlockProps {
   applicationType: string;
   ecoaDaysRemaining: number;
   tridDaysRemaining: number;
+  showTridDaysRemaining: boolean;
 }
 
 function HeaderTextBlock({
@@ -283,6 +289,7 @@ function HeaderTextBlock({
   applicationType,
   ecoaDaysRemaining,
   tridDaysRemaining,
+  showTridDaysRemaining,
 }: HeaderTextBlockProps) {
   return (
     <div
@@ -344,19 +351,21 @@ function HeaderTextBlock({
           {ecoaDaysRemaining} ECOA Days Remaining
         </span>
 
-        <span
-          className="body-200-strong inline-flex items-center"
-          style={{
-            backgroundColor: "var(--roads-bg-error-subtle)",
-            color: "var(--roads-text-error)",
-            height: "20px",
-            padding: "0 var(--roads-spacing-component-xs)",
-            borderRadius: "var(--roads-radius-2xs)",
-          }}
-          data-testid="chip-trid-days"
-        >
-          {tridDaysRemaining} TRID Days Remaining
-        </span>
+        {showTridDaysRemaining && (
+          <span
+            className="body-200-strong inline-flex items-center"
+            style={{
+              backgroundColor: "var(--roads-bg-error-subtle)",
+              color: "var(--roads-text-error)",
+              height: "20px",
+              padding: "0 var(--roads-spacing-component-xs)",
+              borderRadius: "var(--roads-radius-2xs)",
+            }}
+            data-testid="chip-trid-days"
+          >
+            {tridDaysRemaining} TRID Days Remaining
+          </span>
+        )}
       </div>
     </div>
   );
