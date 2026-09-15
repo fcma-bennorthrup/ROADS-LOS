@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollateralContent } from "../CollateralContent";
 import { ChecklistPanel } from "../ChecklistPanel";
@@ -7,6 +7,7 @@ import {
   LoanActivityProvider,
   useActivityPanel,
 } from "@/contexts/loan-activity-context";
+import { Toaster } from "@/components/ui/toaster";
 
 function ActivityState() {
   const { activityItems } = useActivityPanel();
@@ -25,9 +26,10 @@ function renderCollateral() {
   return render(
     <LoanActivityProvider>
       <ChecklistProvider>
-        <CollateralContent />
+        <CollateralContent loanNumber="246813579" borrowerName="Jordan Lee" />
         <ChecklistPanel onClose={() => undefined} />
         <ActivityState />
+        <Toaster />
       </ChecklistProvider>
     </LoanActivityProvider>,
   );
@@ -136,6 +138,19 @@ describe("CollateralContent Subject Property workflow", () => {
       expect(activity).toHaveTextContent(`${title}|${description}|September 14, 2026 at 2:35pm`);
       expect(activity).toHaveTextContent("2026-09-14T14:35:00.000Z");
     }
+
+    const toast = screen.getByTestId("toast-information");
+    expect(within(toast).getByText("Title Work")).toBeInTheDocument();
+    expect(
+      within(toast).getByText("Title Work cleared for Loan 246813579 | Jordan Lee"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByTestId("toast-information")).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss notification" }));
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+    expect(screen.queryByTestId("toast-information")).not.toBeInTheDocument();
   });
 
   it("keeps the address and collateral tasks unchanged when Reset Demo is cancelled", () => {

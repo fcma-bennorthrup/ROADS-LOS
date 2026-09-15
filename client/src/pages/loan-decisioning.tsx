@@ -102,7 +102,12 @@ export default function LoanDecisioningPage() {
             items={DECISIONING_NAV_ITEMS}
           />
           <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-            {activeNavItem === "Decisioning Summary" && <DecisioningSummaryContent />}
+            {activeNavItem === "Decisioning Summary" && (
+              <DecisioningSummaryContent
+                loanNumber={loan.loanNumber}
+                borrowerName={loan.primaryBorrowerName}
+              />
+            )}
             {activeNavItem === "Borrower Financials" && <BorrowerFinancialsContent />}
             {activeNavItem !== "Decisioning Summary" && activeNavItem !== "Borrower Financials" && <ComingSoon page={activeNavItem} />}
           </div>

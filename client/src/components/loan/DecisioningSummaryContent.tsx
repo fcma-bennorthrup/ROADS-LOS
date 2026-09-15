@@ -2,13 +2,23 @@ import { useEffect, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
+import { useToast } from "@/hooks/use-toast";
 
-export function DecisioningSummaryContent() {
+interface DecisioningSummaryContentProps {
+  loanNumber?: string;
+  borrowerName?: string;
+}
+
+export function DecisioningSummaryContent({
+  loanNumber = "123456789",
+  borrowerName = "Richard Jamerson",
+}: DecisioningSummaryContentProps = {}) {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
   const { setActionStatus, completeAction, getActionStatus, demoResetVersion } = useChecklist();
   const { addActivity } = useActivityPanel();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsDecisioned(false);
@@ -24,6 +34,8 @@ export function DecisioningSummaryContent() {
   };
 
   const handleDecisionLoan = () => {
+    if (getActionStatus("Loan Decision", 0) === "complete") return;
+
     const decisionedAt = new Date();
     setIsDecisioned(true);
     setActionStatus("Loan Decision", 0, "complete");
@@ -34,6 +46,12 @@ export function DecisioningSummaryContent() {
       description: "Loan is approved",
       timestamp: formatActivityTimestamp(decisionedAt),
       date: decisionedAt,
+    });
+    toast({
+      variant: "information",
+      title: "Loan Decision",
+      description: `Loan ${loanNumber} | ${borrowerName} is approved.`,
+      duration: 6000,
     });
   };
 

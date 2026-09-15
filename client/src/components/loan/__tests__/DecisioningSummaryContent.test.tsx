@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { useEffect } from "react";
 import { DecisioningSummaryContent } from "../DecisioningSummaryContent";
@@ -6,6 +6,7 @@ import { ChecklistPanel } from "../ChecklistPanel";
 import { LoanActivityPanel } from "../LoanActivityPanel";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";
+import { Toaster } from "@/components/ui/toaster";
 
 function OpenActivityPanel() {
   const { toggleActivityPanel } = useActivityPanel();
@@ -20,9 +21,10 @@ function renderDecisioningFlow() {
   return render(
     <LoanActivityProvider>
       <ChecklistProvider>
-        <DecisioningSummaryContent />
+        <DecisioningSummaryContent loanNumber="987654321" borrowerName="Avery Morgan" />
         <ChecklistPanel onClose={() => undefined} />
         <OpenActivityPanel />
+        <Toaster />
       </ChecklistProvider>
     </LoanActivityProvider>,
   );
@@ -146,7 +148,7 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     expect(within(letterRows[0]).getByTestId("chip-in-progress")).toHaveTextContent("In Progress");
     expect(within(letterRows[1]).getByTestId("status-icon-not-started")).toBeInTheDocument();
 
-    expect(screen.getAllByText("Loan Decision")).toHaveLength(2);
+    expect(screen.getAllByText("Loan Decision")).toHaveLength(3);
     expect(screen.getByText("Loan is approved")).toBeInTheDocument();
     expect(screen.getByText("September 10, 2026 at 4:32pm")).toBeInTheDocument();
     const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(
@@ -154,6 +156,25 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     );
     expect(activityItems).toHaveLength(5);
     expect(activityItems[0]).toHaveAttribute("data-testid", "activity-item-loan-decision");
+
+    const toast = screen.getByTestId("toast-information");
+    expect(toast).toHaveAttribute("role", "status");
+    expect(within(toast).getByText("Loan Decision")).toBeInTheDocument();
+    expect(
+      within(toast).getByText("Loan 987654321 | Avery Morgan is approved."),
+    ).toBeInTheDocument();
+    expect(within(toast).getByTestId("icon-toast-information")).toBeInTheDocument();
+    expect(screen.getAllByTestId("toast-information")).toHaveLength(1);
+    expect(screen.getByTestId("toast-viewport")).toHaveClass(
+      "sm:bottom-0",
+      "sm:right-0",
+      "sm:top-auto",
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(6300);
+    });
+    expect(screen.queryByTestId("toast-information")).not.toBeInTheDocument();
   });
 
   it("returns the mounted decisioning UI, checklist, and activity to the initial demo state", () => {

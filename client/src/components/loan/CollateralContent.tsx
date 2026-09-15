@@ -4,6 +4,7 @@ import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 function CollateralField({
   label,
@@ -483,9 +484,16 @@ function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
   };
 }
 
-function TaskButtonsSection() {
+function TaskButtonsSection({
+  loanNumber,
+  borrowerName,
+}: {
+  loanNumber: string;
+  borrowerName: string;
+}) {
   const { completeAction, getActionStatus } = useChecklist();
   const { addActivity } = useActivityPanel();
+  const { toast } = useToast();
 
   const handleCompleteAction = (button: (typeof TASK_BUTTON_ROWS)[number]["buttons"][number]) => {
     if (getActionStatus(button.taskName, button.actionIndex) === "complete") return;
@@ -499,6 +507,14 @@ function TaskButtonsSection() {
       timestamp: formatActivityTimestamp(completedAt),
       date: completedAt,
     });
+    if (button.taskName === "Title Work" && button.actionIndex === 2) {
+      toast({
+        variant: "information",
+        title: "Title Work",
+        description: `Title Work cleared for Loan ${loanNumber} | ${borrowerName}`,
+        duration: 6000,
+      });
+    }
   };
 
   return (
@@ -563,7 +579,15 @@ function TaskButtonsSection() {
   );
 }
 
-export function CollateralContent() {
+interface CollateralContentProps {
+  loanNumber?: string;
+  borrowerName?: string;
+}
+
+export function CollateralContent({
+  loanNumber = "123456789",
+  borrowerName = "Richard Jamerson",
+}: CollateralContentProps = {}) {
   const [location] = useLocation();
   const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
   const { demoResetVersion, getActionStatus, setActionStatus } = useChecklist();
@@ -782,7 +806,7 @@ export function CollateralContent() {
         />
       </div>
 
-      <TaskButtonsSection />
+      <TaskButtonsSection loanNumber={loanNumber} borrowerName={borrowerName} />
     </div>
   );
 }
