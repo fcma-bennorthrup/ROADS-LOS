@@ -88,6 +88,42 @@ function DemoStateControls() {
   );
 }
 
+function RefireLifecycleControls() {
+  const { completeAction, refireCompletedTask, setActionStatus, tasks } = useChecklist();
+  const taskStatuses = (taskName: string) => {
+    const task = tasks.find((candidate) => candidate.name === taskName);
+    return [task?.status, ...(task?.actions.map((action) => action.status) ?? [])].join(",");
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => {
+          setActionStatus("Early Disclosures", 0, "complete");
+          setActionStatus("Early Disclosures", 1, "complete");
+        }}
+      >
+        Complete enabled task
+      </button>
+      <button
+        onClick={() => refireCompletedTask("Early Disclosures", ["re-fire", "not-started"])}
+      >
+        Re-fire enabled task
+      </button>
+      <button onClick={() => completeAction("Early Disclosures", 0)}>
+        Advance enabled task
+      </button>
+      <button onClick={() => completeAction("Decision Letter", 0)}>
+        Advance unaffected task
+      </button>
+      <span data-testid="enabled-refire-statuses">
+        {taskStatuses("Early Disclosures")}
+      </span>
+      <span data-testid="unaffected-statuses">{taskStatuses("Decision Letter")}</span>
+    </>
+  );
+}
+
 function renderChecklist(extra?: React.ReactNode) {
   return render(
     <LoanActivityProvider>
@@ -178,6 +214,31 @@ describe("ChecklistPanel", () => {
     expect(within(rows[1]).getByTestId("status-icon-re-fire")).toBeInTheDocument();
     expect(within(rows[1]).getByTestId("chip-re-fire")).toHaveTextContent("Re-fire");
     expect(within(rows[1]).getByTestId("action-tracker-re-fire")).toBeInTheDocument();
+  });
+
+  it("keeps an explicitly enabled task in re-fire while remaining actions advance", () => {
+    renderChecklist(<RefireLifecycleControls />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Complete enabled task" }));
+    fireEvent.click(screen.getByRole("button", { name: "Re-fire enabled task" }));
+    expect(screen.getByTestId("enabled-refire-statuses")).toHaveTextContent(
+      "re-fire,re-fire,not-started",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Advance enabled task" }));
+    expect(screen.getByTestId("enabled-refire-statuses")).toHaveTextContent(
+      "re-fire,complete,re-fire",
+    );
+  });
+
+  it("keeps normal in-progress advancement for a task without full re-fire support", () => {
+    renderChecklist(<RefireLifecycleControls />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Advance unaffected task" }));
+
+    expect(screen.getByTestId("unaffected-statuses")).toHaveTextContent(
+      "in-progress,complete,in-progress",
+    );
   });
 
   it("cancels without changing checklist or activity state", () => {

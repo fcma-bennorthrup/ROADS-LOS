@@ -13,6 +13,7 @@ export interface ChecklistTask {
   name: string;
   status: ChecklistStatus;
   actions: ChecklistAction[];
+  supportsFullRefireLifecycle?: boolean;
 }
 
 const INITIAL_TASKS: ChecklistTask[] = [
@@ -51,6 +52,7 @@ const INITIAL_TASKS: ChecklistTask[] = [
   {
     name: "Loan Estimate",
     status: "not-started",
+    supportsFullRefireLifecycle: true,
     actions: [
       { label: "Action #1", description: "Generate loan estimate", status: "not-started" },
       { label: "Action #2", description: "Deliver loan estimate", status: "not-started" },
@@ -59,6 +61,7 @@ const INITIAL_TASKS: ChecklistTask[] = [
   {
     name: "Early Disclosures",
     status: "not-started",
+    supportsFullRefireLifecycle: true,
     actions: [
       { label: "Action #1", description: "Generate Early Disclosures", status: "not-started" },
       { label: "Action #2", description: "Deliver Early Disclosures", status: "not-started" },
@@ -208,9 +211,9 @@ interface ChecklistContextValue {
   setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
    * Mark an action complete and automatically advance the next action to
-   * in-progress. During a Loan Estimate re-fire cycle, advance all subsequent
-   * incomplete actions to re-fire instead. If the action is already complete,
-   * this is a no-op.
+   * in-progress. For tasks configured for the full re-fire lifecycle, advance
+   * all subsequent incomplete actions to re-fire instead. If the action is
+   * already complete, this is a no-op.
    */
   completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
@@ -276,14 +279,14 @@ function ChecklistStateProvider({
         const completedAction = task.actions[actionIndex];
         if (!completedAction || completedAction.status === "complete") return task;
 
-        const continuesLoanEstimateRefire =
-          task.name === "Loan Estimate" &&
+        const continuesFullRefireLifecycle =
+          task.supportsFullRefireLifecycle === true &&
           task.status === "re-fire" &&
           completedAction.status === "re-fire";
         const updatedActions = task.actions.map((action, i) => {
           if (i === actionIndex) return { ...action, status: "complete" as ChecklistStatus };
           if (
-            continuesLoanEstimateRefire &&
+            continuesFullRefireLifecycle &&
             i > actionIndex &&
             action.status !== "complete"
           ) {
