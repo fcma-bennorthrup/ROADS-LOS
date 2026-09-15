@@ -12,6 +12,7 @@ import {
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
+import { useToast } from "@/hooks/use-toast";
 
 const rateLockLetterPdf = new URL(
   "../../../../attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1776876397430.pdf",
@@ -142,7 +143,15 @@ function ProductField({
   );
 }
 
-export function ProductPricingContent() {
+interface ProductPricingContentProps {
+  loanNumber?: string;
+  borrowerName?: string;
+}
+
+export function ProductPricingContent({
+  loanNumber = "123456789",
+  borrowerName = "Richard Jamerson",
+}: ProductPricingContentProps = {}) {
   const {
     demoResetVersion,
     getActionStatus,
@@ -150,6 +159,7 @@ export function ProductPricingContent() {
     setActionStatus,
   } = useChecklist();
   const { addActivity } = useActivityPanel();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [productType, setProductType] = useState("fixed");
   const [selectedProductId, setSelectedProductId] = useState("4370");
@@ -212,6 +222,7 @@ export function ProductPricingContent() {
   };
 
   const handleLockRate = () => {
+    const completesRateLockAction = getActionStatus("Rate Lock", 1) !== "complete";
     const lockedAt = new Date();
     setIsRateLocked(true);
     setIsEditing(false);
@@ -226,6 +237,14 @@ export function ProductPricingContent() {
       timestamp: formatActivityTimestamp(lockedAt),
       date: lockedAt,
     });
+    if (completesRateLockAction) {
+      toast({
+        variant: "information",
+        title: "Rate Lock",
+        description: `Rate locked for Loan ${loanNumber} | ${borrowerName}`,
+        duration: 6000,
+      });
+    }
   };
 
   return (

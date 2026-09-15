@@ -12,6 +12,7 @@ import {
   LoanActivityProvider,
   useActivityPanel,
 } from "@/contexts/loan-activity-context";
+import { Toaster } from "@/components/ui/toaster";
 
 vi.mock("@/components/GitHubSyncPanel", () => ({
   GitHubSyncPanel: () => null,
@@ -89,9 +90,10 @@ function renderProductPricing() {
     <LoanActivityProvider>
       <ChecklistProvider>
         <LoanHeader />
-        <ProductPricingContent />
+        <ProductPricingContent loanNumber="135792468" borrowerName="Morgan Rivera" />
         <WorkflowControls />
         <ChecklistPanel onClose={() => undefined} />
+        <Toaster />
       </ChecklistProvider>
     </LoanActivityProvider>,
   );
@@ -119,6 +121,11 @@ describe("ProductPricingContent rate lock workflow", () => {
     fireEvent.click(screen.getByRole("button", { name: "Seed complete estimate" }));
     expect(screen.queryByTestId("chip-trid-days")).not.toBeInTheDocument();
     confirmRateLock();
+    const rateLockToast = screen.getByTestId("toast-information");
+    expect(within(rateLockToast).getByText("Rate Lock")).toBeInTheDocument();
+    expect(
+      within(rateLockToast).getByText("Rate locked for Loan 135792468 | Morgan Rivera"),
+    ).toBeInTheDocument();
 
     const rateLock = screen.getByTestId("checklist-task-rate-lock");
     expect(rateLock).toHaveTextContent("2 of 3 Complete");
@@ -145,6 +152,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     expect(activityState).toHaveTextContent("loan-estimate-delivered");
 
     confirmRateLock();
+    expect(screen.getByTestId("toast-information")).toBe(rateLockToast);
     expect(screen.getByTestId("activity-state").textContent?.match(/rate-lock\|/g)).toHaveLength(1);
     expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
       "re-fire:re-fire,not-started",

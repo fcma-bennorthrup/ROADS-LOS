@@ -114,7 +114,12 @@ export default function LoanOriginationPage() {
                 borrowerName={loan.primaryBorrowerName}
               />
             )}
-            {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
+            {activeNavItem === "Product & Pricing" && (
+              <ProductPricingContent
+                loanNumber={loan.loanNumber}
+                borrowerName={loan.primaryBorrowerName}
+              />
+            )}
             {activeNavItem === "Loan Details" && (
               <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
             )}
