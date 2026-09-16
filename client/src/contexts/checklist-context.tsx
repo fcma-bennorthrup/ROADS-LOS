@@ -1,6 +1,8 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useLocation } from "wouter";
+import { dismissToasts } from "@/hooks/use-toast";
 
-export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "complete";
+export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
 export interface ChecklistAction {
   label: string;
@@ -12,6 +14,7 @@ export interface ChecklistTask {
   name: string;
   status: ChecklistStatus;
   actions: ChecklistAction[];
+  supportsFullRefireLifecycle?: boolean;
 }
 
 const INITIAL_TASKS: ChecklistTask[] = [
@@ -33,58 +36,36 @@ const INITIAL_TASKS: ChecklistTask[] = [
     ],
   },
   {
-    name: "HMDA",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Collect HMDA data", status: "complete" },
-      { label: "Action #2", description: "Submit HMDA report", status: "complete" },
-    ],
-  },
-  {
     name: "Loan Decision",
-    status: "complete",
+    status: "not-started",
     actions: [
-      { label: "Action #1", description: "Record loan decision", status: "complete" },
+      { label: "Action #1", description: "Record loan decision", status: "not-started" },
     ],
   },
   {
     name: "Decision Letter",
-    status: "complete",
+    status: "not-started",
     actions: [
-      { label: "Action #1", description: "Generate decision letter", status: "complete" },
-      { label: "Action #2", description: "Send decision letter", status: "complete" },
-    ],
-  },
-  {
-    name: "Required Docs",
-    status: "complete",
-    actions: [
-      { label: "Action #1", description: "Request required documents", status: "complete" },
-      { label: "Action #2", description: "Verify received documents", status: "complete" },
-    ],
-  },
-  {
-    name: "Fees",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Enter loan fees", status: "complete" },
-      { label: "Action #2", description: "Review and finalize fees", status: "in-progress" },
-    ],
-  },
-  {
-    name: "Property Taxes",
-    status: "in-progress",
-    actions: [
-      { label: "Action #1", description: "Pull property tax records", status: "complete" },
-      { label: "Action #2", description: "Verify tax amounts", status: "in-progress" },
+      { label: "Action #1", description: "Generate decision letter", status: "not-started" },
+      { label: "Action #2", description: "Send decision letter", status: "not-started" },
     ],
   },
   {
     name: "Loan Estimate",
-    status: "in-progress",
+    status: "not-started",
+    supportsFullRefireLifecycle: true,
     actions: [
-      { label: "Action #1", description: "Generate loan estimate", status: "complete" },
-      { label: "Action #2", description: "Deliver loan estimate", status: "in-progress" },
+      { label: "Action #1", description: "Generate loan estimate", status: "not-started" },
+      { label: "Action #2", description: "Deliver loan estimate", status: "not-started" },
+    ],
+  },
+  {
+    name: "Early Disclosures",
+    status: "not-started",
+    supportsFullRefireLifecycle: true,
+    actions: [
+      { label: "Action #1", description: "Generate Early Disclosures", status: "not-started" },
+      { label: "Action #2", description: "Deliver Early Disclosures", status: "not-started" },
     ],
   },
   {
@@ -111,33 +92,9 @@ const INITIAL_TASKS: ChecklistTask[] = [
     name: "Rate Lock",
     status: "not-started",
     actions: [
-      { label: "Action #1", description: "Confirm rate with borrower", status: "not-started" },
-      { label: "Action #2", description: "Lock rate", status: "not-started" },
-      { label: "Action #3", description: "Send rate lock letter", status: "not-started" },
-    ],
-  },
-  {
-    name: "PTF Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify prior-to-funding conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear prior-to-funding conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Closing Conditions",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Identify closing conditions", status: "not-started" },
-      { label: "Action #2", description: "Clear closing conditions", status: "not-started" },
-    ],
-  },
-  {
-    name: "Prelim CD",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Prepare preliminary closing disclosure", status: "not-started" },
-      { label: "Action #2", description: "Deliver preliminary closing disclosure", status: "not-started" },
+      { label: "Action #1", description: "Initiate Rate Lock", status: "not-started" },
+      { label: "Action #2", description: "Generate Rate Lock Letter", status: "not-started" },
+      { label: "Action #3", description: "Deliver Rate Lock Letter", status: "not-started" },
     ],
   },
   {
@@ -184,13 +141,6 @@ const INITIAL_TASKS: ChecklistTask[] = [
     ],
   },
   {
-    name: "Booking",
-    status: "not-started",
-    actions: [
-      { label: "Action #1", description: "Book loan in core system", status: "not-started" },
-    ],
-  },
-  {
     name: "Loan Certification",
     status: "not-started",
     actions: [
@@ -200,41 +150,149 @@ const INITIAL_TASKS: ChecklistTask[] = [
   },
 ];
 
+const CHECKLIST_STORAGE_PREFIX = "loan-checklist-statuses";
+const CHECKLIST_STATUSES: ChecklistStatus[] = [
+  "not-started",
+  "in-progress",
+  "blocked",
+  "re-fire",
+  "complete",
+];
+
+function getLoanStorageKey(location: string): string {
+  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  return `${CHECKLIST_STORAGE_PREFIX}:${loanId}`;
+}
+
+function loadTasks(storageKey: string): ChecklistTask[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, unknown>;
+
+    return INITIAL_TASKS.map((task) => {
+      const statuses = saved[task.name];
+      if (!Array.isArray(statuses)) {
+        return { ...task, actions: task.actions.map((action) => ({ ...action })) };
+      }
+
+      const actions = task.actions.map((action, index) => {
+        const status = statuses[index];
+        return {
+          ...action,
+          status:
+            typeof status === "string" && CHECKLIST_STATUSES.includes(status as ChecklistStatus)
+              ? (status as ChecklistStatus)
+              : action.status,
+        };
+      });
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    });
+  } catch {
+    return INITIAL_TASKS.map((task) => ({
+      ...task,
+      actions: task.actions.map((action) => ({ ...action })),
+    }));
+  }
+}
+
 /** Derive the parent task status from its actions. */
 function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
   if (actions.every((a) => a.status === "complete")) return "complete";
   if (actions.some((a) => a.status === "blocked")) return "blocked";
-  if (actions.some((a) => a.status === "in-progress" || a.status === "complete")) return "in-progress";
+  if (actions.some((a) => a.status === "re-fire")) return "re-fire";
+  if (actions.some((a) => a.status === "in-progress" || a.status === "complete")) {
+    return "in-progress";
+  }
   return "not-started";
 }
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
+  demoResetVersion: number;
+  /** Set an action to an explicit status and derive its parent task status. */
+  setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
    * Mark an action complete and automatically advance the next action to
-   * in-progress. If the action is already complete, this is a no-op.
+   * in-progress. For tasks configured for the full re-fire lifecycle, advance
+   * all subsequent incomplete actions to re-fire instead. If the action is
+   * already complete, this is a no-op.
    */
   completeAction: (taskName: string, actionIndex: number) => void;
   /** Read the current status of a specific action. */
   getActionStatus: (taskName: string, actionIndex: number) => ChecklistStatus;
+  /** Reopen a completed task with explicit action statuses. */
+  refireCompletedTask: (taskName: string, actionStatuses: ChecklistStatus[]) => void;
   /**
    * Reset the given task names back to their initial not-started state so
    * demos can be rerun without a full page reload.
    */
   resetTasks: (taskNames: string[]) => void;
+  /** Reset tasks and notify mounted demo surfaces to clear their local state. */
+  resetDemoTasks: (taskNames: string[]) => void;
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
 
-export function ChecklistProvider({ children }: { children: ReactNode }) {
-  const [tasks, setTasks] = useState<ChecklistTask[]>(INITIAL_TASKS);
+function ChecklistStateProvider({
+  children,
+  storageKey,
+}: {
+  children: ReactNode;
+  storageKey: string;
+}) {
+  const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
+  const [demoResetVersion, setDemoResetVersion] = useState(0);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify(
+          Object.fromEntries(
+            tasks.map((task) => [task.name, task.actions.map((action) => action.status)]),
+          ),
+        ),
+      );
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+  }, [storageKey, tasks]);
+
+  const setActionStatus = (
+    taskName: string,
+    actionIndex: number,
+    status: ChecklistStatus,
+  ) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.name !== taskName) return task;
+        const updatedActions = task.actions.map((action, index) =>
+          index === actionIndex ? { ...action, status } : action,
+        );
+        return { ...task, actions: updatedActions, status: deriveTaskStatus(updatedActions) };
+      }),
+    );
+  };
 
   const completeAction = (taskName: string, actionIndex: number) => {
     setTasks((prev) =>
       prev.map((task) => {
         if (task.name !== taskName) return task;
+        const completedAction = task.actions[actionIndex];
+        if (!completedAction || completedAction.status === "complete") return task;
+
+        const continuesFullRefireLifecycle =
+          task.supportsFullRefireLifecycle === true &&
+          task.status === "re-fire" &&
+          completedAction.status === "re-fire";
         const updatedActions = task.actions.map((action, i) => {
           if (i === actionIndex) return { ...action, status: "complete" as ChecklistStatus };
+          if (
+            continuesFullRefireLifecycle &&
+            i > actionIndex &&
+            action.status !== "complete"
+          ) {
+            return { ...action, status: "re-fire" as ChecklistStatus };
+          }
           if (i === actionIndex + 1 && action.status === "not-started")
             return { ...action, status: "in-progress" as ChecklistStatus };
           return action;
@@ -249,6 +307,22 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     return task?.actions[actionIndex]?.status ?? "not-started";
   };
 
+  const refireCompletedTask = (
+    taskName: string,
+    actionStatuses: ChecklistStatus[],
+  ) => {
+    setTasks((prev) =>
+      prev.map((task) => {
+        if (task.name !== taskName || task.status !== "complete") return task;
+        const updatedActions = task.actions.map((action, index) => ({
+          ...action,
+          status: actionStatuses[index] ?? action.status,
+        }));
+        return { ...task, actions: updatedActions, status: deriveTaskStatus(updatedActions) };
+      }),
+    );
+  };
+
   const resetTasks = (taskNames: string[]) => {
     setTasks((prev) =>
       prev.map((task) => {
@@ -259,10 +333,38 @@ export function ChecklistProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const resetDemoTasks = (taskNames: string[]) => {
+    dismissToasts();
+    resetTasks(taskNames);
+    setDemoResetVersion((version) => version + 1);
+  };
+
   return (
-    <ChecklistContext.Provider value={{ tasks, completeAction, getActionStatus, resetTasks }}>
+    <ChecklistContext.Provider
+      value={{
+        tasks,
+        demoResetVersion,
+        setActionStatus,
+        completeAction,
+        getActionStatus,
+        refireCompletedTask,
+        resetTasks,
+        resetDemoTasks,
+      }}
+    >
       {children}
     </ChecklistContext.Provider>
+  );
+}
+
+export function ChecklistProvider({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
+  const storageKey = getLoanStorageKey(location);
+
+  return (
+    <ChecklistStateProvider key={storageKey} storageKey={storageKey}>
+      {children}
+    </ChecklistStateProvider>
   );
 }
 

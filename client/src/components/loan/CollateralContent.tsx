@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { formatActivityTimestamp } from "@/lib/loan-activity";
+import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 function CollateralField({
   label,
@@ -347,6 +351,31 @@ const EMPTY_ADDRESS: AddressData = {
   zip: "",
 };
 
+const SUBJECT_PROPERTY_STORAGE_PREFIX = "loan-subject-property";
+
+function getSubjectPropertyStorageKey(location: string): string {
+  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  return `${SUBJECT_PROPERTY_STORAGE_PREFIX}:${loanId}`;
+}
+
+function loadSubjectProperty(storageKey: string): AddressData {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as unknown;
+    if (
+      typeof saved === "object" &&
+      saved !== null &&
+      Object.keys(EMPTY_ADDRESS).every(
+        (key) => key in saved && typeof (saved as Record<string, unknown>)[key] === "string",
+      )
+    ) {
+      return { ...(saved as AddressData) };
+    }
+  } catch {
+    // Fall through to the prototype defaults.
+  }
+  return { ...DEFAULT_ADDRESS };
+}
+
 const EMPTY_EVALUATION: EvaluationData = {
   estimatedValue: "",
   evaluationDate: "",
@@ -363,22 +392,71 @@ const EMPTY_FULL_EVAL: FullEvaluationData = { ...EMPTY_ADDRESS, ...EMPTY_EVALUAT
 // Maps each Collateral task button to a checklist task name + action index.
 const TASK_BUTTON_ROWS: {
   label: string;
-  buttons: { label: string; taskName: string; actionIndex: number }[];
+  buttons: {
+    label: string;
+    taskName: string;
+    actionIndex: number;
+    activityId: string;
+    activityTitle: string;
+    activityDescription: string;
+  }[];
 }[] = [
   {
     label: "Title",
     buttons: [
-      { label: "Order Title",  taskName: "Title Work", actionIndex: 0 },
-      { label: "Submit Title", taskName: "Title Work", actionIndex: 1 },
-      { label: "Review Title", taskName: "Title Work", actionIndex: 2 },
+      {
+        label: "Order Title",
+        taskName: "Title Work",
+        actionIndex: 0,
+        activityId: "title-work-requested",
+        activityTitle: "Title Work Requested",
+        activityDescription: "Title work requested",
+      },
+      {
+        label: "Submit Title",
+        taskName: "Title Work",
+        actionIndex: 1,
+        activityId: "title-work-submitted",
+        activityTitle: "Title Work Submitted",
+        activityDescription: "Title work submitted for review",
+      },
+      {
+        label: "Review Title",
+        taskName: "Title Work",
+        actionIndex: 2,
+        activityId: "title-work-cleared",
+        activityTitle: "Title Work Cleared",
+        activityDescription: "Title work cleared",
+      },
     ],
   },
   {
     label: "Evaluation",
     buttons: [
-      { label: "Order Evaluation",    taskName: "Appraisal Evaluation", actionIndex: 0 },
-      { label: "Complete Evaluation", taskName: "Appraisal Evaluation", actionIndex: 1 },
-      { label: "Deliver Evaluation",  taskName: "Appraisal Evaluation", actionIndex: 2 },
+      {
+        label: "Order Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 0,
+        activityId: "appraisal-evaluation-ordered",
+        activityTitle: "Appraisal Evaluation Ordered",
+        activityDescription: "Appraisal evaluation ordered",
+      },
+      {
+        label: "Complete Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 1,
+        activityId: "appraisal-evaluation-complete",
+        activityTitle: "Appraisal Evaluation Complete",
+        activityDescription: "Appraisal evaluation complete",
+      },
+      {
+        label: "Deliver Evaluation",
+        taskName: "Appraisal Evaluation",
+        actionIndex: 2,
+        activityId: "appraisal-evaluation-delivered",
+        activityTitle: "Appraisal Evaluation Delivered",
+        activityDescription: "Appraisal evaluation delivered to borrower",
+      },
     ],
   },
 ];
@@ -406,12 +484,38 @@ function taskButtonStyle(status: ChecklistStatus): React.CSSProperties {
   };
 }
 
-const COLLATERAL_TASK_NAMES = TASK_BUTTON_ROWS.map((r) =>
-  r.buttons[0].taskName
-);
+function TaskButtonsSection({
+  loanNumber,
+  borrowerName,
+}: {
+  loanNumber: string;
+  borrowerName: string;
+}) {
+  const { completeAction, getActionStatus } = useChecklist();
+  const { addActivity } = useActivityPanel();
+  const { toast } = useToast();
 
-function TaskButtonsSection() {
-  const { completeAction, getActionStatus, resetTasks } = useChecklist();
+  const handleCompleteAction = (button: (typeof TASK_BUTTON_ROWS)[number]["buttons"][number]) => {
+    if (getActionStatus(button.taskName, button.actionIndex) === "complete") return;
+
+    const completedAt = new Date();
+    completeAction(button.taskName, button.actionIndex);
+    addActivity({
+      id: button.activityId,
+      title: button.activityTitle,
+      description: button.activityDescription,
+      timestamp: formatActivityTimestamp(completedAt),
+      date: completedAt,
+    });
+    if (button.taskName === "Title Work" && button.actionIndex === 2) {
+      toast({
+        variant: "information",
+        title: "Title Work",
+        description: `Title Work cleared for Loan ${loanNumber} | ${borrowerName}`,
+        duration: 6000,
+      });
+    }
+  };
 
   return (
     <div
@@ -419,30 +523,13 @@ function TaskButtonsSection() {
       style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid="section-task-buttons"
     >
-      <div
-        className="flex items-center justify-between"
-        style={{ padding: "0 var(--roads-spacing-component-3xl)" }}
-      >
+      <div style={{ padding: "0 var(--roads-spacing-component-3xl)" }}>
         <h2
           className="headline-300"
           style={{ color: "var(--roads-text-primary)" }}
         >
           Task Buttons
         </h2>
-        <button
-          onClick={() => resetTasks(COLLATERAL_TASK_NAMES)}
-          className="body-200-strong"
-          style={{
-            backgroundColor: "var(--roads-bg-primary)",
-            border: "1px solid var(--roads-border-dark)",
-            borderRadius: "var(--roads-radius-2xs)",
-            padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-            color: "var(--roads-text-primary)",
-          }}
-          data-testid="button-reset-checklist"
-        >
-          Reset
-        </button>
       </div>
       <div
         className="flex flex-col"
@@ -471,7 +558,7 @@ function TaskButtonsSection() {
                 <button
                   key={btn.label}
                   className="body-200-strong"
-                  onClick={() => !isComplete && completeAction(btn.taskName, btn.actionIndex)}
+                  onClick={() => handleCompleteAction(btn)}
                   disabled={isComplete}
                   style={{
                     borderRadius: "var(--roads-radius-2xs)",
@@ -492,10 +579,25 @@ function TaskButtonsSection() {
   );
 }
 
-export function CollateralContent() {
+interface CollateralContentProps {
+  loanNumber?: string;
+  borrowerName?: string;
+}
+
+export function CollateralContent({
+  loanNumber = "123456789",
+  borrowerName = "Richard Jamerson",
+}: CollateralContentProps = {}) {
+  const [location] = useLocation();
+  const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
+  const { demoResetVersion, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressFields, setAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
-  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>({ ...DEFAULT_ADDRESS });
+  const [addressFields, setAddressFields] = useState<AddressData>(() =>
+    loadSubjectProperty(subjectPropertyStorageKey),
+  );
+  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>(() =>
+    loadSubjectProperty(subjectPropertyStorageKey),
+  );
 
   const [isSplit, setIsSplit] = useState(false);
   const [activeEvalTab, setActiveEvalTab] = useState(1);
@@ -509,6 +611,35 @@ export function CollateralContent() {
 
   const updateAddressField = (key: keyof AddressData) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
+  };
+
+  useEffect(() => {
+    if (demoResetVersion === 0) return;
+    const clearedAddress = { ...EMPTY_ADDRESS };
+    setAddressFields(clearedAddress);
+    setSavedAddressFields(clearedAddress);
+    setIsEditingAddress(false);
+    try {
+      localStorage.setItem(subjectPropertyStorageKey, JSON.stringify(clearedAddress));
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+  }, [demoResetVersion, subjectPropertyStorageKey]);
+
+  const handleAddressSave = () => {
+    const savedAddress = { ...addressFields };
+    setSavedAddressFields(savedAddress);
+    setIsEditingAddress(false);
+    try {
+      localStorage.setItem(subjectPropertyStorageKey, JSON.stringify(savedAddress));
+    } catch {
+      // The prototype remains usable when browser storage is unavailable.
+    }
+    for (const taskName of ["Title Work", "Appraisal Evaluation"]) {
+      if (getActionStatus(taskName, 0) === "not-started") {
+        setActionStatus(taskName, 0, "in-progress");
+      }
+    }
   };
 
   const activeEvalFields = activeEvalTab === 1 ? eval1Fields : eval2Fields;
@@ -581,7 +712,7 @@ export function CollateralContent() {
         <EditControls
           isEditing={isEditingAddress}
           onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}
-          onSave={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(false); }}
+          onSave={handleAddressSave}
           onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
           testIdPrefix="address"
         />
@@ -675,7 +806,7 @@ export function CollateralContent() {
         />
       </div>
 
-      <TaskButtonsSection />
+      <TaskButtonsSection loanNumber={loanNumber} borrowerName={borrowerName} />
     </div>
   );
 }

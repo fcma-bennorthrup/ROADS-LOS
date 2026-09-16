@@ -108,8 +108,18 @@ export default function LoanOriginationPage() {
         <div className="flex flex-1 min-h-0">
           <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
           <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-            {activeNavItem === "Collateral" && <CollateralContent />}
-            {activeNavItem === "Product & Pricing" && <ProductPricingContent />}
+            {activeNavItem === "Collateral" && (
+              <CollateralContent
+                loanNumber={loan.loanNumber}
+                borrowerName={loan.primaryBorrowerName}
+              />
+            )}
+            {activeNavItem === "Product & Pricing" && (
+              <ProductPricingContent
+                loanNumber={loan.loanNumber}
+                borrowerName={loan.primaryBorrowerName}
+              />
+            )}
             {activeNavItem === "Loan Details" && (
               <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
             )}

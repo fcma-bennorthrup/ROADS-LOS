@@ -29,44 +29,43 @@ function renderPanel() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("LoanActivityPanel – search filter", () => {
-  it("renders all 7 items when search is empty", () => {
+  it("renders the four remaining approved items when search is empty", () => {
     renderPanel();
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(7);
+    expect(items.length).toBe(4);
+    expect(screen.queryByText("Appraisal Requested")).not.toBeInTheDocument();
+    expect(screen.queryByText("Loan Decision")).not.toBeInTheDocument();
+    expect(screen.queryByText("Document Generated")).not.toBeInTheDocument();
   });
 
-  it("narrows results by title (case-insensitive)", async () => {
+  it("does not return the removed appraisal activity", async () => {
     const user = userEvent.setup();
     renderPanel();
 
     await user.type(screen.getByTestId("input-activity-search"), "appraisal");
 
-    const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(1);
-    expect(within(items[0]).getByText("Appraisal Requested")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
+    expect(within(screen.getByTestId("activity-list")).queryAllByTestId(/^activity-item-/)).toHaveLength(0);
   });
 
-  it("narrows results by description (case-insensitive)", async () => {
+  it("does not return the removed Loan Estimate activity", async () => {
     const user = userEvent.setup();
     renderPanel();
 
-    // "loan estimate" appears only in the description of item 3
     await user.type(screen.getByTestId("input-activity-search"), "LOAN ESTIMATE");
 
-    const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(1);
-    expect(within(items[0]).getByText("Document Generated")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
   });
 
   it("matches partial strings and returns multiple results", async () => {
     const user = userEvent.setup();
     renderPanel();
 
-    // "document" matches titles of "Document Generated" and "Document Received"
     await user.type(screen.getByTestId("input-activity-search"), "document");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(2);
+    expect(items.length).toBe(1);
+    expect(within(items[0]).getByText("Document Received")).toBeInTheDocument();
   });
 
   it("restores the full list when search input is cleared", async () => {
@@ -74,11 +73,11 @@ describe("LoanActivityPanel – search filter", () => {
     renderPanel();
     const input = screen.getByTestId("input-activity-search");
 
-    await user.type(input, "appraisal");
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
+    await user.type(input, "loan decision");
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
 
     await user.clear(input);
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(7);
+    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(4);
   });
 
   it("shows 'No results found' empty state when nothing matches", async () => {
@@ -93,6 +92,15 @@ describe("LoanActivityPanel – search filter", () => {
   });
 });
 
+describe("LoanActivityPanel – activity actions", () => {
+  it("keeps actions for the remaining document and credit activities", () => {
+    renderPanel();
+
+    expect(screen.getAllByText("View Document")).toHaveLength(1);
+    expect(screen.getByText("View Credit Report")).toBeInTheDocument();
+  });
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Sort order
 // ─────────────────────────────────────────────────────────────────────────────
@@ -102,8 +110,8 @@ describe("LoanActivityPanel – sort order", () => {
     renderPanel();
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
 
-    // Item 1 (July 9) is newest → first; Item 7 (July 2, 10:05) is oldest → last
-    expect(items[0]).toHaveAttribute("data-testid", "activity-item-1");
+    // Item 2 (July 8) is newest → first; Item 7 (July 2, 10:05) is oldest → last
+    expect(items[0]).toHaveAttribute("data-testid", "activity-item-2");
     expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-7");
   });
 
@@ -114,9 +122,9 @@ describe("LoanActivityPanel – sort order", () => {
     await user.selectOptions(screen.getByTestId("select-sort"), "oldest");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    // Item 7 (July 2, 10:05) is oldest → first; Item 1 (July 9) is newest → last
+    // Item 7 (July 2, 10:05) is oldest → first; Item 2 (July 8) is newest → last
     expect(items[0]).toHaveAttribute("data-testid", "activity-item-7");
-    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-2");
   });
 
   it("restores newest-first when toggled back to 'Newest'", async () => {
@@ -128,7 +136,7 @@ describe("LoanActivityPanel – sort order", () => {
     await user.selectOptions(select, "newest");
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items[0]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[0]).toHaveAttribute("data-testid", "activity-item-2");
     expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-7");
   });
 });
@@ -188,15 +196,15 @@ describe("LoanActivityPanel – search and sort combined", () => {
     // Set sort to oldest first, then filter, then clear
     await user.selectOptions(screen.getByTestId("select-sort"), "oldest");
     const input = screen.getByTestId("input-activity-search");
-    await user.type(input, "appraisal");
-    expect(within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/).length).toBe(1);
+    await user.type(input, "loan decision");
+    expect(screen.getByTestId("activity-no-results")).toBeInTheDocument();
 
     await user.clear(input);
 
     const items = within(screen.getByTestId("activity-list")).getAllByTestId(/^activity-item-/);
-    expect(items.length).toBe(7);
+    expect(items.length).toBe(4);
     // Still oldest-first
     expect(items[0]).toHaveAttribute("data-testid", "activity-item-7");
-    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-1");
+    expect(items[items.length - 1]).toHaveAttribute("data-testid", "activity-item-2");
   });
 });

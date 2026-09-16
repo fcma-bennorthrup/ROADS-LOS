@@ -1,9 +1,91 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useChecklist } from "@/contexts/checklist-context";
+import { useActivityPanel } from "@/contexts/loan-activity-context";
+import { formatActivityTimestamp } from "@/lib/loan-activity";
+import { useToast } from "@/hooks/use-toast";
 
-export function DecisioningSummaryContent() {
+interface DecisioningSummaryContentProps {
+  loanNumber?: string;
+  borrowerName?: string;
+}
+
+export function DecisioningSummaryContent({
+  loanNumber = "123456789",
+  borrowerName = "Richard Jamerson",
+}: DecisioningSummaryContentProps = {}) {
   const [isDecisioned, setIsDecisioned] = useState(false);
   const [letterGenerated, setLetterGenerated] = useState(false);
   const [creditPulled, setCreditPulled] = useState(false);
+  const { setActionStatus, completeAction, getActionStatus, demoResetVersion } = useChecklist();
+  const { addActivity } = useActivityPanel();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setIsDecisioned(false);
+    setLetterGenerated(false);
+    setCreditPulled(false);
+  }, [demoResetVersion]);
+
+  const handlePullCredit = () => {
+    setCreditPulled(true);
+    if (getActionStatus("Loan Decision", 0) !== "complete") {
+      setActionStatus("Loan Decision", 0, "in-progress");
+    }
+  };
+
+  const handleDecisionLoan = () => {
+    if (getActionStatus("Loan Decision", 0) === "complete") return;
+
+    const decisionedAt = new Date();
+    setIsDecisioned(true);
+    setActionStatus("Loan Decision", 0, "complete");
+    setActionStatus("Decision Letter", 0, "in-progress");
+    addActivity({
+      id: "loan-decision",
+      title: "Loan Decision",
+      description: "Loan is approved",
+      timestamp: formatActivityTimestamp(decisionedAt),
+      date: decisionedAt,
+    });
+    toast({
+      variant: "information",
+      title: "Loan Decision",
+      description: `Loan ${loanNumber} | ${borrowerName} is approved.`,
+      duration: 6000,
+    });
+  };
+
+  const handleGenerateDecisionLetter = () => {
+    setLetterGenerated(true);
+    if (getActionStatus("Decision Letter", 0) === "complete") return;
+
+    const generatedAt = new Date();
+    completeAction("Decision Letter", 0);
+    addActivity({
+      id: "decision-letter-generated",
+      title: "Document Generated",
+      description: "Decision letter generated",
+      timestamp: formatActivityTimestamp(generatedAt),
+      date: generatedAt,
+    });
+  };
+
+  const handleDeliverDecisionLetter = () => {
+    if (!letterGenerated || getActionStatus("Decision Letter", 1) === "complete") return;
+
+    const deliveredAt = new Date();
+    setActionStatus("Decision Letter", 1, "complete");
+    if (getActionStatus("Loan Estimate", 0) === "not-started") {
+      setActionStatus("Loan Estimate", 0, "in-progress");
+    }
+    addActivity({
+      id: "decision-letter-delivered",
+      title: "Document Delivered",
+      description: "Decision letter delivered",
+      timestamp: formatActivityTimestamp(deliveredAt),
+      date: deliveredAt,
+    });
+  };
 
   return (
     <div
@@ -44,7 +126,7 @@ export function DecisioningSummaryContent() {
           style={{ gap: "var(--roads-spacing-component-l)" }}
         >
           <button
-            onClick={() => setIsDecisioned(true)}
+            onClick={handleDecisionLoan}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-action)",
@@ -59,7 +141,7 @@ export function DecisioningSummaryContent() {
             Decision Loan
           </button>
           <button
-            onClick={() => setLetterGenerated(true)}
+            onClick={handleGenerateDecisionLetter}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
@@ -92,6 +174,22 @@ export function DecisioningSummaryContent() {
           >
             View Decision Letter
           </button>
+          <button
+            onClick={handleDeliverDecisionLetter}
+            aria-disabled={!letterGenerated}
+            className="body-200-strong whitespace-nowrap"
+            style={{
+              backgroundColor: "var(--roads-bg-primary)",
+              border: "1px solid var(--roads-border-dark)",
+              borderRadius: "var(--roads-radius-2xs)",
+              padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+              color: "var(--roads-text-primary)",
+              cursor: letterGenerated ? "pointer" : "not-allowed",
+            }}
+            data-testid="button-deliver-decision-letter"
+          >
+            Deliver Decision Letter
+          </button>
         </div>
       </div>
 
@@ -111,7 +209,7 @@ export function DecisioningSummaryContent() {
         </div>
         <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
-            onClick={() => setCreditPulled(true)}
+            onClick={handlePullCredit}
             disabled={creditPulled}
             className="body-200-strong whitespace-nowrap"
             style={{

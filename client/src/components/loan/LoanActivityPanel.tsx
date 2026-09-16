@@ -2,73 +2,8 @@ import { useState } from "react";
 import { X, Search, ChevronDown } from "lucide-react";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 
-interface ActivityItem {
-  id: number;
-  title: string;
-  description: string;
-  timestamp: string;
-  date: Date;
-  link?: { label: string };
-}
-
-const ACTIVITY_ITEMS: ActivityItem[] = [
-  {
-    id: 1,
-    title: "Appraisal Requested",
-    description: "Appraisal has been requested",
-    timestamp: "July 9, 2025 10:30pm",
-    date: new Date("2025-07-09T22:30:00"),
-  },
-  {
-    id: 2,
-    title: "Intent to Proceed",
-    description: "Intent to Proceed has been provided by Richard Jamerson | CIF: 123456",
-    timestamp: "July 8, 2025 3:30pm",
-    date: new Date("2025-07-08T15:30:00"),
-  },
-  {
-    id: 3,
-    title: "Document Generated",
-    description: "Loan Estimate has been generated",
-    timestamp: "July 7, 2025 11:45am",
-    date: new Date("2025-07-07T11:45:00"),
-    link: { label: "View Document" },
-  },
-  {
-    id: 4,
-    title: "Loan Decision",
-    description: "Loan has been Pre-approved with Conditions",
-    timestamp: "July 7, 2025 9:33am",
-    date: new Date("2025-07-07T09:33:00"),
-    link: { label: "View Conditions" },
-  },
-  {
-    id: 5,
-    title: "Document Received",
-    description: "Tax documents have been uploaded for Richard Jamerson | CIF: 123456",
-    timestamp: "July 3, 2025 8:33am",
-    date: new Date("2025-07-03T08:33:00"),
-    link: { label: "View Document" },
-  },
-  {
-    id: 6,
-    title: "Hard Credit Pull Complete",
-    description: "Hard Credit pull complete for Richard Jamerson | CIF: 123456",
-    timestamp: "July 2, 2025 10:45am",
-    date: new Date("2025-07-02T10:45:00"),
-    link: { label: "View Credit Report" },
-  },
-  {
-    id: 7,
-    title: "Loan Application Submitted",
-    description: "Customer 1003 has been submitted by borrower",
-    timestamp: "July 2, 2025 10:05am",
-    date: new Date("2025-07-02T10:05:00"),
-  },
-];
-
 export function LoanActivityPanel() {
-  const { activityPanelOpen, closeActivityPanel } = useActivityPanel();
+  const { activityPanelOpen, activityItems, closeActivityPanel } = useActivityPanel();
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
   const [search, setSearch] = useState("");
 
@@ -76,12 +11,12 @@ export function LoanActivityPanel() {
 
   const query = search.trim().toLowerCase();
   const filteredItems = query
-    ? ACTIVITY_ITEMS.filter(
+    ? activityItems.filter(
         (item) =>
           item.title.toLowerCase().includes(query) ||
           item.description.toLowerCase().includes(query)
       )
-    : ACTIVITY_ITEMS;
+    : activityItems;
 
   const sortedItems =
     sort === "newest"
