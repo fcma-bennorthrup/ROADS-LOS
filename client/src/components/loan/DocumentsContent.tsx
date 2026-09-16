@@ -1,5 +1,5 @@
-import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
-import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
+import sampleClosingDisclosurePdf from "@assets/SampleCD_1777397678654.pdf";
+import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf";
 import { DocumentSection, DocumentsContent } from "./DisclosureDocumentsContent";
 
 function ClosingDocumentsContent() {
