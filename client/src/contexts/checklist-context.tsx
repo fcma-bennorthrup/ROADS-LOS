@@ -92,9 +92,9 @@ const INITIAL_TASKS: ChecklistTask[] = [
     name: "Rate Lock",
     status: "not-started",
     actions: [
-      { label: "Action #1", description: "Confirm rate with borrower", status: "not-started" },
-      { label: "Action #2", description: "Lock rate", status: "not-started" },
-      { label: "Action #3", description: "Send rate lock letter", status: "not-started" },
+      { label: "Action #1", description: "Initiate Rate Lock", status: "not-started" },
+      { label: "Action #2", description: "Generate Rate Lock Letter", status: "not-started" },
+      { label: "Action #3", description: "Deliver Rate Lock Letter", status: "not-started" },
     ],
   },
   {

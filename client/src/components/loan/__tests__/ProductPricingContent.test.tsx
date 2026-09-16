@@ -128,11 +128,14 @@ describe("ProductPricingContent rate lock workflow", () => {
     ).toBeInTheDocument();
 
     const rateLock = screen.getByTestId("checklist-task-rate-lock");
-    expect(rateLock).toHaveTextContent("2 of 3 Complete");
+    expect(rateLock).toHaveTextContent("1 of 3 Complete");
     fireEvent.click(within(rateLock).getByRole("button"));
     const rateLockRows = within(rateLock).getAllByTestId(/^action-row-/);
+    expect(within(rateLockRows[0]).getByText("Initiate Rate Lock")).toBeInTheDocument();
+    expect(within(rateLockRows[1]).getByText("Generate Rate Lock Letter")).toBeInTheDocument();
+    expect(within(rateLockRows[2]).getByText("Deliver Rate Lock Letter")).toBeInTheDocument();
     expect(within(rateLockRows[0]).getByTestId("chip-complete")).toBeInTheDocument();
-    expect(within(rateLockRows[1]).getByTestId("chip-complete")).toBeInTheDocument();
+    expect(within(rateLockRows[1]).getByTestId("status-icon-not-started")).toBeInTheDocument();
     expect(within(rateLockRows[2]).getByTestId("status-icon-not-started")).toBeInTheDocument();
 
     const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
@@ -186,7 +189,7 @@ describe("ProductPricingContent rate lock workflow", () => {
       expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
         `${status}:${status},not-started`,
       );
-      expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("2 of 3 Complete");
+      expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("1 of 3 Complete");
       if (status === "re-fire") {
         expect(screen.getByTestId("chip-trid-days")).toBeInTheDocument();
       } else {
@@ -206,7 +209,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     expect(screen.getByTestId("loan-estimate-state")).toHaveTextContent(
       "re-fire:re-fire,not-started",
     );
-    expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("2 of 3 Complete");
+    expect(screen.getByTestId("checklist-task-rate-lock")).toHaveTextContent("1 of 3 Complete");
     expect(screen.getByTestId("activity-state")).toHaveTextContent(
       "rate-lock|Rate Lock|Rate is locked",
     );

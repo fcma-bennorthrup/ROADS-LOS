@@ -165,7 +165,7 @@ export function ProductPricingContent({
   const [selectedProductId, setSelectedProductId] = useState("4370");
   const [termOverride, setTermOverride] = useState<string | null>(null);
   const [isRateLocked, setIsRateLocked] = useState(
-    () => getActionStatus("Rate Lock", 1) === "complete",
+    () => getActionStatus("Rate Lock", 0) === "complete",
   );
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockDate, setLockDate] = useState(getLockDate());
@@ -222,13 +222,12 @@ export function ProductPricingContent({
   };
 
   const handleLockRate = () => {
-    const completesRateLockAction = getActionStatus("Rate Lock", 1) !== "complete";
+    const completesRateLockAction = getActionStatus("Rate Lock", 0) !== "complete";
     const lockedAt = new Date();
     setIsRateLocked(true);
     setIsEditing(false);
     setIsLockModalOpen(false);
     setActionStatus("Rate Lock", 0, "complete");
-    setActionStatus("Rate Lock", 1, "complete");
     refireCompletedTask("Loan Estimate", ["re-fire", "not-started"]);
     addActivity({
       id: "rate-lock",
