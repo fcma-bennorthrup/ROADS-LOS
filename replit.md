@@ -8,6 +8,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 - **Owner**: bennorthrup
 - **Branch Strategy**: Branch off main for new features
 - **RULE: Never push or pull to GitHub unless explicitly instructed.** A code change does not imply a push. Only sync when the user says "push to GitHub", "pull from GitHub", or similar direct instruction.
+- **RULE: Treat “GitHub” as the connected GitHub API.** When the user asks for GitHub information or requests a GitHub action, use the connected GitHub API as the source of truth. Do not infer GitHub state from local Git metadata, Replit subrepl branches, backup remotes, or native Replit Git synchronization unless the user explicitly asks about the local workspace or Replit Git state.
 - **RULE: Ask when the intended user experience isn't clear.** When a request could reasonably be interpreted in more than one way — whether it involves adding, changing, or removing something — always ask a clarifying question before proceeding. Don't guess at the intended end-user experience. Examples: if asked to "get rid of the credit report," ask whether that means the button, the section, or the whole feature. If asked to "add a status indicator," ask what states it should show. Prefer the narrowest, safest interpretation when in doubt, but ask rather than assume.
 
 ## Tech Stack
