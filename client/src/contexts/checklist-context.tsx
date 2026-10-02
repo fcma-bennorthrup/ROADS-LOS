@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
-import { dismissToasts } from "@/hooks/use-toast";
+import { dismissToasts, toast } from "@/hooks/use-toast";
+import { closingDisclosureStorageKey } from "@/lib/closing-disclosure-history";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -334,6 +335,20 @@ function ChecklistStateProvider({
   };
 
   const resetDemoTasks = (taskNames: string[]) => {
+    // Clear persisted document history even when Closing Documents is unmounted.
+    if (taskNames.includes("Closing Disclosure")) {
+      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+      try {
+        localStorage.removeItem(closingDisclosureStorageKey(loanId));
+      } catch {
+        toast({
+          title: "Demo could not be reset",
+          description: "Disclosure history could not be cleared. Enable browser storage and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     dismissToasts();
     resetTasks(taskNames);
     setDemoResetVersion((version) => version + 1);

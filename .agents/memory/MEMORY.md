@@ -1,2 +1,3 @@
 - [Asset import drift after task merges](asset-import-drift.md) — merged work may import @assets files with timestamps that don't exist here; repoint to the real filename in attached_assets.
-- [Vite HMR behind Replit proxy](vite-hmr-replit-proxy.md) — middleware-mode HMR must use the HTTPS client port or stale React contexts can crash the preview.
+- [Vite HMR behind Replit proxy](vite-hmr-replit-proxy.md) — keep middleware-mode HMR disabled; disconnected proxy websockets can retain incompatible React contexts.
+- [Closing document scope](closing-document-scope.md) — interactive disclosure history is wanted; clock/edit behavior is explicitly deferred.
