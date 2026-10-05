@@ -1,9 +1,16 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useState } from "react";
+import { Router } from "wouter";
+import { memoryLocation } from "wouter/memory-location";
 import { ClosingDocumentsContent } from "../DocumentsContent";
 import { ChecklistProvider, useChecklist } from "@/contexts/checklist-context";
-import { closingDisclosureStorageKey } from "@/lib/closing-disclosure-history";
+import {
+  closingDisclosureStorageKey,
+  loadClosingDisclosures,
+  resetClosingDisclosureHistory,
+} from "@/lib/closing-disclosure-history";
+import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
 
 function Reset() {
   const { resetDemoTasks } = useChecklist();
@@ -80,14 +87,14 @@ describe("Closing Documents tabs and history", () => {
     generate();
     const olderDelivery = within(row(1)).getByRole("button", { name: /Deliver/ });
     fireEvent.click(olderDelivery);
-    const first = JSON.parse(localStorage.getItem(closingDisclosureStorageKey("prototype"))!);
+    const first = loadClosingDisclosures("prototype");
     expect(first[0].deliveredAt).toBeNull();
     expect(first[1].deliveredAt).not.toBeNull();
     vi.setSystemTime(new Date(2026, 9, 3, 11, 0));
     fireEvent.click(olderDelivery);
-    expect(JSON.parse(localStorage.getItem(closingDisclosureStorageKey("prototype"))!)[1].deliveredAt).toBe(first[1].deliveredAt);
+    expect(loadClosingDisclosures("prototype")[1].deliveredAt).toBe(first[1].deliveredAt);
     fireEvent.click(button("Deliver Closing Disclosure"));
-    expect(JSON.parse(localStorage.getItem(closingDisclosureStorageKey("prototype"))!)[0].deliveredAt).not.toBeNull();
+    expect(loadClosingDisclosures("prototype")[0].deliveredAt).not.toBeNull();
   });
 
   it("does not lose delivery changes made during generation", () => {
@@ -96,7 +103,7 @@ describe("Closing Documents tabs and history", () => {
     fireEvent.click(button("Generate Closing Disclosure"));
     fireEvent.click(button("Deliver Closing Disclosure"));
     act(() => vi.advanceTimersByTime(5000));
-    const saved = JSON.parse(localStorage.getItem(closingDisclosureStorageKey("prototype"))!);
+    const saved = loadClosingDisclosures("prototype");
     expect(saved[1].deliveredAt).not.toBeNull();
     expect(saved[0].deliveredAt).toBeNull();
   });
@@ -187,5 +194,205 @@ describe("Closing Documents tabs and history", () => {
     generate();
     expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
     expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+  });
+});
+
+// Independent hook instances model tab snapshots. Direct storage writes deliberately
+// omit notifications to exercise stale consumers; StorageEvents model other windows.
+function consumer(loanId = "prototype") {
+  const { hook } = memoryLocation({ path: `/loans/${loanId}` });
+  return renderHook(() => useClosingDisclosures(loanId), {
+    wrapper: ({ children }) => <Router hook={hook}>
+      <ChecklistProvider>{children}</ChecklistProvider>
+    </Router>,
+  });
+}
+
+function externalWrite(loanId: string, value: string | null, notify = true) {
+  const key = closingDisclosureStorageKey(loanId);
+  const oldValue = localStorage.getItem(key);
+  if (value === null) localStorage.removeItem(key);
+  else localStorage.setItem(key, value);
+  if (notify) window.dispatchEvent(new StorageEvent("storage", {
+    key, oldValue, newValue: value, storageArea: localStorage,
+  }));
+}
+
+describe("Closing Disclosure independent consumers", () => {
+  it("allocates unique IDs and shares generation and delivery across two same-loan consumers", () => {
+    const a = consumer();
+    const b = consumer();
+    act(() => {
+      a.result.current.generate();
+      b.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records.map((row) => row.id)).toEqual([2, 1]);
+    expect(b.result.current.records).toEqual(a.result.current.records);
+    act(() => a.result.current.deliver(1));
+    expect(b.result.current.records[1].deliveredAt).not.toBeNull();
+    expect(b.result.current.records[0].deliveredAt).toBeNull();
+  });
+
+  it("merges against storage even before a tab receives its storage event", () => {
+    const a = consumer();
+    const b = consumer();
+    act(() => {
+      a.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    const first = loadClosingDisclosures("prototype")[0];
+    const deliveredAt = "2026-10-02T12:00:00.000Z";
+    externalWrite("prototype", JSON.stringify([
+      { id: 2, generatedAt: first.generatedAt, deliveredAt: null },
+      { ...first, deliveredAt },
+    ]), false);
+    act(() => b.result.current.deliver(1));
+    expect(loadClosingDisclosures("prototype").map((row) => row.id)).toEqual([2, 1]);
+    expect(a.result.current.records[1].deliveredAt).toBe(deliveredAt);
+    externalWrite("prototype", JSON.stringify([
+      { id: 3, generatedAt: first.generatedAt, deliveredAt: null },
+      ...loadClosingDisclosures("prototype"),
+    ]), false);
+    act(() => {
+      b.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records.map((row) => row.id)).toEqual([4, 3, 2, 1]);
+    expect(a.result.current.records[3].deliveredAt).toBe(deliveredAt);
+  });
+
+  it("synchronizes native storage events, ignores stale event payloads, and isolates loans", () => {
+    const a = consumer();
+    const b = consumer();
+    const other = consumer("other");
+    const value = JSON.stringify([{ id: 7, generatedAt: new Date().toISOString(), deliveredAt: null }]);
+    act(() => externalWrite("prototype", value));
+    expect(a.result.current.records[0].id).toBe(7);
+    expect(b.result.current.records).toEqual(a.result.current.records);
+    expect(other.result.current.records).toEqual([]);
+    act(() => {
+      other.result.current.generate();
+      vi.advanceTimersByTime(5000);
+      window.dispatchEvent(new StorageEvent("storage", {
+        key: closingDisclosureStorageKey("prototype"), newValue: "[]",
+      }));
+    });
+    expect(a.result.current.records[0].id).toBe(7);
+    expect(other.result.current.records[0].id).toBe(1);
+  });
+
+  it("propagates resets, cancels pending generation, and does not reset another loan", () => {
+    const a = consumer();
+    const b = consumer();
+    const other = consumer("other");
+    act(() => {
+      a.result.current.generate();
+      b.result.current.generate();
+      other.result.current.generate();
+      resetClosingDisclosureHistory("prototype");
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.generating).toBe(false);
+    expect(b.result.current.generating).toBe(false);
+    expect(a.result.current.records).toEqual([]);
+    expect(b.result.current.records).toEqual([]);
+    expect(other.result.current.records).toHaveLength(1);
+    act(() => {
+      b.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records[0].id).toBe(1);
+  });
+
+  it("does not resurrect pending history if a reset event has not yet reached the tab", () => {
+    const a = consumer();
+    act(() => a.result.current.generate());
+    externalWrite("prototype", JSON.stringify({ records: [], resetToken: "remote-reset" }), false);
+    act(() => vi.advanceTimersByTime(5000));
+    expect(loadClosingDisclosures("prototype")).toEqual([]);
+    expect(a.result.current.records).toEqual([]);
+  });
+
+  it("synchronizes a remote reset token even if history was already empty", () => {
+    const a = consumer();
+    const b = consumer();
+    act(() => {
+      a.result.current.generate();
+      b.result.current.generate();
+      externalWrite("prototype", JSON.stringify({ records: [], resetToken: "remote-reset" }));
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.generating).toBe(false);
+    expect(b.result.current.generating).toBe(false);
+    expect(loadClosingDisclosures("prototype")).toEqual([]);
+  });
+
+  it("handles native reset/removal and clear events and malformed remote history", () => {
+    const a = consumer();
+    act(() => {
+      a.result.current.generate();
+      vi.advanceTimersByTime(5000);
+      a.result.current.generate();
+      externalWrite("prototype", null);
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records).toEqual([]);
+    act(() => externalWrite("prototype", "invalid"));
+    expect(a.result.current.error).toContain("could not be loaded");
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe("invalid");
+    act(() => {
+      localStorage.clear();
+      window.dispatchEvent(new StorageEvent("storage", { key: null }));
+    });
+    expect(a.result.current.error).toBeNull();
+  });
+
+  it("does not publish delivery or reset success when storage writes fail", () => {
+    const a = consumer();
+    const b = consumer();
+    act(() => {
+      a.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+    act(() => a.result.current.deliver(1));
+    expect(a.result.current.error).toContain("could not be saved");
+    expect(b.result.current.records[0].deliveredAt).toBeNull();
+    expect(() => resetClosingDisclosureHistory("prototype")).toThrow("Full");
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+  });
+
+  it("serializes concurrent writes using browser locks and reports asynchronous failures", async () => {
+    let pending = Promise.resolve();
+    const request = vi.fn((_name: string, write: () => void) => {
+      const result = pending.then(write);
+      pending = result.catch(() => {});
+      return result;
+    });
+    Object.defineProperty(navigator, "locks", { configurable: true, value: { request } });
+    try {
+      const a = consumer();
+      const b = consumer();
+      await act(async () => {
+        a.result.current.generate();
+        b.result.current.generate();
+        vi.advanceTimersByTime(5000);
+        await pending;
+      });
+      expect(request).toHaveBeenCalledTimes(2);
+      expect(a.result.current.records.map((row) => row.id)).toEqual([2, 1]);
+      expect(b.result.current.records).toEqual(a.result.current.records);
+      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+      await act(async () => {
+        a.result.current.deliver(1);
+        await pending;
+      });
+      expect(a.result.current.error).toContain("could not be saved");
+      expect(b.result.current.records[1].deliveredAt).toBeNull();
+    } finally {
+      Object.defineProperty(navigator, "locks", { configurable: true, value: undefined });
+    }
   });
 });

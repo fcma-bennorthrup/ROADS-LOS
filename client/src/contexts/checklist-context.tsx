@@ -1,7 +1,11 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { dismissToasts, toast } from "@/hooks/use-toast";
-import { closingDisclosureStorageKey } from "@/lib/closing-disclosure-history";
+import {
+  loadClosingDisclosureHistory,
+  resetClosingDisclosureHistory,
+  subscribeClosingDisclosureHistory,
+} from "@/lib/closing-disclosure-history";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -244,6 +248,22 @@ function ChecklistStateProvider({
   const [demoResetVersion, setDemoResetVersion] = useState(0);
 
   useEffect(() => {
+    const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+    let token: string | null = null;
+    try { token = loadClosingDisclosureHistory(loanId).resetToken; } catch { /* Hook reports invalid history. */ }
+    return subscribeClosingDisclosureHistory(loanId, (removed) => {
+      try {
+        const next = loadClosingDisclosureHistory(loanId).resetToken;
+        if (removed || next !== token) {
+          resetTasks(["Closing Disclosure"]);
+          setDemoResetVersion((version) => version + 1);
+        }
+        token = next;
+      } catch { /* Hook reports invalid history. */ }
+    });
+  }, [storageKey]);
+
+  useEffect(() => {
     try {
       localStorage.setItem(
         storageKey,
@@ -335,23 +355,31 @@ function ChecklistStateProvider({
   };
 
   const resetDemoTasks = (taskNames: string[]) => {
+    const finish = () => {
+      dismissToasts();
+      resetTasks(taskNames);
+      setDemoResetVersion((version) => version + 1);
+    };
+    const failed = () => toast({
+      title: "Demo could not be reset",
+      description: "Disclosure history could not be cleared. Enable browser storage and try again.",
+      variant: "destructive",
+    });
     // Clear persisted document history even when Closing Documents is unmounted.
     if (taskNames.includes("Closing Disclosure")) {
       const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
       try {
-        localStorage.removeItem(closingDisclosureStorageKey(loanId));
+        const result = resetClosingDisclosureHistory(loanId);
+        if (result) {
+          void result.then(finish, failed);
+          return;
+        }
       } catch {
-        toast({
-          title: "Demo could not be reset",
-          description: "Disclosure history could not be cleared. Enable browser storage and try again.",
-          variant: "destructive",
-        });
+        failed();
         return;
       }
     }
-    dismissToasts();
-    resetTasks(taskNames);
-    setDemoResetVersion((version) => version + 1);
+    finish();
   };
 
   return (
