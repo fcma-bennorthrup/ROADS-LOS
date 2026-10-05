@@ -176,15 +176,6 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
                             <span className="closing-disclosure-inert-icon" aria-hidden="true" title="Edit">
                               <ClosingDocumentIcon kind="edit" />
                             </span>
-                            <button
-                              type="button"
-                              className="closing-disclosure-row-deliver"
-                              onClick={() => deliver(record.id)}
-                               disabled={Boolean(record.deliveredAt) || Boolean(error) || resetting}
-                              data-testid={`button-deliver-closing-disclosure-${record.id}`}
-                            >
-                              {record.deliveredAt ? "Delivered" : "Deliver"}
-                            </button>
                           </div>
                         </td>
                       </tr>

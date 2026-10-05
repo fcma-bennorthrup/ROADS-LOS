@@ -82,20 +82,50 @@ describe("Closing Documents tabs and history", () => {
     expect(screen.getAllByText(/^CD \d$/).map((node) => node.textContent)).toEqual(["CD 2", "CD 1"]);
   });
 
-  it("targets individual deliveries and keeps original delivery timestamps", () => {
+  it("delivers only the newest disclosure from the toolbar and keeps original timestamps", () => {
     render(<Harness />);
     generate();
     generate();
-    const olderDelivery = within(row(1)).getByRole("button", { name: /Deliver/ });
-    fireEvent.click(olderDelivery);
-    const first = loadClosingDisclosures("prototype");
-    expect(first[0].deliveredAt).toBeNull();
-    expect(first[1].deliveredAt).not.toBeNull();
-    vi.setSystemTime(new Date(2026, 9, 3, 11, 0));
-    fireEvent.click(olderDelivery);
-    expect(loadClosingDisclosures("prototype")[1].deliveredAt).toBe(first[1].deliveredAt);
     fireEvent.click(button("Deliver Closing Disclosure"));
-    expect(loadClosingDisclosures("prototype")[0].deliveredAt).not.toBeNull();
+    const first = loadClosingDisclosures("prototype");
+    expect(first[0].deliveredAt).not.toBeNull();
+    expect(first[1].deliveredAt).toBeNull();
+    expect(within(row(2)).getAllByRole("cell")[2]).not.toBeEmptyDOMElement();
+    expect(within(row(1)).getAllByRole("cell")[2]).toBeEmptyDOMElement();
+    expect(button("Deliver Closing Disclosure")).toBeDisabled();
+    vi.setSystemTime(new Date(2026, 9, 3, 11, 0));
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    expect(loadClosingDisclosures("prototype")[0].deliveredAt).toBe(first[0].deliveredAt);
+    expect(loadClosingDisclosures("prototype")[1].deliveredAt).toBeNull();
+    for (const id of [1, 2]) {
+      const actions = within(row(id)).getAllByRole("cell")[7];
+      expect(within(actions).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
+      expect(within(actions).getAllByRole("button")).toHaveLength(1);
+      expect(actions.querySelectorAll("svg")).toHaveLength(3);
+      expect(Array.from(actions.firstElementChild!.children).map((node) => node.tagName))
+        .toEqual(["BUTTON", "SPAN", "SPAN"]);
+      expect(within(actions).getByTitle("History")).toHaveAttribute("aria-hidden", "true");
+      expect(within(actions).getByTitle("Edit")).toHaveAttribute("aria-hidden", "true");
+    }
+    expect(screen.getAllByRole("button", { name: /Deliver Closing Disclosure/ })).toHaveLength(1);
+  });
+
+  it("preserves saved older delivery dates and history when rendering and delivering from the toolbar", () => {
+    const older = { id: 1, generatedAt: "2026-09-30T10:00:00.000Z", deliveredAt: "2026-09-30T11:00:00.000Z" };
+    const newer = { id: 2, generatedAt: "2026-10-01T10:00:00.000Z", deliveredAt: null };
+    const saved = JSON.stringify([newer, older]);
+    localStorage.setItem(closingDisclosureStorageKey("prototype"), saved);
+    render(<Harness />);
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+    expect(within(row(1)).getAllByRole("cell")[2]).not.toBeEmptyDOMElement();
+    const displayedDate = within(row(1)).getAllByRole("cell")[2].textContent;
+    expect(within(row(1)).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    const records = loadClosingDisclosures("prototype");
+    expect(records[0].deliveredAt).not.toBeNull();
+    expect(records[1]).toEqual(older);
+    expect(within(row(1)).getAllByRole("cell")[2]).toHaveTextContent(displayedDate!);
+    expect(within(row(2)).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
   });
 
   it("does not lose delivery changes made during generation", () => {

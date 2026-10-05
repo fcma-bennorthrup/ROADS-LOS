@@ -51,8 +51,7 @@
 
 .closing-documents-tab:focus-visible,
 .closing-documents-button:focus-visible,
-.closing-disclosure-icon-button:focus-visible,
-.closing-disclosure-row-deliver:focus-visible {
+.closing-disclosure-icon-button:focus-visible {
   outline: 2px solid var(--roads-border-brand);
   outline-offset: 2px;
 }
@@ -206,26 +205,6 @@
 
 .closing-disclosure-inert-icon {
   color: var(--roads-text-tertiary);
-}
-
-.closing-disclosure-row-deliver {
-  padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-m);
-  border: 1px solid var(--roads-border-dark);
-  border-radius: var(--roads-radius-2xs);
-  background: var(--roads-bg-primary);
-  color: var(--roads-text-primary);
-  cursor: pointer;
-  font-family: var(--roads-font-family);
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-}
-
-.closing-disclosure-row-deliver:disabled {
-  border-color: var(--roads-border-subtle);
-  background: var(--roads-bg-light);
-  color: var(--roads-text-tertiary);
-  cursor: not-allowed;
 }
 
 .closing-disclosure-prototype-note {
