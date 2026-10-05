@@ -1,4 +1,5 @@
 import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
+import { useClosingPackage } from "@/hooks/use-closing-package";
 import { useState } from "react";
 import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
 import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
@@ -25,6 +26,7 @@ function formatDisclosureDate(value: string): string {
 
 function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
   const [activeTab, setActiveTab] = useState("closing-disclosure");
+  const closingPackage = useClosingPackage(loanId);
   const { records, generating, error, generate, deliver } = useClosingDisclosures(loanId);
   const newestRecord = records[0];
   const canViewNewest = Boolean(newestRecord);
@@ -200,7 +202,11 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
               },
             ]}
             testIdPrefix="closing-package"
+            retainedProgress={closingPackage}
           />
+          <p className="caption-100 closing-disclosure-prototype-note">
+            Delivery is marked for prototype tracking only; no documents are sent.
+          </p>
         </TabsContent>
       </Tabs>
     </div>

@@ -6,6 +6,7 @@ import {
   resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,
 } from "@/lib/closing-disclosure-history";
+import { closingPackageStorageKey } from "@/lib/closing-package-progress";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -355,6 +356,19 @@ function ChecklistStateProvider({
   };
 
   const resetDemoTasks = (taskNames: string[]) => {
+    if (taskNames.includes("Closing Package")) {
+      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+      try {
+        localStorage.removeItem(closingPackageStorageKey(loanId));
+      } catch {
+        toast({
+          title: "Demo could not be reset",
+          description: "Closing Package progress could not be cleared. Enable browser storage and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     const finish = () => {
       dismissToasts();
       resetTasks(taskNames);
@@ -399,7 +413,6 @@ function ChecklistStateProvider({
     </ChecklistContext.Provider>
   );
 }
-
 export function ChecklistProvider({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const storageKey = getLoanStorageKey(location);
