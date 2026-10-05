@@ -15,6 +15,8 @@ export function loadClosingDisclosures(loanId: string): ClosingDisclosureRecord[
 export interface ClosingDisclosureHistory {
   records: ClosingDisclosureRecord[];
   resetToken: string | null;
+  /** Absent on legacy/global resets; scoped resets must not clear other demo surfaces. */
+  resetScope?: "disclosure";
 }
 
 const HISTORY_CHANGED = "closing-disclosure-history-changed";
@@ -26,6 +28,10 @@ export function loadClosingDisclosureHistory(loanId: string): ClosingDisclosureH
   // Read the original array format as well as the reset-aware envelope.
   const value: unknown = Array.isArray(stored) ? stored : stored?.records;
   const resetToken = Array.isArray(stored) ? null : stored?.resetToken;
+  const resetScope = Array.isArray(stored) ? undefined : stored?.resetScope;
+  if (resetScope !== undefined && resetScope !== "disclosure") {
+    throw new Error("Invalid disclosure reset scope");
+  }
   if (resetToken !== null && typeof resetToken !== "string") {
     throw new Error("Invalid disclosure reset token");
   }
@@ -40,7 +46,8 @@ export function loadClosingDisclosureHistory(loanId: string): ClosingDisclosureH
     ) throw new Error("Invalid disclosure history");
     ids.add(row.id);
   }
-  return { records: value.sort((a, b) => b.id - a.id), resetToken };
+  return { records: value.sort((a, b) => b.id - a.id), resetToken,
+    ...(resetScope === "disclosure" ? { resetScope } : {}) };
 }
 
 /** The mutation receives authoritative storage, never a consumer's stale snapshot. */
@@ -63,10 +70,11 @@ export function updateClosingDisclosureHistory(
   write();
 }
 
-export function resetClosingDisclosureHistory(loanId: string) {
+export function resetClosingDisclosureHistory(loanId: string, disclosureOnly = false) {
   return updateClosingDisclosureHistory(loanId, () => ({
     records: [],
     resetToken: crypto.randomUUID(),
+    ...(disclosureOnly ? { resetScope: "disclosure" as const } : {}),
   }), true);
 }
 

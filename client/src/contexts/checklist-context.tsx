@@ -254,10 +254,15 @@ function ChecklistStateProvider({
     try { token = loadClosingDisclosureHistory(loanId).resetToken; } catch { /* Hook reports invalid history. */ }
     return subscribeClosingDisclosureHistory(loanId, (removed) => {
       try {
-        const next = loadClosingDisclosureHistory(loanId).resetToken;
+        const nextHistory = loadClosingDisclosureHistory(loanId);
+        const next = nextHistory.resetToken;
         if (removed || next !== token) {
           resetTasks(["Closing Disclosure"]);
-          setDemoResetVersion((version) => version + 1);
+          // Dedicated disclosure resets must not clear unrelated surfaces.
+          // Preserve the broader Reset Demo broadcast for legacy/global resets.
+          if (nextHistory.resetScope !== "disclosure") {
+            setDemoResetVersion((version) => version + 1);
+          }
         }
         token = next;
       } catch { /* Hook reports invalid history. */ }

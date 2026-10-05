@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import {
   loadClosingDisclosureHistory,
+  resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,
   updateClosingDisclosureHistory,
   type ClosingDisclosureHistory,
@@ -20,6 +21,8 @@ export function useClosingDisclosures(loanId: string) {
   });
   const records = history.records;
   const [generating, setGenerating] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const resetPending = useRef(false);
   const historyRef = useRef(history);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetVersion = useRef(demoResetVersion);
@@ -39,7 +42,7 @@ export function useClosingDisclosures(loanId: string) {
       setError(null);
     } catch {
       cancelGeneration();
-      setError("Saved disclosure history could not be loaded. Reset Demo to clear it.");
+      setError("Saved disclosure history could not be loaded. Use Reset Closing Disclosure or Reset Demo to clear it.");
     }
   }
 
@@ -72,7 +75,7 @@ export function useClosingDisclosures(loanId: string) {
   }
 
   function generate() {
-    if (timer.current || error) return;
+    if (timer.current || error || resetPending.current) return;
     const resetToken = historyRef.current.resetToken;
     setGenerating(true);
     timer.current = setTimeout(() => {
@@ -92,7 +95,7 @@ export function useClosingDisclosures(loanId: string) {
 
   function deliver(id: number) {
     const record = historyRef.current.records.find((row) => row.id === id);
-    if (!record || record.deliveredAt || error) return;
+    if (!record || record.deliveredAt || error || resetPending.current) return;
     const resetToken = historyRef.current.resetToken;
     save((current) => current.resetToken !== resetToken ? current : {
       ...current,
@@ -102,5 +105,28 @@ export function useClosingDisclosures(loanId: string) {
     });
   }
 
-  return { records, generating, error, generate, deliver };
+  function reset() {
+    if (resetPending.current) return;
+    resetPending.current = true;
+    setResetting(true);
+    const finish = () => {
+      resetPending.current = false;
+      setResetting(false);
+    };
+    const failed = () => {
+      setError("Closing Disclosure could not be reset. Saved history has not been cleared. Enable browser storage and try again.");
+      finish();
+    };
+    try {
+      // The persisted reset identity cancels pending work in every consumer,
+      // including tabs whose storage notification has not arrived yet.
+      const result = resetClosingDisclosureHistory(loanId, true);
+      if (result) void result.then(finish, failed);
+      else finish();
+    } catch {
+      failed();
+    }
+  }
+
+  return { records, generating, resetting, error, generate, deliver, reset };
 }

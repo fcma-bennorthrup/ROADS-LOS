@@ -11,6 +11,7 @@ import {
   resetClosingDisclosureHistory,
 } from "@/lib/closing-disclosure-history";
 import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
+import { DocumentSection } from "../DisclosureDocumentsContent";
 
 function Reset() {
   const { resetDemoTasks } = useChecklist();
@@ -197,6 +198,139 @@ describe("Closing Documents tabs and history", () => {
   });
 });
 
+function UnrelatedProgress() {
+  const { demoResetVersion, completeAction, getActionStatus } = useChecklist();
+  return <>
+    <button onClick={() => completeAction("Loan Decision", 0)}>Complete another task</button>
+    <output data-testid="unrelated-checklist-status">{getActionStatus("Loan Decision", 0)}</output>
+    <DocumentSection title="Unrelated document" idleText="Unrelated idle"
+      generatingText="Generating unrelated document" generateLabel="Generate unrelated document"
+      testIdPrefix="unrelated-document" resetVersion={demoResetVersion} />
+  </>;
+}
+
+describe("Dedicated Closing Disclosure reset", () => {
+  it("asks for confirmation and cancel preserves history and pending generation", () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<Harness />);
+    generate();
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
+    fireEvent.click(button("Generate Closing Disclosure"));
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("their delivery timestamps for this loan"));
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+    expect(screen.getByText(/Generating Closing Disclosure/)).toBeVisible();
+    act(() => vi.advanceTimersByTime(5000));
+    expect(loadClosingDisclosures("prototype")).toHaveLength(2);
+  });
+
+  it("clears saved rows and delivery dates, cancels generation, survives remount, and restarts at CD 1", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness />);
+    generate();
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    generate();
+    fireEvent.click(button("Generate Closing Disclosure"));
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(loadClosingDisclosures("prototype")).toEqual([]);
+    expect(button("View Closing Disclosure")).toBeDisabled();
+    expect(button("Deliver Closing Disclosure")).toBeDisabled();
+    expect(button("Generate Closing Disclosure")).toBeEnabled();
+    act(() => vi.advanceTimersByTime(10000));
+    fireEvent.click(button("Navigate away/back"));
+    fireEvent.click(button("Navigate away/back"));
+    expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
+    generate();
+    expect(loadClosingDisclosures("prototype").map((record) => record.id)).toEqual([1]);
+    expect(loadClosingDisclosures("prototype")[0].deliveredAt).toBeNull();
+  });
+
+  it("recovers unreadable history without affecting another loan", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const other = [{ id: 8, generatedAt: new Date().toISOString(), deliveredAt: null }];
+    localStorage.setItem(closingDisclosureStorageKey("other"), JSON.stringify(other));
+    localStorage.setItem(closingDisclosureStorageKey("prototype"), "broken");
+    render(<Harness />);
+    expect(button("Generate Closing Disclosure")).toBeDisabled();
+    expect(button("Reset Closing Disclosure")).toBeEnabled();
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(loadClosingDisclosures("other")).toEqual(other);
+    generate();
+    expect(screen.getByText("CD 1")).toBeVisible();
+  });
+
+  it("shows failed reset writes and retains the visible and saved history", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness />);
+    generate();
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
+    const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(screen.getByRole("alert")).toHaveTextContent("could not be reset");
+    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+    expect(button("Reset Closing Disclosure")).toBeEnabled();
+    write.mockRestore();
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
+  });
+
+  it("does not globally reset sibling document progress or unrelated checklist tasks", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<ChecklistProvider><UnrelatedProgress /><ClosingDocumentsContent /></ChecklistProvider>);
+    fireEvent.click(button("Complete another task"));
+    fireEvent.click(button("Generate unrelated document"));
+    generate();
+    const before = screen.getByTestId("text-unrelated-document-status").textContent;
+    fireEvent.click(button("Reset Closing Disclosure"));
+    expect(screen.getByTestId("text-unrelated-document-status")).toHaveTextContent(before!);
+    expect(screen.getByTestId("unrelated-checklist-status")).toHaveTextContent("complete");
+  });
+
+  it("keeps scoped native resets scoped and preserves the broader Reset Demo signal", () => {
+    render(<ChecklistProvider><Reset /><UnrelatedProgress /><ClosingDocumentsContent /></ChecklistProvider>);
+    fireEvent.click(button("Complete another task"));
+    fireEvent.click(button("Generate unrelated document"));
+    generate();
+    const before = screen.getByTestId("text-unrelated-document-status").textContent;
+    act(() => externalWrite("prototype", JSON.stringify({
+      records: [], resetToken: "remote-scoped-reset", resetScope: "disclosure",
+    })));
+    expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
+    expect(screen.getByTestId("text-unrelated-document-status")).toHaveTextContent(before!);
+    expect(screen.getByTestId("unrelated-checklist-status")).toHaveTextContent("complete");
+    fireEvent.click(button("Reset Demo"));
+    expect(screen.getByText("Unrelated idle")).toBeVisible();
+  });
+
+  it("leaves completed package delivery and in-progress package generation unchanged", () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness />);
+    selectTab("Closing Package");
+    fireEvent.click(button("Generate Closing Package"));
+    act(() => vi.advanceTimersByTime(5000));
+    fireEvent.click(button("Deliver Closing Package"));
+    const generated = screen.getByTestId("text-closing-package-status").textContent;
+    const delivered = screen.getByTestId("text-closing-package-delivered").textContent;
+    selectTab("Closing Disclosure");
+    generate();
+    fireEvent.click(button("Reset Closing Disclosure"));
+    selectTab("Closing Package");
+    expect(screen.getByTestId("text-closing-package-status")).toHaveTextContent(generated!);
+    expect(screen.getByTestId("text-closing-package-delivered")).toHaveTextContent(delivered!);
+    fireEvent.click(button("Generate Closing Package"));
+    selectTab("Closing Disclosure");
+    fireEvent.click(button("Reset Closing Disclosure"));
+    act(() => vi.advanceTimersByTime(5000));
+    selectTab("Closing Package");
+    expect(screen.getByTestId("text-closing-package-status")).toHaveTextContent("Last Generated:");
+    expect(screen.getByTestId("text-closing-package-delivered")).toHaveTextContent(delivered!);
+  });
+});
+
 // Independent hook instances model tab snapshots. Direct storage writes deliberately
 // omit notifications to exercise stale consumers; StorageEvents model other windows.
 function consumer(loanId = "prototype") {
@@ -219,6 +353,78 @@ function externalWrite(loanId: string, value: string | null, notify = true) {
 }
 
 describe("Closing Disclosure independent consumers", () => {
+  it("dedicated reset synchronizes consumers, cancels old generation and isolates another loan", () => {
+    const a = consumer();
+    const b = consumer();
+    const other = consumer("other");
+    act(() => {
+      a.result.current.generate();
+      vi.advanceTimersByTime(5000);
+      a.result.current.deliver(1);
+      a.result.current.generate();
+      b.result.current.generate();
+      other.result.current.generate();
+      a.result.current.reset();
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records).toEqual([]);
+    expect(b.result.current.records).toEqual([]);
+    expect(b.result.current.generating).toBe(false);
+    expect(other.result.current.records).toHaveLength(1);
+    act(() => {
+      b.result.current.generate();
+      vi.advanceTimersByTime(5000);
+    });
+    expect(a.result.current.records[0].id).toBe(1);
+    expect(a.result.current.records[0].deliveredAt).toBeNull();
+  });
+
+  it("handles asynchronous reset success and failure without duplicate reset requests", async () => {
+    let pending = Promise.resolve();
+    const request = vi.fn((_name: string, write: () => void) => {
+      const result = pending.then(write);
+      pending = result.catch(() => {});
+      return result;
+    });
+    Object.defineProperty(navigator, "locks", { configurable: true, value: { request } });
+    try {
+      const a = consumer();
+      const b = consumer();
+      await act(async () => {
+        a.result.current.generate();
+        vi.advanceTimersByTime(5000);
+        await pending;
+      });
+      const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
+      const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
+      await act(async () => {
+        a.result.current.reset();
+        a.result.current.reset();
+        a.result.current.generate();
+        expect(request).toHaveBeenCalledTimes(2);
+        await pending;
+      });
+      expect(a.result.current.error).toContain("could not be reset");
+      expect(a.result.current.resetting).toBe(false);
+      expect(b.result.current.records).toHaveLength(1);
+      expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+      write.mockRestore();
+      act(() => b.result.current.generate());
+      await act(async () => {
+        a.result.current.reset();
+        expect(request).toHaveBeenCalledTimes(3);
+        await pending;
+      });
+      act(() => vi.advanceTimersByTime(5000));
+      expect(a.result.current.error).toBeNull();
+      expect(a.result.current.records).toEqual([]);
+      expect(b.result.current.records).toEqual([]);
+      expect(b.result.current.generating).toBe(false);
+    } finally {
+      Object.defineProperty(navigator, "locks", { configurable: true, value: undefined });
+    }
+  });
+
   it("allocates unique IDs and shares generation and delivery across two same-loan consumers", () => {
     const a = consumer();
     const b = consumer();

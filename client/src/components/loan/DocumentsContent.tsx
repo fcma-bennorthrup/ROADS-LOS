@@ -27,14 +27,20 @@ function formatDisclosureDate(value: string): string {
 function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
   const [activeTab, setActiveTab] = useState("closing-disclosure");
   const closingPackage = useClosingPackage(loanId);
-  const { records, generating, error, generate, deliver } = useClosingDisclosures(loanId);
+  const { records, generating, resetting, error, generate, deliver, reset } = useClosingDisclosures(loanId);
   const newestRecord = records[0];
   const canViewNewest = Boolean(newestRecord);
-  const canDeliverNewest = Boolean(newestRecord && !newestRecord.deliveredAt && !error);
+  const canDeliverNewest = Boolean(newestRecord && !newestRecord.deliveredAt && !error && !resetting);
 
   const openDisclosure = () => {
     if (!newestRecord) return;
     window.open(sampleClosingDisclosurePdf, "_blank", "noopener,noreferrer");
+  };
+
+  const confirmReset = () => {
+    if (window.confirm(
+      "Reset Closing Disclosure? This will clear all generated Closing Disclosure rows and their delivery timestamps for this loan and cancel any generation in progress. Closing Package and other demo progress will not be changed.",
+    )) reset();
   };
 
   return (
@@ -61,7 +67,7 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
             <button
               type="button"
               onClick={generate}
-              disabled={generating || Boolean(error)}
+              disabled={generating || resetting || Boolean(error)}
               className="label-strong closing-documents-button closing-documents-button-primary"
               data-testid="button-generate-closing-disclosure"
             >
@@ -85,9 +91,19 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
             >
               Deliver Closing Disclosure
             </button>
+            <button
+              type="button"
+              onClick={confirmReset}
+              disabled={resetting}
+              className="label-strong closing-documents-button"
+              data-testid="button-reset-closing-disclosure"
+            >
+              Reset Closing Disclosure
+            </button>
           </div>
 
           <div className="closing-disclosure-feedback" aria-live="polite">
+            {resetting && <p className="body-200">Resetting Closing Disclosure.</p>}
             {generating && (
               <p className="body-200" data-testid="status-closing-disclosure-generating">
                 Generating Closing Disclosure. This may take a few seconds.
@@ -164,7 +180,7 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
                               type="button"
                               className="closing-disclosure-row-deliver"
                               onClick={() => deliver(record.id)}
-                              disabled={Boolean(record.deliveredAt) || Boolean(error)}
+                               disabled={Boolean(record.deliveredAt) || Boolean(error) || resetting}
                               data-testid={`button-deliver-closing-disclosure-${record.id}`}
                             >
                               {record.deliveredAt ? "Delivered" : "Deliver"}
