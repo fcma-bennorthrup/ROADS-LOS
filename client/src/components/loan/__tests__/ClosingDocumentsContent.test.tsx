@@ -100,12 +100,12 @@ describe("Closing Documents tabs and history", () => {
     for (const id of [1, 2]) {
       const actions = within(row(id)).getAllByRole("cell")[7];
       expect(within(actions).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
-      expect(within(actions).getAllByRole("button")).toHaveLength(1);
+      expect(within(actions).getAllByRole("button")).toHaveLength(2);
       expect(actions.querySelectorAll("svg")).toHaveLength(3);
       expect(Array.from(actions.firstElementChild!.children).map((node) => node.tagName))
-        .toEqual(["BUTTON", "SPAN", "SPAN"]);
+        .toEqual(["BUTTON", "SPAN", "BUTTON"]);
       expect(within(actions).getByTitle("History")).toHaveAttribute("aria-hidden", "true");
-      expect(within(actions).getByTitle("Edit")).toHaveAttribute("aria-hidden", "true");
+      expect(within(actions).getByRole("button", { name: `Edit Closing Disclosure CD ${id}` })).toBeInTheDocument();
     }
     expect(screen.getAllByRole("button", { name: /Deliver Closing Disclosure/ })).toHaveLength(1);
   });
@@ -139,7 +139,7 @@ describe("Closing Documents tabs and history", () => {
     expect(saved[0].deliveredAt).toBeNull();
   });
 
-  it("opens sample PDFs without fabricating borrower views and leaves clock/edit inert", () => {
+  it("opens sample PDFs without fabricating borrower views and leaves clock inert", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
     render(<Harness />);
     generate();
@@ -148,11 +148,11 @@ describe("Closing Documents tabs and history", () => {
     expect(open).toHaveBeenCalledTimes(2);
     expect(open).toHaveBeenCalledWith(expect.stringContaining("SampleCD"), "_blank", "noopener,noreferrer");
     const cells = within(row(1)).getAllByRole("cell");
-    expect(cells[3]).toBeEmptyDOMElement();
-    expect(cells[4]).toBeEmptyDOMElement();
-    expect(cells[5]).toBeEmptyDOMElement();
+    expect(cells[3]).toHaveTextContent("Not recorded");
+    expect(cells[4]).toHaveTextContent("No borrowers");
+    expect(cells[5]).toHaveTextContent("Not recorded");
     expect(cells[6]).toBeEmptyDOMElement();
-    expect(within(row(1)).queryByRole("button", { name: /clock|edit|history/i })).not.toBeInTheDocument();
+    expect(within(row(1)).queryByRole("button", { name: /clock|history/i })).not.toBeInTheDocument();
   });
 
   it("retains history across tabs and unmount/remount and isolates loans", () => {

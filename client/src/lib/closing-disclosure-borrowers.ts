@@ -1,0 +1,123 @@
+import type { Borrower } from "@shared/schema";
+import {
+  loadClosingDisclosureHistory, updateClosingDisclosureHistory,
+  type ClosingDisclosureRecord,
+} from "./closing-disclosure-history";
+
+export type DisclosureBorrower = Pick<Borrower, "id" | "name" | "isPrimary">;
+export type BorrowerDisclosureDetails = {
+  borrowerId: string;
+  deliveryMethod: "" | "Blend" | "Mail" | "Hand Delivery";
+  deliveryDate: string;
+  cdViewed: "" | "Yes" | "No";
+  viewedDate: string;
+};
+export type DisclosureEditSnapshot = {
+  loanId: string;
+  id: number;
+  generatedAt: string;
+  resetToken: string | null;
+  baseline: BorrowerDisclosureDetails[];
+};
+const fields = ["deliveryMethod", "deliveryDate", "cdViewed", "viewedDate"] as const;
+
+export function blankBorrowerDetails(borrowerId: string): BorrowerDisclosureDetails {
+  return { borrowerId, deliveryMethod: "", deliveryDate: "", cdViewed: "", viewedDate: "" };
+}
+
+export function isCalendarDate(value: unknown): value is string {
+  if (value === "") return true;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T12:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+/** Keep bad manual metadata isolated from the protected toolbar's history reader. */
+export function readBorrowerDetails(record: ClosingDisclosureRecord): BorrowerDisclosureDetails[] {
+  const value: unknown = record.borrowerDetails;
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error("Saved borrower details could not be read. Close the editor and check the saved data.");
+  const ids = new Set<string>();
+  for (const item of value) {
+    if (!item || typeof item.borrowerId !== "string" || !item.borrowerId || ids.has(item.borrowerId) ||
+      !["", "Blend", "Mail", "Hand Delivery"].includes(item.deliveryMethod) ||
+      !["", "Yes", "No"].includes(item.cdViewed) ||
+      !isCalendarDate(item.deliveryDate) || !isCalendarDate(item.viewedDate)) {
+      throw new Error("Saved borrower details could not be read. Close the editor and check the saved data.");
+    }
+    ids.add(item.borrowerId);
+  }
+  return value.map((item) => ({ ...item }));
+}
+
+export function detailsForBorrowers(record: ClosingDisclosureRecord, borrowers: DisclosureBorrower[]) {
+  const saved = readBorrowerDetails(record);
+  return borrowers.map((borrower) => saved.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id));
+}
+
+export function beginDisclosureEdit(loanId: string, id: number): DisclosureEditSnapshot {
+  const history = loadClosingDisclosureHistory(loanId);
+  const record = history.records.find((row) => row.id === id);
+  if (!record) throw new Error("This disclosure was reset or removed. Close the editor and reopen the disclosure.");
+  return { loanId, id, generatedAt: record.generatedAt, resetToken: history.resetToken, baseline: readBorrowerDetails(record) };
+}
+
+/** Three-way field merge: preserve unrelated edits, reject conflicting edits explicitly. */
+export async function saveDisclosureBorrowers(
+  loanId: string, snapshot: DisclosureEditSnapshot, draft: BorrowerDisclosureDetails[],
+) {
+  if (snapshot.loanId !== loanId) throw new Error("This editor belongs to a different loan. Close it and reopen the disclosure.");
+  readBorrowerDetails({ id: snapshot.id, generatedAt: snapshot.generatedAt, deliveredAt: null, borrowerDetails: draft });
+  try {
+    await updateClosingDisclosureHistory(loanId, (history) => {
+      const record = history.records.find((row) => row.id === snapshot.id);
+      if (history.resetToken !== snapshot.resetToken || !record || record.generatedAt !== snapshot.generatedAt) {
+        throw new Error("This disclosure was reset or removed. Close the editor and reopen the disclosure.");
+      }
+      const current = readBorrowerDetails(record);
+      const merged = current.map((item) => ({ ...item }));
+      for (const edited of draft) {
+        const base = snapshot.baseline.find((item) => item.borrowerId === edited.borrowerId) ?? blankBorrowerDetails(edited.borrowerId);
+        const latest = current.find((item) => item.borrowerId === edited.borrowerId) ?? blankBorrowerDetails(edited.borrowerId);
+        const result = { ...latest };
+        for (const field of fields) {
+          if (edited[field] === base[field]) continue;
+          if (latest[field] !== base[field] && latest[field] !== edited[field]) {
+            throw new Error("These borrower details changed in another window. Your draft has not been saved. Close and reopen the editor to review the latest details.");
+          }
+          // All draft values were validated above.
+          Object.assign(result, { [field]: edited[field] });
+        }
+        const index = merged.findIndex((item) => item.borrowerId === edited.borrowerId);
+        if (index < 0) merged.push(result);
+        else merged[index] = result;
+      }
+      return { ...history, records: history.records.map((row) =>
+        row.id === snapshot.id ? { ...row, borrowerDetails: merged } : row) };
+    });
+  } catch (error) {
+    if (error instanceof Error && /reset or removed|changed in another window|could not be read/.test(error.message)) throw error;
+    throw new Error("Borrower details could not be saved. Your draft is still open. Enable browser storage and try again.");
+  }
+}
+
+export function formatCalendarDate(value: string) {
+  if (!value) return "";
+  const [year, month, day] = value.split("-");
+  return `${month}/${day}/${year}`;
+}
+
+export function summarizeBorrowerField(
+  details: BorrowerDisclosureDetails[], field: "deliveryMethod" | "deliveryDate" | "viewedDate",
+) {
+  const values = details.map((item) => item[field]);
+  const recorded = values.filter(Boolean);
+  if (!recorded.length) return "";
+  const partial = recorded.length !== values.length;
+  if (new Set(recorded).size > 1) {
+    const summary = field === "deliveryMethod" ? "Multiple methods" : "Multiple dates";
+    return partial ? `${summary} · partially recorded` : summary;
+  }
+  if (partial) return "Partially recorded";
+  return field === "deliveryMethod" ? recorded[0] : formatCalendarDate(recorded[0]);
+}

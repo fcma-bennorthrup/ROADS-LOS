@@ -4,12 +4,16 @@ import { useState } from "react";
 import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
 import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
 import { ClosingDocumentIcon } from "./ClosingDocumentIcon";
+import { ClosingDisclosureBorrowerEditor } from "./ClosingDisclosureBorrowerEditor";
+import { ClosingDisclosureBorrowerCells } from "./ClosingDisclosureBorrowerCells";
+import type { DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentSection, DocumentsContent } from "./DisclosureDocumentsContent";
 import "./ClosingDocumentsContent.css";
 
 type ClosingDocumentsContentProps = {
   loanId?: string;
+  borrowers?: DisclosureBorrower[];
 };
 
 function formatDisclosureDate(value: string): string {
@@ -24,7 +28,7 @@ function formatDisclosureDate(value: string): string {
   }).format(date);
 }
 
-function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
+function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers: DisclosureBorrower[] }) {
   const [activeTab, setActiveTab] = useState("closing-disclosure");
   const closingPackage = useClosingPackage(loanId);
   const { records, generating, resetting, error, generate, deliver, reset } = useClosingDisclosures(loanId);
@@ -152,10 +156,12 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
                       <tr key={record.id} data-testid={`row-closing-disclosure-${record.id}`}>
                         <td>CD {record.id}</td>
                         <td>{formatDisclosureDate(record.generatedAt)}</td>
-                        <td>{record.deliveredAt ? formatDisclosureDate(record.deliveredAt) : ""}</td>
-                        <td />
-                        <td />
-                        <td />
+                        <ClosingDisclosureBorrowerCells
+                          loanId={loanId}
+                          record={record}
+                          borrowers={borrowers}
+                          deliveryFallback={record.deliveredAt ? formatDisclosureDate(record.deliveredAt) : ""}
+                        />
                         <td />
                         <td>
                           <div className="closing-disclosure-row-actions">
@@ -173,9 +179,7 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
                             <span className="closing-disclosure-inert-icon" aria-hidden="true" title="History">
                               <ClosingDocumentIcon kind="clock" />
                             </span>
-                            <span className="closing-disclosure-inert-icon" aria-hidden="true" title="Edit">
-                              <ClosingDocumentIcon kind="edit" />
-                            </span>
+                            <ClosingDisclosureBorrowerEditor loanId={loanId} record={record} borrowers={borrowers} />
                           </div>
                         </td>
                       </tr>
@@ -220,8 +224,8 @@ function ClosingDocumentsLoan({ loanId }: { loanId: string }) {
   );
 }
 
-function ClosingDocumentsContent({ loanId = "prototype" }: ClosingDocumentsContentProps) {
-  return <ClosingDocumentsLoan key={loanId} loanId={loanId} />;
+function ClosingDocumentsContent({ loanId = "prototype", borrowers = [] }: ClosingDocumentsContentProps) {
+  return <ClosingDocumentsLoan key={loanId} loanId={loanId} borrowers={borrowers} />;
 }
 
 const DOCUMENTS_NAV_ITEMS = ["Disclosures", "Closing Documents"];

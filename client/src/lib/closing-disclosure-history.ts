@@ -2,6 +2,7 @@ export interface ClosingDisclosureRecord {
   id: number;
   generatedAt: string;
   deliveredAt: string | null;
+  borrowerDetails?: import("./closing-disclosure-borrowers").BorrowerDisclosureDetails[];
 }
 
 export function closingDisclosureStorageKey(loanId: string) {

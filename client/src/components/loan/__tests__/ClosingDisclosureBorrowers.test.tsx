@@ -1,0 +1,193 @@
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import { ClosingDocumentsContent } from "../DocumentsContent";
+import { ChecklistProvider } from "@/contexts/checklist-context";
+import { closingDisclosureStorageKey, loadClosingDisclosures, resetClosingDisclosureHistory, updateClosingDisclosureHistory } from "@/lib/closing-disclosure-history";
+import { blankBorrowerDetails } from "@/lib/closing-disclosure-borrowers";
+
+const borrowers = [
+  { id: "a", name: "Borrower A", isPrimary: true },
+  { id: "b", name: "Borrower B", isPrimary: false },
+  { id: "c", name: "Borrower C", isPrimary: false },
+];
+const record = { id: 1, generatedAt: "2026-10-05T12:00:00.000Z", deliveredAt: null };
+function setup(list = borrowers) {
+  localStorage.setItem(closingDisclosureStorageKey("test"), JSON.stringify([record]));
+  return render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={list} /></ChecklistProvider>);
+}
+const edit = () => fireEvent.click(screen.getByTestId("button-edit-closing-disclosure-1"));
+function change(testId: string, value: string) {
+  fireEvent.change(screen.getByTestId(testId), { target: { value } });
+}
+async function save() {
+  await act(async () => fireEvent.click(screen.getByTestId("button-save-borrower-edit-1")));
+}
+
+describe("borrower disclosure editing", () => {
+  it("shows actual borrower names, blank values and the exact selectable methods", () => {
+    setup(); edit();
+    expect(screen.getByRole("dialog")).toHaveAccessibleName("Edit Closing Disclosure — CD 1");
+    expect(screen.getByText("Record delivery and viewing details for each borrower. These notes do not deliver or change the disclosure."))
+      .toHaveAttribute("id", screen.getByRole("dialog").getAttribute("aria-describedby"));
+    for (const borrower of borrowers) {
+      expect(screen.getByRole("heading", { name: borrower.name })).toBeVisible();
+      expect(screen.getByTestId(`select-delivery-method-${borrower.id}`)).toHaveValue("");
+      expect(screen.getByTestId(`input-delivery-date-${borrower.id}`)).toHaveValue("");
+      expect(screen.getByTestId(`select-cd-viewed-${borrower.id}`)).toHaveValue("");
+      expect(screen.getByTestId(`input-viewed-date-${borrower.id}`)).toHaveValue("");
+    }
+    expect(within(screen.getByTestId("select-delivery-method-a")).getAllByRole("option").map((item) => item.textContent))
+      .toEqual(["Select a method", "Blend", "Mail", "Hand Delivery"]);
+    expect(screen.getAllByText("Co-borrower")).toHaveLength(2);
+  });
+
+  it("copies only delivery fields, saves all borrowers, shows pending names and survives remount", async () => {
+    const view = setup(); edit();
+    change("select-delivery-method-a", "Blend");
+    change("input-delivery-date-a", "2026-10-05");
+    change("select-cd-viewed-a", "Yes");
+    change("input-viewed-date-a", "2026-10-06");
+    change("select-cd-viewed-b", "No");
+    fireEvent.click(screen.getByTestId("button-apply-delivery-a"));
+    expect(screen.getByTestId("select-delivery-method-b")).toHaveValue("Blend");
+    expect(screen.getByTestId("input-delivery-date-c")).toHaveValue("2026-10-05");
+    expect(screen.getByTestId("select-cd-viewed-b")).toHaveValue("No");
+    expect(screen.getByTestId("select-cd-viewed-c")).toHaveValue("");
+    expect(screen.getByTestId("input-viewed-date-b")).toHaveValue("");
+    await save();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · 2 pending");
+    expect(screen.getByTestId("text-delivery-date-1")).toHaveTextContent("10/05/2026");
+    expect(screen.getByTestId("text-viewed-date-1")).toHaveTextContent("Partially recorded");
+    expect(loadClosingDisclosures("test")[0].deliveredAt).toBeNull();
+    expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
+    fireEvent.click(screen.getByTestId("button-view-borrower-status-1"));
+    expect(screen.getByTestId("row-borrower-status-a")).toHaveTextContent("Viewed10/06/2026");
+    expect(screen.getByTestId("row-borrower-status-b")).toHaveTextContent("Not viewed");
+    expect(screen.getByTestId("row-borrower-status-c")).toHaveTextContent("Not recorded");
+    fireEvent.keyDown(screen.getByTestId("popover-borrower-status-1"), { key: "Escape" });
+    view.unmount();
+    render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={borrowers} /></ChecklistProvider>);
+    edit();
+    expect(screen.getByTestId("input-delivery-date-c")).toHaveValue("2026-10-05");
+    expect(screen.getByTestId("input-viewed-date-a")).toHaveValue("2026-10-06");
+    expect(screen.getByTestId("select-cd-viewed-b")).toHaveValue("No");
+  });
+
+  it("cancel, Escape and X discard unsaved changes", () => {
+    setup([borrowers[0]]);
+    for (const dismiss of ["cancel", "escape", "close"]) {
+      edit();
+      change("select-delivery-method-a", "Mail");
+      if (dismiss === "cancel") fireEvent.click(screen.getByTestId("button-cancel-borrower-edit-1"));
+      else if (dismiss === "escape") fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      else fireEvent.click(screen.getByRole("button", { name: "Close" }));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    }
+    edit();
+    expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("");
+    expect(loadClosingDisclosures("test")[0].borrowerDetails).toBeUndefined();
+  });
+
+  it("allows one borrower to be Yes without a date and to clear status back to blank", async () => {
+    setup([borrowers[0]]); edit();
+    change("select-cd-viewed-a", "Yes");
+    await save();
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 1 viewed");
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveClass("is-success");
+    edit(); change("select-cd-viewed-a", ""); await save();
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("Not recorded");
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveClass("is-neutral");
+  });
+
+  it("offers no fake borrowers or successful zero counts", () => {
+    setup([]);
+    expect(screen.getByTestId("status-cd-viewed-1")).toHaveTextContent("No borrowers");
+    edit();
+    expect(screen.getByText("No borrowers to track")).toBeVisible();
+    expect(screen.getByTestId("button-save-borrower-edit-1")).toBeDisabled();
+  });
+
+  it("retains failed drafts without disabling protected toolbar actions", async () => {
+    setup(); edit(); change("select-delivery-method-a", "Mail");
+    const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("full"); });
+    try {
+      await save();
+      expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
+      expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("Mail");
+      expect(screen.getByTestId("button-generate-closing-disclosure")).toBeEnabled();
+      expect(screen.getByTestId("button-view-closing-disclosure")).toBeEnabled();
+      expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
+      expect(loadClosingDisclosures("test")[0].borrowerDetails).toBeUndefined();
+    } finally { spy.mockRestore(); }
+    await save();
+    expect(loadClosingDisclosures("test")[0].borrowerDetails![0].deliveryMethod).toBe("Mail");
+  });
+
+  it("keeps an in-flight save visible and blocks duplicate saves or misleading cancellation", async () => {
+    setup(); edit(); change("select-delivery-method-a", "Mail");
+    let commit!: () => void;
+    const request = vi.fn((_key: string, write: () => void) => new Promise<void>((resolve) => {
+      commit = () => { write(); resolve(); };
+    }));
+    Object.defineProperty(navigator, "locks", { configurable: true, value: { request } });
+    try {
+      fireEvent.click(screen.getByTestId("button-save-borrower-edit-1"));
+      expect(screen.getByTestId("button-save-borrower-edit-1")).toBeDisabled();
+      expect(screen.getByTestId("button-cancel-borrower-edit-1")).toBeDisabled();
+      fireEvent.click(screen.getByTestId("button-save-borrower-edit-1"));
+      fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+      expect(request).toHaveBeenCalledTimes(1);
+      await act(async () => { commit(); });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(loadClosingDisclosures("test")[0].borrowerDetails![0].deliveryMethod).toBe("Mail");
+    } finally {
+      Object.defineProperty(navigator, "locks", { configurable: true, value: undefined });
+    }
+  });
+
+  it("updates summaries after a native cross-tab event", () => {
+    setup();
+    const saved = { ...record, borrowerDetails: borrowers.map((item) => ({ ...blankBorrowerDetails(item.id), cdViewed: "Yes" as const })) };
+    act(() => {
+      localStorage.setItem(closingDisclosureStorageKey("test"), JSON.stringify([saved]));
+      window.dispatchEvent(new StorageEvent("storage", { key: closingDisclosureStorageKey("test"), storageArea: localStorage }));
+    });
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("3 of 3 viewed");
+  });
+
+  it("shows a conflict without discarding the draft or overriding remote changes", async () => {
+    setup(); edit(); change("select-delivery-method-a", "Mail");
+    act(() => updateClosingDisclosureHistory("test", (history) => ({
+      ...history, records: [{ ...record, borrowerDetails: [{ ...blankBorrowerDetails("a"), deliveryMethod: "Blend" }] }],
+    })));
+    await save();
+    expect(screen.getByRole("alert")).toHaveTextContent("changed in another window");
+    expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("Mail");
+    expect(loadClosingDisclosures("test")[0].borrowerDetails![0].deliveryMethod).toBe("Blend");
+  });
+
+  it("reset while editing dismisses the editor and discards its details", async () => {
+    setup(); edit(); change("select-cd-viewed-a", "Yes");
+    await act(async () => { await resetClosingDisclosureHistory("test", true); });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(loadClosingDisclosures("test")).toEqual([]);
+  });
+
+  it("toolbar delivery and further generation preserve borrower metadata", async () => {
+    setup(); edit(); change("select-delivery-method-a", "Hand Delivery"); await save();
+    const details = loadClosingDisclosures("test")[0].borrowerDetails;
+    fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
+    expect(loadClosingDisclosures("test")[0].borrowerDetails).toEqual(details);
+    expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeDisabled();
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByTestId("button-generate-closing-disclosure"));
+      act(() => vi.advanceTimersByTime(5000));
+      expect(loadClosingDisclosures("test")[1].borrowerDetails).toEqual(details);
+      expect(loadClosingDisclosures("test")[0].borrowerDetails).toBeUndefined();
+      expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
+    } finally { vi.useRealTimers(); }
+  });
+});

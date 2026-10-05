@@ -3,20 +3,26 @@ name: Closing document scope
 description: User-approved boundaries for the Closing Documents prototype.
 ---
 
-The user chose interactive disclosure history rather than sample history, and said: “We don't need to do anything with the clock/edit icons at this time.”
+The user chose interactive disclosure history rather than sample history. Clock/history-icon functionality remains deferred; the user subsequently requested borrower-specific editing.
 
-**Why:** The user explicitly deferred those row actions while requesting the tabbed layout and interactive history.
+**Why:** The user originally deferred both icons, then explicitly approved the edit panel and borrower-viewing breakdown, not clock/history functionality.
 
-**How to apply:** Do not add clock/history dialogs or metadata editors as incidental polish. Ask for new scope before implementing those actions. Closing Package should retain its existing functionality under its own tab.
+**How to apply:** Do not add clock/history dialogs as incidental polish. Closing Package should retain its existing functionality under its own tab.
 
-The user wants Closing Disclosure delivery handled by the button above the table, not row-level delivery controls. Leave the action icons in place for functionality to be added later.
+The user wants Closing Disclosure delivery handled by the button above the table, not row-level delivery controls. The Generate, View, and Deliver toolbar buttons and their functionality must remain untouched.
 
-**Why:** The user explicitly requested toolbar-only delivery and deferred new icon functionality.
+**Why:** The user explicitly protected those buttons while requesting manual borrower tracking.
 
-**How to apply:** Do not reintroduce row Deliver/Delivered buttons or add new icon actions without a new request. Preserve existing PDF-preview behavior.
+**How to apply:** Keep manual borrower delivery and viewing information separate from prototype toolbar delivery tracking. Do not infer borrower viewing from staff PDF previews or toolbar delivery.
+
+Borrower tracking initially supports Blend, Mail, and Hand Delivery; CD Viewed distinguishes Yes, No, and blank. Blank means unrecorded, not No.
+
+**Why:** The user wants a simple manually maintained first version, with more business rules layered on later.
+
+**How to apply:** Do not add compliance/waiting-period rules, inferred dates, or mandatory date/status relationships without a new request. Bulk-copy only delivery details, never viewing confirmations.
 
 Staff PDF previews must not be treated as borrower receipt or confirmation.
 
 **Why:** No borrower-view source was supplied; treating a staff preview as borrower viewing would fabricate lending workflow data.
 
-**How to apply:** Keep unavailable borrower-view fields blank until a real or explicitly approved simulated borrower-view source is requested.
+**How to apply:** Borrower viewing may be recorded manually as requested; never turn staff preview activity into borrower confirmation.

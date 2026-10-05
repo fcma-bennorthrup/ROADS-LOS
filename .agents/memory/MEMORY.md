@@ -1,4 +1,4 @@
 - [Asset import drift after task merges](asset-import-drift.md) — merged work may import @assets files with timestamps that don't exist here; repoint to the real filename in attached_assets.
 - [Vite HMR behind Replit proxy](vite-hmr-replit-proxy.md) — keep middleware-mode HMR disabled; disconnected proxy websockets can retain incompatible React contexts.
-- [Closing document scope](closing-document-scope.md) — interactive disclosure history is wanted; clock/edit behavior is explicitly deferred.
+- [Closing document scope](closing-document-scope.md) — manual borrower editing is approved; toolbar behavior is protected and clock/history remains deferred.
 - [Cross-tab reset safety](cross-tab-reset-safety.md) — persist reset identity so delayed storage notifications cannot resurrect work started before a reset.
