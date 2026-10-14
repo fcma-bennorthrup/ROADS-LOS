@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
+import { localCalendarDate, withBorrowerDelivery, type DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import {
   loadClosingDisclosureHistory,
   resetClosingDisclosureHistory,
@@ -93,14 +94,21 @@ export function useClosingDisclosures(loanId: string) {
     }, 5000);
   }
 
-  function deliver(id: number) {
+  function deliver(id: number, borrowers: readonly DisclosureBorrower[] = []) {
     const record = historyRef.current.records.find((row) => row.id === id);
     if (!record || record.deliveredAt || error || resetPending.current) return;
     const resetToken = historyRef.current.resetToken;
+    const generatedAt = record.generatedAt;
+    const clickedAt = new Date();
+    const deliveredAt = clickedAt.toISOString();
+    const deliveryDate = localCalendarDate(clickedAt);
+    const borrowerIds = borrowers.map((borrower) => borrower.id);
     save((current) => current.resetToken !== resetToken ? current : {
       ...current,
       records: current.records.map((row) =>
-        row.id === id && !row.deliveredAt ? { ...row, deliveredAt: new Date().toISOString() } : row,
+        row.id === id && row.generatedAt === generatedAt && !row.deliveredAt
+          ? withBorrowerDelivery(row, borrowerIds, deliveredAt, deliveryDate)
+          : row,
       ),
     });
   }

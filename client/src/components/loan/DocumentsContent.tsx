@@ -73,7 +73,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
             </button>
             <button
               type="button"
-              onClick={() => newestRecord && deliver(newestRecord.id)}
+              onClick={() => newestRecord && deliver(newestRecord.id, borrowers)}
               disabled={!canDeliverNewest}
               className="label-strong closing-documents-button"
               data-testid="button-deliver-closing-disclosure"

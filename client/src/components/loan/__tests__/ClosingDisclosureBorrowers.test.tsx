@@ -197,19 +197,62 @@ describe("borrower disclosure editing", () => {
     expect(loadClosingDisclosures("test")).toEqual([]);
   });
 
-  it("toolbar delivery and further generation preserve borrower metadata", async () => {
-    setup(); edit(); change("select-delivery-method-a", "Hand Delivery"); await save();
-    const details = loadClosingDisclosures("test")[0].borrowerDetails;
-    fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
-    expect(loadClosingDisclosures("test")[0].borrowerDetails).toEqual(details);
-    expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeDisabled();
+  it("toolbar delivery overwrites delivery fields for all borrowers but preserves viewing and new-generation defaults", async () => {
+    setup(); edit();
+    change("select-delivery-method-a", "Hand Delivery");
+    change("input-delivery-date-a", "2026-10-01");
+    change("select-cd-viewed-a", "Yes");
+    change("input-viewed-date-a", "2026-10-06");
+    change("select-cd-viewed-b", "No");
+    await save();
+    const before = loadClosingDisclosures("test")[0].borrowerDetails!;
     vi.useFakeTimers();
     try {
+      vi.setSystemTime(new Date(2026, 9, 14, 14, 15));
+      fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
+      const delivered = loadClosingDisclosures("test")[0];
+      for (const borrower of borrowers) {
+        const detail = delivered.borrowerDetails!.find((item) => item.borrowerId === borrower.id)!;
+        expect(detail.deliveryMethod).toBe("Blend");
+        expect(detail.deliveryDate).toBe("2026-10-14");
+        expect(detail.cdViewed).toBe(before.find((item) => item.borrowerId === borrower.id)!.cdViewed);
+        expect(detail.viewedDate).toBe(before.find((item) => item.borrowerId === borrower.id)!.viewedDate);
+      }
+      expect(screen.getByTestId("text-delivery-method-1")).toHaveTextContent("Blend");
+      expect(screen.getByTestId("text-delivery-date-1")).toHaveTextContent("10/14/2026");
+      expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeDisabled();
+      expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · 2 pending");
+      edit();
+      for (const borrower of borrowers) {
+        expect(screen.getByTestId(`select-delivery-method-${borrower.id}`)).toHaveValue("Blend");
+        expect(screen.getByTestId(`input-delivery-date-${borrower.id}`)).toHaveValue("2026-10-14");
+      }
+      expect(screen.getByTestId("input-viewed-date-a")).toHaveValue("2026-10-06");
+      fireEvent.click(screen.getByTestId("button-cancel-borrower-edit-1"));
       fireEvent.click(screen.getByTestId("button-generate-closing-disclosure"));
       act(() => vi.advanceTimersByTime(5000));
-      expect(loadClosingDisclosures("test")[1].borrowerDetails).toEqual(details);
+      expect(loadClosingDisclosures("test")[1].borrowerDetails).toEqual(delivered.borrowerDetails);
       expect(loadClosingDisclosures("test")[0].borrowerDetails).toBeUndefined();
+      expect(screen.getByTestId("text-delivery-method-2")).toHaveTextContent("Not recorded");
       expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
     } finally { vi.useRealTimers(); }
+  });
+
+  it("retains delivered borrower fields after remount and permits manual corrections afterward", async () => {
+    const view = setup([borrowers[0]]);
+    fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
+    const delivered = loadClosingDisclosures("test")[0];
+    const deliveryDate = delivered.borrowerDetails![0].deliveryDate;
+    view.unmount();
+    render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={[borrowers[0]]} /></ChecklistProvider>);
+    edit();
+    expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("Blend");
+    expect(screen.getByTestId("input-delivery-date-a")).toHaveValue(deliveryDate);
+    change("select-delivery-method-a", "Mail");
+    change("input-delivery-date-a", "2026-10-10");
+    await save();
+    expect(screen.getByTestId("text-delivery-method-1")).toHaveTextContent("Mail");
+    expect(loadClosingDisclosures("test")[0].deliveredAt).toBe(delivered.deliveredAt);
+    expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeDisabled();
   });
 });

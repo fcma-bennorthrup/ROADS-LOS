@@ -55,6 +55,32 @@ export function detailsForBorrowers(record: ClosingDisclosureRecord, borrowers: 
   return borrowers.map((borrower) => saved.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id));
 }
 
+/** Use the user's local calendar day, not the UTC day of an ISO timestamp. */
+export function localCalendarDate(date: Date): string {
+  return `${String(date.getFullYear()).padStart(4, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+/** Called inside the authoritative history update, preserving latest viewing details. */
+export function withBorrowerDelivery(
+  record: ClosingDisclosureRecord, borrowerIds: readonly string[], deliveredAt: string, deliveryDate: string,
+): ClosingDisclosureRecord {
+  if (!borrowerIds.length) return { ...record, deliveredAt };
+  const ids = new Set(borrowerIds);
+  if (ids.size !== borrowerIds.length || borrowerIds.some((id) => typeof id !== "string" || !id)) {
+    throw new Error("Borrower identities could not be read.");
+  }
+  const details = readBorrowerDetails(record);
+  const updated = details.map((item) => ids.has(item.borrowerId)
+    ? { ...item, deliveryMethod: "Blend" as const, deliveryDate }
+    : item);
+  for (const borrowerId of borrowerIds) {
+    if (!details.some((item) => item.borrowerId === borrowerId)) {
+      updated.push({ ...blankBorrowerDetails(borrowerId), deliveryMethod: "Blend", deliveryDate });
+    }
+  }
+  return { ...record, deliveredAt, borrowerDetails: updated };
+}
+
 export function beginDisclosureEdit(loanId: string, id: number): DisclosureEditSnapshot {
   const history = loadClosingDisclosureHistory(loanId);
   const record = history.records.find((row) => row.id === id);
