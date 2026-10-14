@@ -67,11 +67,11 @@ describe("Closing Documents tabs and history", () => {
     ]);
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("columnheader").map((node) => node.getAttribute("aria-label") || node.textContent)).toEqual([
-      "Document ID", "Date Generated", "Delivery Date", "Delivery Method", "CD Viewed", "Reason for Re-disclosure", "Document actions",
+      "Document ID", "Date Generated", "Delivery Date", "Delivery Method", "CD Viewed", "Document actions",
     ]);
-    expect(screen.getByTestId("text-closing-disclosure-empty")).toHaveAttribute("colspan", "7");
+    expect(screen.getByTestId("text-closing-disclosure-empty")).toHaveAttribute("colspan", "6");
     generate();
-    expect(within(row(1)).getAllByRole("cell")).toHaveLength(7);
+    expect(within(row(1)).getAllByRole("cell")).toHaveLength(6);
     expect(within(row(1)).getByRole("button", { name: "View Closing Disclosure CD 1" })).toBeEnabled();
     expect(screen.queryByTestId("button-view-closing-disclosure")).not.toBeInTheDocument();
   });
@@ -115,8 +115,8 @@ describe("Closing Documents tabs and history", () => {
     expect(loadClosingDisclosures("prototype")[0].deliveredAt).toBe(first[0].deliveredAt);
     expect(loadClosingDisclosures("prototype")[1].deliveredAt).toBeNull();
     for (const id of [1, 2]) {
-      expect(within(row(id)).getAllByRole("cell")).toHaveLength(7);
-      const actions = within(row(id)).getAllByRole("cell")[6];
+      expect(within(row(id)).getAllByRole("cell")).toHaveLength(6);
+      const actions = within(row(id)).getAllByRole("cell")[5];
       expect(within(actions).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
       expect(within(actions).getAllByRole("button")).toHaveLength(2);
       expect(actions.querySelectorAll("svg")).toHaveLength(3);
@@ -168,8 +168,8 @@ describe("Closing Documents tabs and history", () => {
     const cells = within(row(1)).getAllByRole("cell");
     expect(cells[3]).toHaveTextContent("Not recorded");
     expect(cells[4]).toHaveTextContent("No borrowers");
-    expect(cells).toHaveLength(7);
-    expect(cells[5]).toBeEmptyDOMElement();
+    expect(cells).toHaveLength(6);
+    expect(within(cells[5]).getByRole("button", { name: "View Closing Disclosure CD 1" })).toBeEnabled();
     expect(within(row(1)).queryByRole("button", { name: /clock|history/i })).not.toBeInTheDocument();
   });
 

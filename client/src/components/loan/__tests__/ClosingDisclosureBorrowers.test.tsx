@@ -32,8 +32,8 @@ describe("borrower disclosure editing", () => {
     localStorage.setItem(closingDisclosureStorageKey("test"), saved);
     render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={borrowers} /></ChecklistProvider>);
     const table = screen.getByRole("table");
-    expect(within(table).getAllByRole("columnheader")).toHaveLength(7);
-    expect(within(screen.getByTestId("row-closing-disclosure-1")).getAllByRole("cell")).toHaveLength(7);
+    expect(within(table).getAllByRole("columnheader")).toHaveLength(6);
+    expect(within(screen.getByTestId("row-closing-disclosure-1")).getAllByRole("cell")).toHaveLength(6);
     expect(within(table).queryByText("10/06/2026")).not.toBeInTheDocument();
     expect(screen.queryByTestId("text-viewed-date-1")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("button-view-borrower-status-1"));

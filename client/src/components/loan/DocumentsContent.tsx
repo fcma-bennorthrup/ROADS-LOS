@@ -122,14 +122,13 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                     <th scope="col">Delivery Date</th>
                     <th scope="col">Delivery Method</th>
                     <th scope="col">CD Viewed</th>
-                    <th scope="col">Reason for Re-disclosure</th>
                     <th scope="col" aria-label="Document actions" />
                   </tr>
                 </thead>
                 <tbody>
                   {records.length === 0 ? (
                     <tr>
-                      <td className="closing-disclosure-empty" colSpan={7} data-testid="text-closing-disclosure-empty">
+                      <td className="closing-disclosure-empty" colSpan={6} data-testid="text-closing-disclosure-empty">
                         {generating
                           ? "Your new disclosure will appear here when generation is complete."
                           : "No Closing Disclosures have been generated"}
@@ -146,7 +145,6 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                           borrowers={borrowers}
                           deliveryFallback={record.deliveredAt ? formatDisclosureDate(record.deliveredAt) : ""}
                         />
-                        <td />
                         <td>
                           <div className="closing-disclosure-row-actions">
                             <button
