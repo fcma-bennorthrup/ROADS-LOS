@@ -1,1 +1,2 @@
 - [Architecture audit constraints](audit-constraints.md) — Audit current local code; preserve all user-facing visuals and behavior, with per-change approval.
+- [Setup documentation policy](setup-documentation-policy.md) — Document both observed runtime configurations without certifying compatibility or aligning toolchains.
