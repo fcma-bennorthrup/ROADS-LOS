@@ -103,8 +103,8 @@ describe("borrower disclosure editing", () => {
 
   it("shows actual borrower names, blank values and the exact selectable methods", () => {
     setup(); edit();
-    expect(screen.getByRole("dialog")).toHaveAccessibleName("Edit Closing Disclosure — CD 1");
-    expect(screen.getByText("Record delivery and viewing details for each borrower. These notes do not deliver or change the disclosure."))
+    expect(screen.getByRole("dialog")).toHaveAccessibleName("Closing Disclosure Delivery");
+    expect(screen.getByText("ROR does not apply. Only one borrower needs to view the CD."))
       .toHaveAttribute("id", screen.getByRole("dialog").getAttribute("aria-describedby"));
     for (const borrower of borrowers) {
       expect(screen.getByRole("heading", { name: borrower.name })).toBeVisible();
@@ -125,7 +125,7 @@ describe("borrower disclosure editing", () => {
     change("select-cd-viewed-a", "Yes");
     change("input-viewed-date-a", "2026-10-06");
     change("select-cd-viewed-b", "No");
-    fireEvent.click(screen.getByTestId("button-apply-delivery-a"));
+    fireEvent.click(screen.getByTestId("checkbox-apply-delivery-a"));
     expect(screen.getByTestId("select-delivery-method-b")).toHaveValue("Blend");
     expect(screen.getByTestId("input-delivery-date-c")).toHaveValue("2026-10-05");
     expect(screen.getByTestId("select-cd-viewed-b")).toHaveValue("No");
@@ -133,7 +133,7 @@ describe("borrower disclosure editing", () => {
     expect(screen.getByTestId("input-viewed-date-b")).toHaveValue("");
     await save();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · 2 pending");
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · Requirement met");
     expect(screen.getByTestId("text-delivery-date-1")).toHaveTextContent("10/05/2026");
     expect(screen.queryByTestId("text-viewed-date-1")).not.toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Date CD Viewed" })).not.toBeInTheDocument();
@@ -277,7 +277,7 @@ describe("borrower disclosure editing", () => {
       expect(screen.getByTestId("text-delivery-method-1")).toHaveTextContent("Blend");
       expect(screen.getByTestId("text-delivery-date-1")).toHaveTextContent("10/14/2026");
       expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeDisabled();
-      expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · 2 pending");
+      expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · Requirement met");
       edit();
       for (const borrower of borrowers) {
         expect(screen.getByTestId(`select-delivery-method-${borrower.id}`)).toHaveValue("Blend");

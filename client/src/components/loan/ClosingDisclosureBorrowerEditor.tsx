@@ -4,6 +4,9 @@ import {
   beginDisclosureEdit,
   blankBorrowerDetails,
   saveDisclosureBorrowers,
+  hasSharedDelivery,
+  summarizeBorrowerViewing,
+  borrowerViewingBadge,
 } from "@/lib/closing-disclosure-borrowers";
 import type { ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
 import { ClosingDocumentIcon } from "@/components/loan/ClosingDocumentIcon";
@@ -32,6 +35,9 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
   const [draft, setDraft] = useState<BorrowerDisclosureDetails[]>([]);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [applyToAll, setApplyToAll] = useState(false);
+  const deliverySource = borrowers.find((borrower) => borrower.isPrimary) ?? borrowers[0];
+  const viewing = summarizeBorrowerViewing(draft);
   const saveLock = useRef(false);
   const session = useRef(0);
   const unmatchedCount = snapshot?.baseline.filter(
@@ -44,10 +50,13 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
     try {
       const freshSnapshot = beginDisclosureEdit(loanId, record.id);
       setSnapshot(freshSnapshot);
-      setDraft(borrowers.map((borrower) =>
-        freshSnapshot.baseline.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id)));
+      const freshDraft = borrowers.map((borrower) =>
+        freshSnapshot.baseline.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id));
+      setDraft(freshDraft);
+      setApplyToAll(hasSharedDelivery(freshDraft, deliverySource?.id));
     } catch (cause) {
       setSnapshot(null);
+      setApplyToAll(false);
       setDraft(borrowers.map((borrower) => blankBorrowerDetails(borrower.id)));
       setError(cause instanceof Error ? cause.message : "Borrower details could not be opened.");
     }
@@ -59,6 +68,7 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
     setOpen(false);
     setSnapshot(null);
     setDraft([]);
+    setApplyToAll(false);
     setError("");
   };
 
@@ -70,17 +80,24 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
   };
 
   const updateField = (borrowerId: string, field: keyof Omit<BorrowerDisclosureDetails, "borrowerId">, value: string) => {
-    setDraft((current) => current.map((item) => item.borrowerId === borrowerId
-      ? { ...item, [field]: value } as BorrowerDisclosureDetails
-      : item));
+    const deliveryField = field === "deliveryMethod" || field === "deliveryDate";
+    // An individual delivery correction breaks the link; all fields remain editable.
+    if (deliveryField && borrowerId !== deliverySource?.id) setApplyToAll(false);
+    setDraft((current) => current.map((item) =>
+      item.borrowerId === borrowerId || (applyToAll && deliveryField && borrowerId === deliverySource?.id)
+        ? { ...item, [field]: value } as BorrowerDisclosureDetails
+        : item));
   };
 
-  const applyDelivery = (borrowerId: string) => {
-    const source = draft.find((item) => item.borrowerId === borrowerId);
-    if (!source) return;
-    setDraft((current) => current.map((item) => item.borrowerId === borrowerId
-      ? item
-      : { ...item, deliveryMethod: source.deliveryMethod, deliveryDate: source.deliveryDate }));
+  const toggleApplyDelivery = (checked: boolean) => {
+    setApplyToAll(checked);
+    if (!checked) return;
+    setDraft((current) => {
+      const source = current.find((item) => item.borrowerId === deliverySource?.id);
+      if (!source) return current;
+      return current.map((item) => item.borrowerId === source.borrowerId ? item
+        : { ...item, deliveryMethod: source.deliveryMethod, deliveryDate: source.deliveryDate });
+    });
   };
 
   const save = async () => {
@@ -121,11 +138,8 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
         onPointerDownOutside={(event) => { if (saveLock.current) event.preventDefault(); }}>
         <div className="closing-borrower-sheet-layout">
           <SheetHeader className="closing-borrower-sheet-header">
-            <span className="closing-borrower-eyebrow">MANUAL BORROWER TRACKING</span>
-            <SheetTitle className="closing-borrower-sheet-title">Edit Closing Disclosure — CD {record.id}</SheetTitle>
-            <SheetDescription>
-              Record delivery and viewing details for each borrower. These notes do not deliver or change the disclosure.
-            </SheetDescription>
+            <SheetTitle className="closing-borrower-sheet-title">Closing Disclosure Delivery</SheetTitle>
+            <SheetDescription>ROR does not apply. Only one borrower needs to view the CD.</SheetDescription>
           </SheetHeader>
 
           <div className="closing-borrower-sheet-body">
@@ -153,35 +167,39 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
               </div>
             ) : (
               <div className="closing-borrower-sections">
-                {borrowers.map((borrower, index) => {
+                {borrowers.map((borrower) => {
                   const details = draft.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id);
+                  const badge = borrowerViewingBadge(details, viewing.requirementMet);
                   return (
                     <section className="closing-borrower-section" key={borrower.id} aria-labelledby={`borrower-section-title-${record.id}-${borrower.id}`}>
                       <div className="closing-borrower-section-heading">
                         <div className="closing-borrower-section-identity">
-                          <span className="closing-borrower-index">{String(index + 1).padStart(2, "0")}</span>
                           <div>
                             <h3 id={`borrower-section-title-${record.id}-${borrower.id}`}>{borrower.name || "Unnamed borrower"}</h3>
-                            <span>{borrower.isPrimary ? "Primary borrower" : "Co-borrower"}</span>
+                            <span>{borrower.isPrimary ? "Primary Borrower" : "Co-borrower"}</span>
                           </div>
                         </div>
-                        {borrowers.length > 1 ? (
-                          <button
-                            type="button"
-                            className="closing-borrower-copy-button"
-                            onClick={() => applyDelivery(borrower.id)}
-                            disabled={saving || !snapshot}
-                            data-testid={`button-apply-delivery-${borrower.id}`}
-                          >
-                            Apply delivery details to all borrowers
-                          </button>
-                        ) : null}
+                        <span
+                          className={`closing-borrower-status is-${badge.tone} closing-borrower-viewing-badge`}
+                          data-testid={`badge-borrower-viewing-${borrower.id}`}
+                        >
+                          {badge.label}
+                        </span>
                       </div>
 
                       <div className="closing-borrower-fields">
-                        <label className="closing-borrower-field">
-                          <span>Delivery Method</span>
+                        <div className="closing-borrower-field">
+                          <div className="closing-borrower-field-label-row">
+                            <label htmlFor={`delivery-method-${record.id}-${borrower.id}`}>Delivery Method</label>
+                            <details className="closing-borrower-help">
+                              <summary aria-label="About delivery method" aria-describedby={`delivery-help-${record.id}-${borrower.id}`}>?</summary>
+                              <span id={`delivery-help-${record.id}-${borrower.id}`} role="tooltip">
+                                Manual tracking only. No disclosure documents are sent.
+                              </span>
+                            </details>
+                          </div>
                           <select
+                            id={`delivery-method-${record.id}-${borrower.id}`}
                             value={details.deliveryMethod}
                             onChange={(event) => updateField(borrower.id, "deliveryMethod", event.target.value)}
                             disabled={!snapshot || saving}
@@ -190,7 +208,7 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
                             <option value="">Select a method</option>
                             {methods.map((method) => <option value={method} key={method}>{method}</option>)}
                           </select>
-                        </label>
+                        </div>
                         <label className="closing-borrower-field">
                           <span>Delivery Date</span>
                           <input
@@ -225,6 +243,18 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
                           />
                         </label>
                       </div>
+                      {borrowers.length > 1 && borrower.id === deliverySource?.id ? (
+                        <label className="closing-borrower-apply">
+                          <input
+                            type="checkbox"
+                            checked={applyToAll}
+                            onChange={(event) => toggleApplyDelivery(event.target.checked)}
+                            disabled={saving || !snapshot}
+                            data-testid={`checkbox-apply-delivery-${borrower.id}`}
+                          />
+                          <span>Apply delivery details to all borrowers</span>
+                        </label>
+                      ) : null}
                     </section>
                   );
                 })}
@@ -244,7 +274,7 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
               disabled={!snapshot || !borrowers.length || saving}
               data-testid={`button-save-borrower-edit-${record.id}`}
             >
-              {saving ? "Saving…" : "Save changes"}
+              {saving ? "Saving…" : "Save Changes"}
             </button>
           </SheetFooter>
         </div>

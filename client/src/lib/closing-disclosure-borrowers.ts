@@ -25,6 +25,29 @@ export function blankBorrowerDetails(borrowerId: string): BorrowerDisclosureDeta
   return { borrowerId, deliveryMethod: "", deliveryDate: "", cdViewed: "", viewedDate: "" };
 }
 
+/** User-approved non-ROR prototype rule; never change individual viewing records. */
+export function summarizeBorrowerViewing(details: readonly BorrowerDisclosureDetails[]) {
+  const confirmed = details.filter((item) => item.cdViewed === "Yes").length;
+  const total = details.length;
+  const allUnrecorded = total > 0 && details.every((item) => !item.cdViewed);
+  const requirementMet = confirmed > 0;
+  const summary = !total ? "No borrowers" : allUnrecorded ? "Not recorded"
+    : `${confirmed} of ${total} viewed · ${requirementMet ? "Requirement met" : "Viewing needed"}`;
+  return { confirmed, total, allUnrecorded, requirementMet, summary };
+}
+
+export function borrowerViewingBadge(detail: BorrowerDisclosureDetails, requirementMet: boolean) {
+  if (detail.cdViewed === "Yes") return { label: "Viewed", tone: "success" };
+  if (requirementMet) return { label: detail.cdViewed === "No" ? "Not viewed" : "Not recorded", tone: "neutral" };
+  return { label: "Viewing Needed", tone: "pending" };
+}
+
+export function hasSharedDelivery(details: readonly BorrowerDisclosureDetails[], sourceId?: string) {
+  const source = details.find((item) => item.borrowerId === sourceId);
+  if (details.length < 2 || !source?.deliveryMethod || !source.deliveryDate) return false;
+  return details.every((item) => item.deliveryMethod === source.deliveryMethod && item.deliveryDate === source.deliveryDate);
+}
+
 export function isCalendarDate(value: unknown): value is string {
   if (value === "") return true;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;

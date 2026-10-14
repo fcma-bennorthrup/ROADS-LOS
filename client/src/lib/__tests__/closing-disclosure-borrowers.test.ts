@@ -3,6 +3,7 @@ import {
   beginDisclosureEdit, blankBorrowerDetails, detailsForBorrowers,
   formatCalendarDate, isCalendarDate, readBorrowerDetails, saveDisclosureBorrowers,
   summarizeBorrowerField,
+  summarizeBorrowerViewing, borrowerViewingBadge, hasSharedDelivery,
 } from "../closing-disclosure-borrowers";
 import { closingDisclosureStorageKey, loadClosingDisclosures, resetClosingDisclosureHistory } from "../closing-disclosure-history";
 
@@ -15,6 +16,40 @@ function seed(rows = [record], loanId = "test") {
 beforeEach(() => { seed(); });
 
 describe("borrower disclosure metadata", () => {
+  it("derives non-ROR completion from any explicit Yes without rewriting individual records", () => {
+    const details = [
+      { ...blankBorrowerDetails("a"), cdViewed: "No" as const },
+      { ...blankBorrowerDetails("b"), cdViewed: "Yes" as const },
+      blankBorrowerDetails("c"),
+    ];
+    const before = JSON.stringify(details);
+    expect(summarizeBorrowerViewing(details)).toMatchObject({
+      confirmed: 1, total: 3, requirementMet: true, summary: "1 of 3 viewed · Requirement met",
+    });
+    expect(borrowerViewingBadge(details[0], true)).toEqual({ label: "Not viewed", tone: "neutral" });
+    expect(borrowerViewingBadge(details[1], true)).toEqual({ label: "Viewed", tone: "success" });
+    expect(borrowerViewingBadge(details[2], true)).toEqual({ label: "Not recorded", tone: "neutral" });
+    expect(JSON.stringify(details)).toBe(before);
+    expect(summarizeBorrowerViewing(details.map((item) => ({ ...item, cdViewed: "" })))).toMatchObject({
+      requirementMet: false, allUnrecorded: true, summary: "Not recorded",
+    });
+    expect(summarizeBorrowerViewing([details[0], details[2]]).summary).toBe("0 of 2 viewed · Viewing needed");
+    expect(borrowerViewingBadge(details[0], false)).toEqual({ label: "Viewing Needed", tone: "pending" });
+    expect(summarizeBorrowerViewing([])).toMatchObject({ requirementMet: false, summary: "No borrowers" });
+  });
+
+  it("initializes linking only for multiple borrowers with matching nonblank delivery values", () => {
+    const first = { ...blankBorrowerDetails("a"), deliveryMethod: "Blend" as const, deliveryDate: "2026-10-14" };
+    const second = { ...first, borrowerId: "b", cdViewed: "No" as const };
+    expect(hasSharedDelivery([first, second], "a")).toBe(true);
+    expect(hasSharedDelivery([first], "a")).toBe(false);
+    expect(hasSharedDelivery([], "a")).toBe(false);
+    expect(hasSharedDelivery([first, second], "missing")).toBe(false);
+    expect(hasSharedDelivery([blankBorrowerDetails("a"), blankBorrowerDetails("b")], "a")).toBe(false);
+    expect(hasSharedDelivery([first, { ...second, deliveryMethod: "Mail" }], "a")).toBe(false);
+    expect(hasSharedDelivery([first, { ...second, deliveryDate: "" }], "a")).toBe(false);
+  });
+
   it("loads legacy disclosures as blank real borrower sections without writing data", () => {
     const before = localStorage.getItem(closingDisclosureStorageKey("test"));
     expect(detailsForBorrowers(record, [a, b])).toEqual([blankBorrowerDetails("a"), blankBorrowerDetails("b")]);

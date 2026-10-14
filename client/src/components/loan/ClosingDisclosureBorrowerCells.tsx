@@ -3,6 +3,7 @@ import {
   detailsForBorrowers,
   formatCalendarDate,
   summarizeBorrowerField,
+  summarizeBorrowerViewing,
   type DisclosureBorrower,
 } from "@/lib/closing-disclosure-borrowers";
 import type { ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
@@ -41,19 +42,8 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
     ? error
     : summarizeBorrowerField(details, "deliveryDate") || deliveryFallback;
   const deliveryMethod = error || summarizeBorrowerField(details, "deliveryMethod") || "Not recorded";
-  const confirmed = details.filter((item) => item.cdViewed === "Yes").length;
-  const pending = details.length - confirmed;
-  const allUnrecorded = details.length > 0 && details.every((item) => !item.cdViewed);
-  const allViewed = details.length > 0 && confirmed === details.length;
-  const viewedSummary = error
-    ? "Borrower details unavailable"
-    : details.length === 0
-      ? "No borrowers"
-      : allUnrecorded
-        ? "Not recorded"
-        : allViewed
-          ? `${confirmed} of ${details.length} viewed`
-          : `${confirmed} of ${details.length} viewed · ${pending} pending`;
+  const { allUnrecorded, requirementMet, summary } = summarizeBorrowerViewing(details);
+  const viewedSummary = error || summary;
 
   return (
     <>
@@ -74,11 +64,11 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`closing-borrower-summary ${allViewed ? "is-success" : allUnrecorded ? "is-neutral" : "is-pending"}`}
+                className={`closing-borrower-summary ${requirementMet ? "is-success" : allUnrecorded ? "is-neutral" : "is-pending"}`}
                 aria-label={`CD viewed status for disclosure CD ${record.id}: ${viewedSummary}. View borrower details`}
                 data-testid={`button-view-borrower-status-${record.id}`}
               >
-                <StatusIcon kind={allViewed ? "check" : allUnrecorded ? "unknown" : "pending"} />
+                <StatusIcon kind={requirementMet ? "check" : allUnrecorded ? "unknown" : "pending"} />
                 <span>{viewedSummary}</span>
                 <StatusIcon kind="down" className="closing-borrower-summary-chevron" />
               </button>
@@ -108,7 +98,7 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
                         <strong>{borrower.name || "Unnamed borrower"}</strong>
                         <span>{borrower.isPrimary ? "Primary borrower" : "Co-borrower"}</span>
                       </div>
-                      <div className={`closing-borrower-breakdown-status ${status === "Viewed" ? "is-success" : status === "Not viewed" ? "is-pending" : "is-neutral"}`}>
+                      <div className={`closing-borrower-breakdown-status ${status === "Viewed" ? "is-success" : status === "Not viewed" && !requirementMet ? "is-pending" : "is-neutral"}`}>
                         <span>{status}</span>
                         {detail?.viewedDate ? <time dateTime={detail.viewedDate}>{formatCalendarDate(detail.viewedDate)}</time> : null}
                       </div>
