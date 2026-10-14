@@ -15,3 +15,12 @@ Present recommendations directly in the conversation for individual approval; wr
 **Why:** The user explicitly flagged that completed audit reports had not actually presented decisions to them.
 
 **How to apply:** Explain each proposed scope, preservation implications and risks before requesting a decision. Report/task completion is not implementation approval.
+
+The user approved the current dependency lock for disposable validation only,
+not as approval of production calendar behavior or permission to repair failures.
+
+**Why:** Historical lock drift must not be silently treated as acceptance of a
+library migration.
+
+**How to apply:** Keep dependency reproduction separate from behavior sign-off;
+ask for a new bounded decision before dependency, compiler, or source repairs.
