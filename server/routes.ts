@@ -168,8 +168,7 @@ export async function registerRoutes(
 
   app.get("/api/github/repo", async (_req, res) => {
     try {
-      const user = await getAuthenticatedUser();
-      const repo = await getRepository(user.login, "ROADS-LOS");
+      const repo = await getRepository(OWNER, REPO);
       res.json(repo);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
