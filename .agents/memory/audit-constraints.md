@@ -9,3 +9,9 @@ Preserve every end-user visual and interaction detail exactly. Audit reports onl
 **Why:** The user explicitly wants internal architectural improvements without any change to functionality, visualization, UI components or styling.
 
 **How to apply:** Carry these constraints into audit assignments and any later approved remediation. Distinguish static findings from verified observations; do not silently substitute remote code for local baseline files.
+
+Present recommendations directly in the conversation for individual approval; writing “Awaiting user approval” in a report is not sufficient.
+
+**Why:** The user explicitly flagged that completed audit reports had not actually presented decisions to them.
+
+**How to apply:** Explain each proposed scope, preservation implications and risks before requesting a decision. Report/task completion is not implementation approval.
