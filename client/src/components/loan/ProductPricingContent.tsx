@@ -15,7 +15,7 @@ import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useToast } from "@/hooks/use-toast";
 
 const rateLockLetterPdf = new URL(
-  "../../../../attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1776876397430.pdf",
+  "../../../../attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1777397784766.pdf",
   import.meta.url,
 ).href;
 
