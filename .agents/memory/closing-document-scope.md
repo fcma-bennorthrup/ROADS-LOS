@@ -44,3 +44,9 @@ Treat all current prototype loans as non-ROR. One borrower explicitly recorded a
 **Why:** The user confirmed both the one-borrower completion rule in the linked Figma panel and the non-ROR assumption for all current prototype loans.
 
 **How to apply:** Keep panel copy and table-level completion consistent with this prototype rule. Do not infer ROR from loan type, alter other borrowers' viewing records, require a viewed date for Yes, or treat this as a production compliance determination.
+
+Assumed Delivery Date should populate when a disclosure is delivered and equal Delivery Date plus three calendar days: 10/14/2026 becomes 10/17/2026.
+
+**Why:** The user specified this rule and example; the example includes Saturday, not a business-day calculation.
+
+**How to apply:** Use calendar-date arithmetic. Do not introduce business-day, weekend, or holiday exclusions without a new instruction.
