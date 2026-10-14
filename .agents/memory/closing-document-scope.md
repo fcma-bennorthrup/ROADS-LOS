@@ -9,11 +9,17 @@ The user chose interactive disclosure history rather than sample history. Clock/
 
 **How to apply:** Do not add clock/history dialogs as incidental polish. Closing Package should retain its existing functionality under its own tab.
 
-The user wants Closing Disclosure delivery handled by the button above the table, not row-level delivery controls. Generate and Deliver remain protected. The user subsequently requested removing the toolbar View Closing Disclosure button because each row already provides viewing.
+The user wants Closing Disclosure delivery handled by the button above the table, not row-level delivery controls. Generate remains protected. The user subsequently requested removing the toolbar View Closing Disclosure button and wiring Deliver to borrower delivery details.
 
-**Why:** The user originally protected all three buttons while requesting manual borrower tracking, then explicitly authorized removing only the redundant toolbar View button.
+**Why:** The user originally protected all three buttons, then explicitly authorized removing the redundant View button and populating borrower delivery metadata from Deliver.
 
 **How to apply:** Keep manual borrower delivery and viewing information separate from prototype toolbar delivery tracking. Do not infer borrower viewing from staff PDF previews or toolbar delivery.
+
+The system will not automatically deliver documents. Clicking Deliver Closing Disclosure is the user's manual indication of delivery; initially it must set Delivery Method to Blend and Delivery Date to the click date for all borrowers.
+
+**Why:** The user explicitly stated this delivery scope.
+
+**How to apply:** Populate the table and borrower side panel from the same saved delivery details. Do not send documents, change viewing confirmations, or infer other delivery methods from this button.
 
 The user requested removing the Date CD Viewed column from the Closing Disclosure table.
 
