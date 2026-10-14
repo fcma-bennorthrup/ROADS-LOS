@@ -1,0 +1,1 @@
+- [Architecture audit constraints](audit-constraints.md) — Audit current local code; preserve all user-facing visuals and behavior, with per-change approval.
