@@ -4,6 +4,7 @@ import { ClosingDocumentsContent } from "../DocumentsContent";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { closingDisclosureStorageKey, loadClosingDisclosures, resetClosingDisclosureHistory, updateClosingDisclosureHistory } from "@/lib/closing-disclosure-history";
 import { blankBorrowerDetails } from "@/lib/closing-disclosure-borrowers";
+import { MemStorage } from "../../../../../server/storage";
 
 const borrowers = [
   { id: "a", name: "Borrower A", isPrimary: true },
@@ -24,6 +25,61 @@ async function save() {
 }
 
 describe("borrower disclosure editing", () => {
+  it("reattaches saved delivery and viewing fields after a demo-server restart without touching another loan", async () => {
+    const initialBorrowers = await new MemStorage().getBorrowersByLoanId("1");
+    localStorage.setItem(closingDisclosureStorageKey("1"), JSON.stringify([record]));
+    // Even identical borrower IDs and disclosure IDs cannot cross the loan storage boundary.
+    const otherHistory = JSON.stringify([{ ...record, borrowerDetails: [
+      { ...blankBorrowerDetails(initialBorrowers[0].id), deliveryMethod: "Hand Delivery", cdViewed: "No" },
+    ] }]);
+    localStorage.setItem(closingDisclosureStorageKey("other"), otherHistory);
+    const view = render(<ChecklistProvider><ClosingDocumentsContent loanId="1" borrowers={initialBorrowers} /></ChecklistProvider>);
+    edit();
+    initialBorrowers.forEach((borrower, index) => {
+      change(`select-delivery-method-${borrower.id}`, index === 0 ? "Mail" : "Blend");
+      change(`input-delivery-date-${borrower.id}`, "2026-10-05");
+      change(`select-cd-viewed-${borrower.id}`, index === 0 ? "Yes" : "No");
+      change(`input-viewed-date-${borrower.id}`, index === 0 ? "2026-10-06" : "");
+    });
+    await save();
+    const saved = localStorage.getItem(closingDisclosureStorageKey("1"));
+    view.unmount();
+    const restartedBorrowers = await new MemStorage().getBorrowersByLoanId("1");
+    render(<ChecklistProvider><ClosingDocumentsContent loanId="1" borrowers={restartedBorrowers} /></ChecklistProvider>);
+    expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed");
+    edit();
+    restartedBorrowers.forEach((borrower, index) => {
+      expect(screen.getByTestId(`select-delivery-method-${borrower.id}`)).toHaveValue(index === 0 ? "Mail" : "Blend");
+      expect(screen.getByTestId(`input-delivery-date-${borrower.id}`)).toHaveValue("2026-10-05");
+      expect(screen.getByTestId(`select-cd-viewed-${borrower.id}`)).toHaveValue(index === 0 ? "Yes" : "No");
+      expect(screen.getByTestId(`input-viewed-date-${borrower.id}`)).toHaveValue(index === 0 ? "2026-10-06" : "");
+    });
+    expect(localStorage.getItem(closingDisclosureStorageKey("1"))).toBe(saved);
+    expect(localStorage.getItem(closingDisclosureStorageKey("other"))).toBe(otherHistory);
+  });
+
+  it("warns about old unmatched IDs without guessing associations or deleting their history on save or delivery", async () => {
+    const oldDetails = { ...blankBorrowerDetails("old-random-id"), deliveryMethod: "Mail" as const,
+      deliveryDate: "2026-10-01", cdViewed: "Yes" as const, viewedDate: "2026-10-02" };
+    const saved = JSON.stringify([{ ...record, borrowerDetails: [oldDetails] }]);
+    localStorage.setItem(closingDisclosureStorageKey("test"), saved);
+    render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={borrowers} /></ChecklistProvider>);
+    edit();
+    expect(screen.getByTestId("notice-unmatched-borrowers-1")).toHaveTextContent("kept unchanged");
+    expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("");
+    expect(screen.getByTestId("select-cd-viewed-a")).toHaveValue("");
+    fireEvent.click(screen.getByTestId("button-cancel-borrower-edit-1"));
+    expect(localStorage.getItem(closingDisclosureStorageKey("test"))).toBe(saved);
+    edit();
+    change("select-cd-viewed-a", "No");
+    await save();
+    expect(loadClosingDisclosures("test")[0].borrowerDetails).toContainEqual(oldDetails);
+    fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
+    expect(loadClosingDisclosures("test")[0].borrowerDetails).toContainEqual(oldDetails);
+    edit();
+    expect(screen.getByTestId("notice-unmatched-borrowers-1")).toBeVisible();
+  });
+
   it("preserves existing viewed dates outside the simplified table without rewriting saved data", () => {
     const saved = JSON.stringify([{ ...record, borrowerDetails: [
       { ...blankBorrowerDetails("a"), cdViewed: "Yes", viewedDate: "2026-10-06" },

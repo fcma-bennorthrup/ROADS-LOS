@@ -2,3 +2,4 @@
 - [Vite HMR behind Replit proxy](vite-hmr-replit-proxy.md) — keep middleware-mode HMR disabled; disconnected proxy websockets can retain incompatible React contexts.
 - [Closing document scope](closing-document-scope.md) — manual borrower editing is approved; toolbar behavior is protected and clock/history remains deferred.
 - [Cross-tab reset safety](cross-tab-reset-safety.md) — persist reset identity so delayed storage notifications cannot resurrect work started before a reset.
+- [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.

@@ -34,6 +34,9 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
   const [saving, setSaving] = useState(false);
   const saveLock = useRef(false);
   const session = useRef(0);
+  const unmatchedCount = snapshot?.baseline.filter(
+    (item) => !borrowers.some((borrower) => borrower.id === item.borrowerId),
+  ).length ?? 0;
 
   const startEdit = () => {
     session.current += 1;
@@ -126,6 +129,15 @@ export function ClosingDisclosureBorrowerEditor({ loanId, record, borrowers }: P
           </SheetHeader>
 
           <div className="closing-borrower-sheet-body">
+            {unmatchedCount > 0 ? (
+              <div className="closing-borrower-alert" role="status" data-testid={`notice-unmatched-borrowers-${record.id}`}>
+                <p>
+                  Saved tracking for {unmatchedCount} borrower {unmatchedCount === 1 ? "ID does" : "IDs do"} not
+                  match this loan’s current borrowers. These details are kept unchanged and are not
+                  assigned to anyone by name. The fields below show only matching borrower IDs.
+                </p>
+              </div>
+            ) : null}
             {error ? (
               <div className="closing-borrower-alert" role="alert" data-testid={`alert-borrower-editor-${record.id}`}>
                 <span className="closing-borrower-alert-mark" aria-hidden="true">!</span>

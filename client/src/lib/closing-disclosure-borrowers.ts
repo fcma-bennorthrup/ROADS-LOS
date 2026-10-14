@@ -52,6 +52,7 @@ export function readBorrowerDetails(record: ClosingDisclosureRecord): BorrowerDi
 
 export function detailsForBorrowers(record: ClosingDisclosureRecord, borrowers: DisclosureBorrower[]) {
   const saved = readBorrowerDetails(record);
+  // Unmatched IDs (including old random demo IDs) remain saved, not reassigned by name.
   return borrowers.map((borrower) => saved.find((item) => item.borrowerId === borrower.id) ?? blankBorrowerDetails(borrower.id));
 }
 
@@ -101,6 +102,7 @@ export async function saveDisclosureBorrowers(
         throw new Error("This disclosure was reset or removed. Close the editor and reopen the disclosure.");
       }
       const current = readBorrowerDetails(record);
+      // Retain unmatched historical entries when saving the current borrower roster.
       const merged = current.map((item) => ({ ...item }));
       for (const edited of draft) {
         const base = snapshot.baseline.find((item) => item.borrowerId === edited.borrowerId) ?? blankBorrowerDetails(edited.borrowerId);
