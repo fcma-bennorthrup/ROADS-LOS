@@ -38,3 +38,9 @@ Staff PDF previews must not be treated as borrower receipt or confirmation.
 **Why:** No borrower-view source was supplied; treating a staff preview as borrower viewing would fabricate lending workflow data.
 
 **How to apply:** Borrower viewing may be recorded manually as requested; never turn staff preview activity into borrower confirmation.
+
+Treat all current prototype loans as non-ROR. One borrower explicitly recorded as CD Viewed = Yes satisfies the Closing Disclosure viewing requirement; each borrower's own Yes, No, or blank value remains independent.
+
+**Why:** The user confirmed both the one-borrower completion rule in the linked Figma panel and the non-ROR assumption for all current prototype loans.
+
+**How to apply:** Keep panel copy and table-level completion consistent with this prototype rule. Do not infer ROR from loan type, alter other borrowers' viewing records, require a viewed date for Yes, or treat this as a production compliance determination.
