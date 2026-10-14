@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
-import { dismissToasts } from "@/hooks/use-toast";
+import { dismissToasts, toast } from "@/hooks/use-toast";
+import {
+  loadClosingDisclosureHistory,
+  resetClosingDisclosureHistory,
+  subscribeClosingDisclosureHistory,
+} from "@/lib/closing-disclosure-history";
+import { closingPackageStorageKey } from "@/lib/closing-package-progress";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -243,6 +249,27 @@ function ChecklistStateProvider({
   const [demoResetVersion, setDemoResetVersion] = useState(0);
 
   useEffect(() => {
+    const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+    let token: string | null = null;
+    try { token = loadClosingDisclosureHistory(loanId).resetToken; } catch { /* Hook reports invalid history. */ }
+    return subscribeClosingDisclosureHistory(loanId, (removed) => {
+      try {
+        const nextHistory = loadClosingDisclosureHistory(loanId);
+        const next = nextHistory.resetToken;
+        if (removed || next !== token) {
+          resetTasks(["Closing Disclosure"]);
+          // Dedicated disclosure resets must not clear unrelated surfaces.
+          // Preserve the broader Reset Demo broadcast for legacy/global resets.
+          if (nextHistory.resetScope !== "disclosure") {
+            setDemoResetVersion((version) => version + 1);
+          }
+        }
+        token = next;
+      } catch { /* Hook reports invalid history. */ }
+    });
+  }, [storageKey]);
+
+  useEffect(() => {
     try {
       localStorage.setItem(
         storageKey,
@@ -334,9 +361,44 @@ function ChecklistStateProvider({
   };
 
   const resetDemoTasks = (taskNames: string[]) => {
-    dismissToasts();
-    resetTasks(taskNames);
-    setDemoResetVersion((version) => version + 1);
+    if (taskNames.includes("Closing Package")) {
+      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+      try {
+        localStorage.removeItem(closingPackageStorageKey(loanId));
+      } catch {
+        toast({
+          title: "Demo could not be reset",
+          description: "Closing Package progress could not be cleared. Enable browser storage and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    const finish = () => {
+      dismissToasts();
+      resetTasks(taskNames);
+      setDemoResetVersion((version) => version + 1);
+    };
+    const failed = () => toast({
+      title: "Demo could not be reset",
+      description: "Disclosure history could not be cleared. Enable browser storage and try again.",
+      variant: "destructive",
+    });
+    // Clear persisted document history even when Closing Documents is unmounted.
+    if (taskNames.includes("Closing Disclosure")) {
+      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+      try {
+        const result = resetClosingDisclosureHistory(loanId);
+        if (result) {
+          void result.then(finish, failed);
+          return;
+        }
+      } catch {
+        failed();
+        return;
+      }
+    }
+    finish();
   };
 
   return (
@@ -356,7 +418,6 @@ function ChecklistStateProvider({
     </ChecklistContext.Provider>
   );
 }
-
 export function ChecklistProvider({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const storageKey = getLoanStorageKey(location);

@@ -3,7 +3,7 @@ import { ReplitConnectors } from "@replit/connectors-sdk";
 const connectors = new ReplitConnectors();
 
 export async function githubRequest(endpoint: string, options: { method?: string; body?: any } = {}) {
-  const response = await connectors.proxy("github", endpoint, {
+  const response = await connectors.proxy("github-source-control", endpoint, {
     method: options.method || "GET",
     ...(options.body ? { body: JSON.stringify(options.body), headers: { "Content-Type": "application/json" } } : {}),
   });

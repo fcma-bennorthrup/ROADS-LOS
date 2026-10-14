@@ -4,8 +4,9 @@
 A living prototype of a Loan Origination System (LOS) built as a full-stack JavaScript application. Connected to GitHub for version control and collaborative iteration.
 
 ## GitHub Repository
-- **URL**: https://github.com/bennorthrup/ROADS-LOS
-- **Owner**: bennorthrup
+- **URL**: https://github.com/fcma-bennorthrup/ROADS-LOS
+- **Owner**: fcma-bennorthrup
+- **Access**: Collaborators authenticate as themselves; all GitHub API sync operations target this shared repository, not a repository selected from the authenticated user's login.
 - **Branch Strategy**: Branch off main for new features
 - **RULE: Never push or pull to GitHub unless explicitly instructed.** A code change does not imply a push. Only sync when the user says "push to GitHub", "pull from GitHub", or similar direct instruction.
 - **RULE: Treat “GitHub” as the connected GitHub API.** When the user asks for GitHub information or requests a GitHub action, use the connected GitHub API as the source of truth. Do not infer GitHub state from local Git metadata, Replit subrepl branches, backup remotes, or native Replit Git synchronization unless the user explicitly asks about the local workspace or Replit Git state.

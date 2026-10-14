@@ -9,7 +9,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
 
-const OWNER = "bennorthrup";
+const OWNER = "fcma-bennorthrup";
 const REPO = "ROADS-LOS";
 
 const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
@@ -168,8 +168,7 @@ export async function registerRoutes(
 
   app.get("/api/github/repo", async (_req, res) => {
     try {
-      const user = await getAuthenticatedUser();
-      const repo = await getRepository(user.login, "ROADS-LOS");
+      const repo = await getRepository(OWNER, REPO);
       res.json(repo);
     } catch (error: any) {
       res.status(500).json({ error: error.message });

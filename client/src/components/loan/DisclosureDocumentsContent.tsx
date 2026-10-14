@@ -27,8 +27,8 @@ function AnimatedEllipsis() {
   return <span>{".".repeat(dots)}</span>;
 }
 
-function formatTimestamp(): string {
-  const now = new Date();
+function formatTimestamp(value?: string): string {
+  const now = value ? new Date(value) : new Date();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   const year = now.getFullYear();
@@ -56,6 +56,7 @@ export function DocumentSection({
   testIdPrefix,
   onGenerated,
   resetVersion,
+  retainedProgress,
 }: {
   title: string;
   idleText: string;
@@ -65,10 +66,26 @@ export function DocumentSection({
   testIdPrefix: string;
   onGenerated?: (generatedAt: Date) => void;
   resetVersion?: number;
+  retainedProgress?: {
+    generationState: GenerationState;
+    lastGenerated: string | null;
+    lastDelivered: string | null;
+    error: string | null;
+    generate: () => void;
+    deliver: () => void;
+  };
 }) {
-  const [generationState, setGenerationState] = useState<GenerationState>("idle");
-  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
-  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
+  const [localGenerationState, setGenerationState] = useState<GenerationState>("idle");
+  const [localLastGenerated, setLastGenerated] = useState<string | null>(null);
+  const [localLastDelivered, setLastDelivered] = useState<string | null>(null);
+  const generationState = retainedProgress?.generationState ?? localGenerationState;
+  const lastGenerated = retainedProgress
+    ? retainedProgress.lastGenerated && formatTimestamp(retainedProgress.lastGenerated)
+    : localLastGenerated;
+  const lastDelivered = retainedProgress
+    ? retainedProgress.lastDelivered && formatTimestamp(retainedProgress.lastDelivered)
+    : localLastDelivered;
+  const generationDisabled = generationState === "generating" || Boolean(retainedProgress?.error);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -132,13 +149,21 @@ export function DocumentSection({
           </p>
         )}
 
+        {retainedProgress?.error && (
+          <p className="body-100" role="alert" style={{ color: "var(--roads-text-error)" }}
+            data-testid={`alert-${testIdPrefix}-error`}>
+            {retainedProgress.error}
+          </p>
+        )}
+
         <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
           <button
             onClick={() => {
-              if (generationState === "generating") return;
-              handleGenerate();
+              if (generationDisabled) return;
+              if (retainedProgress) retainedProgress.generate();
+              else handleGenerate();
             }}
-            aria-disabled={generationState === "generating"}
+            aria-disabled={generationDisabled}
             className="label-strong"
             style={{
               backgroundColor: "var(--roads-bg-action)",
@@ -147,7 +172,7 @@ export function DocumentSection({
                 "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
               border: "none",
-              cursor: generationState === "generating" ? "not-allowed" : "pointer",
+              cursor: generationDisabled ? "not-allowed" : "pointer",
               whiteSpace: "nowrap",
             }}
             data-testid={`button-generate-${testIdPrefix}`}
@@ -159,13 +184,14 @@ export function DocumentSection({
             <button
               key={`${testIdPrefix}-secondary-${index}`}
               onClick={() => {
-                if (generationState !== "generated") return;
+                if (generationState !== "generated" || (action.marksDelivered && retainedProgress?.error)) return;
                 action.onClick();
                 if (action.marksDelivered) {
-                  setLastDelivered(formatTimestamp());
+                  if (retainedProgress) retainedProgress.deliver();
+                  else setLastDelivered(formatTimestamp());
                 }
               }}
-              aria-disabled={generationState !== "generated"}
+              aria-disabled={generationState !== "generated" || Boolean(action.marksDelivered && retainedProgress?.error)}
               className="label-strong"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
