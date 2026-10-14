@@ -84,6 +84,30 @@ export function localCalendarDate(date: Date): string {
   return `${String(date.getFullYear()).padStart(4, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
+/** Add calendar days to a date-only value, without elapsed-hour or DST arithmetic. */
+export function assumedDeliveryCalendarDate(deliveryDate: string): string {
+  if (deliveryDate === "") return "";
+  if (!isCalendarDate(deliveryDate)) throw new Error("Delivery date could not be read.");
+  const date = new Date(`${deliveryDate}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 3);
+  const result = date.toISOString().split("T")[0];
+  if (!isCalendarDate(result)) throw new Error("Assumed delivery date is outside the supported calendar format.");
+  return result;
+}
+
+/** Read-only display: borrower dates are authoritative, with the existing legacy fallback. */
+export function summarizeAssumedDeliveryDate(record: ClosingDisclosureRecord, details: BorrowerDisclosureDetails[]) {
+  if (!record.deliveredAt) return "";
+  const shifted = details.map((item) => ({
+    ...item, deliveryDate: assumedDeliveryCalendarDate(item.deliveryDate),
+  }));
+  const summary = summarizeBorrowerField(shifted, "deliveryDate");
+  if (summary) return summary;
+  const delivered = new Date(record.deliveredAt);
+  if (!Number.isFinite(delivered.getTime())) throw new Error("Delivery timestamp could not be read.");
+  return formatCalendarDate(assumedDeliveryCalendarDate(localCalendarDate(delivered)));
+}
+
 /** Called inside the authoritative history update, preserving latest viewing details. */
 export function withBorrowerDelivery(
   record: ClosingDisclosureRecord, borrowerIds: readonly string[], deliveredAt: string, deliveryDate: string,

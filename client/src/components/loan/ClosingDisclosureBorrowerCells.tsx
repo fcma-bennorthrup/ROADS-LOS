@@ -4,6 +4,7 @@ import {
   formatCalendarDate,
   summarizeBorrowerField,
   summarizeBorrowerViewing,
+  summarizeAssumedDeliveryDate,
   type DisclosureBorrower,
 } from "@/lib/closing-disclosure-borrowers";
 import type { ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
@@ -44,11 +45,22 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
   const deliveryMethod = error || summarizeBorrowerField(details, "deliveryMethod") || "Not recorded";
   const { allUnrecorded, requirementMet, summary } = summarizeBorrowerViewing(details);
   const viewedSummary = error || summary;
+  let assumedDeliveryDate = "";
+  if (record.deliveredAt) {
+    try {
+      assumedDeliveryDate = error || summarizeAssumedDeliveryDate(record, details);
+    } catch {
+      assumedDeliveryDate = "Assumed delivery date unavailable";
+    }
+  }
 
   return (
     <>
       <td className="closing-borrower-cell" data-testid={`text-delivery-date-${record.id}`}>
         {deliveryDate}
+      </td>
+      <td className="closing-borrower-cell" data-testid={`text-assumed-delivery-date-${record.id}`}>
+        {assumedDeliveryDate}
       </td>
       <td className="closing-borrower-cell" data-testid={`text-delivery-method-${record.id}`}>
         {deliveryMethod}
