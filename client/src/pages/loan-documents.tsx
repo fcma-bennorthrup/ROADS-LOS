@@ -97,7 +97,7 @@ export default function LoanDocumentsPage() {
           />
           <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
             {activeNavItem === "Disclosures" && <DocumentsContent />}
-            {activeNavItem === "Closing Documents" && <ClosingDocumentsContent />}
+            {activeNavItem === "Closing Documents" && <ClosingDocumentsContent loanId={loanId} borrowers={loan.borrowers} />}
             {activeNavItem !== "Disclosures" && activeNavItem !== "Closing Documents" && (
               <ComingSoon page={activeNavItem} />
             )}

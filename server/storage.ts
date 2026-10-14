@@ -54,8 +54,10 @@ export class MemStorage implements IStorage {
     };
     this.loans.set(loanId, loan);
 
+    // Fixed UUIDs belong only to these seed records, never to newly created borrowers.
+    // Keep them stable even if names/order change: browser tracking uses borrower IDs.
     const borrower1: Borrower = {
-      id: randomUUID(),
+      id: "67e1d215-80e6-4d97-a209-12deaaabf101",
       loanId,
       name: "Richard Jamerson",
       email: "richardtjamerson@gmail.com",
@@ -63,7 +65,7 @@ export class MemStorage implements IStorage {
       isPrimary: true,
     };
     const borrower2: Borrower = {
-      id: randomUUID(),
+      id: "67e1d215-80e6-4d97-a209-12deaaabf102",
       loanId,
       name: "Jamelle Jamerson",
       email: "jamellepjamerson@gmail.com",
@@ -71,7 +73,7 @@ export class MemStorage implements IStorage {
       isPrimary: false,
     };
     const borrower3: Borrower = {
-      id: randomUUID(),
+      id: "67e1d215-80e6-4d97-a209-12deaaabf103",
       loanId,
       name: "Priya Sharma",
       email: "priya.sharma@example.com",
