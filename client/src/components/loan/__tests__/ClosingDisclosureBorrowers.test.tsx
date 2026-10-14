@@ -24,6 +24,27 @@ async function save() {
 }
 
 describe("borrower disclosure editing", () => {
+  it("preserves existing viewed dates outside the simplified table without rewriting saved data", () => {
+    const saved = JSON.stringify([{ ...record, borrowerDetails: [
+      { ...blankBorrowerDetails("a"), cdViewed: "Yes", viewedDate: "2026-10-06" },
+      blankBorrowerDetails("b"), blankBorrowerDetails("c"),
+    ] }]);
+    localStorage.setItem(closingDisclosureStorageKey("test"), saved);
+    render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={borrowers} /></ChecklistProvider>);
+    const table = screen.getByRole("table");
+    expect(within(table).getAllByRole("columnheader")).toHaveLength(7);
+    expect(within(screen.getByTestId("row-closing-disclosure-1")).getAllByRole("cell")).toHaveLength(7);
+    expect(within(table).queryByText("10/06/2026")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("text-viewed-date-1")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("button-view-borrower-status-1"));
+    expect(screen.getByTestId("row-borrower-status-a")).toHaveTextContent("Viewed10/06/2026");
+    fireEvent.keyDown(screen.getByTestId("popover-borrower-status-1"), { key: "Escape" });
+    edit();
+    expect(screen.getByTestId("input-viewed-date-a")).toHaveValue("2026-10-06");
+    fireEvent.click(screen.getByTestId("button-cancel-borrower-edit-1"));
+    expect(localStorage.getItem(closingDisclosureStorageKey("test"))).toBe(saved);
+  });
+
   it("shows actual borrower names, blank values and the exact selectable methods", () => {
     setup(); edit();
     expect(screen.getByRole("dialog")).toHaveAccessibleName("Edit Closing Disclosure — CD 1");
@@ -58,7 +79,8 @@ describe("borrower disclosure editing", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(screen.getByTestId("button-view-borrower-status-1")).toHaveTextContent("1 of 3 viewed · 2 pending");
     expect(screen.getByTestId("text-delivery-date-1")).toHaveTextContent("10/05/2026");
-    expect(screen.getByTestId("text-viewed-date-1")).toHaveTextContent("Partially recorded");
+    expect(screen.queryByTestId("text-viewed-date-1")).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Date CD Viewed" })).not.toBeInTheDocument();
     expect(loadClosingDisclosures("test")[0].deliveredAt).toBeNull();
     expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
     fireEvent.click(screen.getByTestId("button-view-borrower-status-1"));
@@ -116,7 +138,7 @@ describe("borrower disclosure editing", () => {
       expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
       expect(screen.getByTestId("select-delivery-method-a")).toHaveValue("Mail");
       expect(screen.getByTestId("button-generate-closing-disclosure")).toBeEnabled();
-      expect(screen.getByTestId("button-view-closing-disclosure")).toBeEnabled();
+      expect(screen.queryByTestId("button-view-closing-disclosure")).not.toBeInTheDocument();
       expect(screen.getByTestId("button-deliver-closing-disclosure")).toBeEnabled();
       expect(loadClosingDisclosures("test")[0].borrowerDetails).toBeUndefined();
     } finally { spy.mockRestore(); }

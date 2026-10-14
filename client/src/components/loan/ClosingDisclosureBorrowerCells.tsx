@@ -41,7 +41,6 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
     ? error
     : summarizeBorrowerField(details, "deliveryDate") || deliveryFallback;
   const deliveryMethod = error || summarizeBorrowerField(details, "deliveryMethod") || "Not recorded";
-  const viewedDate = error || summarizeBorrowerField(details, "viewedDate") || "Not recorded";
   const confirmed = details.filter((item) => item.cdViewed === "Yes").length;
   const pending = details.length - confirmed;
   const allUnrecorded = details.length > 0 && details.every((item) => !item.cdViewed);
@@ -120,9 +119,6 @@ export function ClosingDisclosureBorrowerCells({ loanId, record, borrowers, deli
             </PopoverContent>
           </Popover>
         )}
-      </td>
-      <td className="closing-borrower-cell" data-testid={`text-viewed-date-${record.id}`}>
-        {viewedDate}
       </td>
     </>
   );

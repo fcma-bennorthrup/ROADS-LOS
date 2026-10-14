@@ -54,9 +54,26 @@ describe("Closing Documents tabs and history", () => {
     expect(screen.getByRole("tab", { name: "Closing Disclosure" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Closing Package" })).toHaveAttribute("aria-selected", "false");
     expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
-    expect(button("View Closing Disclosure")).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "View Closing Disclosure" })).not.toBeInTheDocument();
     expect(button("Deliver Closing Disclosure")).toBeDisabled();
     expect(screen.queryByRole("button", { name: "Generate Closing Package" })).not.toBeInTheDocument();
+  });
+
+  it("keeps three toolbar controls and seven aligned columns in empty and populated history", () => {
+    render(<Harness />);
+    const toolbar = button("Generate Closing Disclosure").parentElement!;
+    expect(within(toolbar).getAllByRole("button").map((node) => node.textContent)).toEqual([
+      "Generate Closing Disclosure", "Deliver Closing Disclosure", "Reset Closing Disclosure",
+    ]);
+    const table = screen.getByRole("table");
+    expect(within(table).getAllByRole("columnheader").map((node) => node.getAttribute("aria-label") || node.textContent)).toEqual([
+      "Document ID", "Date Generated", "Delivery Date", "Delivery Method", "CD Viewed", "Reason for Re-disclosure", "Document actions",
+    ]);
+    expect(screen.getByTestId("text-closing-disclosure-empty")).toHaveAttribute("colspan", "7");
+    generate();
+    expect(within(row(1)).getAllByRole("cell")).toHaveLength(7);
+    expect(within(row(1)).getByRole("button", { name: "View Closing Disclosure CD 1" })).toBeEnabled();
+    expect(screen.queryByTestId("button-view-closing-disclosure")).not.toBeInTheDocument();
   });
 
   it("supports keyboard tab navigation", () => {
@@ -98,7 +115,8 @@ describe("Closing Documents tabs and history", () => {
     expect(loadClosingDisclosures("prototype")[0].deliveredAt).toBe(first[0].deliveredAt);
     expect(loadClosingDisclosures("prototype")[1].deliveredAt).toBeNull();
     for (const id of [1, 2]) {
-      const actions = within(row(id)).getAllByRole("cell")[7];
+      expect(within(row(id)).getAllByRole("cell")).toHaveLength(7);
+      const actions = within(row(id)).getAllByRole("cell")[6];
       expect(within(actions).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
       expect(within(actions).getAllByRole("button")).toHaveLength(2);
       expect(actions.querySelectorAll("svg")).toHaveLength(3);
@@ -143,15 +161,15 @@ describe("Closing Documents tabs and history", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
     render(<Harness />);
     generate();
-    fireEvent.click(button("View Closing Disclosure"));
     fireEvent.click(within(row(1)).getByRole("button", { name: /View/ }));
-    expect(open).toHaveBeenCalledTimes(2);
+    expect(open).toHaveBeenCalledTimes(1);
     expect(open).toHaveBeenCalledWith(expect.stringContaining("SampleCD"), "_blank", "noopener,noreferrer");
+    expect(loadClosingDisclosures("prototype")[0].borrowerDetails).toBeUndefined();
     const cells = within(row(1)).getAllByRole("cell");
     expect(cells[3]).toHaveTextContent("Not recorded");
     expect(cells[4]).toHaveTextContent("No borrowers");
-    expect(cells[5]).toHaveTextContent("Not recorded");
-    expect(cells[6]).toBeEmptyDOMElement();
+    expect(cells).toHaveLength(7);
+    expect(cells[5]).toBeEmptyDOMElement();
     expect(within(row(1)).queryByRole("button", { name: /clock|history/i })).not.toBeInTheDocument();
   });
 
@@ -264,7 +282,7 @@ describe("Dedicated Closing Disclosure reset", () => {
     fireEvent.click(button("Generate Closing Disclosure"));
     fireEvent.click(button("Reset Closing Disclosure"));
     expect(loadClosingDisclosures("prototype")).toEqual([]);
-    expect(button("View Closing Disclosure")).toBeDisabled();
+    expect(screen.queryByTestId("button-view-closing-disclosure")).not.toBeInTheDocument();
     expect(button("Deliver Closing Disclosure")).toBeDisabled();
     expect(button("Generate Closing Disclosure")).toBeEnabled();
     act(() => vi.advanceTimersByTime(10000));

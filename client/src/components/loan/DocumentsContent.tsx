@@ -33,13 +33,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
   const closingPackage = useClosingPackage(loanId);
   const { records, generating, resetting, error, generate, deliver, reset } = useClosingDisclosures(loanId);
   const newestRecord = records[0];
-  const canViewNewest = Boolean(newestRecord);
   const canDeliverNewest = Boolean(newestRecord && !newestRecord.deliveredAt && !error && !resetting);
-
-  const openDisclosure = () => {
-    if (!newestRecord) return;
-    window.open(sampleClosingDisclosurePdf, "_blank", "noopener,noreferrer");
-  };
 
   const confirmReset = () => {
     if (window.confirm(
@@ -76,15 +70,6 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
               data-testid="button-generate-closing-disclosure"
             >
               Generate Closing Disclosure
-            </button>
-            <button
-              type="button"
-              onClick={openDisclosure}
-              disabled={!canViewNewest}
-              className="label-strong closing-documents-button"
-              data-testid="button-view-closing-disclosure"
-            >
-              View Closing Disclosure
             </button>
             <button
               type="button"
@@ -137,7 +122,6 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                     <th scope="col">Delivery Date</th>
                     <th scope="col">Delivery Method</th>
                     <th scope="col">CD Viewed</th>
-                    <th scope="col">Date CD Viewed</th>
                     <th scope="col">Reason for Re-disclosure</th>
                     <th scope="col" aria-label="Document actions" />
                   </tr>
@@ -145,7 +129,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                 <tbody>
                   {records.length === 0 ? (
                     <tr>
-                      <td className="closing-disclosure-empty" colSpan={8} data-testid="text-closing-disclosure-empty">
+                      <td className="closing-disclosure-empty" colSpan={7} data-testid="text-closing-disclosure-empty">
                         {generating
                           ? "Your new disclosure will appear here when generation is complete."
                           : "No Closing Disclosures have been generated"}
