@@ -7,3 +7,4 @@
 - [Reset consumption scope](reset-consumption-scope.md) — Approved replay fix is limited to the current loan provider lifetime, not durable reset tracking.
 - [Rate-lock date cancellation](rate-lock-date-policy.md) — Whole-dialog dismissal discards unconfirmed dates; calendar-only dismissal retains the draft.
 - [Decision letter semantics](decision-letter-semantics.md) — A pre-decision letter needs regeneration after approval; preserving its completed status was rejected.
+- [Decision display restoration](decision-display-restoration.md) — Approved checklist-based return/reload restoration excludes credit persistence and workflow-order repairs.
