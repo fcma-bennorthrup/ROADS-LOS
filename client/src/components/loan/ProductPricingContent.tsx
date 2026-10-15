@@ -155,20 +155,21 @@ export function ProductPricingContent({
   const {
     consumeDemoReset,
     getActionStatus,
-    refireCompletedTask,
-    setActionStatus,
+    lockedPricing,
+    commitLockedPricing,
   } = useChecklist();
   const { addActivity } = useActivityPanel();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [productType, setProductType] = useState("fixed");
-  const [selectedProductId, setSelectedProductId] = useState("4370");
-  const [termOverride, setTermOverride] = useState<string | null>(null);
+  const initialPricing = getActionStatus("Rate Lock", 0) === "complete" ? lockedPricing : null;
+  const [productType, setProductType] = useState(initialPricing?.productType ?? "fixed");
+  const [selectedProductId, setSelectedProductId] = useState(initialPricing?.productId ?? "4370");
+  const [termOverride, setTermOverride] = useState<string | null>(initialPricing?.termOverride ?? null);
   const [isRateLocked, setIsRateLocked] = useState(
     () => getActionStatus("Rate Lock", 0) === "complete",
   );
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-  const [lockDate, setLockDate] = useState(getLockDate());
+  const [lockDate, setLockDate] = useState(initialPricing?.expiration ?? getLockDate());
   const [draftLockDate, setDraftLockDate] = useState(lockDate);
 
   const handleLockModalOpenChange = (open: boolean) => {
@@ -196,8 +197,12 @@ export function ProductPricingContent({
     [selectedProductId, filteredProducts]
   );
 
-  const baseRate = currentProduct.baseRate;
-  const finalRate = baseRate + totalAdjustments - totalDiscounts;
+  const confirmedPricing = isRateLocked ? lockedPricing : null;
+  const termsUnavailable = isRateLocked && !confirmedPricing;
+  const baseRate = confirmedPricing?.baseRate ?? currentProduct.baseRate;
+  const adjustments = confirmedPricing?.adjustments ?? totalAdjustments;
+  const discounts = confirmedPricing?.discounts ?? totalDiscounts;
+  const finalRate = confirmedPricing?.finalRate ?? baseRate + adjustments - discounts;
 
   const handleProductTypeChange = (value: string) => {
     setProductType(value);
@@ -230,14 +235,33 @@ export function ProductPricingContent({
   };
 
   const handleLockRate = () => {
+    if (termsUnavailable) return;
     const completesRateLockAction = getActionStatus("Rate Lock", 0) !== "complete";
     const lockedAt = new Date();
+    if (!commitLockedPricing({
+      version: 1,
+      productType,
+      productId: selectedProductId,
+      productLabel: confirmedPricing?.productLabel ?? currentProduct.label,
+      catalogTerm: confirmedPricing?.catalogTerm ?? currentProduct.term,
+      termOverride,
+      baseRate,
+      adjustments,
+      discounts,
+      finalRate,
+      expiration: draftLockDate,
+    })) {
+      toast({
+        variant: "destructive",
+        title: "Rate lock could not be saved",
+        description: "Rate lock could not be saved. Enable browser storage and try again.",
+      });
+      return;
+    }
     setLockDate(draftLockDate);
     setIsRateLocked(true);
     setIsEditing(false);
     setIsLockModalOpen(false);
-    setActionStatus("Rate Lock", 0, "complete");
-    refireCompletedTask("Loan Estimate", ["re-fire", "not-started"]);
     addActivity({
       id: "rate-lock",
       title: "Rate Lock",
@@ -272,6 +296,8 @@ export function ProductPricingContent({
         Product &amp; Pricing
       </h2>
 
+      {termsUnavailable && <p role="alert">Locked pricing terms unavailable. Reset Demo to start again.</p>}
+
       <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
         <div
           className="flex items-center"
@@ -302,7 +328,7 @@ export function ProductPricingContent({
               Base Rate
             </span>
             <span className="body-100 whitespace-nowrap" style={{ color: "var(--roads-text-primary)" }} data-testid="text-base-rate">
-              {formatRate(baseRate)}
+              {termsUnavailable ? "—" : formatRate(baseRate)}
             </span>
           </div>
           <div style={{ padding: "0 var(--roads-spacing-component-xs)" }}>
@@ -316,7 +342,7 @@ export function ProductPricingContent({
               Total Adjustments
             </span>
             <span className="body-100 whitespace-nowrap" style={{ color: "var(--roads-text-primary)" }} data-testid="text-total-adjustments">
-              {formatRate(totalAdjustments)}
+              {termsUnavailable ? "—" : formatRate(adjustments)}
             </span>
           </div>
           <div style={{ padding: "0 var(--roads-spacing-component-xs)" }}>
@@ -330,7 +356,7 @@ export function ProductPricingContent({
               Total Discounts
             </span>
             <span className="body-100 whitespace-nowrap" style={{ color: "var(--roads-text-primary)" }} data-testid="text-total-discounts">
-              {formatRate(totalDiscounts)}
+              {termsUnavailable ? "—" : formatRate(discounts)}
             </span>
           </div>
           <div style={{ padding: "0 var(--roads-spacing-component-xs)" }}>
@@ -352,7 +378,7 @@ export function ProductPricingContent({
               style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}
               data-testid="text-final-rate"
             >
-              {formatRate(finalRate)}
+              {termsUnavailable ? "—" : formatRate(finalRate)}
               {isRateLocked && <Lock style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid="icon-rate-locked" />}
             </span>
           </div>
@@ -371,6 +397,7 @@ export function ProductPricingContent({
               cursor: "pointer",
             }}
             data-testid="button-lock-rate"
+            disabled={termsUnavailable}
           >
             {isRateLocked ? "Update Rate Lock" : "Lock Rate"}
           </button>
@@ -396,8 +423,8 @@ export function ProductPricingContent({
             <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
               <ProductField
                 label="Product Type"
-                value={productType}
-                displayValue={productType === "arm" ? "ARM" : "Fixed"}
+                value={termsUnavailable ? "" : productType}
+                displayValue={termsUnavailable ? "" : productType === "arm" ? "ARM" : "Fixed"}
                 isEditing={isEditing}
                 type="dropdown"
                 options={[
@@ -408,8 +435,8 @@ export function ProductPricingContent({
               />
               <ProductField
                 label="Product"
-                value={selectedProductId}
-                displayValue={currentProduct.label}
+                value={termsUnavailable ? "" : selectedProductId}
+                displayValue={termsUnavailable ? "" : confirmedPricing?.productLabel ?? currentProduct.label}
                 isEditing={isEditing}
                 type="dropdown"
                 options={filteredProducts.map((p) => ({ value: p.productId, label: p.label }))}
@@ -417,14 +444,14 @@ export function ProductPricingContent({
               />
               <ProductField
                 label="Term (Months)"
-                value={termOverride ?? currentProduct.term.toString()}
+                value={termsUnavailable ? "" : termOverride ?? (confirmedPricing?.catalogTerm ?? currentProduct.term).toString()}
                 isEditing={isEditing}
                 type="text"
                 onChange={(v) => setTermOverride(v)}
               />
               <ProductField
                 label="Base Rate"
-                value={formatRate(baseRate)}
+                value={termsUnavailable ? "" : formatRate(baseRate)}
                 isEditing={false}
               />
             </div>
@@ -512,7 +539,7 @@ export function ProductPricingContent({
                     {adj.label}
                   </span>
                   <span className="body-100" style={{ color: "var(--roads-text-primary)" }} data-testid={`text-rate-adj-value-${adj.label.toLowerCase().replace(/\s+/g, "-")}`}>
-                    {adj.value}
+                    {termsUnavailable ? "—" : adj.value}
                   </span>
                 </div>
               ))}

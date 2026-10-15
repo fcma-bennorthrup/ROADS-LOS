@@ -9,6 +9,7 @@ import {
 } from "@/lib/closing-disclosure-history";
 import { resetClosingPackageProgress } from "@/lib/closing-package-progress";
 import { coordinateDemoReset, type DemoResetResult } from "@/lib/demo-reset";
+import { LOCKED_PRICING_FIELD, loadLockedPricing, parseLockedPricing, type LockedPricing } from "@/lib/locked-pricing";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -215,6 +216,8 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
+  lockedPricing: LockedPricing | null;
+  commitLockedPricing: (pricing: LockedPricing) => boolean;
   demoResetVersion: number;
   demoResetPending: boolean;
   /** Claim the current reset once per section in this loan provider's lifetime. */
@@ -251,6 +254,9 @@ function ChecklistStateProvider({
   storageKey: string;
 }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
+  const [lockedPricing, setLockedPricing] = useState(() => loadLockedPricing(storageKey));
+  const pricingRef = useRef(lockedPricing);
+  pricingRef.current = lockedPricing;
   const [demoResetVersion, setDemoResetVersion] = useState(0);
   const [demoResetPending, setDemoResetPending] = useState(false);
   const resetController = useRef<AbortController | null>(null);
@@ -300,16 +306,44 @@ function ChecklistStateProvider({
     try {
       localStorage.setItem(
         storageKey,
-        JSON.stringify(
-          Object.fromEntries(
-            tasks.map((task) => [task.name, task.actions.map((action) => action.status)]),
-          ),
-        ),
+        serializeChecklist(tasks, lockedPricing),
       );
     } catch {
       // The prototype remains usable when browser storage is unavailable.
     }
-  }, [storageKey, tasks]);
+  }, [storageKey, tasks, lockedPricing]);
+
+  function serializeChecklist(next: ChecklistTask[], pricing: LockedPricing | null) {
+    return JSON.stringify({
+      ...Object.fromEntries(next.map(task => [task.name, task.actions.map(action => action.status)])),
+      ...(pricing ? { [LOCKED_PRICING_FIELD]: pricing } : {}),
+    });
+  }
+
+  function commitLockedPricing(pricing: LockedPricing): boolean {
+    const snapshot = parseLockedPricing(pricing);
+    if (!snapshot) return false;
+    const next = tasksRef.current.map(task => {
+      const statuses: ChecklistStatus[] | null = task.name === "Rate Lock"
+        ? task.actions.map((action, index) => index === 0 ? "complete" : action.status)
+        : task.name === "Loan Estimate" && task.status === "complete"
+          ? ["re-fire", "not-started"] : null;
+      if (!statuses) return task;
+      const actions = task.actions.map((action, index) => ({ ...action, status: statuses[index] ?? action.status }));
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    });
+    try {
+      // Status, exact terms and estimate re-fire commit together, before UI/activity.
+      localStorage.setItem(storageKey, serializeChecklist(next, snapshot));
+    } catch {
+      return false;
+    }
+    pricingRef.current = snapshot;
+    tasksRef.current = next;
+    setLockedPricing(snapshot);
+    setTasks(next);
+    return true;
+  }
 
   const setActionStatus = (
     taskName: string,
@@ -399,9 +433,10 @@ function ChecklistStateProvider({
         const initial = INITIAL_TASKS.find((candidate) => candidate.name === task.name)!;
         return { ...initial, actions: initial.actions.map((action) => ({ ...action })) };
       });
-      localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(
-        next.map((task) => [task.name, task.actions.map((action) => action.status)]),
-      )));
+      const nextPricing = names.includes("Rate Lock") ? null : pricingRef.current;
+      localStorage.setItem(storageKey, serializeChecklist(next, nextPricing));
+      pricingRef.current = nextPricing;
+      setLockedPricing(nextPricing);
       tasksRef.current = next;
       setTasks(next);
     };
@@ -435,6 +470,8 @@ function ChecklistStateProvider({
     <ChecklistContext.Provider
       value={{
         tasks,
+        lockedPricing,
+        commitLockedPricing,
         demoResetVersion,
         demoResetPending,
         consumeDemoReset,
