@@ -6,3 +6,4 @@
 - [Prototype scope](prototype-scope.md) — This app is not intended for production; keep verification and implementation proportionate.
 - [Reset consumption scope](reset-consumption-scope.md) — Approved replay fix is limited to the current loan provider lifetime, not durable reset tracking.
 - [Rate-lock date cancellation](rate-lock-date-policy.md) — Whole-dialog dismissal discards unconfirmed dates; calendar-only dismissal retains the draft.
+- [Decision letter semantics](decision-letter-semantics.md) — A pre-decision letter needs regeneration after approval; preserving its completed status was rejected.
