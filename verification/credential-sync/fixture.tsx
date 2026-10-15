@@ -13,7 +13,9 @@ const params = new URLSearchParams(location.search);
 const mode = params.get("mode") ?? "blocked";
 const calls: { method: string; url: string }[] = [];
 (window as any).fixtureCalls = calls;
-const message = "Pending conflicts contain files excluded by the sync security policy. Cancel these conflicts, then retry the sync.";
+const message = mode === "eligibility"
+  ? "Pending conflicts contain files incompatible with the sync eligibility policy. Cancel these conflicts, then retry the sync."
+  : "Pending conflicts contain files excluded by the sync security policy. Cancel these conflicts, then retry the sync.";
 let cleared = false;
 window.fetch = async (url, options) => {
   const method = options?.method ?? "GET";
@@ -25,7 +27,7 @@ window.fetch = async (url, options) => {
   }
   if (url === "/api/github/conflicts" && method === "GET") {
     if (mode === "loading") return new Promise<Response>(() => {});
-    if (cleared || mode === "empty") return Response.json({ hasConflicts: false, operation: null, conflicts: [] });
+    if (cleared || ["empty", "binary-error", "read-error", "oversized"].includes(mode)) return Response.json({ hasConflicts: false, operation: null, conflicts: [] });
     if (mode === "normal") return Response.json({
       hasConflicts: true, operation: "push", conflicts: [{
         path: "safe.ts", localContent: "local\nsafe", remoteContent: "remote\nsafe",
@@ -41,6 +43,15 @@ window.fetch = async (url, options) => {
   });
   if (url === "/api/github/resolve-conflicts" && mode === "normal")
     return Response.json({ message: "Synthetic safe conflict resolved" });
+  if (url === "/api/github/pull" || url === "/api/github/push") {
+    if (mode === "binary-error") return Response.json({
+      error: "Sync blocked: 1 binary file(s) need manual reconciliation. No files were changed. Reconcile these files outside the text conflict editor, then retry.",
+    }, { status: 500 });
+    if (mode === "read-error") return Response.json({
+      error: "Sync blocked: could not read 1 file(s). No files were changed. Fix the read errors and retry.",
+    }, { status: 500 });
+    return Response.json({ message: "Pulled 0 files, deleted 0 from fcma-bennorthrup/ROADS-LOS Skipped 1 file(s) larger than 7 MiB; existing copies were preserved." });
+  }
   throw new Error("FIXTURE_TRANSPORT_BLOCKED");
 };
 window.open = () => { throw new Error("FIXTURE_WINDOW_OPEN_BLOCKED"); };

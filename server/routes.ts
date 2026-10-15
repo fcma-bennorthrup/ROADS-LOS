@@ -9,7 +9,8 @@ import { hasExcludedPendingPaths, BLOCKED_SYNC_CONFLICT_MESSAGE } from "./sync-f
 import * as fs from "fs";
 import * as path from "path";
 import { computeGitBlobSha } from "./sync-plan";
-import { createSyncMechanics, shouldIgnorePath, isBinaryFile, MAX_FILE_SIZE, type SyncFilesystem } from "./sync-mechanics";
+import { createSyncMechanics, shouldIgnorePath, isBinaryFile, type SyncFilesystem } from "./sync-mechanics";
+import { prepareEligibility, assertBinarySafety, EligibilityError, oversizedMessage, incompatiblePendingPlan, BLOCKED_ELIGIBILITY_PLAN, readLocalFile } from "./sync-eligibility";
 
 export interface SyncRouteAdapters {
   filesystem: SyncFilesystem;
@@ -33,8 +34,18 @@ const Date = adapters.clock;
 const OWNER = "fcma-bennorthrup";
 const REPO = "ROADS-LOS";
 
-const { collectLocalFiles, fetchRemoteFiles, diffAgainstRemoteTree, fetchRemoteFilesAtHead } =
+const { diffAgainstRemoteTree } =
   createSyncMechanics(fs, adapters.github, OWNER, REPO);
+
+function pendingEligibilityBlocked(pending: NonNullable<ReturnType<typeof getPendingConflicts>>) {
+  if (incompatiblePendingPlan(pending)) return true;
+  const names = new Set([...pending.conflicts, ...pending.safeToUpdate,
+    ...(pending.safeToDelete ?? []).map((name) => ({ path: name }))].map((f) => f.path));
+  const outcomes = Array.from(names).map((name) => readLocalFile(fs, path.resolve(process.cwd()), name));
+  const failed = outcomes.filter((item) => item.state === "failed-read");
+  if (failed.length) throw new EligibilityError(failed);
+  return outcomes.some((item) => item.state === "oversized" || item.state === "excluded");
+}
 
 async function registerRoutes(
   httpServer: Server,
@@ -107,8 +118,9 @@ async function registerRoutes(
         try {
           const { tree: baseTree } = await getRepoTreeAtCommit(OWNER, REPO, lastSynced);
           const projectRoot = path.resolve(process.cwd());
-          const localFiles = collectLocalFiles(projectRoot);
-          const { changedFiles, deletions } = diffAgainstRemoteTree(localFiles, baseTree, projectRoot);
+          const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO, [], baseTree, lastSynced);
+          const { changedFiles, deletions } = diffAgainstRemoteTree(snapshot.local,
+            baseTree.filter((item: any) => !snapshot.skipped.includes(item.path) && !snapshot.excluded.includes(item.path)), projectRoot);
           localChangedCount = changedFiles.length;
           localDeletedCount = deletions.length;
           hasLocalChanges = localChangedCount > 0 || localDeletedCount > 0;
@@ -141,35 +153,50 @@ async function registerRoutes(
       const force = req.body?.force === true;
       const { commitSha: remoteHeadSha, tree: remoteTree } = await getRepoTree(OWNER, REPO);
       const lastSyncedSha = getLastSyncedCommit();
-
-      const eligiblePaths = remoteTree
-        .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
-        .map((item: any) => item.path);
+      const projectRoot = path.resolve(process.cwd());
+      let baseTree: any[] = [];
+      let usableBase = false;
+      if (lastSyncedSha) {
+        try {
+          baseTree = (await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha)).tree;
+          usableBase = true;
+        } catch {
+          if (!force && lastSyncedSha !== remoteHeadSha) {
+            res.status(500).json({
+              error: `Could not fetch base commit ${lastSyncedSha}. The sync state may be stale. Try a force pull with { "force": true } to re-sync.`,
+            });
+            return;
+          }
+        }
+      }
+      const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
+        remoteTree, baseTree, usableBase ? lastSyncedSha! : undefined);
+      assertBinarySafety(snapshot, usableBase);
+      const suffix = oversizedMessage(snapshot.skipped.length);
 
       if (!force && lastSyncedSha && lastSyncedSha === remoteHeadSha) {
         res.json({
           commitSha: remoteHeadSha,
           filesUpdated: 0,
           conflicts: [],
-          message: "Already up to date — no new changes on remote since last sync.",
+          message: "Already up to date — no new changes on remote since last sync." + suffix,
         });
         return;
       }
 
       if (force || !lastSyncedSha) {
-        const projectRoot = path.resolve(process.cwd());
         let updatedCount = 0;
 
-        for (const filePath of eligiblePaths) {
+        for (const file of snapshot.remote) {
+          const filePath = file.path;
           try {
-            const content = await getFileContent(OWNER, REPO, filePath);
-            if (content !== null) {
+            {
               const fullPath = path.join(projectRoot, filePath);
               const dir = path.dirname(fullPath);
               if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir, { recursive: true });
               }
-              fs.writeFileSync(fullPath, content, "utf-8");
+              fs.writeFileSync(fullPath, file.encoding === "base64" ? Buffer.from(file.content, "base64") : file.content, "utf-8");
               updatedCount++;
             }
           } catch (err) {
@@ -184,51 +211,16 @@ async function registerRoutes(
           filesUpdated: updatedCount,
           conflicts: [],
           message: !lastSyncedSha
-            ? `Initial sync: pulled ${updatedCount} files from ${OWNER}/${REPO}`
-            : `Force pulled ${updatedCount} files from ${OWNER}/${REPO}`,
+              ? `Initial sync: pulled ${updatedCount} files from ${OWNER}/${REPO}${suffix}`
+              : `Force pulled ${updatedCount} files from ${OWNER}/${REPO}${suffix}`,
         });
         return;
       }
 
-      const remoteFiles = await fetchRemoteFilesAtHead(eligiblePaths);
-
-      let baseTree: any[];
-      try {
-        const baseData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
-        baseTree = baseData.tree;
-      } catch (err) {
-        res.status(500).json({
-          error: `Could not fetch base commit ${lastSyncedSha}. The sync state may be stale. Try a force pull with { "force": true } to re-sync.`,
-        });
-        return;
-      }
-
-      const basePaths: string[] = baseTree
-        .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
-        .map((item: any) => item.path);
-
-      const baseFiles = await fetchRemoteFiles(basePaths, lastSyncedSha);
-
-      const allRelevantPaths = new Set([...eligiblePaths, ...basePaths]);
-
-      const projectRoot = path.resolve(process.cwd());
-      const localFiles: FileEntry[] = [];
-      for (const filePath of allRelevantPaths) {
-        const fullPath = path.join(projectRoot, filePath);
-        if (fs.existsSync(fullPath)) {
-          try {
-            const stats = fs.statSync(fullPath);
-            if (stats.size <= MAX_FILE_SIZE) {
-              const content = fs.readFileSync(fullPath, "utf-8");
-              localFiles.push({ path: filePath, content });
-            }
-          } catch (err) {
-            console.warn(`Could not read local file ${filePath}:`, err);
-          }
-        }
-      }
-
-      const report = detectPullConflicts(localFiles, remoteFiles, baseFiles);
+      // Preserve the pull's existing scope: local-only text is not a conflict.
+      const relevant = new Set([...snapshot.remote, ...snapshot.base].map((f) => f.path));
+      const report = detectPullConflicts(snapshot.local.filter((f) => relevant.has(f.path)), snapshot.remote, snapshot.base);
+      report.safeToDelete = report.safeToDelete.filter((name) => !isBinaryFile(name));
 
       let updatedCount = 0;
       for (const file of report.safeToUpdate) {
@@ -238,7 +230,7 @@ async function registerRoutes(
           if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
           }
-          fs.writeFileSync(fullPath, file.content, "utf-8");
+          fs.writeFileSync(fullPath, file.encoding === "base64" ? Buffer.from(file.content, "base64") : file.content, "utf-8");
           updatedCount++;
         } catch (err) {
           console.warn(`Failed to write pulled file ${file.path}:`, err);
@@ -287,8 +279,8 @@ async function registerRoutes(
         })),
         hasConflicts: report.conflicts.length > 0,
         message: report.conflicts.length > 0
-          ? `Pulled ${updatedCount} files, deleted ${deletedCount}. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.`
-          : `Pulled ${updatedCount} files, deleted ${deletedCount} from ${OWNER}/${REPO}`,
+          ? `Pulled ${updatedCount} files, deleted ${deletedCount}. ${report.conflicts.length} file(s) have conflicts and were NOT overwritten. Resolve conflicts before syncing again.${suffix}`
+          : `Pulled ${updatedCount} files, deleted ${deletedCount} from ${OWNER}/${REPO}${suffix}`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -302,39 +294,40 @@ async function registerRoutes(
       const force = req.body?.force === true;
 
       const projectRoot = path.resolve(process.cwd());
-      const localFiles = collectLocalFiles(projectRoot);
-
       const { commitSha: remoteHeadSha, tree: remoteTree } = await getRepoTree(OWNER, REPO);
       const lastSyncedSha = getLastSyncedCommit();
-
-      if (!force && lastSyncedSha && lastSyncedSha !== remoteHeadSha) {
-        const eligibleRemotePaths = remoteTree
-          .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
-          .map((item: any) => item.path);
-
-        const localPathSet = new Set(localFiles.map((f) => f.path));
-        const remotePathSet = new Set(eligibleRemotePaths as string[]);
-        const unionPaths = new Set([...localPathSet, ...remotePathSet]);
-
-        const remoteFiles = await fetchRemoteFilesAtHead(eligibleRemotePaths);
-
-        let baseFiles: FileEntry[];
-        let baseTreeData: any;
+      let baseTreeData: { tree: any[] } = { tree: [] };
+      let usableBase = false;
+      if (lastSyncedSha) {
         try {
           baseTreeData = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
-          const basePaths = baseTreeData.tree
-            .filter((item: any) => item.type === "blob" && !shouldIgnorePath(item.path) && !isBinaryFile(item.path))
-            .map((item: any) => item.path)
-            .filter((p: string) => unionPaths.has(p));
-          baseFiles = await fetchRemoteFiles(basePaths, lastSyncedSha);
-        } catch (err) {
-          res.status(500).json({
-            error: `Could not fetch base commit ${lastSyncedSha} for comparison. The sync state may be stale. Try a force push with { "force": true } to push without conflict checks, or force pull first to re-sync.`,
-          });
-          return;
+          usableBase = true;
+        } catch {
+          if (!force && lastSyncedSha !== remoteHeadSha) {
+            res.status(500).json({
+              error: `Could not fetch base commit ${lastSyncedSha} for comparison. The sync state may be stale. Try a force push with { "force": true } to push without conflict checks, or force pull first to re-sync.`,
+            });
+            return;
+          }
         }
+      }
+      const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
+        remoteTree, baseTreeData.tree, usableBase ? lastSyncedSha! : undefined);
+      assertBinarySafety(snapshot, usableBase);
+      const localFiles = snapshot.local;
+      const eligibleRemoteTree = remoteTree.filter((item: any) => !snapshot.skipped.includes(item.path) && !snapshot.excluded.includes(item.path));
+      const suffix = oversizedMessage(snapshot.skipped.length);
+
+      if (!force && lastSyncedSha && lastSyncedSha !== remoteHeadSha) {
+        const localPathSet = new Set(localFiles.map((f) => f.path));
+        const remotePathSet = new Set(snapshot.remote.map((f) => f.path));
+        const unionPaths = new Set([...localPathSet, ...remotePathSet]);
+
+        const remoteFiles = snapshot.remote;
+        const baseFiles = snapshot.base.filter((f) => unionPaths.has(f.path));
 
         const report = detectPushConflicts(localFiles, remoteFiles, baseFiles);
+        report.safeToDelete = report.safeToDelete.filter((name) => !isBinaryFile(name));
 
         if (report.conflicts.length > 0) {
           setPendingConflicts({
@@ -349,7 +342,7 @@ async function registerRoutes(
 
           res.status(409).json({
             error: "Push blocked due to conflicts",
-            message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Resolve conflicts before pushing.`,
+            message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Resolve conflicts before pushing.${suffix}`,
             conflicts: report.conflicts.map((c) => ({
               path: c.path,
               reason: c.reason,
@@ -366,48 +359,8 @@ async function registerRoutes(
           return;
         }
 
-        const safeDeletions = [...(report.safeToDelete || [])];
-        let binaryFilteredSafeToUpdate = report.safeToUpdate;
-
-        try {
-          const baseBinaryShas = new Map<string, string>();
-          const remoteBinaryShas = new Map<string, string>();
-          for (const item of baseTreeData.tree) {
-            if (item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path)) {
-              baseBinaryShas.set(item.path, item.sha);
-            }
-          }
-          for (const item of remoteTree) {
-            if (item.type === "blob" && !shouldIgnorePath(item.path) && isBinaryFile(item.path)) {
-              remoteBinaryShas.set(item.path, item.sha);
-            }
-          }
-
-          binaryFilteredSafeToUpdate = report.safeToUpdate.filter((f) => {
-            if (!isBinaryFile(f.path)) return true;
-            const baseSha = baseBinaryShas.get(f.path);
-            if (!baseSha) return true;
-            const contentBuffer = f.encoding === "base64"
-              ? Buffer.from(f.content, "base64")
-              : Buffer.from(f.content);
-            const localSha = computeGitBlobSha(contentBuffer);
-            return localSha !== baseSha;
-          });
-
-          for (const [binaryPath, baseSha] of baseBinaryShas) {
-            const fullPath = path.join(projectRoot, binaryPath);
-            if (!fs.existsSync(fullPath)) {
-              const remoteSha = remoteBinaryShas.get(binaryPath);
-              if (remoteSha === baseSha) {
-                safeDeletions.push(binaryPath);
-              }
-            }
-          }
-        } catch (binaryErr: any) {
-          console.warn("Binary diff against base tree failed, pushing all binaries:", binaryErr?.message);
-        }
-
-        const { changedFiles: filteredFiles } = diffAgainstRemoteTree(binaryFilteredSafeToUpdate, remoteTree);
+        const safeDeletions = report.safeToDelete;
+        const { changedFiles: filteredFiles } = diffAgainstRemoteTree(report.safeToUpdate, eligibleRemoteTree);
         const dedupedDeletions = [...new Set(safeDeletions)];
 
         if (filteredFiles.length === 0 && dedupedDeletions.length === 0) {
@@ -419,7 +372,7 @@ async function registerRoutes(
             conflicts: [],
             safeFiles: [],
             unchangedFiles: report.unchanged,
-            message: "No local changes to push — all files are unchanged since last sync.",
+            message: "No local changes to push — all files are unchanged since last sync." + suffix,
           });
           return;
         }
@@ -434,16 +387,16 @@ async function registerRoutes(
           safeFiles: filteredFiles.map((f) => f.path),
           deletedFiles: dedupedDeletions,
           unchangedFiles: report.unchanged,
-          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${dedupedDeletions.length > 0 ? ` and deleted ${dedupedDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}`,
+          message: `Successfully pushed ${result.filesCount} locally-changed file(s)${dedupedDeletions.length > 0 ? ` and deleted ${dedupedDeletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${report.unchanged.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}${suffix}`,
         });
         return;
       }
 
       let filesToDiff = localFiles;
 
-      if (!force && lastSyncedSha) {
+      if (!force && lastSyncedSha && usableBase) {
         try {
-          const baseTreeForFallback = await getRepoTreeAtCommit(OWNER, REPO, lastSyncedSha);
+          const baseTreeForFallback = baseTreeData;
           const baseShaMap = new Map<string, string>();
           for (const item of baseTreeForFallback.tree) {
             if (item.type === "blob" && !shouldIgnorePath(item.path)) {
@@ -467,7 +420,7 @@ async function registerRoutes(
       const canDetectDeletions = force || lastSyncedSha === remoteHeadSha;
       const { changedFiles, deletions } = diffAgainstRemoteTree(
         filesToDiff,
-        remoteTree,
+        eligibleRemoteTree,
         canDetectDeletions ? projectRoot : undefined
       );
 
@@ -480,7 +433,7 @@ async function registerRoutes(
           conflicts: [],
           safeFiles: [],
           unchangedFiles: localFiles.map((f) => f.path),
-          message: "No local changes to push — all files match the remote.",
+          message: "No local changes to push — all files match the remote." + suffix,
         });
         return;
       }
@@ -495,7 +448,7 @@ async function registerRoutes(
         safeFiles: changedFiles.map((f) => f.path),
         deletedFiles: deletions,
         unchangedFiles: [],
-        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}`,
+        message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}${suffix}`,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -515,6 +468,13 @@ async function registerRoutes(
           conflicts: [],
           operation: pending.operation,
           blockedReason: BLOCKED_SYNC_CONFLICT_MESSAGE,
+        });
+        return;
+      }
+      if (pendingEligibilityBlocked(pending)) {
+        res.json({
+          hasConflicts: true, conflicts: [], operation: pending.operation,
+          blockedReason: BLOCKED_ELIGIBILITY_PLAN,
         });
         return;
       }
@@ -562,6 +522,10 @@ async function registerRoutes(
         res.status(409).json({ error: BLOCKED_SYNC_CONFLICT_MESSAGE });
         return;
       }
+      if (pendingEligibilityBlocked(pending)) {
+        res.status(409).json({ error: BLOCKED_ELIGIBILITY_PLAN });
+        return;
+      }
 
       const projectRoot = path.resolve(process.cwd());
       const pendingPaths = new Set(pending.conflicts.map((c) => c.path));
@@ -594,6 +558,41 @@ async function registerRoutes(
           error: `All conflicts must be resolved. Missing resolutions for: ${unresolvedConflicts.map((c) => c.path).join(", ")}`,
         });
         return;
+      }
+
+      // Recheck eligibility before applying an older plan. This does not move
+      // the existing stale-HEAD check or change write-failure recovery.
+      const currentTree = await getRepoTree(OWNER, REPO);
+      const savedBinaries = pending.safeToUpdate.filter((f) => isBinaryFile(f.path));
+      let resolutionBase: any[] = [];
+      let resolutionBaseRef: string | undefined;
+      if (savedBinaries.length) {
+        const last = getLastSyncedCommit();
+        if (last) {
+          try {
+            resolutionBase = (await getRepoTreeAtCommit(OWNER, REPO, last)).tree;
+            resolutionBaseRef = last;
+          } catch { /* No usable baseline: require identical existing binaries. */ }
+        }
+      }
+      const pendingSnapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
+        currentTree.tree, resolutionBase, resolutionBaseRef);
+      const plannedNames = new Set([...pending.conflicts, ...pending.safeToUpdate,
+        ...(pending.safeToDelete ?? []).map((name) => ({ path: name }))].map((f) => f.path));
+      if ([...pendingSnapshot.skipped, ...pendingSnapshot.excluded].some((name) => plannedNames.has(name))
+        || incompatiblePendingPlan({ conflicts: [], safeToUpdate: validatedResolutions
+          .filter((r) => r.resolvedContent !== null)
+          .map((r) => ({ path: r.path, content: r.resolvedContent! })) })) {
+        res.status(409).json({ error: BLOCKED_ELIGIBILITY_PLAN });
+        return;
+      }
+      // Binary updates saved alongside text conflicts must not bypass the
+      // safety rule. Without a usable baseline, differing copies are blocked.
+      if (savedBinaries.length) {
+        assertBinarySafety({ ...pendingSnapshot, local: savedBinaries,
+          remote: pendingSnapshot.remote.filter((f) => savedBinaries.some((saved) => saved.path === f.path)),
+          base: pendingSnapshot.base.filter((f) => savedBinaries.some((saved) => saved.path === f.path)),
+        }, !!resolutionBaseRef);
       }
 
       const writtenFiles: string[] = [];

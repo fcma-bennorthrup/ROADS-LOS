@@ -5,9 +5,11 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import vm from "node:vm";
+import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
-const baseline = process.argv[2];
+const directRun = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+const baseline = directRun ? process.argv[2] : null;
 const fakeModules = ["github", "storage", "sync-state", "pending-conflicts"];
 export async function compile(source) {
   return (await build({
@@ -43,11 +45,13 @@ const safe = { ".gitignore": "safe", ".npmrc": "safe", ".nvmrc": "safe", ".envrc
 const errorMessage = "Pending conflicts contain files excluded by the sync security policy. Cancel these conflicts, then retry the sync.";
 
 export async function run(code, scenario, polluted = false) {
-  const local = { ...safe, ...scenario.local };
-  const remote = { ...safe, ...scenario.remote };
-  const base = { ...safe, ...scenario.base };
+  const defaults = scenario.empty ? {} : safe;
+  const local = { ...defaults, ...scenario.local };
+  const remote = { ...defaults, ...scenario.remote };
+  const base = { ...defaults, ...scenario.base };
   for (const name of scenario.removeLocal ?? []) delete local[name];
   for (const name of scenario.removeRemote ?? []) delete remote[name];
+  for (const name of scenario.removeBase ?? []) delete base[name];
   if (polluted) {
     for (const [i, name] of deniedPaths.entries()) {
       // Mix existing, local-only, remote-only, and deleted-remote paths.
@@ -72,14 +76,23 @@ export async function run(code, scenario, polluted = false) {
         entries.set(child, rest.length > 0);
       }
       return [...entries].map(([name, directory]) => ({
-        name, isDirectory: () => directory, isFile: () => !directory,
+        name, isDirectory: () => directory && !scenario.symlinks?.includes(prefix + name),
+        isFile: () => !directory && !scenario.symlinks?.includes(prefix + name),
       }));
+    },
+    lstatSync(name) {
+      const relative = key(name);
+      trace.push(["lstat", relative]);
+      if (scenario.symlinks?.includes(relative)) return { isSymbolicLink: () => true };
+      if (!(relative in local) && !Object.keys(local).some((p) => p.startsWith(`${relative}/`)))
+        throw Object.assign(new Error("synthetic absent file"), { code: "ENOENT" });
+      return { isSymbolicLink: () => false };
     },
     statSync(name) {
       trace.push(["stat", key(name)]);
       if (scenario.failRead === key(name)) throw new Error("synthetic read failure");
-      if (scenario.sizes?.[key(name)] !== undefined) return { size: scenario.sizes[key(name)] };
-      return { size: Buffer.byteLength(local[key(name)] ?? "") };
+      if (!(key(name) in local)) throw Object.assign(new Error("synthetic absent file"), { code: "ENOENT" });
+      return { size: scenario.sizes?.[key(name)] ?? Buffer.byteLength(local[key(name)]), isFile: () => true };
     },
     existsSync(name) {
       trace.push(["exists", key(name)]);
@@ -94,7 +107,7 @@ export async function run(code, scenario, polluted = false) {
     writeFileSync(name, content, encoding) {
       trace.push(["write", key(name), String(content), encoding ?? null]);
       if (scenario.failWrite === key(name)) throw new Error("synthetic write failure");
-      local[key(name)] = String(content);
+      local[key(name)] = Buffer.isBuffer(content) ? Buffer.from(content) : String(content);
     },
     mkdirSync(name) { trace.push(["mkdir", key(name)]); },
     unlinkSync(name) {
@@ -110,20 +123,25 @@ export async function run(code, scenario, polluted = false) {
     async getRepoTree() {
       trace.push(["head-tree"]);
       if (scenario.failHead) throw new Error("synthetic head failure");
-      return { commitSha: scenario.head ?? "head", tree: tree(remote) };
+      return { commitSha: scenario.head ?? "head", tree: tree(remote).map((item) => ({
+        ...item, size: scenario.remoteSizes?.[item.path] ?? Buffer.byteLength(remote[item.path]),
+      })) };
     },
     async getRepoTreeAtCommit(_owner, _repo, ref) {
       trace.push(["base-tree", ref]);
       if (scenario.failBase) throw new Error("synthetic base failure");
       return { tree: tree(base) };
     },
-    async getFileContent(_owner, _repo, name) {
+    async getFileContent(_owner, _repo, name, _ref, encoding = "utf-8") {
       trace.push(["head-content", name]);
       if (scenario.fetchErrors?.[name]) throw new Error(scenario.fetchErrors[name]);
-      return scenario.nullFetch === name ? null : scenario.remoteAtFetch?.[name] ?? remote[name] ?? null;
+      const value = scenario.remoteAtFetch?.[name] ?? remote[name];
+      return scenario.nullFetch === name || value === undefined ? null : Buffer.from(value).toString(encoding);
     },
-    async getFileContentAtCommit(_owner, _repo, name, ref) {
-      trace.push(["base-content", name, ref]); return base[name] ?? null;
+    async getFileContentAtCommit(_owner, _repo, name, ref, encoding = "utf-8") {
+      trace.push(["base-content", name, ref]);
+      if (scenario.baseFetchError === name) throw new Error("synthetic base read failure");
+      return base[name] === undefined ? null : Buffer.from(base[name]).toString(encoding);
     },
     async pushCodebaseWithDeletions(_owner, _repo, updates, deletions, message) {
       trace.push(["push", plain(updates), plain(deletions), message]);
@@ -197,6 +215,7 @@ export async function run(code, scenario, polluted = false) {
   return plain({ responses, trace, local, last, pending });
 }
 
+if (directRun) {
 const scenarios = [
   { name: "status", route: "get /api/github/sync-status", head: "base" },
   { name: "status-cache", requests: [["get /api/github/sync-status"], ["get /api/github/sync-status"]], head: "base" },
@@ -274,3 +293,4 @@ for (const operation of ["push", "pull"]) {
   checks++;
 }
 console.log(`PASS: ${checks} route checks; fake filesystem and transport only; baseline comparison ${baselineCode ? "enabled" : "not requested"}.`);
+}

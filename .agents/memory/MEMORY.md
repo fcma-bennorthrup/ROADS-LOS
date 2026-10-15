@@ -12,6 +12,7 @@
 - [History loan scope](history-loan-scope.md) — Remove sample rows; keep an empty, viewport-filling table until loan-specific history exists.
 - [Package coordination policy](package-coordination-policy.md) — Approved stale-consumer protection; no-Web-Locks fallback is explicitly best effort across tabs.
 - [Sync credential policy](sync-credential-policy.md) — Bounded filename exclusions approved; no content scanning, remote cleanup, or broader sync-policy approval.
+- [Sync eligibility policy](sync-eligibility-policy.md) — Byte-preserving binary sync ≤7 MiB approved; no binary deletions; lockfile exclusions retained.
 - [Locked pricing policy](locked-pricing-policy.md) — Approved loan-scoped retention, missing-term recovery and failed-save behavior; coordinate shared reset ownership.
 - [Isolated visual comparisons](isolated-visual-comparisons.md) — Settle existing transitions before exact captures; distinguish observed results from retained evidence.
 - [Disclosure browser support](disclosure-browser-support.md) — Require Web Locks for disclosure writes; keep saved history readable without them.

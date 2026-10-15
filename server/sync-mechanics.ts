@@ -4,7 +4,7 @@ import type { FileEntry } from "./conflict-detection";
 import { isCredentialOrRuntimePath } from "./sync-file-policy";
 import { planTreeDiff } from "./sync-plan";
 
-export type SyncFilesystem = Pick<typeof filesystem, "readdirSync" | "statSync" | "readFileSync" | "existsSync" | "mkdirSync" | "writeFileSync" | "unlinkSync">;
+export type SyncFilesystem = Pick<typeof filesystem, "readdirSync" | "lstatSync" | "statSync" | "readFileSync" | "existsSync" | "mkdirSync" | "writeFileSync" | "unlinkSync">;
 type ContentTransport = Pick<typeof import("./github"), "getFileContent" | "getFileContentAtCommit">;
 
 const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
@@ -86,7 +86,13 @@ export function createSyncMechanics(fs: SyncFilesystem, transport: ContentTransp
     if (projectRoot) {
       for (const remotePath of deletionCandidates) {
         const fullPath = path.join(projectRoot, remotePath);
-        if (!fs.existsSync(fullPath)) deletions.push(remotePath);
+        if (isBinaryFile(remotePath)) continue;
+        try {
+          fs.statSync(fullPath);
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === "ENOENT") deletions.push(remotePath);
+          else throw error;
+        }
       }
     }
     return { changedFiles, deletions };

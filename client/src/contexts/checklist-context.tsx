@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
 import {
+  DisclosureWritesUnsupportedError,
+  DISCLOSURE_WRITES_UNSUPPORTED,
   loadClosingDisclosureHistory,
   resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,

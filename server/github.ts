@@ -220,19 +220,27 @@ async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: strin
   return { commitSha, tree: tree.tree };
 }
 
-async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
-  const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
-  if (response.encoding === "base64" && response.content) {
-    return Buffer.from(response.content, "base64").toString("utf-8");
+async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main", encoding: "utf-8" | "base64" = "utf-8") {
+  let response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
+  // GitHub's Contents endpoint omits content for larger files. Fetch the
+  // referenced blob rather than silently treating a listed file as absent.
+  if (response.encoding === "none" && response.sha) {
+    response = await githubRequest(`/repos/${owner}/${repo}/git/blobs/${response.sha}`);
+  }
+  if (response.encoding === "base64" && typeof response.content === "string") {
+    return Buffer.from(response.content, "base64").toString(encoding);
   }
   return null;
 }
 
-async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string): Promise<string | null> {
+async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string, encoding: "utf-8" | "base64" = "utf-8"): Promise<string | null> {
   try {
-    const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
-    if (response.encoding === "base64" && response.content) {
-      return Buffer.from(response.content, "base64").toString("utf-8");
+    let response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
+    if (response.encoding === "none" && response.sha) {
+      response = await githubRequest(`/repos/${owner}/${repo}/git/blobs/${response.sha}`);
+    }
+    if (response.encoding === "base64" && typeof response.content === "string") {
+      return Buffer.from(response.content, "base64").toString(encoding);
     }
     return null;
   } catch (err: any) {
