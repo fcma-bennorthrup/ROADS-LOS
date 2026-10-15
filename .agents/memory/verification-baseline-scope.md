@@ -42,3 +42,33 @@ font loads were blocked and screenshot bytes were unavailable.
 **How to apply:** Preserve those explicit evidence limitations in the borrower
 report. Do not generalize this acceptance to future refactors or claim
 font-loaded or pixel-byte equivalence.
+
+For balance-menu extraction only, the user accepted the six identified current
+production-source differences as the comparison baseline, with the existing
+accepted dependency snapshot retained.
+
+**Why:** The historical Decisioning verification gate rejects unrelated merged
+source work before it can compare the unchanged menu against its extraction.
+
+**How to apply:** Keep these exceptions local to the balance-menu comparison;
+this does not authorize relaxing the shared gate or accepting future drift.
+
+The user also accepted the balance-menu comparison with blocked external fonts
+and scripted interactions, while font-loaded rendering and full pointer/keyboard
+traversal remained unverified.
+
+**Why:** Exact screenshot, DOM, computed-style, geometry and captured-focus
+equivalence supported completion of the bounded internal extraction.
+
+**How to apply:** Retain those limits in its evidence; do not generalize this
+acceptance to other refactors or describe untested browser behavior as passed.
+
+For exact browser style comparisons, compare computed properties by sorted
+property name and wait for existing animations to finish before geometry capture.
+
+**Why:** Chromium custom-property enumeration order differed across fresh
+processes, and sampling an active overlay animation produced fractional geometry
+differences even when screenshot bytes matched.
+
+**How to apply:** Stabilize observation timing and property ordering without
+discarding values, rounding geometry or modifying application CSS.
