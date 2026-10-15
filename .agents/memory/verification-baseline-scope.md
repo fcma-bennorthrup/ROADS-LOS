@@ -129,3 +129,13 @@ differed by one pixel at (467,733) despite equal DOM, measured styles and geomet
 
 **How to apply:** Keep acceptance confined to those comparisons. Additional
 differences require review; do not generalize to other extractions.
+
+For dormant showcase verification only, the user accepted current local source
+as the reference while retaining the previously accepted dependency lock.
+
+**Why:** Unrelated merged production changes prevented use of the historical
+whole-tree gate even though the showcase and its direct dependencies matched.
+
+**How to apply:** Keep this exception confined to showcase fixtures. Preserve
+the shared historical manifest and reject later drift rather than silently
+refreshing the reference.
