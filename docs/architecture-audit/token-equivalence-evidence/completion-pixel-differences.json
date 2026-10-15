@@ -1,0 +1,53 @@
+[
+  {
+    "label": "390x844-loaded-documents-sheet-open",
+    "dimensions": [
+      476,
+      844
+    ],
+    "changed_pixels": 6,
+    "max_channel_difference": 1,
+    "bounds": [
+      21,
+      517,
+      22,
+      554
+    ],
+    "state_equal": true,
+    "acceptance": "failed; no tolerance applied"
+  },
+  {
+    "label": "390x844-loaded-documents-sheet-below-fold",
+    "dimensions": [
+      476,
+      844
+    ],
+    "changed_pixels": 8,
+    "max_channel_difference": 1,
+    "bounds": [
+      22,
+      703,
+      369,
+      705
+    ],
+    "state_equal": true,
+    "acceptance": "failed; no tolerance applied"
+  },
+  {
+    "label": "390x844-loaded-documents-error-sheet-below-fold",
+    "dimensions": [
+      476,
+      844
+    ],
+    "changed_pixels": 5,
+    "max_channel_difference": 1,
+    "bounds": [
+      368,
+      703,
+      369,
+      705
+    ],
+    "state_equal": true,
+    "acceptance": "failed; no tolerance applied"
+  }
+]

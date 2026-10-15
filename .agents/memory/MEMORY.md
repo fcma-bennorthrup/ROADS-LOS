@@ -17,3 +17,4 @@
 - [Isolated visual comparisons](isolated-visual-comparisons.md) — Settle existing transitions before exact captures; distinguish observed results from retained evidence.
 - [Disclosure browser support](disclosure-browser-support.md) — Require Web Locks for disclosure writes; keep saved history readable without them.
 - [Disposable evidence](disposable-evidence.md) — Retain safe verification logs immediately; temporary directories may not survive session resumption.
+- [Token equivalence policy](token-equivalence-policy.md) — Approved read-only map preserves intentional differences; no normalization or repair authority.

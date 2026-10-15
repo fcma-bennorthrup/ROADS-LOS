@@ -1,0 +1,84 @@
+{
+  "changed": [
+    {
+      "path": "client/src/components/ConflictResolutionDialog.tsx",
+      "measured_sha256": "258f0e8fae840c00d5ba55a4e6a4bbb7c4e3298e4b5bbec4990109dab53ab05d",
+      "current_sha256": "fa85489139ca81d8159486b0ea4b6fcbfa2dace969e10e733e319373efae7fee"
+    },
+    {
+      "path": "client/src/contexts/checklist-context.tsx",
+      "measured_sha256": "a39218905842d56a8d0bfe660ff5276208702856307c70fcdfc4d41a74c689be",
+      "current_sha256": "6f59e61531e0dc7f502e8f1b4ab8c24bd2e6e9862167d90197b6ee9894c21c72"
+    },
+    {
+      "path": "client/src/hooks/use-closing-disclosures.ts",
+      "measured_sha256": "8722211e9b4eb2fac7ca6a3e79b153e684a707b8a054e2d08335fa5aa5b62c66",
+      "current_sha256": "7522c9077773b7b73370bbb3a4b28a00e3f3f95a9d3433eeaa242280b464ff81"
+    },
+    {
+      "path": "client/src/lib/closing-disclosure-borrowers.ts",
+      "measured_sha256": "25d6900345ee52fbc69e7b316b830b85c14d2256dae43d8e1603bcf42f92f68c",
+      "current_sha256": "e7fc9ae13f8bc1c72f1c6a7c117bdd97724c2bb26299d6f9a033bcc8ca67c47d"
+    },
+    {
+      "path": "client/src/lib/closing-disclosure-history.ts",
+      "measured_sha256": "0b1a1339abfd067a4fd99c9367a4f982dc030d9a0aaa5ac71b7102490e4724e7",
+      "current_sha256": "d91a894adf195458639560e1f3f5beff3269d0730da1db134c0e859c75a31a3d"
+    },
+    {
+      "path": "client/src/pages/loan-closing-booking.tsx",
+      "measured_sha256": "0452c179b81bb0931a7fd23fbe84c0f8be204b031038b484fd51e8d4d8119195",
+      "current_sha256": "8fc6d2ef0ad9d39c1dbfb65a591fa47a42accb626fe158a7132fe6594390e36e"
+    },
+    {
+      "path": "client/src/pages/loan-coming-soon.tsx",
+      "measured_sha256": "261574fc4162c6e5e7f53572a74b172eef8dc27b33ce8eb3e111e942dabea551",
+      "current_sha256": "68c98d1571c9d567aeb85ba55e75a14733371a7ae675fb8daffc9c32ad954c30"
+    },
+    {
+      "path": "client/src/pages/loan-decisioning.tsx",
+      "measured_sha256": "8abcf5ddc37cad8bd0865f172b9dda18208332ea4641b9ad998a2c80f4faa6fe",
+      "current_sha256": "22340fd0899d725f9d88b6af9d832250f11e0dd2939ca4919efc7cf900769423"
+    },
+    {
+      "path": "client/src/pages/loan-documents.tsx",
+      "measured_sha256": "5ea7b2070e415b3322f3deb5a2fde10354b8a7462f38237bde12b2c2a9d45afe",
+      "current_sha256": "f0d75a2f8c6856d0c5432af2bd760fce8ef85b876c857c6f57363172a251a2dd"
+    },
+    {
+      "path": "client/src/pages/loan-history.tsx",
+      "measured_sha256": "af5e261ecfbed348b59f90a2239412bd67d82e19662fc56f439936b095f32ae5",
+      "current_sha256": "dd380bda23b61c6b4398e8b64aedc61e83aec435e199c0f38f735a2ce210c597"
+    },
+    {
+      "path": "client/src/pages/loan-origination.tsx",
+      "measured_sha256": "9e6597ef1f2d8d6791b9770d1bf13de7ccabbd42bb5ea043224e0abbef13dfdf",
+      "current_sha256": "2466d61b0dd53ca4b1557c718c05a79d91b6be48af7db2356127dbf9cfaf8612"
+    },
+    {
+      "path": "client/src/pages/loan-summary.tsx",
+      "measured_sha256": "1c4e5465208758d1dfcf610de9d68d9174284c8c5e102ac9fac11e26948e2705",
+      "current_sha256": "d0a96e2dab82185b932157e065791593327fc7d2743444484a2b591a49158a7f"
+    },
+    {
+      "path": "client/src/test/setup.ts",
+      "measured_sha256": "21662a31e16e12436fe622ef015b1bd91fae2ec4960f7cfef618779e965d2abb",
+      "current_sha256": "9d6a9a89dd2b2c0380a91b3f2d9df34df33264be13ee6afe34f844159da6a9df"
+    },
+    {
+      "path": "server/github.ts",
+      "measured_sha256": "e6f5506bbf305aafbabaa37694b8d8c4967a77a4b18731fea5ac7a9655f1a313",
+      "current_sha256": "b91b19ee1d5f546274ee156be574ccd560a30b79161b38d8bd81daf449bf738c"
+    },
+    {
+      "path": "server/routes.ts",
+      "measured_sha256": "936521e475d4fcfdfa937313502bc112bd658766158ea8d7a85474be90ddd27c",
+      "current_sha256": "47b45b95482ee29c0136cadae41ef7335d1eba0e3a9353df1dd18650a733f8ba"
+    }
+  ],
+  "added": [
+    "client/src/hooks/use-loan-query.ts",
+    "server/sync-mechanics.ts",
+    "server/sync-plan.ts"
+  ]
+}

@@ -53,3 +53,15 @@ indicator; PNG byte inequality alone did not establish a UI regression.
 **How to apply:** Preserve original captures, inspect magnified difference
 regions, and report the specific non-application source. Never ignore or mask an
 unexplained difference merely because component sources match.
+
+An isolated fixture's own auto-centered container can produce inconsistent
+resolved CSS margins in Chromium after datepicker focus even when its measured
+rectangle is identical. Investigate fixture geometry before attributing such
+a difference to unchanged production components.
+
+**Why:** Repeated identical-input captures differed only in resolved margins
+on the fixture container; querying longhands did not eliminate the difference.
+
+**How to apply:** Prefer simple, stable fixture-only containers. Never normalize
+away production computed-style differences or change app styles to make a
+verification comparison pass.
