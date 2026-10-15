@@ -29,7 +29,8 @@ export function setPendingConflicts(pending: PendingConflicts): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(PENDING_CONFLICTS_FILE, JSON.stringify(pending, null, 2), "utf-8");
+  fs.writeFileSync(PENDING_CONFLICTS_FILE + ".tmp", JSON.stringify(pending, null, 2), "utf-8");
+  fs.renameSync(PENDING_CONFLICTS_FILE + ".tmp", PENDING_CONFLICTS_FILE);
 }
 
 export function clearPendingConflicts(): void {

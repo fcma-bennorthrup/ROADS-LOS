@@ -4,7 +4,7 @@ import type { FileEntry } from "./conflict-detection";
 import { isCredentialOrRuntimePath } from "./sync-file-policy";
 import { planTreeDiff } from "./sync-plan";
 
-export type SyncFilesystem = Pick<typeof filesystem, "readdirSync" | "lstatSync" | "statSync" | "readFileSync" | "existsSync" | "mkdirSync" | "writeFileSync" | "unlinkSync">;
+export type SyncFilesystem = Pick<typeof filesystem, "readdirSync" | "lstatSync" | "statSync" | "readFileSync" | "existsSync" | "mkdirSync" | "writeFileSync" | "unlinkSync" | "renameSync">;
 type ContentTransport = Pick<typeof import("./github"), "getFileContent" | "getFileContentAtCommit">;
 
 const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);

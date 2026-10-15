@@ -212,6 +212,9 @@ export function ConflictResolutionDialog({
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Resolution Failed",
         description: error.message,

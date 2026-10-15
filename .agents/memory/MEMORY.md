@@ -13,6 +13,7 @@
 - [Package coordination policy](package-coordination-policy.md) — Approved stale-consumer protection; no-Web-Locks fallback is explicitly best effort across tabs.
 - [Sync credential policy](sync-credential-policy.md) — Bounded filename exclusions approved; no content scanning, remote cleanup, or broader sync-policy approval.
 - [Sync eligibility policy](sync-eligibility-policy.md) — Byte-preserving binary sync ≤7 MiB approved; no binary deletions; lockfile exclusions retained.
+- [Partial sync recovery](sync-recovery-policy.md) — Retain the checkpoint on failure, persist content-free recovery results, and verify state before manual retries.
 - [Locked pricing policy](locked-pricing-policy.md) — Approved loan-scoped retention, missing-term recovery and failed-save behavior; coordinate shared reset ownership.
 - [Isolated visual comparisons](isolated-visual-comparisons.md) — Settle existing transitions before exact captures; distinguish observed results from retained evidence.
 - [Disclosure browser support](disclosure-browser-support.md) — Require Web Locks for disclosure writes; keep saved history readable without them.

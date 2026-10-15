@@ -1,0 +1,1 @@
+PASS: exact success pixels/text/DOM/computed layout at 5 viewports; failure results expand with Enter at all 5.

@@ -22,6 +22,10 @@ export async function githubRequest(endpoint: string, options: { method?: string
 }
 
 export type GitHubRequest = typeof githubRequest;
+export type SyncUploadProgress = (event:
+  { path: string; state: "staged" | "failed" } |
+  { state: "publishing" | "published" }
+) => void;
 
 // Keep the two push contracts distinct (including their different empty
 // results), while allowing all transport calls to be supplied by fixtures.
@@ -55,7 +59,8 @@ async function pushCodebaseWithDeletions(
   repo: string,
   files: { path: string; content: string; encoding?: "utf-8" | "base64" }[],
   deletions: string[],
-  message: string
+  message: string,
+  progress?: SyncUploadProgress
 ) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
@@ -79,9 +84,7 @@ async function pushCodebaseWithDeletions(
         },
       });
       if (!blob.sha) {
-        console.error(`Blob creation failed for ${file.path}:`, blob);
-        skippedFiles.push({ path: file.path, reason: "no sha returned" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: no blob SHA returned`);
       }
       treeItems.push({
         path: file.path,
@@ -89,12 +92,12 @@ async function pushCodebaseWithDeletions(
         type: "blob",
         sha: blob.sha,
       });
+      progress?.({ path: file.path, state: "staged" });
     } catch (err: any) {
+      progress?.({ path: file.path, state: "failed" });
       const msg = err?.message || String(err);
       if (msg.includes("413") || /too large|payload/i.test(msg)) {
-        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
-        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: too large for GitHub API`);
       }
       throw err;
     }
@@ -129,15 +132,17 @@ async function pushCodebaseWithDeletions(
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
     body: { sha: commit.sha },
   });
+  progress?.({ state: "published" });
 
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length - skippedFiles.length, deletedCount: deletions.length, skippedFiles };
 }
 
-async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
+async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string, progress?: SyncUploadProgress) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
@@ -159,9 +164,7 @@ async function pushCodebase(owner: string, repo: string, files: { path: string; 
         },
       });
       if (!blob.sha) {
-        console.error(`Blob creation failed for ${file.path}:`, blob);
-        skippedFiles.push({ path: file.path, reason: "no sha returned" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: no blob SHA returned`);
       }
       treeItems.push({
         path: file.path,
@@ -169,12 +172,12 @@ async function pushCodebase(owner: string, repo: string, files: { path: string; 
         type: "blob",
         sha: blob.sha,
       });
+      progress?.({ path: file.path, state: "staged" });
     } catch (err: any) {
+      progress?.({ path: file.path, state: "failed" });
       const msg = err?.message || String(err);
       if (msg.includes("413") || /too large|payload/i.test(msg)) {
-        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
-        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: too large for GitHub API`);
       }
       throw err;
     }
@@ -198,10 +201,12 @@ async function pushCodebase(owner: string, repo: string, files: { path: string; 
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
     body: { sha: commit.sha },
   });
+  progress?.({ state: "published" });
 
   return { commitSha: commit.sha, message: commit.message, filesCount: treeItems.length };
 }

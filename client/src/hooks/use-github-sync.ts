@@ -91,6 +91,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Pull Failed",
         description: error.message,
@@ -129,6 +132,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Push Failed",
         description: error.message,

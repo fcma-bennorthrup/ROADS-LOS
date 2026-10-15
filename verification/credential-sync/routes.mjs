@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import vm from "node:vm";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
@@ -64,6 +65,8 @@ export async function run(code, scenario, polluted = false) {
   let last = scenario.last === undefined ? "base" : scenario.last;
   let pending = scenario.pending ? plain(scenario.pending) : null;
   const trace = [];
+  let journalWrites = 0;
+  let journalRenames = 0;
   const key = (name) => path.posix.relative("/fixture", String(name));
   const files = {
     readdirSync(dir) {
@@ -106,10 +109,28 @@ export async function run(code, scenario, polluted = false) {
     },
     writeFileSync(name, content, encoding) {
       trace.push(["write", key(name), String(content), encoding ?? null]);
+      if (key(name) === ".local/github-sync-recovery.json.tmp" &&
+          ++journalWrites === scenario.failJournalWrite) {
+        local[key(name)] = '{"torn":';
+        throw new Error("synthetic interrupted journal write");
+      }
+      if (scenario.partialWrite === key(name)) {
+        local[key(name)] = String(content).slice(0, 1);
+        throw new Error("synthetic partial file write");
+      }
       if (scenario.failWrite === key(name)) throw new Error("synthetic write failure");
       local[key(name)] = Buffer.isBuffer(content) ? Buffer.from(content) : String(content);
     },
-    mkdirSync(name) { trace.push(["mkdir", key(name)]); },
+    mkdirSync(name) {
+      trace.push(["mkdir", key(name)]);
+      if (scenario.failMkdir === key(name)) throw new Error("synthetic mkdir failure");
+    },
+    renameSync(from, to) {
+      trace.push(["rename", key(from), key(to)]);
+      if (++journalRenames === scenario.failJournalRename) throw new Error("synthetic journal rename failure");
+      local[key(to)] = local[key(from)];
+      delete local[key(from)];
+    },
     unlinkSync(name) {
       trace.push(["unlink", key(name)]);
       if (scenario.failDelete === key(name)) throw new Error("synthetic delete failure");
@@ -156,11 +177,19 @@ export async function run(code, scenario, polluted = false) {
     storage: { storage: {} },
     "sync-state": {
       getLastSyncedCommit() { trace.push(["get-last"]); return last; },
-      setLastSyncedCommit(value) { trace.push(["set-last", value]); last = value; },
+      setLastSyncedCommit(value) {
+        trace.push(["set-last", value]);
+        if (scenario.failCheckpoint) throw new Error("synthetic checkpoint failure");
+        last = value;
+      },
     },
     "pending-conflicts": {
       getPendingConflicts() { trace.push(["get-pending"]); return pending; },
-      setPendingConflicts(value) { trace.push(["set-pending", plain(value)]); pending = plain(value); },
+      setPendingConflicts(value) {
+        trace.push(["set-pending", plain(value)]);
+        if (scenario.failPending) throw new Error("synthetic pending save failure");
+        pending = plain(value);
+      },
       clearPendingConflicts() { trace.push(["clear-pending"]); pending = null; },
     },
   };
@@ -177,7 +206,8 @@ export async function run(code, scenario, polluted = false) {
     require(name) {
       if (name.startsWith("fake:") && fakeModules.includes(name.slice(5))) return modules[name.slice(5)];
       if (name === "fs") return files;
-      if (name === "path") return path;
+      if (name === "path" || name === "node:path") return path;
+      if (name === "node:async_hooks") return { AsyncLocalStorage };
       if (name === "crypto") return crypto;
       if (name === "http") return {};
       throw new Error(`Forbidden module: ${name}`);
@@ -197,6 +227,7 @@ export async function run(code, scenario, polluted = false) {
     let status = 200;
     let bytes;
     const res = {
+      get statusCode() { return status; },
       status(value) { status = value; return res; },
       json(value) { bytes = JSON.stringify(value); return res; },
     };

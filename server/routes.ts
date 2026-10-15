@@ -11,6 +11,7 @@ import * as path from "path";
 import { computeGitBlobSha } from "./sync-plan";
 import { createSyncMechanics, shouldIgnorePath, isBinaryFile, type SyncFilesystem } from "./sync-mechanics";
 import { prepareEligibility, assertBinarySafety, EligibilityError, oversizedMessage, incompatiblePendingPlan, BLOCKED_ELIGIBILITY_PLAN, readLocalFile } from "./sync-eligibility";
+import { createSyncRecovery } from "./sync-recovery";
 
 export interface SyncRouteAdapters {
   filesystem: SyncFilesystem;
@@ -24,6 +25,8 @@ export interface SyncRouteAdapters {
 // One registrar owns its helper adapters; each registration still owns its
 // original status cache. No defaults are silently substituted for test adapters.
 export function createSyncRouteRegistrar(adapters: SyncRouteAdapters) {
+const recovery = createSyncRecovery(adapters);
+adapters = recovery.adapters;
 const fs = adapters.filesystem;
 const { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit } = adapters.github;
 const { getLastSyncedCommit, setLastSyncedCommit } = adapters.checkpoint;
@@ -101,7 +104,7 @@ async function registerRoutes(
   app.get("/api/github/sync-status", async (_req, res) => {
     try {
       const now = Date.now();
-      if (syncStatusCache && (now - syncStatusCache.timestamp) < SYNC_STATUS_CACHE_TTL) {
+      if (syncStatusCache && (now - syncStatusCache.timestamp) < SYNC_STATUS_CACHE_TTL && !recovery.result()) {
         return res.json(syncStatusCache.data);
       }
 
@@ -129,15 +132,17 @@ async function registerRoutes(
         }
       }
 
+      const incomplete = recovery.result();
       const result = {
         lastSyncedCommitSha: lastSynced,
         remoteHeadSha: remoteHead,
-        inSync: !remoteHasChanges && !hasLocalChanges && !localCheckFailed,
+        inSync: !remoteHasChanges && !hasLocalChanges && !localCheckFailed && !incomplete,
         remoteHasChanges,
         hasLocalChanges,
         localChangedCount,
         localDeletedCount,
         localCheckFailed,
+        ...(incomplete ? { recovery: incomplete } : {}),
       };
 
       syncStatusCache = { data: result, timestamp: now };
@@ -147,7 +152,7 @@ async function registerRoutes(
     }
   });
 
-  app.post("/api/github/pull", async (req, res) => {
+   app.post("/api/github/pull", recovery.wrap("pull", async (req, res) => {
     try {
       syncStatusCache = null;
       const force = req.body?.force === true;
@@ -186,6 +191,7 @@ async function registerRoutes(
 
       if (force || !lastSyncedSha) {
         let updatedCount = 0;
+        recovery.planLocal(snapshot.remote);
 
         for (const file of snapshot.remote) {
           const filePath = file.path;
@@ -201,6 +207,7 @@ async function registerRoutes(
             }
           } catch (err) {
             console.error(`Failed to pull file ${filePath}:`, err);
+            throw err;
           }
         }
 
@@ -223,6 +230,10 @@ async function registerRoutes(
       report.safeToDelete = report.safeToDelete.filter((name) => !isBinaryFile(name));
 
       let updatedCount = 0;
+      recovery.planLocal([
+        ...report.safeToUpdate,
+        ...report.safeToDelete.map((name) => ({ path: name, content: null })),
+      ]);
       for (const file of report.safeToUpdate) {
         try {
           const fullPath = path.join(projectRoot, file.path);
@@ -234,6 +245,7 @@ async function registerRoutes(
           updatedCount++;
         } catch (err) {
           console.warn(`Failed to write pulled file ${file.path}:`, err);
+          throw err;
         }
       }
 
@@ -247,6 +259,7 @@ async function registerRoutes(
           }
         } catch (err) {
           console.warn(`Failed to delete file ${filePath}:`, err);
+          throw err;
         }
       }
 
@@ -285,9 +298,9 @@ async function registerRoutes(
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
-  });
+  }));
 
-  app.post("/api/github/push", async (req, res) => {
+  app.post("/api/github/push", recovery.wrap("push", async (req, res) => {
     try {
       syncStatusCache = null;
       const commitMessage = req.body?.message || "Update codebase from Replit";
@@ -453,7 +466,7 @@ async function registerRoutes(
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
-  });
+  }));
 
   app.get("/api/github/conflicts", async (_req, res) => {
     try {
@@ -504,7 +517,7 @@ async function registerRoutes(
     operation?: string;
   }
 
-  app.post("/api/github/resolve-conflicts", async (req, res) => {
+  app.post("/api/github/resolve-conflicts", recovery.wrap("resolve-conflicts", async (req, res) => {
     try {
       const rawBody = req.body;
       const resolutions: unknown[] = Array.isArray(rawBody) ? rawBody : rawBody?.resolutions;
@@ -595,8 +608,24 @@ async function registerRoutes(
         }, !!resolutionBaseRef);
       }
 
+      // Reject a stale push plan before recording intent or changing local
+      // files. Otherwise its recovery record would require an impossible retry.
+      if (pending.operation === "push") {
+        const branchRef = await githubRequest(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
+        const currentRemoteHead = branchRef.object?.sha as string;
+        if (currentRemoteHead && currentRemoteHead !== pending.remoteHeadSha) {
+          clearPendingConflicts();
+          res.status(409).json({
+            error: "Remote branch has advanced since conflicts were detected. Please pull again to get the latest changes.",
+            staleHead: true,
+          });
+          return;
+        }
+      }
+
       const writtenFiles: string[] = [];
       const deletedFiles: string[] = [];
+      recovery.planLocal(validatedResolutions.map((r) => ({ path: r.path, content: r.resolvedContent })));
       for (const r of validatedResolutions) {
         const fullPath = path.join(projectRoot, r.path);
         if (r.resolvedContent === null) {
@@ -615,17 +644,6 @@ async function registerRoutes(
       }
 
       if (pending.operation === "push") {
-        const branchRef = await githubRequest(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
-        const currentRemoteHead = branchRef.object?.sha as string;
-        if (currentRemoteHead && currentRemoteHead !== pending.remoteHeadSha) {
-          clearPendingConflicts();
-          res.status(409).json({
-            error: "Remote branch has advanced since conflicts were detected. Please pull again to get the latest changes.",
-            staleHead: true,
-          });
-          return;
-        }
-
         const resolvedFileEntries: FileEntry[] = validatedResolutions
           .filter((r) => r.resolvedContent !== null)
           .map((r) => ({ path: r.path, content: r.resolvedContent as string }));
@@ -679,7 +697,7 @@ async function registerRoutes(
       const message = error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: message });
     }
-  });
+  }));
 
   app.delete("/api/github/conflicts", async (_req, res) => {
     try {
