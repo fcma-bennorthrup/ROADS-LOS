@@ -24,3 +24,15 @@ library migration.
 
 **How to apply:** Keep dependency reproduction separate from behavior sign-off;
 ask for a new bounded decision before dependency, compiler, or source repairs.
+
+For isolated browser verification, distinguish returned screenshot observation
+references from exported image files. Do not claim a local PNG archive unless
+the files actually exist.
+
+**Why:** The supplied browser can return inspectable captures without exposing
+their bytes for filesystem export; requesting a path does not establish that
+an image was saved.
+
+**How to apply:** Verify export capability before promising downloadable
+captures. Preserve available references and measurements, and report missing
+exports separately from browser behavior results.
