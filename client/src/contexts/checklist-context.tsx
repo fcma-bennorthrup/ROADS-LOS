@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
 import {
   loadClosingDisclosureHistory,
@@ -166,7 +167,7 @@ const CHECKLIST_STATUSES: ChecklistStatus[] = [
 ];
 
 function getLoanStorageKey(location: string): string {
-  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  const loanId = loanIdFromPath(location, "prototype");
   return `${CHECKLIST_STORAGE_PREFIX}:${loanId}`;
 }
 

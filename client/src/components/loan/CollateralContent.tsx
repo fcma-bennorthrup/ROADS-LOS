@@ -3,6 +3,7 @@ import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
+import { loanIdFromPath } from "@/lib/loan-path";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 
@@ -354,7 +355,7 @@ const EMPTY_ADDRESS: AddressData = {
 const SUBJECT_PROPERTY_STORAGE_PREFIX = "loan-subject-property";
 
 function getSubjectPropertyStorageKey(location: string): string {
-  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  const loanId = loanIdFromPath(location, "prototype");
   return `${SUBJECT_PROPERTY_STORAGE_PREFIX}:${loanId}`;
 }
 

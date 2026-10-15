@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { loanIdFromPath } from "@/lib/loan-path";
 
 export interface ActivityItem {
   id: number | string;
@@ -46,7 +47,7 @@ const INITIAL_ACTIVITY_ITEMS: ActivityItem[] = [
 const ACTIVITY_STORAGE_PREFIX = "loan-runtime-activity";
 
 function getLoanStorageKey(location: string): string {
-  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  const loanId = loanIdFromPath(location, "prototype");
   return `${ACTIVITY_STORAGE_PREFIX}:${loanId}`;
 }
 

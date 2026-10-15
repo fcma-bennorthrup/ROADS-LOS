@@ -11,3 +11,13 @@ minimum window width, so nominal mobile captures can silently be desktop-width.
 **How to apply:** Use CDP device metrics and verify innerWidth/innerHeight before
 accepting screenshots. Keep a distinction between repeatable blocked-font
 fixtures and font-loaded visual acceptance; the latter needs approved font bytes.
+
+For exact baseline/candidate comparisons, fix random identifiers as well as
+the clock, and allow existing CSS transitions to finish before measuring.
+
+**Why:** Reset UUIDs can differ despite identical storage operations, while
+two animation frames can still leave checklist geometry and colors in motion.
+
+**How to apply:** Stabilize fixture inputs rather than normalizing away output
+differences or disabling production styles; compare settled captures separately
+from animation behavior, which those captures do not certify.
