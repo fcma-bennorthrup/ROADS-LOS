@@ -2,55 +2,8 @@ import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
-
-interface ChangeLogEntry {
-  id: number;
-  field: string;
-  previousValue: string;
-  newValue: string;
-  changedBy: string;
-  position: string;
-  timestamp: string;
-  section: string;
-  navItem: string;
-}
-
-const SECTION_TO_NAV: Record<string, string> = {
-  "Borrower Information": "Borrower Information",
-  "Loan Details": "Loan Details",
-  "Collateral": "Collateral",
-  "Product & Pricing": "Product & Pricing",
-  "Fees": "Fees",
-  "Decisioning": "Decisioning",
-};
-
-// No history source exists yet. Never substitute another loan's demo records.
-const CHANGE_LOG: ChangeLogEntry[] = [];
-
-const ITEMS_PER_PAGE_OPTIONS = [
-  { value: "10", label: "10" },
-  { value: "20", label: "20" },
-  { value: "50", label: "50" },
-];
-
-const COLUMNS = [
-  { key: "field" as const, label: "Field", width: "16.3%" },
-  { key: "previousValue" as const, label: "Previous value", width: "16.3%" },
-  { key: "newValue" as const, label: "New value", width: "16.3%" },
-  { key: "changedBy" as const, label: "Changed by", width: "13.4%" },
-  { key: "position" as const, label: "Position", width: "10.9%" },
-  { key: "timestamp" as const, label: "Timestamp", width: "12.7%" },
-  { key: "linkToField" as const, label: "Link to field", width: "14.1%" },
-];
-
-function parseTimestamp(ts: string): number {
-  const [datePart, timePart, ampm] = ts.split(" ");
-  const [month, day, year] = datePart.split("/").map(Number);
-  let [hours, minutes] = timePart.split(":").map(Number);
-  if (ampm === "PM" && hours !== 12) hours += 12;
-  if (ampm === "AM" && hours === 12) hours = 0;
-  return new Date(year, month - 1, day, hours, minutes).getTime();
-}
+import { CHANGE_LOG, COLUMNS, ITEMS_PER_PAGE_OPTIONS, type ChangeLogEntry } from "./history-data";
+import { filterAndSortHistory } from "./history-transforms";
 
 interface HistoryContentProps {
   loanId: string;
@@ -65,25 +18,7 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
 
   const filteredAndSortedData = useMemo(() => {
-    let data = CHANGE_LOG;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      data = data.filter(
-        (entry) =>
-          entry.field.toLowerCase().includes(q) ||
-          entry.previousValue.toLowerCase().includes(q) ||
-          entry.newValue.toLowerCase().includes(q) ||
-          entry.changedBy.toLowerCase().includes(q) ||
-          entry.position.toLowerCase().includes(q) ||
-          entry.timestamp.toLowerCase().includes(q) ||
-          entry.section.toLowerCase().includes(q)
-      );
-    }
-    const sorted = [...data].sort((a, b) => {
-      const diff = parseTimestamp(a.timestamp) - parseTimestamp(b.timestamp);
-      return sortDirection === "desc" ? -diff : diff;
-    });
-    return sorted;
+    return filterAndSortHistory(CHANGE_LOG, searchQuery, sortDirection);
   }, [searchQuery, sortDirection]);
 
   const perPage = parseInt(itemsPerPage, 10);
