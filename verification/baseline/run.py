@@ -49,6 +49,7 @@ for name in before:
     dest.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(ROOT / name, dest)
 shutil.copytree(ROOT / "verification/baseline", copy / "verification/baseline")
+shutil.copytree(ROOT / "verification/documents", copy / "verification/documents")
 if args.summary:
     shutil.copytree(ROOT / "verification/summary", copy / "verification/summary")
 # Never inherit environment secrets or user npm configuration.
