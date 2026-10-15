@@ -3,3 +3,4 @@
 - [Isolated browser viewports](isolated-browser-verification.md) — Assert actual content dimensions; headless window size can silently differ.
 - [API logging policy](api-log-policy.md) — Metadata-only request logs approved; preserve format and retention, without body fields or optional counts.
 - [Verification baseline scope](verification-baseline-scope.md) — Documentation-only exceptions for isolated Origination checks do not authorize production or dependency drift.
+- [Prototype scope](prototype-scope.md) — This app is not intended for production; keep verification and implementation proportionate.
