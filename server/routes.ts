@@ -13,6 +13,7 @@ import { createSyncMechanics, shouldIgnorePath, isBinaryFile, type SyncFilesyste
 import { prepareEligibility, assertBinarySafety, EligibilityError, oversizedMessage, incompatiblePendingPlan, BLOCKED_ELIGIBILITY_PLAN, readLocalFile } from "./sync-eligibility";
 import { createSyncRecovery } from "./sync-recovery";
 import { createSyncCoordinator } from "./sync-coordination";
+import { statusReadDeadline, statusLocalFiles, statusContentSize, StatusReadTimeout } from "./sync-status-read";
 import { snapshotHashes, assertLocalHashes, pendingPlanId, StaleSyncError } from "./sync-snapshot";
 
 export interface SyncRouteAdapters {
@@ -105,6 +106,7 @@ async function registerRoutes(
   const SYNC_STATUS_CACHE_TTL = 5000;
 
   app.get("/api/github/sync-status", coordinator.wrap(async (_req, res) => {
+    const deadline = statusReadDeadline();
     try {
       const now = Date.now();
       const revision = recovery.revision();
@@ -114,7 +116,7 @@ async function registerRoutes(
       }
 
       const lastSynced = getLastSyncedCommit();
-      const { commitSha: remoteHead } = await getRepoTree(OWNER, REPO);
+      const { commitSha: remoteHead } = await deadline.read(() => getRepoTree(OWNER, REPO));
       const remoteHasChanges = lastSynced !== remoteHead;
 
       let hasLocalChanges = false;
@@ -124,15 +126,20 @@ async function registerRoutes(
 
       if (lastSynced) {
         try {
-          const { tree: baseTree } = await getRepoTreeAtCommit(OWNER, REPO, lastSynced);
+          const { tree: baseTree } = await deadline.read(() => getRepoTreeAtCommit(OWNER, REPO, lastSynced));
           const projectRoot = path.resolve(process.cwd());
-          const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO, [], baseTree, lastSynced);
+          const snapshot = await statusLocalFiles(fs, projectRoot, baseTree, async (file) =>
+            statusContentSize(file.path, await deadline.read(() =>
+              getFileContentAtCommit(OWNER, REPO, file.path, lastSynced,
+                isBinaryFile(file.path) ? "base64" : "utf-8"))));
+          deadline.check();
           const { changedFiles, deletions } = diffAgainstRemoteTree(snapshot.local,
-            baseTree.filter((item: any) => !snapshot.skipped.includes(item.path) && !snapshot.excluded.includes(item.path)), projectRoot);
+            snapshot.tree, projectRoot);
           localChangedCount = changedFiles.length;
           localDeletedCount = deletions.length;
           hasLocalChanges = localChangedCount > 0 || localDeletedCount > 0;
-        } catch {
+        } catch (error) {
+          if (error instanceof StatusReadTimeout) throw error;
           localCheckFailed = true;
         }
       }
@@ -153,7 +160,7 @@ async function registerRoutes(
       syncStatusCache = { data: result, timestamp: now, revision };
       res.json(result);
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(error instanceof StatusReadTimeout ? 504 : 500).json({ error: error.message });
     }
   }));
 
