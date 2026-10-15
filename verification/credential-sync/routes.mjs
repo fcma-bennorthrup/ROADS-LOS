@@ -9,7 +9,7 @@ import vm from "node:vm";
 const root = process.cwd();
 const baseline = process.argv[2];
 const fakeModules = ["github", "storage", "sync-state", "pending-conflicts"];
-async function compile(source) {
+export async function compile(source) {
   return (await build({
     stdin: { contents: source, resolveDir: path.join(root, "server"), loader: "ts" },
     bundle: true, write: false, platform: "node", format: "cjs",
@@ -42,7 +42,7 @@ const safe = { ".gitignore": "safe", ".npmrc": "safe", ".nvmrc": "safe", ".envrc
   "image.png": "synthetic-binary-bytes" };
 const errorMessage = "Pending conflicts contain files excluded by the sync security policy. Cancel these conflicts, then retry the sync.";
 
-async function run(code, scenario, polluted = false) {
+export async function run(code, scenario, polluted = false) {
   const local = { ...safe, ...scenario.local };
   const remote = { ...safe, ...scenario.remote };
   const base = { ...safe, ...scenario.base };
@@ -77,40 +77,57 @@ async function run(code, scenario, polluted = false) {
     },
     statSync(name) {
       trace.push(["stat", key(name)]);
+      if (scenario.failRead === key(name)) throw new Error("synthetic read failure");
+      if (scenario.sizes?.[key(name)] !== undefined) return { size: scenario.sizes[key(name)] };
       return { size: Buffer.byteLength(local[key(name)] ?? "") };
     },
     existsSync(name) {
+      trace.push(["exists", key(name)]);
       return key(name) === "" || key(name) in local
         || Object.keys(local).some((p) => p.startsWith(`${key(name)}/`));
     },
     readFileSync(name, encoding) {
-      trace.push(["read", key(name)]);
+      trace.push(["read", key(name), encoding ?? null]);
       assert.ok(key(name) in local, "Only fixture files may be read");
       return encoding ? local[key(name)] : Buffer.from(local[key(name)]);
     },
-    writeFileSync(name, content) {
-      trace.push(["write", key(name), String(content)]);
+    writeFileSync(name, content, encoding) {
+      trace.push(["write", key(name), String(content), encoding ?? null]);
       if (scenario.failWrite === key(name)) throw new Error("synthetic write failure");
       local[key(name)] = String(content);
     },
     mkdirSync(name) { trace.push(["mkdir", key(name)]); },
-    unlinkSync(name) { trace.push(["unlink", key(name)]); delete local[key(name)]; },
+    unlinkSync(name) {
+      trace.push(["unlink", key(name)]);
+      if (scenario.failDelete === key(name)) throw new Error("synthetic delete failure");
+      delete local[key(name)];
+    },
   };
   const github = {
-    async getRepoTree() { trace.push(["head-tree"]); return { commitSha: scenario.head ?? "head", tree: tree(remote) }; },
+    async getAuthenticatedUser() { trace.push(["user"]); return { login: "synthetic-user" }; },
+    async getRepository(owner, repo) { trace.push(["repo", owner, repo]); return { name: repo }; },
+    async createRepository(name, options) { trace.push(["create-repo", name, options]); return { name }; },
+    async getRepoTree() {
+      trace.push(["head-tree"]);
+      if (scenario.failHead) throw new Error("synthetic head failure");
+      return { commitSha: scenario.head ?? "head", tree: tree(remote) };
+    },
     async getRepoTreeAtCommit(_owner, _repo, ref) {
       trace.push(["base-tree", ref]);
       if (scenario.failBase) throw new Error("synthetic base failure");
       return { tree: tree(base) };
     },
     async getFileContent(_owner, _repo, name) {
-      trace.push(["head-content", name]); return remote[name] ?? null;
+      trace.push(["head-content", name]);
+      if (scenario.fetchErrors?.[name]) throw new Error(scenario.fetchErrors[name]);
+      return scenario.nullFetch === name ? null : scenario.remoteAtFetch?.[name] ?? remote[name] ?? null;
     },
     async getFileContentAtCommit(_owner, _repo, name, ref) {
       trace.push(["base-content", name, ref]); return base[name] ?? null;
     },
     async pushCodebaseWithDeletions(_owner, _repo, updates, deletions, message) {
       trace.push(["push", plain(updates), plain(deletions), message]);
+      if (scenario.failPush) throw new Error("synthetic push failure");
       return { commitSha: "pushed", filesCount: updates.length };
     },
     async githubRequest() { trace.push(["ref"]); return { object: { sha: scenario.head ?? "head" } }; },
@@ -149,7 +166,14 @@ async function run(code, scenario, polluted = false) {
     },
   });
   vm.runInContext(code, context);
-  await context.module.exports.registerRoutes({}, app);
+  const register = scenario.injected
+    ? context.module.exports.createSyncRouteRegistrar({
+        filesystem: files, github, checkpoint: modules["sync-state"],
+        conflicts: modules["pending-conflicts"], cwd: () => "/fixture",
+        clock: context.Date,
+      })
+    : context.module.exports.registerRoutes;
+  await register({}, app);
   const responses = [];
   for (const request of scenario.requests ?? [[scenario.route, scenario.body ?? {}]]) {
     let status = 200;

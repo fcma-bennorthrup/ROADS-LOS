@@ -21,15 +21,20 @@ export async function githubRequest(endpoint: string, options: { method?: string
   return parsed;
 }
 
-export async function getAuthenticatedUser() {
+export type GitHubRequest = typeof githubRequest;
+
+// Keep the two push contracts distinct (including their different empty
+// results), while allowing all transport calls to be supplied by fixtures.
+export function createGithubOperations(githubRequest: GitHubRequest) {
+async function getAuthenticatedUser() {
   return githubRequest("/user");
 }
 
-export async function getRepository(owner: string, repo: string) {
+async function getRepository(owner: string, repo: string) {
   return githubRequest(`/repos/${owner}/${repo}`);
 }
 
-export async function createRepository(name: string, options: { description?: string; isPrivate?: boolean } = {}) {
+async function createRepository(name: string, options: { description?: string; isPrivate?: boolean } = {}) {
   return githubRequest("/user/repos", {
     method: "POST",
     body: {
@@ -41,11 +46,11 @@ export async function createRepository(name: string, options: { description?: st
   });
 }
 
-export async function listRepositories() {
+async function listRepositories() {
   return githubRequest("/user/repos?sort=updated&per_page=10");
 }
 
-export async function pushCodebaseWithDeletions(
+async function pushCodebaseWithDeletions(
   owner: string,
   repo: string,
   files: { path: string; content: string; encoding?: "utf-8" | "base64" }[],
@@ -132,7 +137,7 @@ export async function pushCodebaseWithDeletions(
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length - skippedFiles.length, deletedCount: deletions.length, skippedFiles };
 }
 
-export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
+async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
@@ -201,7 +206,7 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
   return { commitSha: commit.sha, message: commit.message, filesCount: treeItems.length };
 }
 
-export async function getRepoTree(owner: string, repo: string, branch: string = "main") {
+async function getRepoTree(owner: string, repo: string, branch: string = "main") {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
   const commitSha = ref.object.sha;
   const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
@@ -209,13 +214,13 @@ export async function getRepoTree(owner: string, repo: string, branch: string = 
   return { commitSha, tree: tree.tree };
 }
 
-export async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: string) {
+async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: string) {
   const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
   const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
   return { commitSha, tree: tree.tree };
 }
 
-export async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
+async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
   const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
   if (response.encoding === "base64" && response.content) {
     return Buffer.from(response.content, "base64").toString("utf-8");
@@ -223,7 +228,7 @@ export async function getFileContent(owner: string, repo: string, filePath: stri
   return null;
 }
 
-export async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string): Promise<string | null> {
+async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string): Promise<string | null> {
   try {
     const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
     if (response.encoding === "base64" && response.content) {
@@ -237,3 +242,12 @@ export async function getFileContentAtCommit(owner: string, repo: string, filePa
     throw err;
   }
 }
+
+return { getAuthenticatedUser, getRepository, createRepository, listRepositories,
+  pushCodebaseWithDeletions, pushCodebase, getRepoTree, getRepoTreeAtCommit,
+  getFileContent, getFileContentAtCommit };
+}
+
+export const { getAuthenticatedUser, getRepository, createRepository, listRepositories,
+  pushCodebaseWithDeletions, pushCodebase, getRepoTree, getRepoTreeAtCommit,
+  getFileContent, getFileContentAtCommit } = createGithubOperations(githubRequest);

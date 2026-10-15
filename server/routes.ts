@@ -5,156 +5,38 @@ import { githubRequest, getAuthenticatedUser, getRepository, createRepository, p
 import { getLastSyncedCommit, setLastSyncedCommit } from "./sync-state";
 import { detectPushConflicts, detectPullConflicts, type FileEntry } from "./conflict-detection";
 import { getPendingConflicts, setPendingConflicts, clearPendingConflicts } from "./pending-conflicts";
-import { isCredentialOrRuntimePath, hasExcludedPendingPaths, BLOCKED_SYNC_CONFLICT_MESSAGE } from "./sync-file-policy";
+import { hasExcludedPendingPaths, BLOCKED_SYNC_CONFLICT_MESSAGE } from "./sync-file-policy";
 import * as fs from "fs";
 import * as path from "path";
-import * as crypto from "crypto";
+import { computeGitBlobSha } from "./sync-plan";
+import { createSyncMechanics, shouldIgnorePath, isBinaryFile, MAX_FILE_SIZE, type SyncFilesystem } from "./sync-mechanics";
+
+export interface SyncRouteAdapters {
+  filesystem: SyncFilesystem;
+  github: Pick<typeof import("./github"), "githubRequest" | "getAuthenticatedUser" | "getRepository" | "createRepository" | "pushCodebase" | "pushCodebaseWithDeletions" | "getRepoTree" | "getRepoTreeAtCommit" | "getFileContent" | "getFileContentAtCommit">;
+  checkpoint: Pick<typeof import("./sync-state"), "getLastSyncedCommit" | "setLastSyncedCommit">;
+  conflicts: Pick<typeof import("./pending-conflicts"), "getPendingConflicts" | "setPendingConflicts" | "clearPendingConflicts">;
+  cwd: () => string;
+  clock: typeof Date;
+}
+
+// One registrar owns its helper adapters; each registration still owns its
+// original status cache. No defaults are silently substituted for test adapters.
+export function createSyncRouteRegistrar(adapters: SyncRouteAdapters) {
+const fs = adapters.filesystem;
+const { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit } = adapters.github;
+const { getLastSyncedCommit, setLastSyncedCommit } = adapters.checkpoint;
+const { getPendingConflicts, setPendingConflicts, clearPendingConflicts } = adapters.conflicts;
+const process = { cwd: adapters.cwd };
+const Date = adapters.clock;
 
 const OWNER = "fcma-bennorthrup";
 const REPO = "ROADS-LOS";
 
-const IGNORE_DIRS = new Set(["node_modules", ".git", ".cache", "dist", ".local", ".agents", "migrations", ".config", ".upm"]);
-const IGNORE_FILES = new Set(["package-lock.json"]);
-const BINARY_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".svg", ".pdf", ".woff", ".woff2", ".ttf", ".eot", ".mp4", ".webm", ".zip", ".tar", ".gz"]);
-const MAX_FILE_SIZE = 7 * 1024 * 1024;
+const { collectLocalFiles, fetchRemoteFiles, diffAgainstRemoteTree, fetchRemoteFilesAtHead } =
+  createSyncMechanics(fs, adapters.github, OWNER, REPO);
 
-function shouldIgnorePath(filePath: string): boolean {
-  if (isCredentialOrRuntimePath(filePath)) return true;
-  const parts = filePath.split("/");
-  const fileName = parts[parts.length - 1];
-  if (IGNORE_FILES.has(fileName)) return true;
-  const dirParts = parts.slice(0, -1);
-  return dirParts.some((p: string) => IGNORE_DIRS.has(p) || p.startsWith("."));
-}
-
-function isBinaryFile(filePath: string): boolean {
-  const ext = path.extname(filePath).toLowerCase();
-  return BINARY_EXTENSIONS.has(ext);
-}
-
-function collectLocalFiles(dir: string, base: string = ""): FileEntry[] {
-  const results: FileEntry[] = [];
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    const relativePath = base ? `${base}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) {
-      if (!IGNORE_DIRS.has(entry.name) && !entry.name.startsWith(".")) {
-        results.push(...collectLocalFiles(fullPath, relativePath));
-      }
-    } else if (entry.isFile()) {
-      if (IGNORE_FILES.has(entry.name) || isCredentialOrRuntimePath(relativePath)) continue;
-      try {
-        const stats = fs.statSync(fullPath);
-        if (stats.size > MAX_FILE_SIZE) continue;
-        if (isBinaryFile(entry.name)) {
-          const content = fs.readFileSync(fullPath).toString("base64");
-          results.push({ path: relativePath, content, encoding: "base64" });
-        } else {
-          const content = fs.readFileSync(fullPath, "utf-8");
-          results.push({ path: relativePath, content });
-        }
-      } catch {}
-    }
-  }
-  return results;
-}
-
-async function fetchRemoteFiles(treePaths: string[], commitRef: string): Promise<FileEntry[]> {
-  const files: FileEntry[] = [];
-  const errors: string[] = [];
-  for (const filePath of treePaths) {
-    try {
-      const content = await getFileContentAtCommit(OWNER, REPO, filePath, commitRef);
-      if (content !== null) {
-        files.push({ path: filePath, content });
-      }
-    } catch (err: any) {
-      if (err.message?.includes("404")) {
-        continue;
-      }
-      errors.push(`${filePath}: ${err.message}`);
-    }
-  }
-  if (errors.length > 0) {
-    throw new Error(`Failed to fetch ${errors.length} file(s) from commit ${commitRef}: ${errors.slice(0, 5).join("; ")}`);
-  }
-  return files;
-}
-
-function computeGitBlobSha(content: Buffer): string {
-  const header = `blob ${content.length}\0`;
-  const store = Buffer.concat([Buffer.from(header), content]);
-  return crypto.createHash("sha1").update(store).digest("hex");
-}
-
-function diffAgainstRemoteTree(
-  localFiles: FileEntry[],
-  remoteTree: { path: string; type: string; sha: string }[],
-  projectRoot?: string
-): { changedFiles: FileEntry[]; deletions: string[] } {
-  const remoteBlobMap = new Map<string, string>();
-  for (const item of remoteTree) {
-    if (item.type === "blob" && !shouldIgnorePath(item.path)) {
-      remoteBlobMap.set(item.path, item.sha);
-    }
-  }
-
-  const localPathSet = new Set<string>();
-  const changedFiles: FileEntry[] = [];
-
-  for (const file of localFiles) {
-    localPathSet.add(file.path);
-    const remoteSha = remoteBlobMap.get(file.path);
-
-    const contentBuffer = file.encoding === "base64"
-      ? Buffer.from(file.content, "base64")
-      : Buffer.from(file.content);
-    const localSha = computeGitBlobSha(contentBuffer);
-
-    if (remoteSha !== localSha) {
-      changedFiles.push(file);
-    }
-  }
-
-  const deletions: string[] = [];
-  if (projectRoot) {
-    for (const [remotePath] of remoteBlobMap) {
-      if (!localPathSet.has(remotePath)) {
-        const fullPath = path.join(projectRoot, remotePath);
-        if (!fs.existsSync(fullPath)) {
-          deletions.push(remotePath);
-        }
-      }
-    }
-  }
-
-  return { changedFiles, deletions };
-}
-
-async function fetchRemoteFilesAtHead(treePaths: string[]): Promise<FileEntry[]> {
-  const files: FileEntry[] = [];
-  const errors: string[] = [];
-  for (const filePath of treePaths) {
-    try {
-      const content = await getFileContent(OWNER, REPO, filePath);
-      if (content !== null) {
-        files.push({ path: filePath, content });
-      }
-    } catch (err: any) {
-      if (err.message?.includes("404")) {
-        continue;
-      }
-      errors.push(`${filePath}: ${err.message}`);
-    }
-  }
-  if (errors.length > 0) {
-    throw new Error(`Failed to fetch ${errors.length} file(s) from remote HEAD: ${errors.slice(0, 5).join("; ")}`);
-  }
-  return files;
-}
-
-export async function registerRoutes(
+async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
@@ -812,3 +694,15 @@ export async function registerRoutes(
 
   return httpServer;
 }
+
+return registerRoutes;
+}
+
+export const registerRoutes = createSyncRouteRegistrar({
+  filesystem: fs,
+  github: { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit },
+  checkpoint: { getLastSyncedCommit, setLastSyncedCommit },
+  conflicts: { getPendingConflicts, setPendingConflicts, clearPendingConflicts },
+  cwd: () => process.cwd(),
+  clock: Date,
+});

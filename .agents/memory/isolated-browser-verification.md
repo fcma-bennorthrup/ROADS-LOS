@@ -42,3 +42,14 @@ missing utilities, so equality alone is not evidence of a valid styled fixture.
 
 **How to apply:** Inspect a rendered capture in addition to comparing hashes;
 do not count unstyled matching captures as visual preservation evidence.
+
+Localize differing decoded pixels before attributing small screenshot differences
+to application rendering. The browser testing tool can overlay an animated
+purple click indicator even when application DOM and computed styles match.
+
+**Why:** Equivalent sync-dialog captures differed only inside the tool's pointer
+indicator; PNG byte inequality alone did not establish a UI regression.
+
+**How to apply:** Preserve original captures, inspect magnified difference
+regions, and report the specific non-application source. Never ignore or mask an
+unexplained difference merely because component sources match.
