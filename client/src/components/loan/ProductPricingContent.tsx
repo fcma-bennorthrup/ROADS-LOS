@@ -169,13 +169,21 @@ export function ProductPricingContent({
   );
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockDate, setLockDate] = useState(getLockDate());
+  const [draftLockDate, setDraftLockDate] = useState(lockDate);
+
+  const handleLockModalOpenChange = (open: boolean) => {
+    setDraftLockDate(lockDate);
+    setIsLockModalOpen(open);
+  };
 
   useEffect(() => {
     if (!consumeDemoReset("pricing")) return;
     setIsRateLocked(false);
     setIsEditing(false);
     setIsLockModalOpen(false);
-    setLockDate(getLockDate());
+    const resetDate = getLockDate();
+    setLockDate(resetDate);
+    setDraftLockDate(resetDate);
   }, [consumeDemoReset]);
 
   const filteredProducts = useMemo(
@@ -224,6 +232,7 @@ export function ProductPricingContent({
   const handleLockRate = () => {
     const completesRateLockAction = getActionStatus("Rate Lock", 0) !== "complete";
     const lockedAt = new Date();
+    setLockDate(draftLockDate);
     setIsRateLocked(true);
     setIsEditing(false);
     setIsLockModalOpen(false);
@@ -351,7 +360,7 @@ export function ProductPricingContent({
 
         <div className="flex justify-end" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
-            onClick={() => setIsLockModalOpen(true)}
+            onClick={() => handleLockModalOpenChange(true)}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-action)",
@@ -512,7 +521,7 @@ export function ProductPricingContent({
         </div>
       </div>
 
-      <Dialog open={isLockModalOpen} onOpenChange={setIsLockModalOpen}>
+      <Dialog open={isLockModalOpen} onOpenChange={handleLockModalOpenChange}>
         <DialogContent
           className="p-0 gap-0 max-w-[600px] overflow-clip [&>button:last-child]:hidden"
           style={{
@@ -572,8 +581,8 @@ export function ProductPricingContent({
                 Rate Lock Expiration Date
               </span>
               <RoadsDatePicker
-                value={lockDate}
-                onChange={setLockDate}
+                value={draftLockDate}
+                onChange={setDraftLockDate}
                 disabled={!isRateLocked}
                 testId="input-lock-date"
               />
