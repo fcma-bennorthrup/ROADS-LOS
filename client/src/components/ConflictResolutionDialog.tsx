@@ -65,11 +65,11 @@ function DiffViewer({
   localContent: string | null;
   remoteContent: string | null;
 }) {
-  const localLines = (localContent || "").split("\n");
-  const remoteLines = (remoteContent || "").split("\n");
-  const maxLines = Math.max(localLines.length, remoteLines.length);
-
   const diffRows = useMemo(() => {
+    const localLines = (localContent || "").split("\n");
+    const remoteLines = (remoteContent || "").split("\n");
+    const maxLines = Math.max(localLines.length, remoteLines.length);
+
     const rows: Array<{
       lineNum: number;
       local: string;
@@ -87,7 +87,7 @@ function DiffViewer({
       });
     }
     return rows;
-  }, [localLines, remoteLines, maxLines]);
+  }, [localContent, remoteContent]);
 
   return (
     <div className="border rounded-md overflow-auto text-xs font-mono">
