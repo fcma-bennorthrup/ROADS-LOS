@@ -16,6 +16,12 @@ Present recommendations directly in the conversation for individual approval; wr
 
 **How to apply:** Explain each proposed scope, preservation implications and risks before requesting a decision. Report/task completion is not implementation approval.
 
+The user deferred naming the borrower copy-email button and requested leaving it as it is.
+
+**Why:** The user considers this a UX consideration rather than an architecture consideration.
+
+**How to apply:** Do not add an accessible label, tooltip, or visible label to this button under architecture work without renewed explicit approval.
+
 The user approved the current dependency lock for disposable validation only,
 not as approval of production calendar behavior or permission to repair failures.
 
