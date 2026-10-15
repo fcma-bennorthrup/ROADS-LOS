@@ -91,3 +91,22 @@ focus-outline pixel differences at the tablet viewport; other comparisons stay s
 
 **How to apply:** Keep the exceptions confined to the two documented capture pairs.
 Do not treat it as a general pixel tolerance or font-loaded certification.
+
+For the document presentation/timing extraction, the user accepted current local
+source as its before-refactor reference, retaining the accepted dependency lock.
+
+**Why:** Merged package/reset/provider work differs from the historical audit
+manifest and must be preserved, not reverted during the internal extraction.
+
+**How to apply:** Keep this acceptance scoped to document presentation comparison;
+it does not waive visual/interaction proof or authorize unrelated source drift.
+
+The user subsequently accepted the document extraction's bounded evidence:
+blocked external fonts, selected keyboard/scripted interaction checks, and no
+real background-tab throttling check, with inherited test/type failures reported.
+
+**Why:** Exact browser comparisons and lifecycle checks supported this internal
+extraction while those verification limits remained explicit.
+
+**How to apply:** Keep the acceptance confined to this document extraction; do
+not claim font-loaded, exhaustive keyboard or background-throttling verification.

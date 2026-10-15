@@ -1,0 +1,302 @@
+[
+  {
+    "mode": "idle",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "0a7dc7d9b9117e52523ec3ef360e1e0e761a2a87726dde4cc1ae8ab738a7fe04",
+      "91ca55cbd79ca56f4767a74699c5996dcf682639499ab933e6d481937cfce489"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "157bb1e62c863ca929914a67389db84e594263d77dd94f396ee5424dcc191727",
+      "8dfc2f860b8561cbd49e2805202a1665f8e796cba35e57ddf39de77e9270e480"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "93cc3ae815fd02110daee42df787b0ddfafbfa0bb5644809c3656ef2f81e5857",
+      "250f71fd7ad3e7b07fafa68138fcd05adea374815cf466125c9bd7750d89a84e"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "c433663acc988ba870c2325ac700de0a1729c2f27ae4646930328f9f3837375b",
+      "2952f16abb9c7a55badc2ed413eb6bee9b1ccae4c24d3715fcf7d9ced5ec4546"
+    ]
+  },
+  {
+    "mode": "error",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "d84112bb5bfa1a0204d24937ed5836639473c6b0145862ec56a576d04c224df6",
+      "e0cd0f89a5beb7c1b4c806a838f7eac6ec736128bb056e096f8cd02320e43e18"
+    ]
+  },
+  {
+    "mode": "write-error",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "bee6e6db9d5adf633924a7bea06abdc969e9473540cc2547e76d8724b0e6a977",
+      "517337e5e41b92bce368147754259ad47c2697078bee238a952f9bd72402cbf4"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "ffd44e00984e0e8cf0c9cd49dc6d72971c69e2aca5a0a0289ef3e301f99eb923",
+      "434789d85032b0160c3c8791e26411dd946a3876f80104a8af2bee810cca9a7f"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "8bb07fe4bba9fb71d45fce44998956c9f91243bd594cc3d5157540bd5e73b979",
+      "36864d8aa0b2b7c23fcc40fc508bd98acb85cec93c73b4e8f75b763b08f3b044"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "d12aab7736bcbd05f7817bfa0660aa970328d09dc3b7e4068d09c9fefc88c5ba",
+      "5cb0bb99c45f8ce3d0026c94d98afef88899f6a56d1292903696eb0abd4b54f7"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "1cb406e5f5bcf5da09a718b66c861db688cbc13dbc9644f7e194e680c1df2049",
+      "97729ad8b418d9c12ed26aceb8c45be5920d144ba9b008558e3ff936e5f6d28a"
+    ]
+  },
+  {
+    "mode": "error",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "373c5edecada5354e898bb05413f7ba796ad83e520bf2709d1f10d256bfebd63",
+      "b77d593e650fe6deebcf28772595a916caeac9fdd7310ba68d9bc2ddc07f73ad"
+    ]
+  },
+  {
+    "mode": "write-error",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "4956ff870c4b83f01505aabde6edb03a7e6506f698ed5a551130630b86170371",
+      "5b4d9a2d68ae15c847a3d55b99366c27f26f0652728b36e1bf1d2c0121c22323"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "714d4bac4732f690ae9fb2393d7a4d7a6a069310202ff828ae27b82fe3e8d775",
+      "6e0675c3d025267007437c788d964b258323e5417811cb36703c90d1c5091519"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "f5b7d7f3fe616dd7c4cc8a4f37dc2e550f3d6aaf758a7761c609a08c770562eb",
+      "6e17a35dbb79f1048bd2fd744af868e10b89e465c24b7b7a588dc18c8f052c73"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "666c520786fb6f1eb3a1eba02ffd55a7ca74d9ae6149d095356d0db64f1e32c4",
+      "666c520786fb6f1eb3a1eba02ffd55a7ca74d9ae6149d095356d0db64f1e32c4"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "3887192c2f8fa111f6adc24a90aa07f6fc956c8ee82c877ae9a6c002627b62db",
+      "90599e0de639544dcd2b495683aeb08d9006d39e2067287647265c71ee77595b"
+    ]
+  },
+  {
+    "mode": "error",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "23d830d30d35c11296fc3763258f8a43c34453b38e6353de62bc6757780926dc",
+      "e96983553da229429df98fd0f96c8381f2643257efcd9df6071d2a87daee1d0c"
+    ]
+  },
+  {
+    "mode": "write-error",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "52fd04ce81402b15eee0f47a0775ea76647aa9279956ef68d3fc8f0846368209",
+      "90599e0de639544dcd2b495683aeb08d9006d39e2067287647265c71ee77595b"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "12657fc611274eb759dd1e7f391be3f74ad7f0306626bb0c21a590f59865ce96",
+      "f5828c6c9e5b5a198425410716119dc2df5d2fcdddf45e1b969a68bb22ae9318"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "e4d98ff705e001563103c82225b03e62d5372bc9adbcdf5006b8a391ad22897a",
+      "5ed7e22b44ef91ee3789f4998712f5210630d38a803415f3f08fca0c4f1937fd"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "8a854894203224c932cff8b7d5b31c7ac5508ac8dcda24b39b21e8fd62aaa522",
+      "0bdcf8dabe7a0b9822a4fd7d2a2ed4eaef9467f4c81a08b722fb53c5133dabf3"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "90848ae5863e51d2e78b3343a8bba08c29ba2d640a01877e97da44ec4f080b93",
+      "9e0ccbcd83878447b951e6e3f39b34917ab5adde7bf2b78f8abf4fa9330cb5e2"
+    ]
+  },
+  {
+    "mode": "error",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "bcbf12c98bf072a066f4b8035eee6c0a3c8bbdd7f8829a56fd242dccd8717a48",
+      "cfb0e6b90c7b618e3b1900d06f683180eda17fc1b54f008ac6861f9df5c219cb"
+    ]
+  },
+  {
+    "mode": "write-error",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "98df40fffad6780daed7810b83c2c03d1601e46dbc78f0031bf356185f71035a",
+      "5901698c229c533d8096efe804d1cdeeda240779c326894506959c8074674867"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "53ffd8a7d929a6f9ec31c10d7183dfd4f9392bf83aa3481df521b8e531c3803c",
+      "a03260c20b8ca0f12b83f72382e7a1694ed35ce56aa87f31ef576a3ca7ed3a6b"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "f799b2ac959966ca300dea52c973fd077c96e2c2388d7a171d1921e0374ca105",
+      "514908f273c457a4a075b49ca29e4bacddcac4f2e59acccbc8552cae19e403d8"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "ea801474934ea1475c92ac17ad4de99658c20d60511e22462ef852aeb37a095b",
+      "869261fc2784d06c99c3eae1ffd0aad07d49b18d1aaa5397d4efd79b003f374a"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "a56b0ffbd5b73ff4049864e662c06c342e5fedd2615e0b7e1c1d08c1f21ac2b4",
+      "5f03fc9fa9ec905d832b884a6da37973c7a0200938529d6e1252541610533c8a"
+    ]
+  },
+  {
+    "mode": "error",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "4527b01af28d8865f033556797b2108220bc966260a5c6314928f806652c07a9",
+      "f3994741d453ad5eb666c13d74ada2a1c25d1ad6c5b7837245705fd6f311352c"
+    ]
+  },
+  {
+    "mode": "write-error",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "2d7f42aefaa5c9c0fe9fafebb2f3c9a49a1368e11fb5c8f311c9130589da23c4",
+      "c73495680c3169b21a3fc4f4829f434ac68cd73eef1c3f7787330942df093464"
+    ]
+  }
+]

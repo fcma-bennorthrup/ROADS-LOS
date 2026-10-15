@@ -47,45 +47,38 @@ interface SecondaryAction {
   marksDelivered?: boolean;
 }
 
-export function DocumentSection({
-  title,
-  idleText,
-  generatingText,
-  generateLabel,
-  secondaryActions,
-  testIdPrefix,
-  onGenerated,
-  resetVersion,
-  retainedProgress,
-}: {
+interface DocumentPresentationProps {
   title: string;
   idleText: string;
   generatingText: string;
   generateLabel: string;
   secondaryActions?: SecondaryAction[];
   testIdPrefix: string;
+}
+
+interface DocumentProgress {
+  generationState: GenerationState;
+  lastGenerated: string | null;
+  lastDelivered: string | null;
+  error: string | null;
+  generate: () => void;
+  deliver: () => void;
+}
+
+interface DocumentSectionProps extends DocumentPresentationProps {
   onGenerated?: (generatedAt: Date) => void;
   resetVersion?: number;
-  retainedProgress?: {
-    generationState: GenerationState;
-    lastGenerated: string | null;
-    lastDelivered: string | null;
-    error: string | null;
-    generate: () => void;
-    deliver: () => void;
-  };
-}) {
-  const [localGenerationState, setGenerationState] = useState<GenerationState>("idle");
-  const [localLastGenerated, setLastGenerated] = useState<string | null>(null);
-  const [localLastDelivered, setLastDelivered] = useState<string | null>(null);
-  const generationState = retainedProgress?.generationState ?? localGenerationState;
-  const lastGenerated = retainedProgress
-    ? retainedProgress.lastGenerated && formatTimestamp(retainedProgress.lastGenerated)
-    : localLastGenerated;
-  const lastDelivered = retainedProgress
-    ? retainedProgress.lastDelivered && formatTimestamp(retainedProgress.lastDelivered)
-    : localLastDelivered;
-  const generationDisabled = generationState === "generating" || Boolean(retainedProgress?.error);
+  retainedProgress?: DocumentProgress;
+}
+
+/** Local progress deliberately cancels on unmount and captures the start-time callback. */
+function useLocalDocumentProgress(
+  onGenerated: DocumentSectionProps["onGenerated"],
+  resetVersion: DocumentSectionProps["resetVersion"],
+): DocumentProgress {
+  const [generationState, setGenerationState] = useState<GenerationState>("idle");
+  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
+  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -113,6 +106,51 @@ export function DocumentSection({
       onGenerated?.(generatedAt);
     }, 5000);
   };
+
+  return {
+    generationState,
+    lastGenerated,
+    lastDelivered,
+    error: null,
+    generate: handleGenerate,
+    deliver: () => setLastDelivered(formatTimestamp()),
+  };
+}
+
+/** Retained timestamps are ISO values; local timestamps are already display strings. */
+function retainedDocumentPresentation(progress: DocumentProgress): DocumentProgress {
+  return {
+    ...progress,
+    lastGenerated: progress.lastGenerated && formatTimestamp(progress.lastGenerated),
+    lastDelivered: progress.lastDelivered && formatTimestamp(progress.lastDelivered),
+    generate: () => progress.generate(),
+    deliver: () => progress.deliver(),
+  };
+}
+
+export function DocumentSection({
+  onGenerated,
+  resetVersion,
+  retainedProgress,
+  ...presentation
+}: DocumentSectionProps) {
+  // Keep the local controller mounted even in retained mode, preserving mode switches.
+  const localProgress = useLocalDocumentProgress(onGenerated, resetVersion);
+  const progress = retainedProgress ? retainedDocumentPresentation(retainedProgress) : localProgress;
+  return <DocumentSectionPresentation {...presentation} progress={progress} />;
+}
+
+function DocumentSectionPresentation({
+  title,
+  idleText,
+  generatingText,
+  generateLabel,
+  secondaryActions,
+  testIdPrefix,
+  progress,
+}: DocumentPresentationProps & { progress: DocumentProgress }) {
+  const { generationState, lastGenerated, lastDelivered, error } = progress;
+  const generationDisabled = generationState === "generating" || Boolean(error);
 
   return (
     <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
@@ -149,10 +187,10 @@ export function DocumentSection({
           </p>
         )}
 
-        {retainedProgress?.error && (
+        {error && (
           <p className="body-100" role="alert" style={{ color: "var(--roads-text-error)" }}
             data-testid={`alert-${testIdPrefix}-error`}>
-            {retainedProgress.error}
+            {error}
           </p>
         )}
 
@@ -160,8 +198,7 @@ export function DocumentSection({
           <button
             onClick={() => {
               if (generationDisabled) return;
-              if (retainedProgress) retainedProgress.generate();
-              else handleGenerate();
+              progress.generate();
             }}
             aria-disabled={generationDisabled}
             className="label-strong"
@@ -184,14 +221,13 @@ export function DocumentSection({
             <button
               key={`${testIdPrefix}-secondary-${index}`}
               onClick={() => {
-                if (generationState !== "generated" || (action.marksDelivered && retainedProgress?.error)) return;
+                if (generationState !== "generated" || (action.marksDelivered && error)) return;
                 action.onClick();
                 if (action.marksDelivered) {
-                  if (retainedProgress) retainedProgress.deliver();
-                  else setLastDelivered(formatTimestamp());
+                  progress.deliver();
                 }
               }}
-              aria-disabled={generationState !== "generated" || Boolean(action.marksDelivered && retainedProgress?.error)}
+              aria-disabled={generationState !== "generated" || Boolean(action.marksDelivered && error)}
               className="label-strong"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
