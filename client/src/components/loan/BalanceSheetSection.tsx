@@ -150,6 +150,24 @@ function BalanceSheetField({
   );
 }
 
+function useBalanceMenu() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
+
+  return { menuOpen, setMenuOpen, menuRef };
+}
+
 function AssetCard({
   asset,
   isEditing,
@@ -170,19 +188,7 @@ function AssetCard({
   index: number;
 }) {
   const title = `${asset.assetType}${asset.financialInstitution ? ` - ${asset.financialInstitution}` : ""}`;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpen]);
+  const { menuOpen, setMenuOpen, menuRef } = useBalanceMenu();
 
   return (
     <div
@@ -372,19 +378,7 @@ function LiabilityCard({
   index: number;
 }) {
   const title = `${liability.liabilityType}${liability.creditorName ? ` - ${liability.creditorName}` : ""}`;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpen]);
+  const { menuOpen, setMenuOpen, menuRef } = useBalanceMenu();
 
   return (
     <div

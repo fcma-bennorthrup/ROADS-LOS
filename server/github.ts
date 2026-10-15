@@ -1,4 +1,5 @@
 import { ReplitConnectors } from "@replit/connectors-sdk";
+import { StaleSyncError } from "./sync-snapshot";
 
 const connectors = new ReplitConnectors();
 
@@ -21,15 +22,24 @@ export async function githubRequest(endpoint: string, options: { method?: string
   return parsed;
 }
 
-export async function getAuthenticatedUser() {
+export type GitHubRequest = typeof githubRequest;
+export type SyncUploadProgress = (event:
+  { path: string; state: "staged" | "failed" } |
+  { state: "publishing" | "published" }
+) => void;
+
+// Keep the two push contracts distinct (including their different empty
+// results), while allowing all transport calls to be supplied by fixtures.
+export function createGithubOperations(githubRequest: GitHubRequest) {
+async function getAuthenticatedUser() {
   return githubRequest("/user");
 }
 
-export async function getRepository(owner: string, repo: string) {
+async function getRepository(owner: string, repo: string) {
   return githubRequest(`/repos/${owner}/${repo}`);
 }
 
-export async function createRepository(name: string, options: { description?: string; isPrivate?: boolean } = {}) {
+async function createRepository(name: string, options: { description?: string; isPrivate?: boolean } = {}) {
   return githubRequest("/user/repos", {
     method: "POST",
     body: {
@@ -41,20 +51,23 @@ export async function createRepository(name: string, options: { description?: st
   });
 }
 
-export async function listRepositories() {
+async function listRepositories() {
   return githubRequest("/user/repos?sort=updated&per_page=10");
 }
 
-export async function pushCodebaseWithDeletions(
+async function pushCodebaseWithDeletions(
   owner: string,
   repo: string,
   files: { path: string; content: string; encoding?: "utf-8" | "base64" }[],
   deletions: string[],
-  message: string
+  message: string,
+  progress?: SyncUploadProgress,
+  expectedHead?: string,
 ) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
+  if (expectedHead && currentCommitSha !== expectedHead) throw new StaleSyncError();
   const currentCommit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${currentCommitSha}`);
   const baseTreeSha = currentCommit.tree.sha;
 
@@ -74,9 +87,7 @@ export async function pushCodebaseWithDeletions(
         },
       });
       if (!blob.sha) {
-        console.error(`Blob creation failed for ${file.path}:`, blob);
-        skippedFiles.push({ path: file.path, reason: "no sha returned" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: no blob SHA returned`);
       }
       treeItems.push({
         path: file.path,
@@ -84,12 +95,12 @@ export async function pushCodebaseWithDeletions(
         type: "blob",
         sha: blob.sha,
       });
+      progress?.({ path: file.path, state: "staged" });
     } catch (err: any) {
+      progress?.({ path: file.path, state: "failed" });
       const msg = err?.message || String(err);
       if (msg.includes("413") || /too large|payload/i.test(msg)) {
-        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
-        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: too large for GitHub API`);
       }
       throw err;
     }
@@ -124,18 +135,23 @@ export async function pushCodebaseWithDeletions(
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  const latest = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+  if (latest.object?.sha !== currentCommitSha) throw new StaleSyncError();
+  progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
     body: { sha: commit.sha },
   });
+  progress?.({ state: "published" });
 
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length - skippedFiles.length, deletedCount: deletions.length, skippedFiles };
 }
 
-export async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string) {
+async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string, progress?: SyncUploadProgress, expectedHead?: string) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
+  if (expectedHead && currentCommitSha !== expectedHead) throw new StaleSyncError();
   const currentCommit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${currentCommitSha}`);
   const baseTreeSha = currentCommit.tree.sha;
 
@@ -154,9 +170,7 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
         },
       });
       if (!blob.sha) {
-        console.error(`Blob creation failed for ${file.path}:`, blob);
-        skippedFiles.push({ path: file.path, reason: "no sha returned" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: no blob SHA returned`);
       }
       treeItems.push({
         path: file.path,
@@ -164,12 +178,12 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
         type: "blob",
         sha: blob.sha,
       });
+      progress?.({ path: file.path, state: "staged" });
     } catch (err: any) {
+      progress?.({ path: file.path, state: "failed" });
       const msg = err?.message || String(err);
       if (msg.includes("413") || /too large|payload/i.test(msg)) {
-        console.warn(`Skipping ${file.path}: too large for GitHub API (${base64Content.length} base64 bytes)`);
-        skippedFiles.push({ path: file.path, reason: "too large for GitHub API" });
-        continue;
+        throw new Error(`Upload failed for ${file.path}: too large for GitHub API`);
       }
       throw err;
     }
@@ -193,15 +207,19 @@ export async function pushCodebase(owner: string, repo: string, files: { path: s
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  const latest = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+  if (latest.object?.sha !== currentCommitSha) throw new StaleSyncError();
+  progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
     body: { sha: commit.sha },
   });
+  progress?.({ state: "published" });
 
   return { commitSha: commit.sha, message: commit.message, filesCount: treeItems.length };
 }
 
-export async function getRepoTree(owner: string, repo: string, branch: string = "main") {
+async function getRepoTree(owner: string, repo: string, branch: string = "main") {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/${branch}`);
   const commitSha = ref.object.sha;
   const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
@@ -209,25 +227,33 @@ export async function getRepoTree(owner: string, repo: string, branch: string = 
   return { commitSha, tree: tree.tree };
 }
 
-export async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: string) {
+async function getRepoTreeAtCommit(owner: string, repo: string, commitSha: string) {
   const commit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${commitSha}`);
   const tree = await githubRequest(`/repos/${owner}/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
   return { commitSha, tree: tree.tree };
 }
 
-export async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main") {
-  const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
-  if (response.encoding === "base64" && response.content) {
-    return Buffer.from(response.content, "base64").toString("utf-8");
+async function getFileContent(owner: string, repo: string, filePath: string, ref: string = "main", encoding: "utf-8" | "base64" = "utf-8") {
+  let response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${ref}`);
+  // GitHub's Contents endpoint omits content for larger files. Fetch the
+  // referenced blob rather than silently treating a listed file as absent.
+  if (response.encoding === "none" && response.sha) {
+    response = await githubRequest(`/repos/${owner}/${repo}/git/blobs/${response.sha}`);
+  }
+  if (response.encoding === "base64" && typeof response.content === "string") {
+    return Buffer.from(response.content, "base64").toString(encoding);
   }
   return null;
 }
 
-export async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string): Promise<string | null> {
+async function getFileContentAtCommit(owner: string, repo: string, filePath: string, commitSha: string, encoding: "utf-8" | "base64" = "utf-8"): Promise<string | null> {
   try {
-    const response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
-    if (response.encoding === "base64" && response.content) {
-      return Buffer.from(response.content, "base64").toString("utf-8");
+    let response = await githubRequest(`/repos/${owner}/${repo}/contents/${filePath}?ref=${commitSha}`);
+    if (response.encoding === "none" && response.sha) {
+      response = await githubRequest(`/repos/${owner}/${repo}/git/blobs/${response.sha}`);
+    }
+    if (response.encoding === "base64" && typeof response.content === "string") {
+      return Buffer.from(response.content, "base64").toString(encoding);
     }
     return null;
   } catch (err: any) {
@@ -237,3 +263,12 @@ export async function getFileContentAtCommit(owner: string, repo: string, filePa
     throw err;
   }
 }
+
+return { getAuthenticatedUser, getRepository, createRepository, listRepositories,
+  pushCodebaseWithDeletions, pushCodebase, getRepoTree, getRepoTreeAtCommit,
+  getFileContent, getFileContentAtCommit };
+}
+
+export const { getAuthenticatedUser, getRepository, createRepository, listRepositories,
+  pushCodebaseWithDeletions, pushCodebase, getRepoTree, getRepoTreeAtCommit,
+  getFileContent, getFileContentAtCommit } = createGithubOperations(githubRequest);

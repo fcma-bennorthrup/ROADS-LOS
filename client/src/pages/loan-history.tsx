@@ -1,26 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useLoanQuery } from "@/hooks/use-loan-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { HistoryContent } from "@/components/loan/HistoryContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import type { Loan, Borrower } from "@shared/schema";
-
-interface LoanWithBorrowers extends Loan {
-  borrowers: Borrower[];
-}
-
-function formatCurrency(value: string): string {
-  const num = parseFloat(value);
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency } from "@/lib/loan-display";
 
 export default function LoanHistoryPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
 
-  const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
-    queryKey: ["/api/loans", loanId],
-  });
+  const { data: loan, isLoading, error } = useLoanQuery(loanId);
 
   if (isLoading) {
     return (
@@ -70,7 +59,7 @@ export default function LoanHistoryPage() {
         />
         <div className="flex flex-1 min-h-0">
           <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-            <HistoryContent />
+            <HistoryContent loanId={loanId} />
           </div>
         </div>
         <div className="fixed bottom-0 left-0 w-full z-10">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
@@ -13,14 +13,19 @@ export function DecisioningSummaryContent({
   loanNumber = "123456789",
   borrowerName = "Richard Jamerson",
 }: DecisioningSummaryContentProps = {}) {
-  const [isDecisioned, setIsDecisioned] = useState(false);
-  const [letterGenerated, setLetterGenerated] = useState(false);
-  const [creditPulled, setCreditPulled] = useState(false);
   const { setActionStatus, completeAction, getActionStatus, demoResetVersion } = useChecklist();
+  // Restore only completed workflow actions. Credit has no persisted authority.
+  // Keep these local after mount: action-order and reset behavior are unchanged.
+  const [isDecisioned, setIsDecisioned] = useState(() => getActionStatus("Loan Decision", 0) === "complete");
+  const [letterGenerated, setLetterGenerated] = useState(() => getActionStatus("Decision Letter", 0) === "complete");
+  const [creditPulled, setCreditPulled] = useState(false);
+  const observedResetVersion = useRef(demoResetVersion);
   const { addActivity } = useActivityPanel();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (observedResetVersion.current === demoResetVersion) return;
+    observedResetVersion.current = demoResetVersion;
     setIsDecisioned(false);
     setLetterGenerated(false);
     setCreditPulled(false);

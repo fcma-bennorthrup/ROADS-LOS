@@ -1,0 +1,164 @@
+{
+  "stylesheet_url": "https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+  "stylesheet_sha256": "373029e7a0157c57b81d7187033a82e39fcb77a61823e7d304c69b45a3193b91",
+  "user_agent": "Mozilla/5.0 Chrome/130.0.0.0 Safari/537.36",
+  "fonts": [
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTc2dphjQ.ttf",
+      "file": "font-00.bin",
+      "sha256": "5dcea0643d98c3b9aa1cb1269da7bda17007eef92f47e2c9a001ca8d75b2f1f0",
+      "bytes": 329124
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTcWdthjQ.ttf",
+      "file": "font-01.bin",
+      "sha256": "bfaead52c6371b644ff234459211097e2f90441dc3ffd50987516d5acab0c9ea",
+      "bytes": 329392
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTch9thjQ.ttf",
+      "file": "font-02.bin",
+      "sha256": "e59f6349bc74d1f9f46d50d47d6c12a57a51eb56d632c03642d678b2e7b054eb",
+      "bytes": 329212
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTc2dthjQ.ttf",
+      "file": "font-03.bin",
+      "sha256": "ef8f755d933b9310804cc9152f1f18cb2ac460d6b05054ec913d889c9f11f79e",
+      "bytes": 328252
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTc69thjQ.ttf",
+      "file": "font-04.bin",
+      "sha256": "f0f1d28363e3a64ef7ed59937b268494ad5e55e76b2c77eaab2f94c80cce17c9",
+      "bytes": 328764
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTcB9xhjQ.ttf",
+      "file": "font-05.bin",
+      "sha256": "5b6f0c6f26e5c554a64cdcc3a9b5d802b7f9aec6206f1dbcfcdcad7b5860a2a9",
+      "bytes": 329620
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTcPtxhjQ.ttf",
+      "file": "font-06.bin",
+      "sha256": "c1811d32ac0f6eed1bbf57529f2ecdfc6c717d48a969dd864942436315a1b198",
+      "bytes": 330132
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTcWdxhjQ.ttf",
+      "file": "font-07.bin",
+      "sha256": "43650eb9c3a23ddc6fc1f499d1e74892fa573119ae1ae3d83975918b10fa22a7",
+      "bytes": 331020
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCM3FwrK3iLTcvneQg7Ca725JhhKnNqk4j1ebLhAm8SrXTccNxhjQ.ttf",
+      "file": "font-08.bin",
+      "sha256": "7c1999c303b4d292f039630440d717f58edb8139f9f1e3b25074e4e07f95b441",
+      "bytes": 331044
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyeMZg.ttf",
+      "file": "font-09.bin",
+      "sha256": "3428fd01a45310781cfc06d8957c5485de2432132b405ebe6e53efec0719c229",
+      "bytes": 325028
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyfMZg.ttf",
+      "file": "font-10.bin",
+      "sha256": "1be2b11bc5c1e0f78deeeb4e8049b2f5cca9c476b77bb1912aac748ba4a37312",
+      "bytes": 325604
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuOKfMZg.ttf",
+      "file": "font-11.bin",
+      "sha256": "d0f4bc7faca468376e3db9b5e57afcdc2192134c9ac82a9511f32767b56853a4",
+      "bytes": 325748
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuLyfMZg.ttf",
+      "file": "font-12.bin",
+      "sha256": "1b08e7fc267a5c7e1d614100f604b83e7e8a0be241f0f288faa2b3ac93a683ba",
+      "bytes": 324820
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuI6fMZg.ttf",
+      "file": "font-13.bin",
+      "sha256": "8c883f63b2c4157d997319f2c8bc6995ed4357ef371940d31ca159004a4aae63",
+      "bytes": 325304
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuGKYMZg.ttf",
+      "file": "font-14.bin",
+      "sha256": "e7a1aaf7eda9f2fad4131725fa556265ec75ca7b2d756260173a040363e8d4f7",
+      "bytes": 326048
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuFuYMZg.ttf",
+      "file": "font-15.bin",
+      "sha256": "b37284b5701b6b168dfc770aa1a4ac492106422fd3ba76bc7641e37434e8019c",
+      "bytes": 326468
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuDyYMZg.ttf",
+      "file": "font-16.bin",
+      "sha256": "eec66af7f2337bd34fe6e801cf92ededcb57a20c0d7bc40a61d4eefcbe3dd40c",
+      "bytes": 327324
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/inter/v20/UcCO3FwrK3iLTeHuS_nVMrMxCp50SjIw2boKoduKmMEVuBWYMZg.ttf",
+      "file": "font-17.bin",
+      "sha256": "5b717029a2c4cfca2167e97be1157edb24151591e5ec96eb484745c392817a7a",
+      "bytes": 327260
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKwdSBYKcSV-LCoeQqfX1RYOo3qPZZMkhdr.ttf",
+      "file": "font-18.bin",
+      "sha256": "bc8753ad9c4f7c8c3d49af59c31289b620470c44cc40b1a84781ca7afb00eaef",
+      "bytes": 97460
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xK1dSBYKcSV-LCoeQqfX1RYOo3qPa7g.ttf",
+      "file": "font-19.bin",
+      "sha256": "4735951f923fa10c3d23add88abfd40533c5c61f45dacc15287467e9f1f1232e",
+      "bytes": 96928
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKwdSBYKcSV-LCoeQqfX1RYOo3qPZY4lBdr.ttf",
+      "file": "font-20.bin",
+      "sha256": "44f82b2d122116a5c55c1a16b24b71398ef2e47c776506edeedb132e47869a26",
+      "bytes": 96668
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKwdSBYKcSV-LCoeQqfX1RYOo3qPZZclRdr.ttf",
+      "file": "font-21.bin",
+      "sha256": "e1bee2ac04d247d7f011b5910d80f6b532a7f4fc363509f31377449ed98baca9",
+      "bytes": 96640
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ik4zAkA.ttf",
+      "file": "font-22.bin",
+      "sha256": "0b49e54e5df24b350be1dd844930c7fcf393222b8e0b993362e116144d26fb28",
+      "bytes": 166760
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xK3dSBYKcSV-LCoeQqfX1RYOo3aPw.ttf",
+      "file": "font-23.bin",
+      "sha256": "0bf84ff4fc16b817807dfc3f5f84cab1911f516d10e958f0b502743d78cae100",
+      "bytes": 167440
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3i54rAkA.ttf",
+      "file": "font-24.bin",
+      "sha256": "550545f3b5d97c163dbf19425fd513f86f1a3da4d6df9e518d113cef53e3dbb3",
+      "bytes": 167124
+    },
+    {
+      "url": "https://fonts.gstatic.com/s/sourcesanspro/v24/6xKydSBYKcSV-LCoeQqfX1RYOo3ig4vAkA.ttf",
+      "file": "font-25.bin",
+      "sha256": "cfac063d21f840e77e0f6416297d3ca870b617b605a92047c7ceb88f1b054414",
+      "bytes": 167012
+    }
+  ],
+  "inline_css_sha256": "24ed329740891f49061ca53d562962e8f159c4cc66c9d6e197597f9e2c23358b"
+}

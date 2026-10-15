@@ -27,5 +27,6 @@ export function setLastSyncedCommit(sha: string): void {
     lastSyncedCommitSha: sha,
     lastSyncedAt: new Date().toISOString(),
   };
-  fs.writeFileSync(SYNC_STATE_FILE, JSON.stringify(state, null, 2), "utf-8");
+  fs.writeFileSync(SYNC_STATE_FILE + ".tmp", JSON.stringify(state, null, 2), "utf-8");
+  fs.renameSync(SYNC_STATE_FILE + ".tmp", SYNC_STATE_FILE);
 }

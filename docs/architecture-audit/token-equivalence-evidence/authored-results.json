@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "assertions": 219,
+  "browser": "not run",
+  "emittedCss": "checked separately"
+}

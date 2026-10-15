@@ -1,0 +1,542 @@
+[
+  {
+    "state": "read",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "edit",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "calendar",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "picker": {
+      "inputName": null,
+      "labelledby": null,
+      "dialog": "dialog",
+      "caption": "October 2026",
+      "weekends": [
+        {
+          "name": "Saturday, October 3rd, 2026",
+          "disabled": true
+        },
+        {
+          "name": "Sunday, October 4th, 2026",
+          "disabled": true
+        },
+        {
+          "name": "Saturday, October 10th, 2026",
+          "disabled": true
+        },
+        {
+          "name": "Sunday, October 11th, 2026",
+          "disabled": true
+        }
+      ]
+    }
+  },
+  {
+    "escapeFocus": "input-closing-date-calendar-btn"
+  },
+  {
+    "savedWeekendValue": ""
+  },
+  {
+    "discardRestored": ""
+  },
+  {
+    "state": "idle",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "state": "booking",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    },
+    "control": {
+      "disabled": false,
+      "aria": "true",
+      "focusable": 0,
+      "status": "Booking Loan."
+    }
+  },
+  {
+    "dots400": "Booking Loan.."
+  },
+  {
+    "beforeFiveSeconds": false,
+    "elapsed": 5054
+  },
+  {
+    "afterFiveSeconds": "Loan successfully booked: 10/14/2026 04:00 PM"
+  },
+  {
+    "state": "booked",
+    "width": 1440,
+    "metrics": {
+      "viewport": [
+        1440,
+        900
+      ],
+      "document": [
+        1440,
+        900
+      ],
+      "page": [
+        1440,
+        900
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "rebookingHidesConfirmation": true
+  },
+  {
+    "unmountClearsBooking": true
+  },
+  {
+    "checklistOpen": true
+  },
+  {
+    "state": "read",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "edit",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "calendar",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "idle",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "state": "booking",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    },
+    "control": {
+      "disabled": false,
+      "aria": "true",
+      "focusable": 0,
+      "status": "Booking Loan."
+    }
+  },
+  {
+    "beforeFiveSeconds": true,
+    "elapsed": 4647
+  },
+  {
+    "afterFiveSeconds": "Loan successfully booked: 10/14/2026 04:00 PM"
+  },
+  {
+    "state": "booked",
+    "width": 1024,
+    "metrics": {
+      "viewport": [
+        1024,
+        768
+      ],
+      "document": [
+        1024,
+        768
+      ],
+      "page": [
+        1024,
+        768
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "state": "read",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "edit",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "calendar",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Closing Details"
+      ]
+    }
+  },
+  {
+    "state": "idle",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "state": "booking",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    },
+    "control": {
+      "disabled": false,
+      "aria": "true",
+      "focusable": 0,
+      "status": "Booking Loan."
+    }
+  },
+  {
+    "beforeFiveSeconds": true,
+    "elapsed": 4637
+  },
+  {
+    "afterFiveSeconds": "Loan successfully booked: 10/14/2026 04:00 PM"
+  },
+  {
+    "state": "booked",
+    "width": 390,
+    "metrics": {
+      "viewport": [
+        390,
+        844
+      ],
+      "document": [
+        390,
+        844
+      ],
+      "page": [
+        390,
+        844
+      ],
+      "font": "\"Source Sans Pro\", sans-serif",
+      "fontStatus": "loaded",
+      "visibleHeadings": [
+        "Synthetic Borrower",
+        "Booking"
+      ]
+    }
+  },
+  {
+    "fontAvailability": {
+      "status": "loaded",
+      "sourceSansLoaded": true,
+      "interLoaded": true
+    },
+    "externalRequestErrors": [
+      "Failed to load resource: the server responded with a status of 404 (File not found)",
+      "Error: {\"code\":-32602,\"message\":\"Invalid InterceptionId.\"}",
+      "Failed to load resource: the server responded with a status of 404 (File not found)"
+    ],
+    "consoleErrors": [
+      {
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+      },
+      {
+        "level": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+      }
+    ]
+  }
+]

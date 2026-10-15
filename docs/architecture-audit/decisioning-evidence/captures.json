@@ -1,0 +1,110 @@
+[
+  {
+    "name": "1440x900-income.png",
+    "width": 1440,
+    "height": 900,
+    "state": "income",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 0,
+    "columns": "532.5px 532.5px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "86d8d79c5ba1b4736b8f67aaa6a84facd961374db514712c8d6604299ac28536"
+  },
+  {
+    "name": "1440x900-balance-menu.png",
+    "width": 1440,
+    "height": 900,
+    "state": "balance-menu",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 1187,
+    "columns": "532.5px 532.5px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "26dc0593881edf79305d16aa21d9b1ae5fb8de554fbdc2c0b58880008cb151bb"
+  },
+  {
+    "name": "1440x900-panels.png",
+    "width": 1440,
+    "height": 900,
+    "state": "panels",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 1505,
+    "columns": "392.5px 392.5px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "78d7fb89a613a3b912376ddaca7fd8740177ed3a0b670202c1687cebd37da7dc"
+  },
+  {
+    "name": "1024x768-income.png",
+    "width": 1024,
+    "height": 768,
+    "state": "income",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 0,
+    "columns": "324.5px 324.5px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "21c69b0f830f36c2e24414255d6afc9f52b8488435eb6f73a4e6ad1fd5705859"
+  },
+  {
+    "name": "1024x768-balance-menu.png",
+    "width": 1024,
+    "height": 768,
+    "state": "balance-menu",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 1505,
+    "columns": "324.5px 324.5px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "399cb8e9c19d6fd253b9d01b77ddb98d6a8b77e237d56c47003adc17247e5bdb"
+  },
+  {
+    "name": "1024x768-panels.png",
+    "width": 1024,
+    "height": 768,
+    "state": "panels",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 2353,
+    "columns": "232px 232px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "a41a42787f7429dc40ce755e5a61793a34a24c0eda0dc2c244cdfb3eeb68d7b8"
+  },
+  {
+    "name": "390x844-income.png",
+    "width": 390,
+    "height": 844,
+    "state": "income",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 0,
+    "columns": "232px 232px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "d3a4e7501a103d85769ed954904a320585857f3e1decdc7b83977e25b5aaf8ff"
+  },
+  {
+    "name": "390x844-balance-menu.png",
+    "width": 390,
+    "height": 844,
+    "state": "balance-menu",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 2813,
+    "columns": "232px 232px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "33f8408aa01c017abcbe946647f14245af59cffb6ae43938abf10f35ffd8f573"
+  },
+  {
+    "name": "390x844-panels.png",
+    "width": 390,
+    "height": 844,
+    "state": "panels",
+    "title": "Borrower Financials",
+    "font": "\"Source Sans Pro\", sans-serif",
+    "scroll": 2813,
+    "columns": "232px 232px",
+    "fontPolicy": "remote fonts blocked; existing CSS fallback only",
+    "sha256": "a066716336b422164de25b1b964e93be1179b0fc629823587fff671643faefc8"
+  }
+]

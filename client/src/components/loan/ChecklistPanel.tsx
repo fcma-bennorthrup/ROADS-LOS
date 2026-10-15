@@ -6,20 +6,24 @@ import { ActionTimeline, StatusIcon } from "./ChecklistActionTimeline";
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const { tasks, resetDemoTasks } = useChecklist();
+  const { tasks, resetDemoTasks, demoResetPending } = useChecklist();
   const { resetRuntimeActivities } = useActivityPanel();
 
   const completedCount = tasks.filter((t) => t.status === "complete").length;
   const percent = Math.round((completedCount / tasks.length) * 100);
   const handleResetDemo = () => {
+    if (demoResetPending) return;
     const confirmed = window.confirm(
       "Reset all demo tasks, Subject Property, and demo-generated Loan Activity entries?",
     );
     if (!confirmed) return;
 
-    resetDemoTasks(tasks.map((task) => task.name));
-    resetRuntimeActivities();
-    setExpanded(null);
+    const result = resetDemoTasks(tasks.map((task) => task.name), resetRuntimeActivities);
+    const finish = (value: Awaited<typeof result>) => {
+      if (value.outcome === "complete") setExpanded(null);
+    };
+    if (result instanceof Promise) void result.then(finish);
+    else finish(result);
   };
 
   return (
@@ -60,6 +64,7 @@ export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; cent
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
             <button
               onClick={handleResetDemo}
+              disabled={demoResetPending}
               className="caption-100-strong"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",

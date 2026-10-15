@@ -13,6 +13,7 @@ interface ConflictFile {
 }
 
 interface ConflictsResponse {
+  planId?: string;
   hasConflicts: boolean;
   operation: "push" | "pull" | null;
   remoteHeadSha?: string;
@@ -47,6 +48,7 @@ export function useGitHubSync() {
         setConflictsData({
           hasConflicts: true,
           operation,
+          planId: response.planId,
           remoteHeadSha: response.commitSha,
           conflicts: response.conflicts,
         });
@@ -73,7 +75,7 @@ export function useGitHubSync() {
         credentials: "include",
       });
       const body = (await readGitHubSyncResponse(res)) as SyncResponse;
-      if (res.status === 409) {
+      if (res.status === 409 && body.hasConflicts) {
         return body;
       }
       if (!res.ok) {
@@ -91,6 +93,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Pull Failed",
         description: error.message,
@@ -111,7 +116,7 @@ export function useGitHubSync() {
         credentials: "include",
       });
       const body = (await readGitHubSyncResponse(res)) as SyncResponse;
-      if (res.status === 409) {
+      if (res.status === 409 && body.hasConflicts) {
         return body;
       }
       if (!res.ok) {
@@ -129,6 +134,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Push Failed",
         description: error.message,

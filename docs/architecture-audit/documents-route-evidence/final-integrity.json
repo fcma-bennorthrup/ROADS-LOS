@@ -1,0 +1,19 @@
+{
+  "manifest_paths_checked": 174,
+  "workspace_and_disposable_mismatches": [],
+  "pdf_source_sha256": {
+    "client/public/at-app-disclosures.pdf": "7d12c7eb0fac73fa2c0c8563d38691d3462cfa2d0ebfd71ff9bb51e3aab947c8",
+    "client/public/loan-estimate.pdf": "456d4619624c4f7a3bf6e9d2cc72714f825e613377ac28036c084d632cd67326",
+    "attached_assets/SampleCD_1777397678654.pdf": "f0979fd83afb89dc2b35686a74805cad7009a6172f65835874bd21eafdf95e4c",
+    "attached_assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf": "2b94e8e4178bb1540377946bf3c307e694c3e49316b4c7a506690a52fa7ca730"
+  },
+  "pdf_emitted_sha256": {
+    "SampleCD_1777397678654-BEhGlrYt.pdf": "f0979fd83afb89dc2b35686a74805cad7009a6172f65835874bd21eafdf95e4c",
+    "Redacted-ClosingPackage_Redacted_1777397693832-DMBQWxxs.pdf": "2b94e8e4178bb1540377946bf3c307e694c3e49316b4c7a506690a52fa7ca730"
+  },
+  "final_route_test_exit": 0,
+  "final_route_tests": 12,
+  "existing_and_baseline_tests_passed_in_first_run": 176,
+  "initial_route_fixture_failures": 3,
+  "production_typecheck_exit": 2
+}

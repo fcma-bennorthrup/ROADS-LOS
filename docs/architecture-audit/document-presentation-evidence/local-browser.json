@@ -1,0 +1,252 @@
+[
+  {
+    "mode": "idle",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "6fa7f49a203e676517d8b6bfc761d08e58d58d2b9203dbb68f67f372a6a1fbb5",
+      "6fa7f49a203e676517d8b6bfc761d08e58d58d2b9203dbb68f67f372a6a1fbb5"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "d3cc1461baecbb6f9a6d8c808da537ab4ac61fc898263b10e55265f971e69823",
+      "d3cc1461baecbb6f9a6d8c808da537ab4ac61fc898263b10e55265f971e69823"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "75f16cb0747c8d5defee4a6ac5e23c125fceda0087286283ffd2446f85572556",
+      "75f16cb0747c8d5defee4a6ac5e23c125fceda0087286283ffd2446f85572556"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "ff63c89a3fd612b453abe74abc635c904f694fd106324db3f00a2aefa470d88e",
+      "ff63c89a3fd612b453abe74abc635c904f694fd106324db3f00a2aefa470d88e"
+    ]
+  },
+  {
+    "mode": "regenerating",
+    "width": 1440,
+    "height": 900,
+    "equal": true,
+    "hashes": [
+      "122178960a7e2ec745466393abe6007bbb77922c0cae958b0325cb316e1b0143",
+      "122178960a7e2ec745466393abe6007bbb77922c0cae958b0325cb316e1b0143"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "83c328b7d80245ced0466c6c6fd6ef210c900883e7f0265aa033598ab84fd8c3",
+      "83c328b7d80245ced0466c6c6fd6ef210c900883e7f0265aa033598ab84fd8c3"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "40970c8f24c0fd5d5caf98fa0004bde4fd930b203765f651457b3279dc7dcfaa",
+      "40970c8f24c0fd5d5caf98fa0004bde4fd930b203765f651457b3279dc7dcfaa"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "e44e455586135d8b86579de176a763fb38fe9bf4263701e7dccffe50afe2958e",
+      "e44e455586135d8b86579de176a763fb38fe9bf4263701e7dccffe50afe2958e"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "0b379d1e1480b0f367732e5841763482daee4d964bed8e0ff25326e50ce21b91",
+      "0b379d1e1480b0f367732e5841763482daee4d964bed8e0ff25326e50ce21b91"
+    ]
+  },
+  {
+    "mode": "regenerating",
+    "width": 1024,
+    "height": 768,
+    "equal": true,
+    "hashes": [
+      "20ff9cf828237382d87234a42fdb905e8281f795e7422678102539a04fe6010a",
+      "20ff9cf828237382d87234a42fdb905e8281f795e7422678102539a04fe6010a"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "494390891a33a291fefee76a102464e2a183eb200892d6aef6da3904fdac8bc1",
+      "494390891a33a291fefee76a102464e2a183eb200892d6aef6da3904fdac8bc1"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "a09a8f93b18445046cce62193cf2e33b39546364815f7543f416a58e9bf395fd",
+      "a09a8f93b18445046cce62193cf2e33b39546364815f7543f416a58e9bf395fd"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "9d32abaf7ae68bf58f8db45fe31a87d3256083345ebac7e1b91742fae4fc71ad",
+      "9d32abaf7ae68bf58f8db45fe31a87d3256083345ebac7e1b91742fae4fc71ad"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "84073a563f807bcb61acfd1754b6453171708cde24e05e22ac214f3aa15d8a9d",
+      "c3a4ca1cd6692221d96228bf67c84240a716ef8777834306f87f13367bb78787"
+    ]
+  },
+  {
+    "mode": "regenerating",
+    "width": 390,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "3b2ba8a5ffca4f17ebd22bb48b08c9c6b1791091c43be94d1e7288415ec2b8b1",
+      "59b036edf4b83bb9c33e0b7cc4cf79750011928ef38ff4c3ec55e3177d8ef6cd"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "d13971948df971f2a4659ae91d53969e42f14435df6257d90b46fd8c0a8c440c",
+      "d13971948df971f2a4659ae91d53969e42f14435df6257d90b46fd8c0a8c440c"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "2c433c04ff85eabbccf0902730ac3d5d45f8a685660a177dbb75f0d2a067975b",
+      "2c433c04ff85eabbccf0902730ac3d5d45f8a685660a177dbb75f0d2a067975b"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "900b9f5053acf8d3742e33b298642080887d3d656afaec7d0d3df030a0b6fccb",
+      "900b9f5053acf8d3742e33b298642080887d3d656afaec7d0d3df030a0b6fccb"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "a1787de9fed6a9212652169639fec6f609c0100ac9c30d55e23df9e4166a819c",
+      "a1787de9fed6a9212652169639fec6f609c0100ac9c30d55e23df9e4166a819c"
+    ]
+  },
+  {
+    "mode": "regenerating",
+    "width": 767,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "6cf8552c92da847bc83740f01e8c2ed653b2f5e47ea5ae8b0cb81e5f32591aab",
+      "6cf8552c92da847bc83740f01e8c2ed653b2f5e47ea5ae8b0cb81e5f32591aab"
+    ]
+  },
+  {
+    "mode": "idle",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "0f8b04fd88bf7dbc45239820eb0b55ed7cca6e59d2fff391ead551b9d047e9c1",
+      "0f8b04fd88bf7dbc45239820eb0b55ed7cca6e59d2fff391ead551b9d047e9c1"
+    ]
+  },
+  {
+    "mode": "generating",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "62f5e0ca4942db5b2e44ae93c7f8439bfc8e2e1af84d4fa5abe1464d195d2d2b",
+      "62f5e0ca4942db5b2e44ae93c7f8439bfc8e2e1af84d4fa5abe1464d195d2d2b"
+    ]
+  },
+  {
+    "mode": "generated",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "fd785006fa1343420209e831e95edfbf1b7bb3043edb189ff166c953a681db9f",
+      "fd785006fa1343420209e831e95edfbf1b7bb3043edb189ff166c953a681db9f"
+    ]
+  },
+  {
+    "mode": "delivered",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "8779c3f04177fb52f4aa94282ef32bc6416de167536878fc3d506d54f799bf67",
+      "8779c3f04177fb52f4aa94282ef32bc6416de167536878fc3d506d54f799bf67"
+    ]
+  },
+  {
+    "mode": "regenerating",
+    "width": 768,
+    "height": 844,
+    "equal": true,
+    "hashes": [
+      "968ff682b7a55b4d2aef9de8bcec9fdc0b3b573cb021ad26de2e66da7aebdf62",
+      "968ff682b7a55b4d2aef9de8bcec9fdc0b3b573cb021ad26de2e66da7aebdf62"
+    ]
+  }
+]

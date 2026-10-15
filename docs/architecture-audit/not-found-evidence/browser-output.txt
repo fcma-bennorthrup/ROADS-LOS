@@ -1,0 +1,13 @@
+Browserslist: browsers data (caniuse-lite) is 12 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+Rebuilding...
+
+Done in 624ms.
+40 paired scenarios: exact pixel hashes and measured DOM/layout match
+Tab/Shift+Tab on bare fallback: body remains active; no page-owned tab stop
+Native browser Back/Forward, same-key retention, prototype remount, hard reload and storage restoration
+Inherited dialog contains Tab/Shift+Tab focus; Escape closes; removed trigger restores focus to body
+Delayed fake 409 after navigation opens dialog/toast; toast survives Escape 
+ 80 captures in /tmp/not-found-verification-cn4srn7v/browser-evidence

@@ -1,0 +1,149 @@
+[
+  {
+    "mode": "focus",
+    "viewport": [
+      1440,
+      900
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing SoonLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": null,
+    "focus": "toolbar-checklist",
+    "documentSize": [
+      1440,
+      900
+    ],
+    "keyboard": "Native Space opens then closes focused checklist button"
+  },
+  {
+    "mode": "checklist-end",
+    "viewport": [
+      1440,
+      900
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing Soon@keyframes checklist-slide-up { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }Loan ChecklistReset Demo13% CompleteEligibility & ScopeView Task2 of 2 CompleteAction #1Verify borrower eligibilityCompleteAction #2Confirm loan scopeCompleteTC/TNView Task3 of 3 CompleteLoan DecisionView Task0 of 1 CompleteDecision LetterView Task0 of 2 CompleteLoan EstimateView Task0 of 2 CompleteEarly DisclosuresView Task0 of 2 CompleteTitle WorkView Task0 of 3 CompleteAppraisal EvaluationView Task0 of 3 CompleteRate LockView Task0 of 3 CompleteClosing DisclosureView Task0 of 2 CompleteClosing PackageView Task0 of 3 CompleteWiresView Task0 of 4 CompletePre-Closing ReviewView Task0 of 2 CompletePost Closing ReviewView Task0 of 2 CompleteLoan CertificationView Task0 of 2 CompleteLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": {
+      "height": 630,
+      "maxHeight": "630px"
+    },
+    "focus": null,
+    "documentSize": [
+      1440,
+      900
+    ],
+    "scroll": {
+      "top": 526,
+      "height": 1058,
+      "visible": 532
+    }
+  },
+  {
+    "mode": "focus",
+    "viewport": [
+      1024,
+      768
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing SoonLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": null,
+    "focus": "toolbar-checklist",
+    "documentSize": [
+      1024,
+      768
+    ],
+    "keyboard": "Native Space opens then closes focused checklist button"
+  },
+  {
+    "mode": "checklist-end",
+    "viewport": [
+      1024,
+      768
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing Soon@keyframes checklist-slide-up { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }Loan ChecklistReset Demo13% CompleteEligibility & ScopeView Task2 of 2 CompleteAction #1Verify borrower eligibilityCompleteAction #2Confirm loan scopeCompleteTC/TNView Task3 of 3 CompleteLoan DecisionView Task0 of 1 CompleteDecision LetterView Task0 of 2 CompleteLoan EstimateView Task0 of 2 CompleteEarly DisclosuresView Task0 of 2 CompleteTitle WorkView Task0 of 3 CompleteAppraisal EvaluationView Task0 of 3 CompleteRate LockView Task0 of 3 CompleteClosing DisclosureView Task0 of 2 CompleteClosing PackageView Task0 of 3 CompleteWiresView Task0 of 4 CompletePre-Closing ReviewView Task0 of 2 CompletePost Closing ReviewView Task0 of 2 CompleteLoan CertificationView Task0 of 2 CompleteLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": {
+      "height": 537.59375,
+      "maxHeight": "537.6px"
+    },
+    "focus": null,
+    "documentSize": [
+      1024,
+      768
+    ],
+    "scroll": {
+      "top": 618,
+      "height": 1058,
+      "visible": 440
+    }
+  },
+  {
+    "mode": "focus",
+    "viewport": [
+      390,
+      844
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing SoonLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": null,
+    "focus": "toolbar-checklist",
+    "documentSize": [
+      390,
+      844
+    ],
+    "keyboard": "Native Space opens then closes focused checklist button"
+  },
+  {
+    "mode": "checklist-end",
+    "viewport": [
+      390,
+      844
+    ],
+    "text": "PipelineLoan: TEST-AViewingRDLoan TeamA1B2C3+3Prototype Admin ControlsCustomer ApplicationPre-ApprovalLoan SetupDecisioningLoan FinalizationClosingBookingLoan CertificationSynthetic|Loan: TEST-A|CIF: TEST-CIFSynthetic Borrower$1,234.50Synthetic Application|9 ECOA Days RemainingSummaryOriginationDecisioningClosing & BookingDocumentsHistorySummaryComing Soon@keyframes checklist-slide-up { from { transform: translateX(-50%) translateY(16px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }Loan ChecklistReset Demo13% CompleteEligibility & ScopeView Task2 of 2 CompleteAction #1Verify borrower eligibilityCompleteAction #2Confirm loan scopeCompleteTC/TNView Task3 of 3 CompleteLoan DecisionView Task0 of 1 CompleteDecision LetterView Task0 of 2 CompleteLoan EstimateView Task0 of 2 CompleteEarly DisclosuresView Task0 of 2 CompleteTitle WorkView Task0 of 3 CompleteAppraisal EvaluationView Task0 of 3 CompleteRate LockView Task0 of 3 CompleteClosing DisclosureView Task0 of 2 CompleteClosing PackageView Task0 of 3 CompleteWiresView Task0 of 4 CompletePre-Closing ReviewView Task0 of 2 CompletePost Closing ReviewView Task0 of 2 CompleteLoan CertificationView Task0 of 2 CompleteLoan InfoQuick LinksChecklistKey DatesErrors",
+    "fontStatus": "external fonts blocked; existing CSS font stack unchanged",
+    "heading": {
+      "font": "600 20px / 24px \"Source Sans Pro\", sans-serif",
+      "color": "rgb(39, 51, 51)"
+    },
+    "reserve": "36px",
+    "panel": {
+      "height": 590.796875,
+      "maxHeight": "590.8px"
+    },
+    "focus": null,
+    "documentSize": [
+      390,
+      844
+    ],
+    "scroll": {
+      "top": 785,
+      "height": 1278,
+      "visible": 493
+    }
+  }
+]

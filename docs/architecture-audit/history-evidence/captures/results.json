@@ -1,0 +1,291 @@
+{
+  "font_state": "External font loading blocked; system fallback only",
+  "captures": [
+    {
+      "ready": true,
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "closed",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1221,
+        "width": 1375,
+        "height": 57,
+        "top": 1221,
+        "right": 1400,
+        "bottom": 1278,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1440x900-closed.png",
+      "sha256": "eeaaa94edb6a3478af593640265231f5e663c0d59ae108210bda209c0e626a27"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "activity",
+      "rows": 20,
+      "activityOpen": true,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1221,
+        "width": 1095,
+        "height": 57,
+        "top": 1221,
+        "right": 1120,
+        "bottom": 1278,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1440x900-activity.png",
+      "sha256": "cbddea21b8898992c404c1ab8668b71e534941fc5de4393f7dea096ce514e554"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        1440,
+        900
+      ],
+      "mode": "dropdown",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": true,
+      "footer": {
+        "x": 25,
+        "y": 843,
+        "width": 1375,
+        "height": 57,
+        "top": 843,
+        "right": 1400,
+        "bottom": 900,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1440x900-dropdown.png",
+      "sha256": "723a6adbb87f06de0d7c56d451988ef82f95f1f7af32e9266bc8d76ff98d4f83"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        1024,
+        768
+      ],
+      "mode": "closed",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1221,
+        "width": 959,
+        "height": 57,
+        "top": 1221,
+        "right": 984,
+        "bottom": 1278,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1024x768-closed.png",
+      "sha256": "5427ddc67e70f8d3f212b6cae957d0df113e1aaa7d4636389d2b1bb4e6683b69"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        1024,
+        768
+      ],
+      "mode": "activity",
+      "rows": 20,
+      "activityOpen": true,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1236,
+        "width": 679,
+        "height": 57,
+        "top": 1236,
+        "right": 704,
+        "bottom": 1293,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1024x768-activity.png",
+      "sha256": "168a4e3ce5a32bb1ca0b4646951ccdb94f5619fc2818f4c895bd1bd893281c65"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        1024,
+        768
+      ],
+      "mode": "dropdown",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": true,
+      "footer": {
+        "x": 25,
+        "y": 711,
+        "width": 959,
+        "height": 57,
+        "top": 711,
+        "right": 984,
+        "bottom": 768,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "1024x768-dropdown.png",
+      "sha256": "16e6cac3e8368e42667573d87147a5807d5d31fd2a7a684ca9d3855e08551067"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "mode": "closed",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1340,
+        "width": 325,
+        "height": 69,
+        "top": 1340,
+        "right": 350,
+        "bottom": 1409,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "390x844-closed.png",
+      "sha256": "5e579d4be7d9d3bebb20c50cc7989fe30ed01101df11efbcf0d39215cd1833c5"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "mode": "activity",
+      "rows": 20,
+      "activityOpen": true,
+      "dropdownOpen": false,
+      "footer": {
+        "x": 25,
+        "y": 1616,
+        "width": 45,
+        "height": 69,
+        "top": 1616,
+        "right": 70,
+        "bottom": 1685,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "390x844-activity.png",
+      "sha256": "c97af6f1358c7497b1ac0b70473506df7f079c7135860e80aaa8114b10e6b729"
+    },
+    {
+      "ready": true,
+      "viewport": [
+        390,
+        844
+      ],
+      "mode": "dropdown",
+      "rows": 20,
+      "activityOpen": false,
+      "dropdownOpen": true,
+      "footer": {
+        "x": 25,
+        "y": 775,
+        "width": 325,
+        "height": 69,
+        "top": 775,
+        "right": 350,
+        "bottom": 844,
+        "left": 25
+      },
+      "cell": {
+        "fontFamily": "\"Source Sans Pro\", sans-serif",
+        "fontSize": "16px",
+        "color": "rgb(39, 51, 51)",
+        "padding": "8px 16px",
+        "lineHeight": "24px"
+      },
+      "fontState": "External fonts blocked; system fallback",
+      "screenshot": "390x844-dropdown.png",
+      "sha256": "8663097ae6b011aab81ee91999df1e22a420a6aeb21af9eff74aeeb5ca6055b8"
+    }
+  ],
+  "browser": {
+    "protocolVersion": "1.3",
+    "product": "Chrome/152.0.7977.64",
+    "revision": "@506c834ecceaa943c5f41e6cfe7f68acb5c45346",
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/152.0.0.0 Safari/537.36",
+    "jsVersion": "15.2.124.18"
+  }
+}

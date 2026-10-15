@@ -1,0 +1,121 @@
+{
+  "status": "blocked",
+  "changed_paths": [
+    {
+      "path": "SETUP.md",
+      "measured_sha256": "0226c80b675a0fab6c4df22b562013ceafd42bb8d60d5d0355a2642cb9a392e6",
+      "current_sha256": "310690d6e91d73d7e87b16225f5248a66e55a038cd903469922a231a9a570e9e"
+    },
+    {
+      "path": "client/src/components/ConflictResolutionDialog.tsx",
+      "measured_sha256": "4917b3326a59a715199fc8fc304b2536b0faa9cefdaa505a64e8a8f59db33a51",
+      "current_sha256": "258f0e8fae840c00d5ba55a4e6a4bbb7c4e3298e4b5bbec4990109dab53ab05d"
+    },
+    {
+      "path": "client/src/components/loan/BalanceSheetSection.tsx",
+      "measured_sha256": "e61278f2c23701c72fca2e39ed18167c0cbcd799df65332c805cad56ca5b4581",
+      "current_sha256": "c76fe6082485b6bd178f9ae153e0d66d4cdd4a6f38258f49e7cf9ceb1b5b7c26"
+    },
+    {
+      "path": "client/src/components/loan/BorrowerInformationContent.tsx",
+      "measured_sha256": "2b48d3c3120034ebc76dcfd0301fa964d989eaee577ebca393c519b6c4943690",
+      "current_sha256": "d623472d85de0eacb6482690560d0866f83a6381daea70d30f68e0934903ccf3"
+    },
+    {
+      "path": "client/src/components/loan/ChecklistPanel.tsx",
+      "measured_sha256": "e9869121a57e5499c25c8a006989ac5cfe409d47ed51a6ec4987ca9c94e00399",
+      "current_sha256": "5327de6f04513ec009261b17ff56b218ee9f354f4ad04df827a831a418376a11"
+    },
+    {
+      "path": "client/src/components/loan/CollateralContent.tsx",
+      "measured_sha256": "ea222e9122c51a032d13f7bcb1212b375d2af79e49a1fa92e81d454674606c46",
+      "current_sha256": "6859528145067fbf634b94e34632bdd59b1441d2a180a73498aba8f1e99a8f45"
+    },
+    {
+      "path": "client/src/components/loan/DecisioningSummaryContent.tsx",
+      "measured_sha256": "49309fe5038d847025ac29354e3a6caa83e26d03a02abd7ddf6a0c16fdfe10df",
+      "current_sha256": "826be161d76c1e4118654ecf2678e3cbc3658c9d6ba426fb03651f074aaada71"
+    },
+    {
+      "path": "client/src/components/loan/DisclosureDocumentsContent.tsx",
+      "measured_sha256": "09f4f3adadb77bcc3e437ed58bb087b5b6643b564434a0946dfccecc4501385d",
+      "current_sha256": "29c333509004417e28579ba4f13f1e43057b25b09e24189509973b3ad541a446"
+    },
+    {
+      "path": "client/src/components/loan/HistoryContent.tsx",
+      "measured_sha256": "f9108e55498ba754f15484530ce3709aa34f42ce6964e643314e2fe7cd8ea9f0",
+      "current_sha256": "fc3b472c8ba4a0afd811934f4292fd2cff707734a2618f0d793dc38d2d2001eb"
+    },
+    {
+      "path": "client/src/components/loan/ProductPricingContent.tsx",
+      "measured_sha256": "621750348313dc3f830508e5eb827ed05305587bb36f6ed9ab7dcb7c866521cc",
+      "current_sha256": "d98d2c8f7dbca5b60346fe9b02a24e474bc9237627975293f44e81af5ed69e5e"
+    },
+    {
+      "path": "client/src/contexts/checklist-context.tsx",
+      "measured_sha256": "765303a8ff0c75496d1fcbfa4e9cbaa72546cf3d12a197fcba0c8232efe42ec1",
+      "current_sha256": "a39218905842d56a8d0bfe660ff5276208702856307c70fcdfc4d41a74c689be"
+    },
+    {
+      "path": "client/src/contexts/loan-activity-context.tsx",
+      "measured_sha256": "218d245eed9399c482f12eb21c01a4209e8ecea1ceb0883e2d830b819949f437",
+      "current_sha256": "a5621372ccb2c2e23fd359e25aa1a47a7707be15a631ddf150f6a81a641a8578"
+    },
+    {
+      "path": "client/src/hooks/use-closing-package.ts",
+      "measured_sha256": "00847dd0218ec8a3e28a9b49a70d58479b7a6e54b901aaac45e3dc8896b66d01",
+      "current_sha256": "5ab4c58c869f4b68c23ef382a08dc0460b87bcbece005395875cfff8f36fc4df"
+    },
+    {
+      "path": "client/src/lib/closing-disclosure-history.ts",
+      "measured_sha256": "72e1050a8442fbf2ccd69181b69c5be61af99a05e7cc8a52d3f838357a8df44e",
+      "current_sha256": "0b1a1339abfd067a4fd99c9367a4f982dc030d9a0aaa5ac71b7102490e4724e7"
+    },
+    {
+      "path": "client/src/lib/closing-package-progress.ts",
+      "measured_sha256": "76308b2b4d5802715e2b7a49788d4f01a0265a27c5facb514277defb2f40f4e8",
+      "current_sha256": "eb33b4f3147fbca5638b14d7b1740232d8b4643274fb00ae6f25a7960dfc72a4"
+    },
+    {
+      "path": "client/src/pages/loan-closing-booking.tsx",
+      "measured_sha256": "b02c1858c031e648a5470eaffcbb201eeeec7258ce46dc9e66d74353e758d3b0",
+      "current_sha256": "0452c179b81bb0931a7fd23fbe84c0f8be204b031038b484fd51e8d4d8119195"
+    },
+    {
+      "path": "client/src/pages/loan-coming-soon.tsx",
+      "measured_sha256": "7ac5a07d1825312cfefdd8012589afae8bbdb3a63fc18f8f59305118c4083892",
+      "current_sha256": "261574fc4162c6e5e7f53572a74b172eef8dc27b33ce8eb3e111e942dabea551"
+    },
+    {
+      "path": "client/src/pages/loan-decisioning.tsx",
+      "measured_sha256": "35683e3b48b79bd654e753c795400f5aaa56d4d67ffd46d1f611835b8235d2e0",
+      "current_sha256": "8abcf5ddc37cad8bd0865f172b9dda18208332ea4641b9ad998a2c80f4faa6fe"
+    },
+    {
+      "path": "client/src/pages/loan-documents.tsx",
+      "measured_sha256": "33b39376b449aae42795052f713957cd7e1485d113ae4c6c174a61cd629b59b3",
+      "current_sha256": "5ea7b2070e415b3322f3deb5a2fde10354b8a7462f38237bde12b2c2a9d45afe"
+    },
+    {
+      "path": "client/src/pages/loan-history.tsx",
+      "measured_sha256": "8eccfa2f9b594e10b8a2ba39d1246f8e79b5974d81d4b23320fc1921297369e3",
+      "current_sha256": "af5e261ecfbed348b59f90a2239412bd67d82e19662fc56f439936b095f32ae5"
+    },
+    {
+      "path": "client/src/pages/loan-origination.tsx",
+      "measured_sha256": "d381474008294d950ce458aaa17e768bd366a7126e9835ec48a0eb495b9136b0",
+      "current_sha256": "9e6597ef1f2d8d6791b9770d1bf13de7ccabbd42bb5ea043224e0abbef13dfdf"
+    },
+    {
+      "path": "client/src/pages/loan-summary.tsx",
+      "measured_sha256": "9a67e90d1c9a4424c2229608a9bf0ba9a423390d95cdc5e2c2ff3a1f8623fd1d",
+      "current_sha256": "1c4e5465208758d1dfcf610de9d68d9174284c8c5e102ac9fac11e26948e2705"
+    },
+    {
+      "path": "server/routes.ts",
+      "measured_sha256": "b1f60f4195b34c2f947d0cda50bedebe6a3d217bc7257fd791afc31f42ce9045",
+      "current_sha256": "936521e475d4fcfdfa937313502bc112bd658766158ea8d7a85474be90ddd27c"
+    }
+  ],
+  "count": 23
+}

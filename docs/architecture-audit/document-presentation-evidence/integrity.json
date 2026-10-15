@@ -1,0 +1,30 @@
+{
+  "client/src/components/loan/DisclosureDocumentsContent.tsx": {
+    "before": "09f4f3adadb77bcc3e437ed58bb087b5b6643b564434a0946dfccecc4501385d",
+    "after": "29c333509004417e28579ba4f13f1e43057b25b09e24189509973b3ad541a446"
+  },
+  "client/src/components/loan/DocumentsContent.tsx": {
+    "before": "f7e8ccf4b1998d76f8852eec6b822ee2ddf630b57f5a9f68f4cea8e74b8118a3",
+    "after": "f7e8ccf4b1998d76f8852eec6b822ee2ddf630b57f5a9f68f4cea8e74b8118a3"
+  },
+  "client/src/hooks/use-closing-package.ts": {
+    "before": "5ab4c58c869f4b68c23ef382a08dc0460b87bcbece005395875cfff8f36fc4df",
+    "after": "5ab4c58c869f4b68c23ef382a08dc0460b87bcbece005395875cfff8f36fc4df"
+  },
+  "package-lock.json": {
+    "before": "caf5cbce73ec535033e36984f2c5d00e080a7a91c1575750b7008f7c52e9107e",
+    "after": "caf5cbce73ec535033e36984f2c5d00e080a7a91c1575750b7008f7c52e9107e"
+  },
+  "client/public/at-app-disclosures.pdf": {
+    "before": "7d12c7eb0fac73fa2c0c8563d38691d3462cfa2d0ebfd71ff9bb51e3aab947c8",
+    "after": "7d12c7eb0fac73fa2c0c8563d38691d3462cfa2d0ebfd71ff9bb51e3aab947c8"
+  },
+  "client/public/loan-estimate.pdf": {
+    "before": "456d4619624c4f7a3bf6e9d2cc72714f825e613377ac28036c084d632cd67326",
+    "after": "456d4619624c4f7a3bf6e9d2cc72714f825e613377ac28036c084d632cd67326"
+  },
+  "attached_assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf": {
+    "before": "2b94e8e4178bb1540377946bf3c307e694c3e49316b4c7a506690a52fa7ca730",
+    "after": "2b94e8e4178bb1540377946bf3c307e694c3e49316b4c7a506690a52fa7ca730"
+  }
+}

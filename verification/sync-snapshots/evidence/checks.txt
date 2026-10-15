@@ -1,0 +1,45 @@
+PASS raw-byte hashes distinguish invalid UTF-8 at detection and resolution
+PASS retained captures stay outside custom sync discovery
+PASS pull normal: successful contract
+PASS pull force: successful contract
+PASS pull initial: successful contract
+PASS pull unchanged: successful contract
+PASS pull conflict: successful contract
+PASS pull: pinned download and stale preflight writes nothing
+PASS pull: local edit while snapshot downloads rejects before writes
+PASS push normal: successful contract
+PASS push force: successful contract
+PASS push initial: successful contract
+PASS push unchanged: successful contract
+PASS push conflict: successful contract
+PASS push: pinned download and stale preflight writes nothing
+PASS push: local edit while snapshot downloads rejects before writes
+PASS pull resolution: exact success response
+PASS pull resolution remote: no writes and retained plan
+PASS pull resolution local: no writes and retained plan
+PASS pull resolution plan: no writes and retained plan
+PASS pull resolution legacy: no writes and retained plan
+PASS push resolution: exact success response
+PASS push resolution remote: no writes and retained plan
+PASS push resolution local: no writes and retained plan
+PASS push resolution plan: no writes and retained plan
+PASS push resolution legacy: no writes and retained plan
+PASS safe update and deletion bytes are part of pending-plan preflight
+PASS newly detected plan token resolves and replaced token rejects
+PASS overlap: all sync readers, writers and cancel reject without interleaving
+PASS interrupted write: old checkpoint and pending generation survive restart
+PASS interrupted checkpoint: old checkpoint and pending generation survive restart
+PASS interrupted clear: old checkpoint and pending generation survive restart
+PASS interrupted completion: old checkpoint and pending generation survive restart
+PASS partial resolution retry accepts only its previously written bytes
+PASS cancel uses the atomic pending generation and cannot discard incomplete work
+PASS pushCodebase: early HEAD
+PASS pushCodebase: late HEAD
+PASS pushCodebase: ref-race HEAD
+PASS pushCodebase: success HEAD
+PASS pushCodebaseWithDeletions: early HEAD
+PASS pushCodebaseWithDeletions: late HEAD
+PASS pushCodebaseWithDeletions: ref-race HEAD
+PASS pushCodebaseWithDeletions: success HEAD
+PASS kernel lock excludes another process and releases on SIGKILL
+PASS: 44 isolated snapshot, coordination, recovery and equivalence cases.

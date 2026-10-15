@@ -1,0 +1,13 @@
+client/src/components/GitHubSyncPanel.tsx(176,45): error TS2554: Expected 1-2 arguments, but got 0.
+server/conflict-detection.ts(51,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(52,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(53,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(61,26): error TS2802: Type 'Set<any>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(130,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(131,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(132,8): error TS2802: Type 'MapIterator<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/conflict-detection.ts(140,26): error TS2802: Type 'Set<any>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/routes.ts(350,40): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/routes.ts(350,57): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/routes.ts(394,38): error TS2802: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+server/sync-plan.ts(30,30): error TS2802: Type 'Map<string, string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.

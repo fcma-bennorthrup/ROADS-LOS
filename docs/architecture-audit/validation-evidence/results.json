@@ -1,0 +1,3721 @@
+{
+  "node": "v24.13.0",
+  "npm": "11.6.2",
+  "accepted_lock_sha256": "caf5cbce73ec535033e36984f2c5d00e080a7a91c1575750b7008f7c52e9107e",
+  "before": {
+    ".agents/skills/figma-design-system-compliance/SKILL.md": "b3b8ff64b863c5933b77394487abbc43a935d5164bef78fd8bff7b7aff77331b",
+    ".gitignore": "7f3b982ac4f0d7fad59b9e5751078fe19dc6f549190b61fc266faaefeb795dfa",
+    ".npmrc": "1ded4f26f4851b35dae702edd5719d1be5ff31db6983858d088d5e6593ea7c99",
+    ".nvmrc": "56b8b5b0fc992c41263d30c3dc4a07cd5cf8cf342f136fd429809037180282c8",
+    ".replit": "ab7209648f82ffa09908740068bd9c5d7f83585358353b59fa746dd4a576a476",
+    ".replitignore": "44e7ee407200c8a55f3ea30b8f48803562c799d1b481c8d1559fc98c467303b8",
+    "CONTRIBUTING.md": "70939612412eaae7563d1ee5db5b1c6c67d71bdf99998055f3d37769853f5ab7",
+    "SETUP.md": "ca659153d776b907fb2adbdb20b135f9f904ec1f92f81d5d405a30758a0e2515",
+    "attached_assets/0_Screenshot_2026-09-08_at_4.59.18_PM_1788901164395.png": "55be3730fc8592e87a152584d71391de57810279ba77e6c2d5f760484a4ae6b5",
+    "attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1777397784766.pdf": "1e78800f9740c48be60ba5837da8e6f89f3d05989d6f73ef1a3af3ba8c32a463",
+    "attached_assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf": "2b94e8e4178bb1540377946bf3c307e694c3e49316b4c7a506690a52fa7ca730",
+    "attached_assets/Sample-Loan-Estimate_1776089511706.pdf": "456d4619624c4f7a3bf6e9d2cc72714f825e613377ac28036c084d632cd67326",
+    "attached_assets/SampleCD_1777397678654.pdf": "f0979fd83afb89dc2b35686a74805cad7009a6172f65835874bd21eafdf95e4c",
+    "attached_assets/Screenshot_2026-10-14_at_3.39.58_PM_1792006821810.png": "50abdd4fef0336864b16636f17416f7a7b733abeeeffd9a06d70c66e0f3e0582",
+    "attached_assets/Test_25591_4_9c1ebd4dbd_single_adhoc_test_run_(1)_1776280671096.pdf": "5f6efa91f3269704811951dbb332c9718b2d9be2ea15fd5820f14644de9b2812",
+    "attached_assets/experian-sample-report_(1)_1776280916046.pdf": "601c2387b62a1a8f1425ffffcdc80a1e64ce1de0c8b1d662922350cd1f0dec01",
+    "attached_assets/rick_1776281894830.pdf": "7d12c7eb0fac73fa2c0c8563d38691d3462cfa2d0ebfd71ff9bb51e3aab947c8",
+    "attached_assets/screenshots/fe33a2ad-8515-4e59-b2c4-2d8455ceb970-00-22g5xa6ipcrp6_janeway_replit_dev_loans_1.png": "e762ea04f8d96b41f38b62a695c9499e73afeb48265317394c2d2d01a8112a46",
+    "attached_assets/screenshots/fe33a2ad-8515-4e59-b2c4-2d8455ceb970-00-22g5xa6ipcrp6_janeway_replit_dev_loans_1_origination.png": "e762ea04f8d96b41f38b62a695c9499e73afeb48265317394c2d2d01a8112a46",
+    "client/index.html": "fdc09bf3aed020da532fd1cbebbc1235bd232c237ced9dc98e7113b97cd508d7",
+    "client/public/at-app-disclosures.pdf": "7d12c7eb0fac73fa2c0c8563d38691d3462cfa2d0ebfd71ff9bb51e3aab947c8",
+    "client/public/decision-letter.pdf": "5f6efa91f3269704811951dbb332c9718b2d9be2ea15fd5820f14644de9b2812",
+    "client/public/favicon.png": "8c43a7a420a3f3fff5b43963a4a7ba2fdec63f6506e7fc4134f58d61a6e6bdcb",
+    "client/public/loan-estimate.pdf": "456d4619624c4f7a3bf6e9d2cc72714f825e613377ac28036c084d632cd67326",
+    "client/src/App.tsx": "e63f04a8097b52ec473b264ae5f0fef469fc4cbfc77f0686a03640f048aea032",
+    "client/src/components/ConflictResolutionDialog.tsx": "4917b3326a59a715199fc8fc304b2536b0faa9cefdaa505a64e8a8f59db33a51",
+    "client/src/components/GitHubSyncPanel.tsx": "f954a58301eb1851e9bbb622f21e16b36fec8b7fd64ea2030966a7a3533ac3c9",
+    "client/src/components/loan/BalanceSheetSection.tsx": "e61278f2c23701c72fca2e39ed18167c0cbcd799df65332c805cad56ca5b4581",
+    "client/src/components/loan/BookingContent.tsx": "d57562aa84b915b20c959f4822684f939c538b15f460192d4cfce5f52aff6b40",
+    "client/src/components/loan/BorrowerCards.tsx": "2177bc23703217d5899726177df5391c041d7078a01d59a433fb73ebcdfc77ea",
+    "client/src/components/loan/BorrowerFinancialsContent.tsx": "fa54a4053c2bd9f7b09f2c246f19fb44d12dd024e8cd68d462aff93fb896d2ca",
+    "client/src/components/loan/BorrowerInformationContent.tsx": "2b48d3c3120034ebc76dcfd0301fa964d989eaee577ebca393c519b6c4943690",
+    "client/src/components/loan/ChecklistActionTimeline.tsx": "5db0fca131139b160a9662140f89084e48b69b2efc4114136ef66458e367476c",
+    "client/src/components/loan/ChecklistPanel.tsx": "e9869121a57e5499c25c8a006989ac5cfe409d47ed51a6ec4987ca9c94e00399",
+    "client/src/components/loan/ClosingContent.tsx": "ba152e3d496b60621916d61287879d0b8331d39d4da0aa4704c12ff08c102296",
+    "client/src/components/loan/ClosingDisclosureBorrowerCells.tsx": "71d2bdab30e5aec27fe6340952aa7972aa5dd052fc820be0cb37703182bf4d47",
+    "client/src/components/loan/ClosingDisclosureBorrowerEditor.tsx": "b59ba99d7e5dd3f238e2bfc3c26f4ee7c9e7200b4183aaa77a719d20ece16d9d",
+    "client/src/components/loan/ClosingDisclosureBorrowers.css": "565bfe6b2fd0828355d965476c912a9a0709841ade45f831cb8b42d1d64ef9c9",
+    "client/src/components/loan/ClosingDocumentIcon.tsx": "7bb718b966f43784a369b4d8060a621dc8f76b9b871bd4909e7e8dd2c46f100c",
+    "client/src/components/loan/ClosingDocumentsContent.css": "c3618614e6dcd97544079239974ba6553c6ff089f4ac1732a70d76e9510b98ee",
+    "client/src/components/loan/CollateralContent.tsx": "ea222e9122c51a032d13f7bcb1212b375d2af79e49a1fa92e81d454674606c46",
+    "client/src/components/loan/DecisioningSummaryContent.tsx": "49309fe5038d847025ac29354e3a6caa83e26d03a02abd7ddf6a0c16fdfe10df",
+    "client/src/components/loan/DisclosureDocumentsContent.tsx": "09f4f3adadb77bcc3e437ed58bb087b5b6643b564434a0946dfccecc4501385d",
+    "client/src/components/loan/DocumentsContent.tsx": "f7e8ccf4b1998d76f8852eec6b822ee2ddf630b57f5a9f68f4cea8e74b8118a3",
+    "client/src/components/loan/FeesContent.tsx": "a0d325d4bb7010df071b76c687ce2f2ff85585b99af67e80f74447cccf2a7f13",
+    "client/src/components/loan/HistoryContent.tsx": "f9108e55498ba754f15484530ce3709aa34f42ce6964e643314e2fe7cd8ea9f0",
+    "client/src/components/loan/LoanActivityPanel.tsx": "651c8799baaa98898f611ddf8df1269bf15b50f2e30c77ca91fa37e23b224b6e",
+    "client/src/components/loan/LoanDetailsContent.tsx": "30f715c662d7bcfb40ae96c3029722f27a6f7f46231bc389f837a393739d2059",
+    "client/src/components/loan/LoanHeader.tsx": "e97f16da9264098ae01ef437036d37e2027655b98c0c616f5b4e601ce6ffe235",
+    "client/src/components/loan/ProductPricingContent.tsx": "621750348313dc3f830508e5eb827ed05305587bb36f6ed9ab7dcb7c866521cc",
+    "client/src/components/loan/RoadsDatePicker.tsx": "9af4cbaac0f4f1affa993b8ac7bc92f5922f64b309ffd6cdba5a2e789110abd6",
+    "client/src/components/loan/RoadsDropdown.tsx": "89b253775914e17ef37015416ff4b57cb4a7bcad76c059dc413875fdda06b9e5",
+    "client/src/components/loan/SideNav.tsx": "c19714030979a63d4b7422246cab958e27c48a1a120a691380cfbf5f8b52d175",
+    "client/src/components/loan/SummaryRatios.tsx": "9c16b84f04bc85455d478a9cb0f8921a356e6254e90c4c08be881dccef7d03dd",
+    "client/src/components/loan/__tests__/ChecklistPanel.test.tsx": "d3e25e57df45d293e2b1c69ac5d844a70525a413d79d3be7fabc025316321b7a",
+    "client/src/components/loan/__tests__/ClosingDisclosureAssumedDate.test.tsx": "4e8cf38b23603dcbe0bbf0b9ddd3c0097cf757e1b958b7a33df0d062825b22e3",
+    "client/src/components/loan/__tests__/ClosingDisclosureBorrowers.test.tsx": "999e5eac5f214d8f4b6ba3661be3c092da3430cc454dbd1f9fed90fa291041b8",
+    "client/src/components/loan/__tests__/ClosingDisclosurePanel.test.tsx": "b0bfe95ccc149e1ca1adad33c6693c607454d0e0dcbf204de821357257b80002",
+    "client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx": "20820a480a84f23bc0bc9db4a029ad1a9cb6e462f6228f2d490f978019846424",
+    "client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx": "1f188f53a3f56589d04f084876785311268894efdd75de3ecedb0c578df29c22",
+    "client/src/components/loan/__tests__/CollateralContent.test.tsx": "5bd5376db7d7397ae24ae04c47bc4d63f17480cf41c1eca816301b1b07ec806d",
+    "client/src/components/loan/__tests__/DecisioningSummaryContent.test.tsx": "7bcaec22a83742a753570d20ce92fa49bf0ba2822d3b5c3412cc8bdc1dc2b828",
+    "client/src/components/loan/__tests__/DocumentsContent.test.tsx": "e558a02e3c3767a062d52c07426c5e3dc1b515b2094be39c41924dbef8b5cc55",
+    "client/src/components/loan/__tests__/LoanActivityPanel.test.tsx": "0f14c31b1868654c0eec6d4e0ad1220be20eb1a99d6891c20635401bd7753358",
+    "client/src/components/loan/__tests__/ProductPricingContent.test.tsx": "c18295defa28926e25d499ee2bc970f310191237e08e4e991d3d1036c374ba06",
+    "client/src/components/ui/accordion.tsx": "6b84cb28b5c8e2129d854cffb8c5ba0161758d577db6db30a380cf593a8c0705",
+    "client/src/components/ui/alert-dialog.tsx": "5ab57317c19d0edd8e2d6d9c98992bcefa1e023a4f90072e40364451dc18456f",
+    "client/src/components/ui/alert.tsx": "ed78a053a9db783f48d5dfab7398b630f87c17ed2e237b6f30a3eb153675960c",
+    "client/src/components/ui/aspect-ratio.tsx": "08b0aa0b05efc573c7d63363c03e83d4b101bfeb54140764e96ddea30659cfcc",
+    "client/src/components/ui/avatar.tsx": "f83b4d3f868442e571d9cf8737a9e36ba5de373f6d599c7a6ddd59c1b5c78dfa",
+    "client/src/components/ui/badge.tsx": "f1f149c9db40e787a6c2ae8ee6b0fedceb4ccb68b3944f6fdca10d7fd540312e",
+    "client/src/components/ui/breadcrumb.tsx": "c3d3dcb0d82fc5e91d8830bac7fead905686fe876f1f42c3ed872bb0a6b6584e",
+    "client/src/components/ui/button.tsx": "d6a9b9d04cb882af71199a3cf4cb87f6cfaab44d17f871ff8a78ec2a1830511d",
+    "client/src/components/ui/calendar.tsx": "2192144ec27086bf0fe705a860a67b83430f57e82036378a75f88fe00698508b",
+    "client/src/components/ui/card.tsx": "48dfcf29c71644ebe3dd5d70319ac1e663c9094c7c524be0cf492048b2989eb1",
+    "client/src/components/ui/carousel.tsx": "5a4ff73c804e86c873382da80c453f1399006326ef042fb984c24162ec86666e",
+    "client/src/components/ui/chart.tsx": "e30219cedb35c55c2f9069f6470d60514c54c43fe0a3b641615275a2acd25f12",
+    "client/src/components/ui/checkbox.tsx": "60a0084cbdfcb96e54c9f6438e9066dfe7ed0a7e421b33985d5eb57975d110a4",
+    "client/src/components/ui/collapsible.tsx": "f4cdd104de29928bfcd40b865c7d08eed9157a537fbb8b5e6d0921f02b63cc04",
+    "client/src/components/ui/command.tsx": "924fef47d5e04a133ecc700e5881175cef1f71a338eee7c4db5cf5fc46b9c5e1",
+    "client/src/components/ui/context-menu.tsx": "b3abf3bb92fc028dd9a4c5dc6a10093b7f1346be8841fabb214fa08e5f40b181",
+    "client/src/components/ui/dialog.tsx": "60d5246653c714fc12a67743ee5951331ecd2548cdaef9a599922bcb14da26db",
+    "client/src/components/ui/drawer.tsx": "774316527ddc577fc54012a0c898ebcf7cf8f11152126e550828b53004a5b70c",
+    "client/src/components/ui/dropdown-menu.tsx": "aca10633792d03bb541e09ea106b5e1f3de429b69b3cade5ccfb7dca20289424",
+    "client/src/components/ui/form.tsx": "0d812c11a1afa799fb2bfa8f1e11052eacb64252c4b52be969a5f89aae1f52fb",
+    "client/src/components/ui/hover-card.tsx": "dcb793b8b1202b1634d791a993acadca0cfc3043a93b98c91a627fbff794f384",
+    "client/src/components/ui/input-otp.tsx": "b06b6294edee39d817586b3cf4766de1720b06e184624d45d2bfd0f38d2a5e72",
+    "client/src/components/ui/input.tsx": "b5c4ff4e0a57cf16c4519165745550029d66a2e25b8b018654b60ac2c5764e79",
+    "client/src/components/ui/label.tsx": "e69cfc27d78c9ef31b248ab8ea4fa54327c1038843f70efb5cd85d54c0bf1e0e",
+    "client/src/components/ui/menubar.tsx": "da0c7ace239ead75f7fbc46ffbae8ddf177477445354500d7304a276065ea7b3",
+    "client/src/components/ui/navigation-menu.tsx": "74f3b1b937e42582093a1671cf7f5c7250cd884922d51f201632317af9c24209",
+    "client/src/components/ui/pagination.tsx": "6d66283fc04f3901772f15f3108bda732efc75ce878e0d8ecf8f9fc3b0c63c26",
+    "client/src/components/ui/popover.tsx": "d853c561833e545879a56e2c4de18a92653de1e55e9e7fae463540679924ac0c",
+    "client/src/components/ui/progress.tsx": "8c036da4baed076de68d27719929dc98151a81b51456bfa6a2488d835303b1d7",
+    "client/src/components/ui/radio-group.tsx": "74f87531da1fde8d3c07dbd7b380ee6508a70d5c0af1c22e2d2c33d66cc79f10",
+    "client/src/components/ui/resizable.tsx": "70d1e35a5fb0897af7063cdd841d8ed636e1c332ef7ea6469f0f175a5a93dddf",
+    "client/src/components/ui/scroll-area.tsx": "d7d02600effca55d0dcadce8c09c97ebddda3a19c5fa1d52dc9f6f727b26c6b1",
+    "client/src/components/ui/select.tsx": "544172f40b3ae1d86d518dbc428e4bed58b3a733644564f4907bbf0b60ba3218",
+    "client/src/components/ui/separator.tsx": "c956c4cca4b8442fa9314d6079b9f975e1ee39d5804aaf2966990f6258ac342a",
+    "client/src/components/ui/sheet.tsx": "9051eb9d885a18c0521c63c945480effcfca29282d2a342cb3ce7f9d080c6d38",
+    "client/src/components/ui/sidebar.tsx": "b023ff6245be1930e152a18c6aaa2b6dd1a11df7b05fcf41bbe483968bfb1c39",
+    "client/src/components/ui/skeleton.tsx": "a72a9d8fc1c1999b5411a33391c5e70048863c5865629077280e943ca85689a8",
+    "client/src/components/ui/slider.tsx": "61e959d046f72e295d73a822b9afc7cc87ec6d1007905f2572e6117d7b2067b6",
+    "client/src/components/ui/switch.tsx": "bd29ce723e952bc7f8fab367320347ca82fbb933f4da9872c7120d6765662ebe",
+    "client/src/components/ui/table.tsx": "1da243956282c040db49d5718d2f0093a705fbbdfa3a25f51c1a31a069c45093",
+    "client/src/components/ui/tabs.tsx": "d9958fd005db42bcca4f2c12ede63500e74f1a9bd82ddc3a6bf6fcb369706f07",
+    "client/src/components/ui/textarea.tsx": "aaf46918c590c2bf59e2afb7904dfd8e69317e12ee34ff93ed2746dd06cc994a",
+    "client/src/components/ui/toast.tsx": "2a116f211bf721f30e68194a0827bb199a8f112256c975106bc6f10e672e61ab",
+    "client/src/components/ui/toaster.tsx": "f93b840081a835090d27911a348ab8f0faa6e5633e51ac3d80aa91047fd9662d",
+    "client/src/components/ui/toggle-group.tsx": "dba95ead40d163af6959198ded9853a2cc9282b2cb534980f99937a65edf4e2d",
+    "client/src/components/ui/toggle.tsx": "c9a401b2e134f28d870f3f44330b9d91d66bd2ac7ced3ad67039a2bb3d52e8f0",
+    "client/src/components/ui/tooltip.tsx": "2f26d20816448c630faccbda5ae9b4fe47c36f1fb14dbbd85b6652b7c24c1d51",
+    "client/src/contexts/checklist-context.tsx": "765303a8ff0c75496d1fcbfa4e9cbaa72546cf3d12a197fcba0c8232efe42ec1",
+    "client/src/contexts/github-sync-context.ts": "70484426e873146f170534336ca64103d99f06442f07be406ff724ff48aca8a6",
+    "client/src/contexts/loan-activity-context.tsx": "218d245eed9399c482f12eb21c01a4209e8ecea1ceb0883e2d830b819949f437",
+    "client/src/hooks/__tests__/use-closing-disclosure-delivery.test.tsx": "f020afaf774ea0e6d52a2b67436ddb8bb7a6930f094fb79ab31127619b758b92",
+    "client/src/hooks/use-closing-disclosures.ts": "8722211e9b4eb2fac7ca6a3e79b153e684a707b8a054e2d08335fa5aa5b62c66",
+    "client/src/hooks/use-closing-package.ts": "00847dd0218ec8a3e28a9b49a70d58479b7a6e54b901aaac45e3dc8896b66d01",
+    "client/src/hooks/use-github-sync.ts": "512e33b959dbfa70a38607b14d853003bd3b7e8d0f16541e7d9ef09b7807e26b",
+    "client/src/hooks/use-mobile.tsx": "ad0936f84f1df79d3697bfbff9c18f8ad58431c1cbaf2359c6a853b0fcc9f28b",
+    "client/src/hooks/use-toast.ts": "7d740211274b1ec15817690da74cc7a7dd8c7093d617c57c03ecfd98016eb5e6",
+    "client/src/index.css": "08ec13d2c8507f47d81063831d9d4d1815dae36db8012176bd988cc970939c70",
+    "client/src/lib/__tests__/closing-disclosure-assumed-date.test.ts": "f3a717d083ab5c21bd9d1c33ab5286da0141a77ecca4553bbdc4913a26ac7f3a",
+    "client/src/lib/__tests__/closing-disclosure-borrowers.test.ts": "cf8e47ba9ceaf05c0d3d0ac59511951459e4bae55e5b9c4732971c5541b5658a",
+    "client/src/lib/__tests__/github-response.test.ts": "f9d97fdfe504d2fea255a4fc50c0a762acfb533b7a2c468f03748eb38d94dbbc",
+    "client/src/lib/__tests__/loan-activity.test.ts": "113a6b010aecb5cec3836239117a3ba6b9352fe3126221ba117d9353b1840b66",
+    "client/src/lib/closing-disclosure-borrowers.ts": "25d6900345ee52fbc69e7b316b830b85c14d2256dae43d8e1603bcf42f92f68c",
+    "client/src/lib/closing-disclosure-history.ts": "72e1050a8442fbf2ccd69181b69c5be61af99a05e7cc8a52d3f838357a8df44e",
+    "client/src/lib/closing-package-progress.ts": "76308b2b4d5802715e2b7a49788d4f01a0265a27c5facb514277defb2f40f4e8",
+    "client/src/lib/design-tokens.ts": "3c9be49c70294c8245487cf1d36989a813b9edf5c4c8371d2494b6646ec34f3a",
+    "client/src/lib/github-response.ts": "c543a6556622029307635747896e96304248b5a61c7ea75ae5ef9c83b8814720",
+    "client/src/lib/loan-activity.ts": "a3eb884321de4d37485710b5b92133dd42943ef19647b18720021997fb49f1f2",
+    "client/src/lib/queryClient.ts": "4e32b4e5cf93a98c307883ed253a7edc4b309e2a299472c1b121626c1594b726",
+    "client/src/lib/utils.ts": "7c8c3dfc0cdd370d44932828eb067ef771c8fe7996693221d5d4b90af6d54f2d",
+    "client/src/main.tsx": "29946f51942fba11605c7595fd82b50b0d7e50148e0194fd356dacbc958f18ec",
+    "client/src/pages/design-system.tsx": "96f6edb185e8b4fbe5034901176e9d9de145545f4a7e4a1defc0d1f499ed3aca",
+    "client/src/pages/loan-closing-booking.tsx": "b02c1858c031e648a5470eaffcbb201eeeec7258ce46dc9e66d74353e758d3b0",
+    "client/src/pages/loan-coming-soon.tsx": "7ac5a07d1825312cfefdd8012589afae8bbdb3a63fc18f8f59305118c4083892",
+    "client/src/pages/loan-decisioning.tsx": "35683e3b48b79bd654e753c795400f5aaa56d4d67ffd46d1f611835b8235d2e0",
+    "client/src/pages/loan-documents.tsx": "33b39376b449aae42795052f713957cd7e1485d113ae4c6c174a61cd629b59b3",
+    "client/src/pages/loan-history.tsx": "8eccfa2f9b594e10b8a2ba39d1246f8e79b5974d81d4b23320fc1921297369e3",
+    "client/src/pages/loan-origination.tsx": "d381474008294d950ce458aaa17e768bd366a7126e9835ec48a0eb495b9136b0",
+    "client/src/pages/loan-summary.tsx": "9a67e90d1c9a4424c2229608a9bf0ba9a423390d95cdc5e2c2ff3a1f8623fd1d",
+    "client/src/pages/not-found.tsx": "718a41bd05a163d1db32480aba013f5fe754894e656b6542a8e4b302275b172e",
+    "client/src/styles/design-tokens.css": "6e51b38f22e12e4f35634a4f8a34e4264f0a3a3b1703684207ca566c7eec4b71",
+    "client/src/test/setup.ts": "21662a31e16e12436fe622ef015b1bd91fae2ec4960f7cfef618779e965d2abb",
+    "components.json": "ac24a8e743f3be926f7ff2bce97563097ed0c69f88fc57a7e6ec94af3615a031",
+    "drizzle.config.ts": "db80922910a890344195617c17acd664cd9b922973f607a5c6fdc0c749b4476a",
+    "loan-fullpage.png": "babcf3bebf255ad31837f01c3f4fa45fe7a06216466e0909450c4b92a7f18eee",
+    "package-lock.json": "caf5cbce73ec535033e36984f2c5d00e080a7a91c1575750b7008f7c52e9107e",
+    "package.json": "e3a709a27242fa7cdf8385c115ea3a2ce4a332d1771b1de5e835b0e2bf21f753",
+    "postcss.config.js": "190c877db466995bf1482f4a16abd06e04a89ede3119341e2a86ff96e1737b27",
+    "replit.md": "400b141d0ededd6530e657ae9e624edbb05ba75d405c1c8f9995cd77d77e8f52",
+    "script/build.ts": "35df8bf9d4c1aad8cdff54df8108bbc964a853bbc29538ec0ec6e1b1a9b0d54f",
+    "scripts/post-merge.sh": "858bb038ee7f709625c8e6674264061ed659dc78b3da28a909fb93c00c5afe9a",
+    "sedZiKBNa": "60e69d8c4f16fbf1bc3186bfef4d1ab2304945ab8dcf2c0edad80ee3652d1a0d",
+    "server/__tests__/storage.test.ts": "685827e814f0ccd2fb60b6191aaed1b2ce7f7be03d157596d1c0696f7f43ad25",
+    "server/conflict-detection.ts": "5037b313bb63c887eeec2123a6c115988d03600b5b8ae6e76ff0847206ce985b",
+    "server/db.ts": "ee4b295afc88a82a69e15983bcdb16c0692123c97717643ed6404194773e638b",
+    "server/github.ts": "e6f5506bbf305aafbabaa37694b8d8c4967a77a4b18731fea5ac7a9655f1a313",
+    "server/index.ts": "9b0f5a62495c0af6eb24993b8545bbd4043034cb7a2c2c0e8f25fd8ca46648e2",
+    "server/pending-conflicts.ts": "8c518599936bdcf50b15acb0097779a903a0205a1116257b3a144d8a084d5df1",
+    "server/routes.ts": "b1f60f4195b34c2f947d0cda50bedebe6a3d217bc7257fd791afc31f42ce9045",
+    "server/static.ts": "7ad68ceb8da0fe0b29af6d517e66cfc14f106a641de845aac4f1bd995ad24f4a",
+    "server/storage.ts": "d4fb7cb2fec389b027ac9b52b13831592fc0476221210f264b32c542a71d6ab8",
+    "server/sync-state.ts": "e764a6f38861814dac52f45f400a10ff3d62a4667ac9cdba72c322c6fe045709",
+    "server/vite.ts": "ca25d0113841b8ee747e26f8fb06f04634b8db4afb0b558cd33840b568f8f524",
+    "shared/schema.ts": "9777c7e264fa4295885d34931fd8884e6765e7231d131599393d632f295a2338",
+    "stepper-area.png": "f6823574b6c110a3b45db32eeba6b855b4db601f5dd0875c93c83ab5ef106087",
+    "stepper_focused.png": "a38520ec661fb1ed63aca18aaf8e97eaebfcf5e15224bffa178a0740bd1b4519",
+    "tailwind.config.ts": "dc4c25f8cdd13c655c6eafa397f44dfd8fa5c5234795e361a6d29d5430872817",
+    "tsconfig.json": "4bea0e0003e3c943f455346abc4854d1666d604adbaa6aa8eda11f94fb8f1396",
+    "vite.config.ts": "f648b48bb45dab59d0a5e208180273da469b0a66a474dc7762e04d628291d41c",
+    "vitest.config.ts": "d09d13d206406aa9eb9e22748a6a33154975263d92c86e467f40400174d58cdc"
+  },
+  "commands": [
+    {
+      "label": "install",
+      "argv": [
+        "npm",
+        "ci",
+        "--ignore-scripts",
+        "--no-audit",
+        "--no-fund"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "typecheck",
+      "argv": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "exit": 2
+    },
+    {
+      "label": "tests",
+      "argv": [
+        "node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "--config",
+        "verification/baseline/vitest.config.ts",
+        "--reporter=verbose"
+      ],
+      "exit": 0
+    }
+  ],
+  "versions": {
+    "node_modules/@adobe/css-tools": {
+      "locked": "4.5.0",
+      "installed": "4.5.0",
+      "optional": false
+    },
+    "node_modules/@alloc/quick-lru": {
+      "locked": "5.2.0",
+      "installed": "5.2.0",
+      "optional": false
+    },
+    "node_modules/@asamuzakjp/css-color": {
+      "locked": "5.1.11",
+      "installed": "5.1.11",
+      "optional": false
+    },
+    "node_modules/@asamuzakjp/dom-selector": {
+      "locked": "7.1.1",
+      "installed": "7.1.1",
+      "optional": false
+    },
+    "node_modules/@asamuzakjp/generational-cache": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/@asamuzakjp/nwsapi": {
+      "locked": "2.3.9",
+      "installed": "2.3.9",
+      "optional": false
+    },
+    "node_modules/@babel/code-frame": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/compat-data": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@babel/core": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@babel/generator": {
+      "locked": "7.28.3",
+      "installed": "7.28.3",
+      "optional": false
+    },
+    "node_modules/@babel/helper-compilation-targets": {
+      "locked": "7.27.2",
+      "installed": "7.27.2",
+      "optional": false
+    },
+    "node_modules/@babel/helper-globals": {
+      "locked": "7.28.0",
+      "installed": "7.28.0",
+      "optional": false
+    },
+    "node_modules/@babel/helper-module-imports": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/helper-module-transforms": {
+      "locked": "7.28.3",
+      "installed": "7.28.3",
+      "optional": false
+    },
+    "node_modules/@babel/helper-plugin-utils": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/helper-string-parser": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/helper-validator-identifier": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/helper-validator-option": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/helpers": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@babel/parser": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@babel/plugin-transform-react-jsx-self": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/plugin-transform-react-jsx-source": {
+      "locked": "7.27.1",
+      "installed": "7.27.1",
+      "optional": false
+    },
+    "node_modules/@babel/runtime": {
+      "locked": "7.27.0",
+      "installed": "7.27.0",
+      "optional": false
+    },
+    "node_modules/@babel/template": {
+      "locked": "7.27.2",
+      "installed": "7.27.2",
+      "optional": false
+    },
+    "node_modules/@babel/traverse": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@babel/types": {
+      "locked": "7.28.4",
+      "installed": "7.28.4",
+      "optional": false
+    },
+    "node_modules/@bramus/specificity": {
+      "locked": "2.4.3",
+      "installed": "2.4.3",
+      "optional": false
+    },
+    "node_modules/@csstools/color-helpers": {
+      "locked": "6.1.2",
+      "installed": "6.1.2",
+      "optional": false
+    },
+    "node_modules/@csstools/css-calc": {
+      "locked": "3.4.3",
+      "installed": "3.4.3",
+      "optional": false
+    },
+    "node_modules/@csstools/css-color-parser": {
+      "locked": "4.2.6",
+      "installed": "4.2.6",
+      "optional": false
+    },
+    "node_modules/@csstools/css-parser-algorithms": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/@csstools/css-syntax-patches-for-csstree": {
+      "locked": "1.1.15",
+      "installed": "1.1.15",
+      "optional": false
+    },
+    "node_modules/@csstools/css-tokenizer": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/@date-fns/tz": {
+      "locked": "1.5.0",
+      "installed": "1.5.0",
+      "optional": false
+    },
+    "node_modules/@drizzle-team/brocli": {
+      "locked": "0.10.2",
+      "installed": "0.10.2",
+      "optional": false
+    },
+    "node_modules/@esbuild/aix-ppc64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/android-arm": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/android-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/android-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/darwin-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/darwin-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/freebsd-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/freebsd-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-arm": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-ia32": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-loong64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-mips64el": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-ppc64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-riscv64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-s390x": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/linux-x64": {
+      "locked": "0.25.12",
+      "installed": "0.25.12",
+      "optional": true
+    },
+    "node_modules/@esbuild/netbsd-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/netbsd-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/openbsd-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/openbsd-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/openharmony-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/sunos-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/win32-arm64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/win32-ia32": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@esbuild/win32-x64": {
+      "locked": "0.25.12",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@exodus/bytes": {
+      "locked": "1.16.0",
+      "installed": "1.16.0",
+      "optional": false
+    },
+    "node_modules/@floating-ui/core": {
+      "locked": "1.6.9",
+      "installed": "1.6.9",
+      "optional": false
+    },
+    "node_modules/@floating-ui/dom": {
+      "locked": "1.6.13",
+      "installed": "1.6.13",
+      "optional": false
+    },
+    "node_modules/@floating-ui/react-dom": {
+      "locked": "2.1.2",
+      "installed": "2.1.2",
+      "optional": false
+    },
+    "node_modules/@floating-ui/utils": {
+      "locked": "0.2.9",
+      "installed": "0.2.9",
+      "optional": false
+    },
+    "node_modules/@hookform/resolvers": {
+      "locked": "3.10.0",
+      "installed": "3.10.0",
+      "optional": false
+    },
+    "node_modules/@isaacs/cliui": {
+      "locked": "8.0.2",
+      "installed": "8.0.2",
+      "optional": false
+    },
+    "node_modules/@jridgewell/gen-mapping": {
+      "locked": "0.3.13",
+      "installed": "0.3.13",
+      "optional": false
+    },
+    "node_modules/@jridgewell/remapping": {
+      "locked": "2.3.5",
+      "installed": "2.3.5",
+      "optional": false
+    },
+    "node_modules/@jridgewell/resolve-uri": {
+      "locked": "3.1.2",
+      "installed": "3.1.2",
+      "optional": false
+    },
+    "node_modules/@jridgewell/sourcemap-codec": {
+      "locked": "1.5.5",
+      "installed": "1.5.5",
+      "optional": false
+    },
+    "node_modules/@jridgewell/trace-mapping": {
+      "locked": "0.3.31",
+      "installed": "0.3.31",
+      "optional": false
+    },
+    "node_modules/@nodelib/fs.scandir": {
+      "locked": "2.1.5",
+      "installed": "2.1.5",
+      "optional": false
+    },
+    "node_modules/@nodelib/fs.stat": {
+      "locked": "2.0.5",
+      "installed": "2.0.5",
+      "optional": false
+    },
+    "node_modules/@nodelib/fs.walk": {
+      "locked": "1.2.8",
+      "installed": "1.2.8",
+      "optional": false
+    },
+    "node_modules/@octokit/auth-token": {
+      "locked": "5.1.2",
+      "installed": "5.1.2",
+      "optional": false
+    },
+    "node_modules/@octokit/core": {
+      "locked": "6.1.6",
+      "installed": "6.1.6",
+      "optional": false
+    },
+    "node_modules/@octokit/endpoint": {
+      "locked": "10.1.4",
+      "installed": "10.1.4",
+      "optional": false
+    },
+    "node_modules/@octokit/graphql": {
+      "locked": "8.2.2",
+      "installed": "8.2.2",
+      "optional": false
+    },
+    "node_modules/@octokit/openapi-types": {
+      "locked": "25.1.0",
+      "installed": "25.1.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-paginate-rest": {
+      "locked": "11.6.0",
+      "installed": "11.6.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-paginate-rest/node_modules/@octokit/openapi-types": {
+      "locked": "24.2.0",
+      "installed": "24.2.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-paginate-rest/node_modules/@octokit/types": {
+      "locked": "13.10.0",
+      "installed": "13.10.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-request-log": {
+      "locked": "5.3.1",
+      "installed": "5.3.1",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-rest-endpoint-methods": {
+      "locked": "13.5.0",
+      "installed": "13.5.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-rest-endpoint-methods/node_modules/@octokit/openapi-types": {
+      "locked": "24.2.0",
+      "installed": "24.2.0",
+      "optional": false
+    },
+    "node_modules/@octokit/plugin-rest-endpoint-methods/node_modules/@octokit/types": {
+      "locked": "13.10.0",
+      "installed": "13.10.0",
+      "optional": false
+    },
+    "node_modules/@octokit/request": {
+      "locked": "9.2.4",
+      "installed": "9.2.4",
+      "optional": false
+    },
+    "node_modules/@octokit/request-error": {
+      "locked": "6.1.8",
+      "installed": "6.1.8",
+      "optional": false
+    },
+    "node_modules/@octokit/rest": {
+      "locked": "21.1.1",
+      "installed": "21.1.1",
+      "optional": false
+    },
+    "node_modules/@octokit/types": {
+      "locked": "14.1.0",
+      "installed": "14.1.0",
+      "optional": false
+    },
+    "node_modules/@pkgjs/parseargs": {
+      "locked": "0.11.0",
+      "installed": "0.11.0",
+      "optional": true
+    },
+    "node_modules/@radix-ui/number": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/primitive": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-accordion": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-alert-dialog": {
+      "locked": "1.1.7",
+      "installed": "1.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-arrow": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-aspect-ratio": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-avatar": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-checkbox": {
+      "locked": "1.1.5",
+      "installed": "1.1.5",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-collapsible": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-collection": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-compose-refs": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-context": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-context-menu": {
+      "locked": "2.2.7",
+      "installed": "2.2.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-dialog": {
+      "locked": "1.1.7",
+      "installed": "1.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-direction": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-dismissable-layer": {
+      "locked": "1.1.6",
+      "installed": "1.1.6",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-dropdown-menu": {
+      "locked": "2.1.7",
+      "installed": "2.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-focus-guards": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-focus-scope": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-hover-card": {
+      "locked": "1.1.7",
+      "installed": "1.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-id": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-label": {
+      "locked": "2.1.3",
+      "installed": "2.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-menu": {
+      "locked": "2.1.7",
+      "installed": "2.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-menubar": {
+      "locked": "1.1.7",
+      "installed": "1.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-navigation-menu": {
+      "locked": "1.2.6",
+      "installed": "1.2.6",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-popover": {
+      "locked": "1.1.7",
+      "installed": "1.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-popper": {
+      "locked": "1.2.3",
+      "installed": "1.2.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-portal": {
+      "locked": "1.1.5",
+      "installed": "1.1.5",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-presence": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-primitive": {
+      "locked": "2.0.3",
+      "installed": "2.0.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-progress": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-radio-group": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-roving-focus": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-scroll-area": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-select": {
+      "locked": "2.1.7",
+      "installed": "2.1.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-separator": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-slider": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-slot": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-switch": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-tabs": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-toast": {
+      "locked": "1.2.7",
+      "installed": "1.2.7",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-toggle": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-toggle-group": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-tooltip": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-callback-ref": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-controllable-state": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-escape-keydown": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-layout-effect": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-previous": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-rect": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-use-size": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@radix-ui/react-visually-hidden": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/@radix-ui/rect": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/@replit/connectors-sdk": {
+      "locked": "0.2.0",
+      "installed": "0.2.0",
+      "optional": false
+    },
+    "node_modules/@replit/vite-plugin-cartographer": {
+      "locked": "0.4.4",
+      "installed": "0.4.4",
+      "optional": false
+    },
+    "node_modules/@replit/vite-plugin-dev-banner": {
+      "locked": "0.1.1",
+      "installed": "0.1.1",
+      "optional": false
+    },
+    "node_modules/@replit/vite-plugin-runtime-error-modal": {
+      "locked": "0.0.3",
+      "installed": "0.0.3",
+      "optional": false
+    },
+    "node_modules/@rolldown/pluginutils": {
+      "locked": "1.0.0-beta.27",
+      "installed": "1.0.0-beta.27",
+      "optional": false
+    },
+    "node_modules/@rollup/rollup-android-arm-eabi": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-android-arm64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-darwin-arm64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-darwin-x64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-freebsd-arm64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-freebsd-x64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-arm-gnueabihf": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-arm-musleabihf": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-arm64-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-arm64-musl": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-loong64-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-ppc64-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-riscv64-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-riscv64-musl": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-s390x-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-x64-gnu": {
+      "locked": "4.53.5",
+      "installed": "4.53.5",
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-linux-x64-musl": {
+      "locked": "4.53.5",
+      "installed": "4.53.5",
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-openharmony-arm64": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-win32-arm64-msvc": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-win32-ia32-msvc": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-win32-x64-gnu": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@rollup/rollup-win32-x64-msvc": {
+      "locked": "4.53.5",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@standard-schema/spec": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/@tabby_ai/hijri-converter": {
+      "locked": "1.0.5",
+      "installed": "1.0.5",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/node": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/node/node_modules/jiti": {
+      "locked": "2.6.1",
+      "installed": "2.6.1",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/node/node_modules/tailwindcss": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/oxide": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/oxide-android-arm64": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-darwin-arm64": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-darwin-x64": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-freebsd-x64": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-linux-arm-gnueabihf": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-linux-arm64-gnu": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-linux-arm64-musl": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-linux-x64-gnu": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-linux-x64-musl": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-wasm32-wasi": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-win32-arm64-msvc": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/oxide-win32-x64-msvc": {
+      "locked": "4.1.18",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/@tailwindcss/typography": {
+      "locked": "0.5.15",
+      "installed": "0.5.15",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/typography/node_modules/postcss-selector-parser": {
+      "locked": "6.0.10",
+      "installed": "6.0.10",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/vite": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": false
+    },
+    "node_modules/@tailwindcss/vite/node_modules/tailwindcss": {
+      "locked": "4.1.18",
+      "installed": "4.1.18",
+      "optional": false
+    },
+    "node_modules/@tanstack/query-core": {
+      "locked": "5.60.5",
+      "installed": "5.60.5",
+      "optional": false
+    },
+    "node_modules/@tanstack/react-query": {
+      "locked": "5.60.5",
+      "installed": "5.60.5",
+      "optional": false
+    },
+    "node_modules/@testing-library/dom": {
+      "locked": "10.4.2",
+      "installed": "10.4.2",
+      "optional": false
+    },
+    "node_modules/@testing-library/jest-dom": {
+      "locked": "7.0.1",
+      "installed": "7.0.1",
+      "optional": false
+    },
+    "node_modules/@testing-library/jest-dom/node_modules/dom-accessibility-api": {
+      "locked": "0.6.3",
+      "installed": "0.6.3",
+      "optional": false
+    },
+    "node_modules/@testing-library/react": {
+      "locked": "16.3.3",
+      "installed": "16.3.3",
+      "optional": false
+    },
+    "node_modules/@testing-library/user-event": {
+      "locked": "14.6.8",
+      "installed": "14.6.8",
+      "optional": false
+    },
+    "node_modules/@types/aria-query": {
+      "locked": "5.0.4",
+      "installed": "5.0.4",
+      "optional": false
+    },
+    "node_modules/@types/babel__core": {
+      "locked": "7.20.5",
+      "installed": "7.20.5",
+      "optional": false
+    },
+    "node_modules/@types/babel__generator": {
+      "locked": "7.6.8",
+      "installed": "7.6.8",
+      "optional": false
+    },
+    "node_modules/@types/babel__template": {
+      "locked": "7.4.4",
+      "installed": "7.4.4",
+      "optional": false
+    },
+    "node_modules/@types/babel__traverse": {
+      "locked": "7.20.6",
+      "installed": "7.20.6",
+      "optional": false
+    },
+    "node_modules/@types/body-parser": {
+      "locked": "1.19.5",
+      "installed": "1.19.5",
+      "optional": false
+    },
+    "node_modules/@types/chai": {
+      "locked": "5.2.3",
+      "installed": "5.2.3",
+      "optional": false
+    },
+    "node_modules/@types/connect": {
+      "locked": "3.4.38",
+      "installed": "3.4.38",
+      "optional": false
+    },
+    "node_modules/@types/connect-pg-simple": {
+      "locked": "7.0.3",
+      "installed": "7.0.3",
+      "optional": false
+    },
+    "node_modules/@types/d3-array": {
+      "locked": "3.2.1",
+      "installed": "3.2.1",
+      "optional": false
+    },
+    "node_modules/@types/d3-color": {
+      "locked": "3.1.3",
+      "installed": "3.1.3",
+      "optional": false
+    },
+    "node_modules/@types/d3-ease": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/@types/d3-interpolate": {
+      "locked": "3.0.4",
+      "installed": "3.0.4",
+      "optional": false
+    },
+    "node_modules/@types/d3-path": {
+      "locked": "3.1.0",
+      "installed": "3.1.0",
+      "optional": false
+    },
+    "node_modules/@types/d3-scale": {
+      "locked": "4.0.8",
+      "installed": "4.0.8",
+      "optional": false
+    },
+    "node_modules/@types/d3-shape": {
+      "locked": "3.1.6",
+      "installed": "3.1.6",
+      "optional": false
+    },
+    "node_modules/@types/d3-time": {
+      "locked": "3.0.3",
+      "installed": "3.0.3",
+      "optional": false
+    },
+    "node_modules/@types/d3-timer": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/@types/deep-eql": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/@types/estree": {
+      "locked": "1.0.8",
+      "installed": "1.0.8",
+      "optional": false
+    },
+    "node_modules/@types/express": {
+      "locked": "5.0.6",
+      "installed": "5.0.6",
+      "optional": false
+    },
+    "node_modules/@types/express-serve-static-core": {
+      "locked": "5.1.1",
+      "installed": "5.1.1",
+      "optional": false
+    },
+    "node_modules/@types/express-session": {
+      "locked": "1.18.0",
+      "installed": "1.18.0",
+      "optional": false
+    },
+    "node_modules/@types/http-errors": {
+      "locked": "2.0.5",
+      "installed": "2.0.5",
+      "optional": false
+    },
+    "node_modules/@types/node": {
+      "locked": "20.19.27",
+      "installed": "20.19.27",
+      "optional": false
+    },
+    "node_modules/@types/passport": {
+      "locked": "1.0.17",
+      "installed": "1.0.17",
+      "optional": false
+    },
+    "node_modules/@types/passport-local": {
+      "locked": "1.0.38",
+      "installed": "1.0.38",
+      "optional": false
+    },
+    "node_modules/@types/passport-strategy": {
+      "locked": "0.2.38",
+      "installed": "0.2.38",
+      "optional": false
+    },
+    "node_modules/@types/pg": {
+      "locked": "8.11.6",
+      "installed": "8.11.6",
+      "optional": false
+    },
+    "node_modules/@types/prop-types": {
+      "locked": "15.7.13",
+      "installed": "15.7.13",
+      "optional": false
+    },
+    "node_modules/@types/qs": {
+      "locked": "6.14.0",
+      "installed": "6.14.0",
+      "optional": false
+    },
+    "node_modules/@types/range-parser": {
+      "locked": "1.2.7",
+      "installed": "1.2.7",
+      "optional": false
+    },
+    "node_modules/@types/react": {
+      "locked": "18.3.12",
+      "installed": "18.3.12",
+      "optional": false
+    },
+    "node_modules/@types/react-dom": {
+      "locked": "18.3.1",
+      "installed": "18.3.1",
+      "optional": false
+    },
+    "node_modules/@types/send": {
+      "locked": "1.2.1",
+      "installed": "1.2.1",
+      "optional": false
+    },
+    "node_modules/@types/serve-static": {
+      "locked": "2.2.0",
+      "installed": "2.2.0",
+      "optional": false
+    },
+    "node_modules/@types/ws": {
+      "locked": "8.5.13",
+      "installed": "8.5.13",
+      "optional": false
+    },
+    "node_modules/@vitejs/plugin-react": {
+      "locked": "4.7.0",
+      "installed": "4.7.0",
+      "optional": false
+    },
+    "node_modules/@vitest/expect": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/mocker": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/pretty-format": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/runner": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/snapshot": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/spy": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/@vitest/utils": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/accepts": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/ansi-regex": {
+      "locked": "6.1.0",
+      "installed": "6.1.0",
+      "optional": false
+    },
+    "node_modules/ansi-styles": {
+      "locked": "6.2.1",
+      "installed": "6.2.1",
+      "optional": false
+    },
+    "node_modules/any-promise": {
+      "locked": "1.3.0",
+      "installed": "1.3.0",
+      "optional": false
+    },
+    "node_modules/anymatch": {
+      "locked": "3.1.3",
+      "installed": "3.1.3",
+      "optional": false
+    },
+    "node_modules/arg": {
+      "locked": "5.0.2",
+      "installed": "5.0.2",
+      "optional": false
+    },
+    "node_modules/aria-hidden": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/aria-query": {
+      "locked": "5.3.0",
+      "installed": "5.3.0",
+      "optional": false
+    },
+    "node_modules/assertion-error": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/autoprefixer": {
+      "locked": "10.4.20",
+      "installed": "10.4.20",
+      "optional": false
+    },
+    "node_modules/balanced-match": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/before-after-hook": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/bidi-js": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/binary-extensions": {
+      "locked": "2.3.0",
+      "installed": "2.3.0",
+      "optional": false
+    },
+    "node_modules/body-parser": {
+      "locked": "2.2.2",
+      "installed": "2.2.2",
+      "optional": false
+    },
+    "node_modules/body-parser/node_modules/debug": {
+      "locked": "4.4.3",
+      "installed": "4.4.3",
+      "optional": false
+    },
+    "node_modules/brace-expansion": {
+      "locked": "2.0.2",
+      "installed": "2.0.2",
+      "optional": false
+    },
+    "node_modules/braces": {
+      "locked": "3.0.3",
+      "installed": "3.0.3",
+      "optional": false
+    },
+    "node_modules/browserslist": {
+      "locked": "4.24.2",
+      "installed": "4.24.2",
+      "optional": false
+    },
+    "node_modules/bufferutil": {
+      "locked": "4.1.0",
+      "installed": "4.1.0",
+      "optional": true
+    },
+    "node_modules/bytes": {
+      "locked": "3.1.2",
+      "installed": "3.1.2",
+      "optional": false
+    },
+    "node_modules/call-bind-apply-helpers": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/call-bound": {
+      "locked": "1.0.4",
+      "installed": "1.0.4",
+      "optional": false
+    },
+    "node_modules/camelcase-css": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/caniuse-lite": {
+      "locked": "1.0.30001753",
+      "installed": "1.0.30001753",
+      "optional": false
+    },
+    "node_modules/chai": {
+      "locked": "6.3.0",
+      "installed": "6.3.0",
+      "optional": false
+    },
+    "node_modules/chokidar": {
+      "locked": "3.6.0",
+      "installed": "3.6.0",
+      "optional": false
+    },
+    "node_modules/chokidar/node_modules/glob-parent": {
+      "locked": "5.1.2",
+      "installed": "5.1.2",
+      "optional": false
+    },
+    "node_modules/class-variance-authority": {
+      "locked": "0.7.1",
+      "installed": "0.7.1",
+      "optional": false
+    },
+    "node_modules/clsx": {
+      "locked": "2.1.1",
+      "installed": "2.1.1",
+      "optional": false
+    },
+    "node_modules/cmdk": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/color-convert": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/color-name": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/commander": {
+      "locked": "4.1.1",
+      "installed": "4.1.1",
+      "optional": false
+    },
+    "node_modules/connect-pg-simple": {
+      "locked": "10.0.0",
+      "installed": "10.0.0",
+      "optional": false
+    },
+    "node_modules/content-disposition": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/content-type": {
+      "locked": "1.0.5",
+      "installed": "1.0.5",
+      "optional": false
+    },
+    "node_modules/convert-source-map": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/cookie": {
+      "locked": "0.7.1",
+      "installed": "0.7.1",
+      "optional": false
+    },
+    "node_modules/cookie-signature": {
+      "locked": "1.2.2",
+      "installed": "1.2.2",
+      "optional": false
+    },
+    "node_modules/cross-spawn": {
+      "locked": "7.0.6",
+      "installed": "7.0.6",
+      "optional": false
+    },
+    "node_modules/css-tree": {
+      "locked": "3.2.1",
+      "installed": "3.2.1",
+      "optional": false
+    },
+    "node_modules/css.escape": {
+      "locked": "1.5.1",
+      "installed": "1.5.1",
+      "optional": false
+    },
+    "node_modules/cssesc": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/csstype": {
+      "locked": "3.1.3",
+      "installed": "3.1.3",
+      "optional": false
+    },
+    "node_modules/d3-array": {
+      "locked": "3.2.4",
+      "installed": "3.2.4",
+      "optional": false
+    },
+    "node_modules/d3-color": {
+      "locked": "3.1.0",
+      "installed": "3.1.0",
+      "optional": false
+    },
+    "node_modules/d3-ease": {
+      "locked": "3.0.1",
+      "installed": "3.0.1",
+      "optional": false
+    },
+    "node_modules/d3-format": {
+      "locked": "3.1.0",
+      "installed": "3.1.0",
+      "optional": false
+    },
+    "node_modules/d3-interpolate": {
+      "locked": "3.0.1",
+      "installed": "3.0.1",
+      "optional": false
+    },
+    "node_modules/d3-path": {
+      "locked": "3.1.0",
+      "installed": "3.1.0",
+      "optional": false
+    },
+    "node_modules/d3-scale": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/d3-shape": {
+      "locked": "3.2.0",
+      "installed": "3.2.0",
+      "optional": false
+    },
+    "node_modules/d3-time": {
+      "locked": "3.1.0",
+      "installed": "3.1.0",
+      "optional": false
+    },
+    "node_modules/d3-time-format": {
+      "locked": "4.1.0",
+      "installed": "4.1.0",
+      "optional": false
+    },
+    "node_modules/d3-timer": {
+      "locked": "3.0.1",
+      "installed": "3.0.1",
+      "optional": false
+    },
+    "node_modules/data-urls": {
+      "locked": "7.0.0",
+      "installed": "7.0.0",
+      "optional": false
+    },
+    "node_modules/date-fns": {
+      "locked": "3.6.0",
+      "installed": "3.6.0",
+      "optional": false
+    },
+    "node_modules/date-fns-jalali": {
+      "locked": "4.1.0-0",
+      "installed": "4.1.0-0",
+      "optional": false
+    },
+    "node_modules/debug": {
+      "locked": "4.3.7",
+      "installed": "4.3.7",
+      "optional": false
+    },
+    "node_modules/decimal.js": {
+      "locked": "10.6.0",
+      "installed": "10.6.0",
+      "optional": false
+    },
+    "node_modules/decimal.js-light": {
+      "locked": "2.5.1",
+      "installed": "2.5.1",
+      "optional": false
+    },
+    "node_modules/depd": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/dequal": {
+      "locked": "2.0.3",
+      "installed": "2.0.3",
+      "optional": false
+    },
+    "node_modules/detect-libc": {
+      "locked": "2.0.3",
+      "installed": "2.0.3",
+      "optional": false
+    },
+    "node_modules/detect-node-es": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/didyoumean": {
+      "locked": "1.2.2",
+      "installed": "1.2.2",
+      "optional": false
+    },
+    "node_modules/dlv": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/dom-accessibility-api": {
+      "locked": "0.5.16",
+      "installed": "0.5.16",
+      "optional": false
+    },
+    "node_modules/dom-helpers": {
+      "locked": "5.2.1",
+      "installed": "5.2.1",
+      "optional": false
+    },
+    "node_modules/drizzle-kit": {
+      "locked": "0.31.8",
+      "installed": "0.31.8",
+      "optional": false
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild-kit/esm-loader": {
+      "locked": "4.21.0",
+      "installed": "4.21.0",
+      "optional": false
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild-kit/esm-loader/node_modules/esbuild": {
+      "locked": "0.27.2",
+      "installed": "0.27.2",
+      "optional": false
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/aix-ppc64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/android-arm": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/android-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/android-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/darwin-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/darwin-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/freebsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/freebsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-arm": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-ia32": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-loong64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-mips64el": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-ppc64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-riscv64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-s390x": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/linux-x64": {
+      "locked": "0.27.2",
+      "installed": "0.27.2",
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/netbsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/netbsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/openbsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/openbsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/openharmony-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/sunos-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/win32-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/win32-ia32": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-kit/node_modules/@esbuild/win32-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/drizzle-orm": {
+      "locked": "0.39.3",
+      "installed": "0.39.3",
+      "optional": false
+    },
+    "node_modules/drizzle-zod": {
+      "locked": "0.7.0",
+      "installed": "0.7.0",
+      "optional": false
+    },
+    "node_modules/dunder-proto": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/eastasianwidth": {
+      "locked": "0.2.0",
+      "installed": "0.2.0",
+      "optional": false
+    },
+    "node_modules/ee-first": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/electron-to-chromium": {
+      "locked": "1.5.51",
+      "installed": "1.5.51",
+      "optional": false
+    },
+    "node_modules/embla-carousel": {
+      "locked": "8.6.0",
+      "installed": "8.6.0",
+      "optional": false
+    },
+    "node_modules/embla-carousel-react": {
+      "locked": "8.6.0",
+      "installed": "8.6.0",
+      "optional": false
+    },
+    "node_modules/embla-carousel-reactive-utils": {
+      "locked": "8.6.0",
+      "installed": "8.6.0",
+      "optional": false
+    },
+    "node_modules/emoji-regex": {
+      "locked": "9.2.2",
+      "installed": "9.2.2",
+      "optional": false
+    },
+    "node_modules/encodeurl": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/enhanced-resolve": {
+      "locked": "5.18.4",
+      "installed": "5.18.4",
+      "optional": false
+    },
+    "node_modules/entities": {
+      "locked": "8.1.0",
+      "installed": "8.1.0",
+      "optional": false
+    },
+    "node_modules/es-define-property": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/es-errors": {
+      "locked": "1.3.0",
+      "installed": "1.3.0",
+      "optional": false
+    },
+    "node_modules/es-module-lexer": {
+      "locked": "2.3.2",
+      "installed": "2.3.2",
+      "optional": false
+    },
+    "node_modules/es-object-atoms": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/esbuild": {
+      "locked": "0.25.12",
+      "installed": "0.25.12",
+      "optional": false
+    },
+    "node_modules/esbuild-register": {
+      "locked": "3.6.0",
+      "installed": "3.6.0",
+      "optional": false
+    },
+    "node_modules/escalade": {
+      "locked": "3.2.0",
+      "installed": "3.2.0",
+      "optional": false
+    },
+    "node_modules/escape-html": {
+      "locked": "1.0.3",
+      "installed": "1.0.3",
+      "optional": false
+    },
+    "node_modules/estree-walker": {
+      "locked": "3.0.3",
+      "installed": "3.0.3",
+      "optional": false
+    },
+    "node_modules/etag": {
+      "locked": "1.8.1",
+      "installed": "1.8.1",
+      "optional": false
+    },
+    "node_modules/eventemitter3": {
+      "locked": "4.0.7",
+      "installed": "4.0.7",
+      "optional": false
+    },
+    "node_modules/expect-type": {
+      "locked": "1.4.0",
+      "installed": "1.4.0",
+      "optional": false
+    },
+    "node_modules/express": {
+      "locked": "5.2.1",
+      "installed": "5.2.1",
+      "optional": false
+    },
+    "node_modules/express-session": {
+      "locked": "1.18.2",
+      "installed": "1.18.2",
+      "optional": false
+    },
+    "node_modules/express-session/node_modules/cookie": {
+      "locked": "0.7.2",
+      "installed": "0.7.2",
+      "optional": false
+    },
+    "node_modules/express-session/node_modules/cookie-signature": {
+      "locked": "1.0.7",
+      "installed": "1.0.7",
+      "optional": false
+    },
+    "node_modules/express-session/node_modules/debug": {
+      "locked": "2.6.9",
+      "installed": "2.6.9",
+      "optional": false
+    },
+    "node_modules/express-session/node_modules/ms": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/express/node_modules/debug": {
+      "locked": "4.4.3",
+      "installed": "4.4.3",
+      "optional": false
+    },
+    "node_modules/fast-content-type-parse": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/fast-equals": {
+      "locked": "5.2.2",
+      "installed": "5.2.2",
+      "optional": false
+    },
+    "node_modules/fast-glob": {
+      "locked": "3.3.2",
+      "installed": "3.3.2",
+      "optional": false
+    },
+    "node_modules/fast-glob/node_modules/glob-parent": {
+      "locked": "5.1.2",
+      "installed": "5.1.2",
+      "optional": false
+    },
+    "node_modules/fastq": {
+      "locked": "1.17.1",
+      "installed": "1.17.1",
+      "optional": false
+    },
+    "node_modules/fill-range": {
+      "locked": "7.1.1",
+      "installed": "7.1.1",
+      "optional": false
+    },
+    "node_modules/finalhandler": {
+      "locked": "2.1.1",
+      "installed": "2.1.1",
+      "optional": false
+    },
+    "node_modules/finalhandler/node_modules/debug": {
+      "locked": "4.4.3",
+      "installed": "4.4.3",
+      "optional": false
+    },
+    "node_modules/foreground-child": {
+      "locked": "3.3.0",
+      "installed": "3.3.0",
+      "optional": false
+    },
+    "node_modules/forwarded": {
+      "locked": "0.2.0",
+      "installed": "0.2.0",
+      "optional": false
+    },
+    "node_modules/fraction.js": {
+      "locked": "4.3.7",
+      "installed": "4.3.7",
+      "optional": false
+    },
+    "node_modules/framer-motion": {
+      "locked": "11.13.1",
+      "installed": "11.13.1",
+      "optional": false
+    },
+    "node_modules/fresh": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/fsevents": {
+      "locked": "2.3.3",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/function-bind": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/gensync": {
+      "locked": "1.0.0-beta.2",
+      "installed": "1.0.0-beta.2",
+      "optional": false
+    },
+    "node_modules/get-intrinsic": {
+      "locked": "1.3.0",
+      "installed": "1.3.0",
+      "optional": false
+    },
+    "node_modules/get-nonce": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/get-proto": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/get-tsconfig": {
+      "locked": "4.8.1",
+      "installed": "4.8.1",
+      "optional": false
+    },
+    "node_modules/glob": {
+      "locked": "10.5.0",
+      "installed": "10.5.0",
+      "optional": false
+    },
+    "node_modules/glob-parent": {
+      "locked": "6.0.2",
+      "installed": "6.0.2",
+      "optional": false
+    },
+    "node_modules/gopd": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/graceful-fs": {
+      "locked": "4.2.11",
+      "installed": "4.2.11",
+      "optional": false
+    },
+    "node_modules/has-symbols": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/hasown": {
+      "locked": "2.0.2",
+      "installed": "2.0.2",
+      "optional": false
+    },
+    "node_modules/html-encoding-sniffer": {
+      "locked": "6.0.0",
+      "installed": "6.0.0",
+      "optional": false
+    },
+    "node_modules/http-errors": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/iconv-lite": {
+      "locked": "0.7.2",
+      "installed": "0.7.2",
+      "optional": false
+    },
+    "node_modules/indent-string": {
+      "locked": "4.0.0",
+      "installed": "4.0.0",
+      "optional": false
+    },
+    "node_modules/inherits": {
+      "locked": "2.0.4",
+      "installed": "2.0.4",
+      "optional": false
+    },
+    "node_modules/input-otp": {
+      "locked": "1.4.2",
+      "installed": "1.4.2",
+      "optional": false
+    },
+    "node_modules/internmap": {
+      "locked": "2.0.3",
+      "installed": "2.0.3",
+      "optional": false
+    },
+    "node_modules/ipaddr.js": {
+      "locked": "1.9.1",
+      "installed": "1.9.1",
+      "optional": false
+    },
+    "node_modules/is-binary-path": {
+      "locked": "2.1.0",
+      "installed": "2.1.0",
+      "optional": false
+    },
+    "node_modules/is-core-module": {
+      "locked": "2.15.1",
+      "installed": "2.15.1",
+      "optional": false
+    },
+    "node_modules/is-extglob": {
+      "locked": "2.1.1",
+      "installed": "2.1.1",
+      "optional": false
+    },
+    "node_modules/is-fullwidth-code-point": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/is-glob": {
+      "locked": "4.0.3",
+      "installed": "4.0.3",
+      "optional": false
+    },
+    "node_modules/is-number": {
+      "locked": "7.0.0",
+      "installed": "7.0.0",
+      "optional": false
+    },
+    "node_modules/is-potential-custom-element-name": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/is-promise": {
+      "locked": "4.0.0",
+      "installed": "4.0.0",
+      "optional": false
+    },
+    "node_modules/isexe": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/jackspeak": {
+      "locked": "3.4.3",
+      "installed": "3.4.3",
+      "optional": false
+    },
+    "node_modules/jiti": {
+      "locked": "1.21.6",
+      "installed": "1.21.6",
+      "optional": false
+    },
+    "node_modules/js-tokens": {
+      "locked": "4.0.0",
+      "installed": "4.0.0",
+      "optional": false
+    },
+    "node_modules/jsdom": {
+      "locked": "29.1.1",
+      "installed": "29.1.1",
+      "optional": false
+    },
+    "node_modules/jsdom/node_modules/lru-cache": {
+      "locked": "11.5.3",
+      "installed": "11.5.3",
+      "optional": false
+    },
+    "node_modules/jsesc": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/json5": {
+      "locked": "2.2.3",
+      "installed": "2.2.3",
+      "optional": false
+    },
+    "node_modules/lightningcss": {
+      "locked": "1.30.2",
+      "installed": "1.30.2",
+      "optional": false
+    },
+    "node_modules/lightningcss-android-arm64": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-darwin-arm64": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-darwin-x64": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-freebsd-x64": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-linux-arm-gnueabihf": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-linux-arm64-gnu": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-linux-arm64-musl": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-linux-x64-gnu": {
+      "locked": "1.30.2",
+      "installed": "1.30.2",
+      "optional": true
+    },
+    "node_modules/lightningcss-linux-x64-musl": {
+      "locked": "1.30.2",
+      "installed": "1.30.2",
+      "optional": true
+    },
+    "node_modules/lightningcss-win32-arm64-msvc": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lightningcss-win32-x64-msvc": {
+      "locked": "1.30.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/lilconfig": {
+      "locked": "3.1.3",
+      "installed": "3.1.3",
+      "optional": false
+    },
+    "node_modules/lines-and-columns": {
+      "locked": "1.2.4",
+      "installed": "1.2.4",
+      "optional": false
+    },
+    "node_modules/lodash": {
+      "locked": "4.17.21",
+      "installed": "4.17.21",
+      "optional": false
+    },
+    "node_modules/lodash.castarray": {
+      "locked": "4.4.0",
+      "installed": "4.4.0",
+      "optional": false
+    },
+    "node_modules/lodash.isplainobject": {
+      "locked": "4.0.6",
+      "installed": "4.0.6",
+      "optional": false
+    },
+    "node_modules/lodash.merge": {
+      "locked": "4.6.2",
+      "installed": "4.6.2",
+      "optional": false
+    },
+    "node_modules/loose-envify": {
+      "locked": "1.4.0",
+      "installed": "1.4.0",
+      "optional": false
+    },
+    "node_modules/lru-cache": {
+      "locked": "5.1.1",
+      "installed": "5.1.1",
+      "optional": false
+    },
+    "node_modules/lucide-react": {
+      "locked": "0.453.0",
+      "installed": "0.453.0",
+      "optional": false
+    },
+    "node_modules/lz-string": {
+      "locked": "1.5.0",
+      "installed": "1.5.0",
+      "optional": false
+    },
+    "node_modules/magic-string": {
+      "locked": "0.30.21",
+      "installed": "0.30.21",
+      "optional": false
+    },
+    "node_modules/math-intrinsics": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/mdn-data": {
+      "locked": "2.27.1",
+      "installed": "2.27.1",
+      "optional": false
+    },
+    "node_modules/media-typer": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/memorystore": {
+      "locked": "1.6.7",
+      "installed": "1.6.7",
+      "optional": false
+    },
+    "node_modules/memorystore/node_modules/lru-cache": {
+      "locked": "4.1.5",
+      "installed": "4.1.5",
+      "optional": false
+    },
+    "node_modules/memorystore/node_modules/yallist": {
+      "locked": "2.1.2",
+      "installed": "2.1.2",
+      "optional": false
+    },
+    "node_modules/merge-descriptors": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/merge2": {
+      "locked": "1.4.1",
+      "installed": "1.4.1",
+      "optional": false
+    },
+    "node_modules/micromatch": {
+      "locked": "4.0.8",
+      "installed": "4.0.8",
+      "optional": false
+    },
+    "node_modules/mime-db": {
+      "locked": "1.54.0",
+      "installed": "1.54.0",
+      "optional": false
+    },
+    "node_modules/mime-types": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/min-indent": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/minimatch": {
+      "locked": "9.0.5",
+      "installed": "9.0.5",
+      "optional": false
+    },
+    "node_modules/minipass": {
+      "locked": "7.1.2",
+      "installed": "7.1.2",
+      "optional": false
+    },
+    "node_modules/mitt": {
+      "locked": "3.0.1",
+      "installed": "3.0.1",
+      "optional": false
+    },
+    "node_modules/modern-screenshot": {
+      "locked": "4.6.0",
+      "installed": "4.6.0",
+      "optional": false
+    },
+    "node_modules/motion-dom": {
+      "locked": "11.13.0",
+      "installed": "11.13.0",
+      "optional": false
+    },
+    "node_modules/motion-utils": {
+      "locked": "11.13.0",
+      "installed": "11.13.0",
+      "optional": false
+    },
+    "node_modules/ms": {
+      "locked": "2.1.3",
+      "installed": "2.1.3",
+      "optional": false
+    },
+    "node_modules/mz": {
+      "locked": "2.7.0",
+      "installed": "2.7.0",
+      "optional": false
+    },
+    "node_modules/nanoid": {
+      "locked": "3.3.11",
+      "installed": "3.3.11",
+      "optional": false
+    },
+    "node_modules/negotiator": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/next-themes": {
+      "locked": "0.4.6",
+      "installed": "0.4.6",
+      "optional": false
+    },
+    "node_modules/node-gyp-build": {
+      "locked": "4.8.3",
+      "installed": "4.8.3",
+      "optional": true
+    },
+    "node_modules/node-releases": {
+      "locked": "2.0.18",
+      "installed": "2.0.18",
+      "optional": false
+    },
+    "node_modules/normalize-path": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/normalize-range": {
+      "locked": "0.1.2",
+      "installed": "0.1.2",
+      "optional": false
+    },
+    "node_modules/object-assign": {
+      "locked": "4.1.1",
+      "installed": "4.1.1",
+      "optional": false
+    },
+    "node_modules/object-hash": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/object-inspect": {
+      "locked": "1.13.4",
+      "installed": "1.13.4",
+      "optional": false
+    },
+    "node_modules/obuf": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/obug": {
+      "locked": "2.2.1",
+      "installed": "2.2.1",
+      "optional": false
+    },
+    "node_modules/on-finished": {
+      "locked": "2.4.1",
+      "installed": "2.4.1",
+      "optional": false
+    },
+    "node_modules/on-headers": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/once": {
+      "locked": "1.4.0",
+      "installed": "1.4.0",
+      "optional": false
+    },
+    "node_modules/package-json-from-dist": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/parse5": {
+      "locked": "8.0.1",
+      "installed": "8.0.1",
+      "optional": false
+    },
+    "node_modules/parseurl": {
+      "locked": "1.3.3",
+      "installed": "1.3.3",
+      "optional": false
+    },
+    "node_modules/passport": {
+      "locked": "0.7.0",
+      "installed": "0.7.0",
+      "optional": false
+    },
+    "node_modules/passport-local": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/passport-strategy": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/path-key": {
+      "locked": "3.1.1",
+      "installed": "3.1.1",
+      "optional": false
+    },
+    "node_modules/path-parse": {
+      "locked": "1.0.7",
+      "installed": "1.0.7",
+      "optional": false
+    },
+    "node_modules/path-scurry": {
+      "locked": "1.11.1",
+      "installed": "1.11.1",
+      "optional": false
+    },
+    "node_modules/path-scurry/node_modules/lru-cache": {
+      "locked": "10.4.3",
+      "installed": "10.4.3",
+      "optional": false
+    },
+    "node_modules/path-to-regexp": {
+      "locked": "8.3.0",
+      "installed": "8.3.0",
+      "optional": false
+    },
+    "node_modules/pathe": {
+      "locked": "2.0.3",
+      "installed": "2.0.3",
+      "optional": false
+    },
+    "node_modules/pause": {
+      "locked": "0.0.1",
+      "installed": "0.0.1",
+      "optional": false
+    },
+    "node_modules/pg": {
+      "locked": "8.16.3",
+      "installed": "8.16.3",
+      "optional": false
+    },
+    "node_modules/pg-cloudflare": {
+      "locked": "1.2.7",
+      "installed": "1.2.7",
+      "optional": true
+    },
+    "node_modules/pg-connection-string": {
+      "locked": "2.9.1",
+      "installed": "2.9.1",
+      "optional": false
+    },
+    "node_modules/pg-int8": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/pg-numeric": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/pg-pool": {
+      "locked": "3.10.1",
+      "installed": "3.10.1",
+      "optional": false
+    },
+    "node_modules/pg-protocol": {
+      "locked": "1.10.3",
+      "installed": "1.10.3",
+      "optional": false
+    },
+    "node_modules/pg-types": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/pg/node_modules/pg-types": {
+      "locked": "2.2.0",
+      "installed": "2.2.0",
+      "optional": false
+    },
+    "node_modules/pg/node_modules/postgres-array": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/pg/node_modules/postgres-bytea": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/pg/node_modules/postgres-date": {
+      "locked": "1.0.7",
+      "installed": "1.0.7",
+      "optional": false
+    },
+    "node_modules/pg/node_modules/postgres-interval": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/pgpass": {
+      "locked": "1.0.5",
+      "installed": "1.0.5",
+      "optional": false
+    },
+    "node_modules/picocolors": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/picomatch": {
+      "locked": "2.3.1",
+      "installed": "2.3.1",
+      "optional": false
+    },
+    "node_modules/pify": {
+      "locked": "2.3.0",
+      "installed": "2.3.0",
+      "optional": false
+    },
+    "node_modules/pirates": {
+      "locked": "4.0.6",
+      "installed": "4.0.6",
+      "optional": false
+    },
+    "node_modules/postcss": {
+      "locked": "8.5.6",
+      "installed": "8.5.6",
+      "optional": false
+    },
+    "node_modules/postcss-import": {
+      "locked": "15.1.0",
+      "installed": "15.1.0",
+      "optional": false
+    },
+    "node_modules/postcss-js": {
+      "locked": "4.0.1",
+      "installed": "4.0.1",
+      "optional": false
+    },
+    "node_modules/postcss-load-config": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/postcss-nested": {
+      "locked": "6.2.0",
+      "installed": "6.2.0",
+      "optional": false
+    },
+    "node_modules/postcss-selector-parser": {
+      "locked": "6.1.2",
+      "installed": "6.1.2",
+      "optional": false
+    },
+    "node_modules/postcss-value-parser": {
+      "locked": "4.2.0",
+      "installed": "4.2.0",
+      "optional": false
+    },
+    "node_modules/postgres-array": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/postgres-bytea": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/postgres-date": {
+      "locked": "2.1.0",
+      "installed": "2.1.0",
+      "optional": false
+    },
+    "node_modules/postgres-interval": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/postgres-range": {
+      "locked": "1.1.4",
+      "installed": "1.1.4",
+      "optional": false
+    },
+    "node_modules/pretty-format": {
+      "locked": "27.5.1",
+      "installed": "27.5.1",
+      "optional": false
+    },
+    "node_modules/pretty-format/node_modules/ansi-regex": {
+      "locked": "5.0.1",
+      "installed": "5.0.1",
+      "optional": false
+    },
+    "node_modules/pretty-format/node_modules/ansi-styles": {
+      "locked": "5.2.0",
+      "installed": "5.2.0",
+      "optional": false
+    },
+    "node_modules/pretty-format/node_modules/react-is": {
+      "locked": "17.0.2",
+      "installed": "17.0.2",
+      "optional": false
+    },
+    "node_modules/prop-types": {
+      "locked": "15.8.1",
+      "installed": "15.8.1",
+      "optional": false
+    },
+    "node_modules/prop-types/node_modules/react-is": {
+      "locked": "16.13.1",
+      "installed": "16.13.1",
+      "optional": false
+    },
+    "node_modules/proxy-addr": {
+      "locked": "2.0.7",
+      "installed": "2.0.7",
+      "optional": false
+    },
+    "node_modules/pseudomap": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/punycode": {
+      "locked": "2.3.1",
+      "installed": "2.3.1",
+      "optional": false
+    },
+    "node_modules/qs": {
+      "locked": "6.14.1",
+      "installed": "6.14.1",
+      "optional": false
+    },
+    "node_modules/queue-microtask": {
+      "locked": "1.2.3",
+      "installed": "1.2.3",
+      "optional": false
+    },
+    "node_modules/random-bytes": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/range-parser": {
+      "locked": "1.2.1",
+      "installed": "1.2.1",
+      "optional": false
+    },
+    "node_modules/raw-body": {
+      "locked": "3.0.2",
+      "installed": "3.0.2",
+      "optional": false
+    },
+    "node_modules/react": {
+      "locked": "18.3.1",
+      "installed": "18.3.1",
+      "optional": false
+    },
+    "node_modules/react-day-picker": {
+      "locked": "9.14.0",
+      "installed": "9.14.0",
+      "optional": false
+    },
+    "node_modules/react-day-picker/node_modules/date-fns": {
+      "locked": "4.4.0",
+      "installed": "4.4.0",
+      "optional": false
+    },
+    "node_modules/react-dom": {
+      "locked": "18.3.1",
+      "installed": "18.3.1",
+      "optional": false
+    },
+    "node_modules/react-hook-form": {
+      "locked": "7.55.0",
+      "installed": "7.55.0",
+      "optional": false
+    },
+    "node_modules/react-icons": {
+      "locked": "5.4.0",
+      "installed": "5.4.0",
+      "optional": false
+    },
+    "node_modules/react-is": {
+      "locked": "18.3.1",
+      "installed": "18.3.1",
+      "optional": false
+    },
+    "node_modules/react-refresh": {
+      "locked": "0.17.0",
+      "installed": "0.17.0",
+      "optional": false
+    },
+    "node_modules/react-remove-scroll": {
+      "locked": "2.6.3",
+      "installed": "2.6.3",
+      "optional": false
+    },
+    "node_modules/react-remove-scroll-bar": {
+      "locked": "2.3.8",
+      "installed": "2.3.8",
+      "optional": false
+    },
+    "node_modules/react-resizable-panels": {
+      "locked": "2.1.7",
+      "installed": "2.1.7",
+      "optional": false
+    },
+    "node_modules/react-smooth": {
+      "locked": "4.0.4",
+      "installed": "4.0.4",
+      "optional": false
+    },
+    "node_modules/react-style-singleton": {
+      "locked": "2.2.3",
+      "installed": "2.2.3",
+      "optional": false
+    },
+    "node_modules/react-transition-group": {
+      "locked": "4.4.5",
+      "installed": "4.4.5",
+      "optional": false
+    },
+    "node_modules/read-cache": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/readdirp": {
+      "locked": "3.6.0",
+      "installed": "3.6.0",
+      "optional": false
+    },
+    "node_modules/recharts": {
+      "locked": "2.15.2",
+      "installed": "2.15.2",
+      "optional": false
+    },
+    "node_modules/recharts-scale": {
+      "locked": "0.4.5",
+      "installed": "0.4.5",
+      "optional": false
+    },
+    "node_modules/redent": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/regenerator-runtime": {
+      "locked": "0.14.1",
+      "installed": "0.14.1",
+      "optional": false
+    },
+    "node_modules/regexparam": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/require-from-string": {
+      "locked": "2.0.2",
+      "installed": "2.0.2",
+      "optional": false
+    },
+    "node_modules/resolve": {
+      "locked": "1.22.8",
+      "installed": "1.22.8",
+      "optional": false
+    },
+    "node_modules/resolve-pkg-maps": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/reusify": {
+      "locked": "1.0.4",
+      "installed": "1.0.4",
+      "optional": false
+    },
+    "node_modules/rollup": {
+      "locked": "4.53.5",
+      "installed": "4.53.5",
+      "optional": false
+    },
+    "node_modules/router": {
+      "locked": "2.2.0",
+      "installed": "2.2.0",
+      "optional": false
+    },
+    "node_modules/router/node_modules/debug": {
+      "locked": "4.4.3",
+      "installed": "4.4.3",
+      "optional": false
+    },
+    "node_modules/run-parallel": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/safe-buffer": {
+      "locked": "5.2.1",
+      "installed": "5.2.1",
+      "optional": false
+    },
+    "node_modules/safer-buffer": {
+      "locked": "2.1.2",
+      "installed": "2.1.2",
+      "optional": false
+    },
+    "node_modules/saxes": {
+      "locked": "6.0.0",
+      "installed": "6.0.0",
+      "optional": false
+    },
+    "node_modules/scheduler": {
+      "locked": "0.23.2",
+      "installed": "0.23.2",
+      "optional": false
+    },
+    "node_modules/semver": {
+      "locked": "6.3.1",
+      "installed": "6.3.1",
+      "optional": false
+    },
+    "node_modules/send": {
+      "locked": "1.2.1",
+      "installed": "1.2.1",
+      "optional": false
+    },
+    "node_modules/send/node_modules/debug": {
+      "locked": "4.4.3",
+      "installed": "4.4.3",
+      "optional": false
+    },
+    "node_modules/serve-static": {
+      "locked": "2.2.1",
+      "installed": "2.2.1",
+      "optional": false
+    },
+    "node_modules/setprototypeof": {
+      "locked": "1.2.0",
+      "installed": "1.2.0",
+      "optional": false
+    },
+    "node_modules/shebang-command": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/shebang-regex": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/side-channel": {
+      "locked": "1.1.0",
+      "installed": "1.1.0",
+      "optional": false
+    },
+    "node_modules/side-channel-list": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/side-channel-map": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/side-channel-weakmap": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/siginfo": {
+      "locked": "2.0.0",
+      "installed": "2.0.0",
+      "optional": false
+    },
+    "node_modules/signal-exit": {
+      "locked": "4.1.0",
+      "installed": "4.1.0",
+      "optional": false
+    },
+    "node_modules/source-map-js": {
+      "locked": "1.2.1",
+      "installed": "1.2.1",
+      "optional": false
+    },
+    "node_modules/split2": {
+      "locked": "4.2.0",
+      "installed": "4.2.0",
+      "optional": false
+    },
+    "node_modules/stackback": {
+      "locked": "0.0.2",
+      "installed": "0.0.2",
+      "optional": false
+    },
+    "node_modules/statuses": {
+      "locked": "2.0.2",
+      "installed": "2.0.2",
+      "optional": false
+    },
+    "node_modules/std-env": {
+      "locked": "4.3.0",
+      "installed": "4.3.0",
+      "optional": false
+    },
+    "node_modules/string-width": {
+      "locked": "5.1.2",
+      "installed": "5.1.2",
+      "optional": false
+    },
+    "node_modules/string-width-cjs": {
+      "locked": "4.2.3",
+      "installed": "4.2.3",
+      "optional": false
+    },
+    "node_modules/string-width-cjs/node_modules/ansi-regex": {
+      "locked": "5.0.1",
+      "installed": "5.0.1",
+      "optional": false
+    },
+    "node_modules/string-width-cjs/node_modules/emoji-regex": {
+      "locked": "8.0.0",
+      "installed": "8.0.0",
+      "optional": false
+    },
+    "node_modules/string-width-cjs/node_modules/strip-ansi": {
+      "locked": "6.0.1",
+      "installed": "6.0.1",
+      "optional": false
+    },
+    "node_modules/strip-ansi": {
+      "locked": "7.1.0",
+      "installed": "7.1.0",
+      "optional": false
+    },
+    "node_modules/strip-ansi-cjs": {
+      "locked": "6.0.1",
+      "installed": "6.0.1",
+      "optional": false
+    },
+    "node_modules/strip-ansi-cjs/node_modules/ansi-regex": {
+      "locked": "5.0.1",
+      "installed": "5.0.1",
+      "optional": false
+    },
+    "node_modules/strip-indent": {
+      "locked": "3.0.0",
+      "installed": "3.0.0",
+      "optional": false
+    },
+    "node_modules/sucrase": {
+      "locked": "3.35.0",
+      "installed": "3.35.0",
+      "optional": false
+    },
+    "node_modules/supports-preserve-symlinks-flag": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/symbol-tree": {
+      "locked": "3.2.4",
+      "installed": "3.2.4",
+      "optional": false
+    },
+    "node_modules/tailwind-merge": {
+      "locked": "2.6.0",
+      "installed": "2.6.0",
+      "optional": false
+    },
+    "node_modules/tailwindcss": {
+      "locked": "3.4.17",
+      "installed": "3.4.17",
+      "optional": false
+    },
+    "node_modules/tailwindcss-animate": {
+      "locked": "1.0.7",
+      "installed": "1.0.7",
+      "optional": false
+    },
+    "node_modules/tapable": {
+      "locked": "2.3.0",
+      "installed": "2.3.0",
+      "optional": false
+    },
+    "node_modules/thenify": {
+      "locked": "3.3.1",
+      "installed": "3.3.1",
+      "optional": false
+    },
+    "node_modules/thenify-all": {
+      "locked": "1.6.0",
+      "installed": "1.6.0",
+      "optional": false
+    },
+    "node_modules/tiny-invariant": {
+      "locked": "1.3.3",
+      "installed": "1.3.3",
+      "optional": false
+    },
+    "node_modules/tinybench": {
+      "locked": "2.9.0",
+      "installed": "2.9.0",
+      "optional": false
+    },
+    "node_modules/tinyexec": {
+      "locked": "1.3.1",
+      "installed": "1.3.1",
+      "optional": false
+    },
+    "node_modules/tinyglobby": {
+      "locked": "0.2.15",
+      "installed": "0.2.15",
+      "optional": false
+    },
+    "node_modules/tinyglobby/node_modules/fdir": {
+      "locked": "6.5.0",
+      "installed": "6.5.0",
+      "optional": false
+    },
+    "node_modules/tinyglobby/node_modules/picomatch": {
+      "locked": "4.0.3",
+      "installed": "4.0.3",
+      "optional": false
+    },
+    "node_modules/tinyrainbow": {
+      "locked": "3.2.0",
+      "installed": "3.2.0",
+      "optional": false
+    },
+    "node_modules/tldts": {
+      "locked": "7.4.18",
+      "installed": "7.4.18",
+      "optional": false
+    },
+    "node_modules/tldts-core": {
+      "locked": "7.4.18",
+      "installed": "7.4.18",
+      "optional": false
+    },
+    "node_modules/to-regex-range": {
+      "locked": "5.0.1",
+      "installed": "5.0.1",
+      "optional": false
+    },
+    "node_modules/toidentifier": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/tough-cookie": {
+      "locked": "6.0.2",
+      "installed": "6.0.2",
+      "optional": false
+    },
+    "node_modules/tr46": {
+      "locked": "6.0.0",
+      "installed": "6.0.0",
+      "optional": false
+    },
+    "node_modules/ts-interface-checker": {
+      "locked": "0.1.13",
+      "installed": "0.1.13",
+      "optional": false
+    },
+    "node_modules/tslib": {
+      "locked": "2.8.1",
+      "installed": "2.8.1",
+      "optional": false
+    },
+    "node_modules/tsx": {
+      "locked": "4.20.5",
+      "installed": "4.20.5",
+      "optional": false
+    },
+    "node_modules/tw-animate-css": {
+      "locked": "1.2.5",
+      "installed": "1.2.5",
+      "optional": false
+    },
+    "node_modules/type-is": {
+      "locked": "2.0.1",
+      "installed": "2.0.1",
+      "optional": false
+    },
+    "node_modules/typescript": {
+      "locked": "5.6.3",
+      "installed": "5.6.3",
+      "optional": false
+    },
+    "node_modules/uid-safe": {
+      "locked": "2.1.5",
+      "installed": "2.1.5",
+      "optional": false
+    },
+    "node_modules/undici": {
+      "locked": "7.30.0",
+      "installed": "7.30.0",
+      "optional": false
+    },
+    "node_modules/undici-types": {
+      "locked": "6.21.0",
+      "installed": "6.21.0",
+      "optional": false
+    },
+    "node_modules/universal-user-agent": {
+      "locked": "7.0.3",
+      "installed": "7.0.3",
+      "optional": false
+    },
+    "node_modules/unpipe": {
+      "locked": "1.0.0",
+      "installed": "1.0.0",
+      "optional": false
+    },
+    "node_modules/update-browserslist-db": {
+      "locked": "1.1.1",
+      "installed": "1.1.1",
+      "optional": false
+    },
+    "node_modules/use-callback-ref": {
+      "locked": "1.3.3",
+      "installed": "1.3.3",
+      "optional": false
+    },
+    "node_modules/use-sidecar": {
+      "locked": "1.1.3",
+      "installed": "1.1.3",
+      "optional": false
+    },
+    "node_modules/use-sync-external-store": {
+      "locked": "1.2.2",
+      "installed": "1.2.2",
+      "optional": false
+    },
+    "node_modules/util-deprecate": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/utils-merge": {
+      "locked": "1.0.1",
+      "installed": "1.0.1",
+      "optional": false
+    },
+    "node_modules/vary": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/vaul": {
+      "locked": "1.1.2",
+      "installed": "1.1.2",
+      "optional": false
+    },
+    "node_modules/victory-vendor": {
+      "locked": "36.9.2",
+      "installed": "36.9.2",
+      "optional": false
+    },
+    "node_modules/vite": {
+      "locked": "7.3.0",
+      "installed": "7.3.0",
+      "optional": false
+    },
+    "node_modules/vite/node_modules/@esbuild/aix-ppc64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/android-arm": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/android-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/android-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/darwin-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/darwin-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/freebsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/freebsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-arm": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-ia32": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-loong64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-mips64el": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-ppc64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-riscv64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-s390x": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/linux-x64": {
+      "locked": "0.27.2",
+      "installed": "0.27.2",
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/netbsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/netbsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/openbsd-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/openbsd-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/openharmony-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/sunos-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/win32-arm64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/win32-ia32": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/@esbuild/win32-x64": {
+      "locked": "0.27.2",
+      "installed": null,
+      "optional": true
+    },
+    "node_modules/vite/node_modules/esbuild": {
+      "locked": "0.27.2",
+      "installed": "0.27.2",
+      "optional": false
+    },
+    "node_modules/vite/node_modules/fdir": {
+      "locked": "6.5.0",
+      "installed": "6.5.0",
+      "optional": false
+    },
+    "node_modules/vite/node_modules/picomatch": {
+      "locked": "4.0.3",
+      "installed": "4.0.3",
+      "optional": false
+    },
+    "node_modules/vitest": {
+      "locked": "4.1.11",
+      "installed": "4.1.11",
+      "optional": false
+    },
+    "node_modules/vitest/node_modules/picomatch": {
+      "locked": "4.0.7",
+      "installed": "4.0.7",
+      "optional": false
+    },
+    "node_modules/w3c-xmlserializer": {
+      "locked": "5.0.0",
+      "installed": "5.0.0",
+      "optional": false
+    },
+    "node_modules/webidl-conversions": {
+      "locked": "8.0.1",
+      "installed": "8.0.1",
+      "optional": false
+    },
+    "node_modules/whatwg-mimetype": {
+      "locked": "5.0.0",
+      "installed": "5.0.0",
+      "optional": false
+    },
+    "node_modules/whatwg-url": {
+      "locked": "16.0.1",
+      "installed": "16.0.1",
+      "optional": false
+    },
+    "node_modules/which": {
+      "locked": "2.0.2",
+      "installed": "2.0.2",
+      "optional": false
+    },
+    "node_modules/why-is-node-running": {
+      "locked": "2.3.0",
+      "installed": "2.3.0",
+      "optional": false
+    },
+    "node_modules/wouter": {
+      "locked": "3.3.5",
+      "installed": "3.3.5",
+      "optional": false
+    },
+    "node_modules/wrap-ansi": {
+      "locked": "8.1.0",
+      "installed": "8.1.0",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs": {
+      "locked": "7.0.0",
+      "installed": "7.0.0",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs/node_modules/ansi-regex": {
+      "locked": "5.0.1",
+      "installed": "5.0.1",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs/node_modules/ansi-styles": {
+      "locked": "4.3.0",
+      "installed": "4.3.0",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs/node_modules/emoji-regex": {
+      "locked": "8.0.0",
+      "installed": "8.0.0",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs/node_modules/string-width": {
+      "locked": "4.2.3",
+      "installed": "4.2.3",
+      "optional": false
+    },
+    "node_modules/wrap-ansi-cjs/node_modules/strip-ansi": {
+      "locked": "6.0.1",
+      "installed": "6.0.1",
+      "optional": false
+    },
+    "node_modules/wrappy": {
+      "locked": "1.0.2",
+      "installed": "1.0.2",
+      "optional": false
+    },
+    "node_modules/ws": {
+      "locked": "8.18.0",
+      "installed": "8.18.0",
+      "optional": false
+    },
+    "node_modules/xml-name-validator": {
+      "locked": "5.0.0",
+      "installed": "5.0.0",
+      "optional": false
+    },
+    "node_modules/xmlchars": {
+      "locked": "2.2.0",
+      "installed": "2.2.0",
+      "optional": false
+    },
+    "node_modules/xtend": {
+      "locked": "4.0.2",
+      "installed": "4.0.2",
+      "optional": false
+    },
+    "node_modules/yallist": {
+      "locked": "3.1.1",
+      "installed": "3.1.1",
+      "optional": false
+    },
+    "node_modules/yaml": {
+      "locked": "2.6.0",
+      "installed": "2.6.0",
+      "optional": false
+    },
+    "node_modules/zod": {
+      "locked": "3.24.2",
+      "installed": "3.24.2",
+      "optional": false
+    },
+    "node_modules/zod-validation-error": {
+      "locked": "3.4.0",
+      "installed": "3.4.0",
+      "optional": false
+    }
+  },
+  "source_unchanged": true,
+  "copy_unchanged": true
+}

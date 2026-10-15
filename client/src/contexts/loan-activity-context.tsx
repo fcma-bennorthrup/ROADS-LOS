@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { loanIdFromPath } from "@/lib/loan-path";
 
 export interface ActivityItem {
   id: number | string;
@@ -46,7 +47,7 @@ const INITIAL_ACTIVITY_ITEMS: ActivityItem[] = [
 const ACTIVITY_STORAGE_PREFIX = "loan-runtime-activity";
 
 function getLoanStorageKey(location: string): string {
-  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  const loanId = loanIdFromPath(location, "prototype");
   return `${ACTIVITY_STORAGE_PREFIX}:${loanId}`;
 }
 
@@ -140,8 +141,12 @@ function LoanActivityStateProvider({
       prev.some((existing) => existing.id === item.id) ? prev : [...prev, item],
     );
   };
-  const resetRuntimeActivities = () =>
+  const resetRuntimeActivities = () => {
+    // Reset is coordinated explicitly; unlike ordinary prototype updates, a
+    // denied reset write must be reported and must not clear mounted activity.
+    localStorage.setItem(storageKey, "[]");
     setActivityItems(INITIAL_ACTIVITY_ITEMS.map((item) => ({ ...item })));
+  };
 
   return (
     <LoanActivityContext.Provider
