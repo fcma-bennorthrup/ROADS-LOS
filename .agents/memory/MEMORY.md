@@ -10,3 +10,4 @@
 - [Decision letter semantics](decision-letter-semantics.md) — A pre-decision letter needs regeneration after approval; preserving its completed status was rejected.
 - [Decision display restoration](decision-display-restoration.md) — Approved checklist-based return/reload restoration excludes credit persistence and workflow-order repairs.
 - [History loan scope](history-loan-scope.md) — Remove sample rows; keep an empty, viewport-filling table until loan-specific history exists.
+- [Package coordination policy](package-coordination-policy.md) — Approved stale-consumer protection; no-Web-Locks fallback is explicitly best effort across tabs.

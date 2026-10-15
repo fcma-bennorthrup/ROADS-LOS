@@ -32,3 +32,13 @@ can capture the old position even though synchronous DOM measurements agree.
 **How to apply:** Use an ESM-compatible fixture build for consumers with module
 URLs. Keep application styles intact and settle scrolling/animations in the
 fixture rather than accepting or hiding unexplained pixel differences.
+
+Keep generated Tailwind utilities and bundler-extracted component CSS in
+different output files, and include both in disposable HTML.
+
+**Why:** A bundle named like the generated stylesheet can overwrite that file
+with extracted raw CSS. Baseline and candidate can then match while both are
+missing utilities, so equality alone is not evidence of a valid styled fixture.
+
+**How to apply:** Inspect a rendered capture in addition to comparing hashes;
+do not count unstyled matching captures as visual preservation evidence.
