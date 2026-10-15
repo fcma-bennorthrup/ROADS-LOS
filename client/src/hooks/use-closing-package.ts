@@ -4,12 +4,13 @@ import {
   closingPackageStorageKey,
   emptyClosingPackageProgress,
   loadClosingPackageProgress,
+  subscribeClosingPackageReset,
   type ClosingPackageProgress,
 } from "@/lib/closing-package-progress";
 
 /** The parent is keyed by loan ID; this state never follows another loan. */
 export function useClosingPackage(loanId: string) {
-  const { demoResetVersion } = useChecklist();
+  const { demoResetVersion, demoResetPending } = useChecklist();
   const [initial] = useState(() => {
     try {
       return { progress: loadClosingPackageProgress(loanId), error: null };
@@ -24,6 +25,14 @@ export function useClosingPackage(loanId: string) {
   const [error, setError] = useState<string | null>(initial.error);
   const progressRef = useRef(progress);
   const resetVersion = useRef(demoResetVersion);
+
+  useEffect(() => subscribeClosingPackageReset(loanId, () => {
+    const next = emptyClosingPackageProgress();
+    // Invalidate the timer before React's next render/effect cleanup.
+    progressRef.current = next;
+    setProgress(next);
+    setError(null);
+  }), [loanId]);
 
   function save(next: ClosingPackageProgress) {
     try {
@@ -69,11 +78,11 @@ export function useClosingPackage(loanId: string) {
     lastDelivered: progress.deliveredAt,
     error,
     generate() {
-      if (progressRef.current.generatingUntil || error) return;
+      if (demoResetPending || progressRef.current.generatingUntil || error) return;
       save({ ...progressRef.current, generatingUntil: new Date(Date.now() + 5000).toISOString() });
     },
     deliver() {
-      if (!progressRef.current.generatedAt || progressRef.current.generatingUntil || error) return;
+      if (demoResetPending || !progressRef.current.generatedAt || progressRef.current.generatingUntil || error) return;
       save({ ...progressRef.current, deliveredAt: new Date().toISOString() });
     },
   };

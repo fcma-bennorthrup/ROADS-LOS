@@ -141,8 +141,12 @@ function LoanActivityStateProvider({
       prev.some((existing) => existing.id === item.id) ? prev : [...prev, item],
     );
   };
-  const resetRuntimeActivities = () =>
+  const resetRuntimeActivities = () => {
+    // Reset is coordinated explicitly; unlike ordinary prototype updates, a
+    // denied reset write must be reported and must not clear mounted activity.
+    localStorage.setItem(storageKey, "[]");
     setActivityItems(INITIAL_ACTIVITY_ITEMS.map((item) => ({ ...item })));
+  };
 
   return (
     <LoanActivityContext.Provider

@@ -56,11 +56,15 @@ export function updateClosingDisclosureHistory(
   loanId: string,
   update: (current: ClosingDisclosureHistory) => ClosingDisclosureHistory,
   reset = false,
+  signal?: AbortSignal,
+  committed?: () => void,
 ): void | Promise<void> {
   const write = () => {
+    if (signal?.aborted) throw new Error("Demo reset cancelled");
     const current = reset ? { records: [], resetToken: null } : loadClosingDisclosureHistory(loanId);
     const next = update(current);
     localStorage.setItem(closingDisclosureStorageKey(loanId), JSON.stringify(next));
+    committed?.();
     // Native storage events only reach other windows.
     window.dispatchEvent(new CustomEvent(HISTORY_CHANGED, { detail: loanId }));
   };
@@ -71,12 +75,17 @@ export function updateClosingDisclosureHistory(
   write();
 }
 
-export function resetClosingDisclosureHistory(loanId: string, disclosureOnly = false) {
+export function resetClosingDisclosureHistory(
+  loanId: string,
+  disclosureOnly = false,
+  signal?: AbortSignal,
+  committed?: () => void,
+) {
   return updateClosingDisclosureHistory(loanId, () => ({
     records: [],
     resetToken: crypto.randomUUID(),
     ...(disclosureOnly ? { resetScope: "disclosure" as const } : {}),
-  }), true);
+  }), true, signal, committed);
 }
 
 export function subscribeClosingDisclosureHistory(

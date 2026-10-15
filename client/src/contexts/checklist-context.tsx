@@ -7,7 +7,8 @@ import {
   resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,
 } from "@/lib/closing-disclosure-history";
-import { closingPackageStorageKey } from "@/lib/closing-package-progress";
+import { resetClosingPackageProgress } from "@/lib/closing-package-progress";
+import { coordinateDemoReset, type DemoResetResult } from "@/lib/demo-reset";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -215,6 +216,7 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
   demoResetVersion: number;
+  demoResetPending: boolean;
   /** Claim the current reset once per section in this loan provider's lifetime. */
   consumeDemoReset: (section: "collateral" | "pricing") => boolean;
   /** Set an action to an explicit status and derive its parent task status. */
@@ -236,7 +238,7 @@ interface ChecklistContextValue {
    */
   resetTasks: (taskNames: string[]) => void;
   /** Reset tasks and notify mounted demo surfaces to clear their local state. */
-  resetDemoTasks: (taskNames: string[]) => void;
+  resetDemoTasks: (taskNames: string[], resetActivities?: () => void) => DemoResetResult | Promise<DemoResetResult>;
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
@@ -250,6 +252,18 @@ function ChecklistStateProvider({
 }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
   const [demoResetVersion, setDemoResetVersion] = useState(0);
+  const [demoResetPending, setDemoResetPending] = useState(false);
+  const resetController = useRef<AbortController | null>(null);
+  const mounted = useRef(true);
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      resetController.current?.abort();
+    };
+  }, []);
   // Intentionally not persisted: reloads and loan changes retain their existing
   // reset lifetime. An absent section can claim the reset on its first visit.
   const consumedDemoResets = useRef({ collateral: 0, pricing: 0 });
@@ -269,7 +283,7 @@ function ChecklistStateProvider({
       try {
         const nextHistory = loadClosingDisclosureHistory(loanId);
         const next = nextHistory.resetToken;
-        if (removed || next !== token) {
+        if ((removed || next !== token) && !resetController.current) {
           resetTasks(["Closing Disclosure"]);
           // Dedicated disclosure resets must not clear unrelated surfaces.
           // Preserve the broader Reset Demo broadcast for legacy/global resets.
@@ -373,59 +387,63 @@ function ChecklistStateProvider({
     );
   };
 
-  const resetDemoTasks = (taskNames: string[]) => {
-    if (taskNames.includes("Closing Package")) {
-      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
-      try {
-        localStorage.removeItem(closingPackageStorageKey(loanId));
-      } catch {
-        toast({
-          title: "Demo could not be reset",
-          description: "Closing Package progress could not be cleared. Enable browser storage and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    const finish = () => {
-      dismissToasts();
-      resetTasks(taskNames);
-      setDemoResetVersion((version) => version + 1);
+  function runReset(taskNames: string[], resetActivities?: () => void): DemoResetResult | Promise<DemoResetResult> {
+    if (resetController.current) return { outcome: "pending", cleared: [], notCleared: [] };
+    const controller = new AbortController();
+    resetController.current = controller;
+    setDemoResetPending(true);
+    const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+    const persistReset = (names: string[]) => {
+      const next = tasksRef.current.map((task) => {
+        if (!names.includes(task.name)) return task;
+        const initial = INITIAL_TASKS.find((candidate) => candidate.name === task.name)!;
+        return { ...initial, actions: initial.actions.map((action) => ({ ...action })) };
+      });
+      localStorage.setItem(storageKey, JSON.stringify(Object.fromEntries(
+        next.map((task) => [task.name, task.actions.map((action) => action.status)]),
+      )));
+      tasksRef.current = next;
+      setTasks(next);
     };
-    const failed = () => toast({
-      title: "Demo could not be reset",
-      description: "Disclosure history could not be cleared. Enable browser storage and try again.",
-      variant: "destructive",
+    const settle = (result: DemoResetResult) => {
+      resetController.current = null;
+      if (mounted.current) setDemoResetPending(false);
+      if (result.outcome === "complete") dismissToasts();
+      else toast({
+        title: "Demo reset incomplete",
+        description: `${result.outcome === "cancelled" ? "Remaining reset work was cancelled. " : ""}Cleared: ${result.cleared.join(", ") || "none"}. Not cleared: ${result.notCleared.join(", ")}. Enable browser storage and try Reset Demo again.`,
+        variant: "destructive",
+      });
+      return result;
+    };
+    const result = coordinateDemoReset({
+      signal: controller.signal,
+      package: taskNames.includes("Closing Package") ? () => resetClosingPackageProgress(loanId) : undefined,
+      disclosure: taskNames.includes("Closing Disclosure")
+        ? (committed) => resetClosingDisclosureHistory(loanId, false, controller.signal, committed) : undefined,
+      documentTasks: persistReset,
+      checklist: () => {
+        persistReset(taskNames);
+        setDemoResetVersion((version) => version + 1);
+      },
+      activity: resetActivities,
     });
-    // Clear persisted document history even when Closing Documents is unmounted.
-    if (taskNames.includes("Closing Disclosure")) {
-      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
-      try {
-        const result = resetClosingDisclosureHistory(loanId);
-        if (result) {
-          void result.then(finish, failed);
-          return;
-        }
-      } catch {
-        failed();
-        return;
-      }
-    }
-    finish();
-  };
+    return result instanceof Promise ? result.then(settle) : settle(result);
+  }
 
   return (
     <ChecklistContext.Provider
       value={{
         tasks,
         demoResetVersion,
+        demoResetPending,
         consumeDemoReset,
         setActionStatus,
         completeAction,
         getActionStatus,
         refireCompletedTask,
         resetTasks,
-        resetDemoTasks,
+        resetDemoTasks: runReset,
       }}
     >
       {children}

@@ -14,6 +14,22 @@ export function closingPackageStorageKey(loanId: string) {
   return `loan-closing-package:${loanId}`;
 }
 
+const PACKAGE_RESET = "closing-package-demo-reset";
+
+/** Notify mounted timers synchronously, but only after removal succeeds. */
+export function resetClosingPackageProgress(loanId: string) {
+  localStorage.removeItem(closingPackageStorageKey(loanId));
+  window.dispatchEvent(new CustomEvent(PACKAGE_RESET, { detail: loanId }));
+}
+
+export function subscribeClosingPackageReset(loanId: string, reset: () => void) {
+  const listener = (event: Event) => {
+    if ((event as CustomEvent<string>).detail === loanId) reset();
+  };
+  window.addEventListener(PACKAGE_RESET, listener);
+  return () => window.removeEventListener(PACKAGE_RESET, listener);
+}
+
 export function loadClosingPackageProgress(loanId: string): ClosingPackageProgress {
   const saved = localStorage.getItem(closingPackageStorageKey(loanId));
   if (saved === null) return emptyClosingPackageProgress();

@@ -5,6 +5,7 @@
 - [Verification baseline scope](verification-baseline-scope.md) — Documentation-only exceptions for isolated Origination checks do not authorize production or dependency drift.
 - [Prototype scope](prototype-scope.md) — This app is not intended for production; keep verification and implementation proportionate.
 - [Reset consumption scope](reset-consumption-scope.md) — Approved replay fix is limited to the current loan provider lifetime, not durable reset tracking.
+- [Partial demo reset policy](partial-reset-policy.md) — Explicit partial results and manual retry approved; no multi-key rollback or unrelated reset changes.
 - [Rate-lock date cancellation](rate-lock-date-policy.md) — Whole-dialog dismissal discards unconfirmed dates; calendar-only dismissal retains the draft.
 - [Decision letter semantics](decision-letter-semantics.md) — A pre-decision letter needs regeneration after approval; preserving its completed status was rejected.
 - [Decision display restoration](decision-display-restoration.md) — Approved checklist-based return/reload restoration excludes credit persistence and workflow-order repairs.
