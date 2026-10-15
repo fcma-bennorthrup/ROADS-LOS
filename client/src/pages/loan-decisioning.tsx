@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useLoanQuery } from "@/hooks/use-loan-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DecisioningSummaryContent } from "@/components/loan/DecisioningSummaryContent";
 import { BorrowerFinancialsContent } from "@/components/loan/BorrowerFinancialsContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
+import { formatCurrency } from "@/lib/loan-display";
 
 const DECISIONING_NAV_ITEMS = [
   "Decisioning Summary",
@@ -36,9 +36,7 @@ export default function LoanDecisioningPage() {
   const loanId = params.id || "1";
   const [activeNavItem, setActiveNavItem] = useState("Decisioning Summary");
 
-  const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
-    queryKey: ["/api/loans", loanId],
-  });
+  const { data: loan, isLoading, error } = useLoanQuery(loanId);
 
   if (isLoading) {
     return (

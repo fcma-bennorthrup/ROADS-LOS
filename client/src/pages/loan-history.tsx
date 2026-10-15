@@ -1,17 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useLoanQuery } from "@/hooks/use-loan-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { HistoryContent } from "@/components/loan/HistoryContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
+import { formatCurrency } from "@/lib/loan-display";
 
 export default function LoanHistoryPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
 
-  const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
-    queryKey: ["/api/loans", loanId],
-  });
+  const { data: loan, isLoading, error } = useLoanQuery(loanId);
 
   if (isLoading) {
     return (

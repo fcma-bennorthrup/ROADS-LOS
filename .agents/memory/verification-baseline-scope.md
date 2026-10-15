@@ -110,3 +110,22 @@ extraction while those verification limits remained explicit.
 
 **How to apply:** Keep the acceptance confined to this document extraction; do
 not claim font-loaded, exhaustive keyboard or background-throttling verification.
+
+The user accepted current local source as the before-reference for the thin
+loan-query extraction, retaining the previously accepted dependency lock.
+
+**Why:** Historical source hashes include earlier implementations and cannot
+serve as this extraction's current reference.
+
+**How to apply:** Report existing static failures separately; this acceptance
+does not waive visual checks or authorize neighboring repairs.
+
+For the thin loan-query extraction, the user accepted blocked-font rendering,
+the unchanged History sample-row test failure, and four tablet checklist
+focus-outline pixel differences (Origination, Documents, Closing/Booking, History).
+
+**Why:** Both versions had the same existing test failure; each listed capture
+differed by one pixel at (467,733) despite equal DOM, measured styles and geometry.
+
+**How to apply:** Keep acceptance confined to those comparisons. Additional
+differences require review; do not generalize to other extractions.
