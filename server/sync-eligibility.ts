@@ -9,6 +9,30 @@ export type FileOutcome =
   | { path: string; state: "absent" | "excluded" | "oversized" | "failed-read" };
 type Snapshot = Map<string, FileOutcome>;
 type Transport = Pick<typeof import("./github"), "getFileContent" | "getFileContentAtCommit">;
+type KnownContent = Map<string, string>;
+
+export class SnapshotReadTimeout extends Error {
+  constructor() {
+    super("GitHub file comparison timed out. No files were changed. Check sync status before retrying.");
+  }
+}
+
+// This deadline covers only a single immutable content read, never an upload,
+// publication, local write or the overall mutation. Late reads cannot resume
+// the failed comparison or proceed to writes.
+export async function readSnapshotContent<T>(read: () => Promise<T>, milliseconds = 20_000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      Promise.resolve().then(read),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new SnapshotReadTimeout()), milliseconds);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 export const BLOCKED_ELIGIBILITY_PLAN =
   "Pending conflicts contain files incompatible with the sync eligibility policy. Cancel these conflicts, then retry the sync.";
@@ -71,7 +95,7 @@ export function collectLocalSnapshot(fs: SyncFilesystem, root: string): Snapshot
   return snapshot;
 }
 
-async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: string, repo: string, ref: string, base = false): Promise<Snapshot> {
+async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: string, repo: string, ref: string, base = false, known: KnownContent = new Map()): Promise<Snapshot> {
   const snapshot: Snapshot = new Map();
   for (const item of tree) {
     if (item.type !== "blob" || shouldIgnorePath(item.path)) continue;
@@ -81,17 +105,20 @@ async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: str
     }
     try {
       const encoding = isBinaryFile(item.path) ? "base64" : "utf-8";
-      const content = base
-        ? await transport.getFileContentAtCommit(owner, repo, item.path, ref, encoding)
-        : await transport.getFileContent(owner, repo, item.path, ref, encoding);
+      const key = `${item.sha}:${encoding}`;
+      const content = known.has(key) ? known.get(key)! : await readSnapshotContent(() => base
+        ? transport.getFileContentAtCommit(owner, repo, item.path, ref, encoding)
+        : transport.getFileContent(owner, repo, item.path, ref, encoding));
       if (content === null) throw new Error("Listed file could not be downloaded");
       const bytes = Buffer.from(content, encoding === "base64" ? "base64" : "utf8");
+      if (bytes.length <= MAX_FILE_SIZE && computeGitBlobSha(bytes) === item.sha) known.set(key, content);
       snapshot.set(item.path, bytes.length > MAX_FILE_SIZE
         ? { path: item.path, state: "oversized" }
         : { path: item.path, state: "eligible", file: {
           path: item.path, content, ...(encoding === "base64" ? { encoding } : {}),
         } });
-    } catch {
+    } catch (error) {
+      if (error instanceof SnapshotReadTimeout) throw error;
       snapshot.set(item.path, { path: item.path, state: "failed-read" });
     }
   }
@@ -106,8 +133,16 @@ export async function prepareEligibility(
 ) {
   if (remoteTree.length && !remoteRef) throw new Error("Remote snapshot requires a captured commit");
   const local = collectLocalSnapshot(fs, root);
-  const remote = await remoteSnapshot(remoteTree, transport, owner, repo, remoteRef ?? "");
-  const base = baseRef ? await remoteSnapshot(baseTree, transport, owner, repo, baseRef, true) : new Map<string, FileOutcome>();
+  const known: KnownContent = new Map();
+  for (const item of Array.from(local.values())) {
+    if (item.state !== "eligible") continue;
+    const encoding = item.file.encoding ?? "utf-8";
+    const bytes = Buffer.from(item.file.content, encoding === "base64" ? "base64" : "utf8");
+    // Invalid UTF-8 must not be reused as if it preserved the original bytes.
+    if (computeGitBlobSha(bytes) === item.rawSha) known.set(`${item.rawSha}:${encoding}`, item.file.content);
+  }
+  const remote = await remoteSnapshot(remoteTree, transport, owner, repo, remoteRef ?? "", false, known);
+  const base = baseRef ? await remoteSnapshot(baseTree, transport, owner, repo, baseRef, true, known) : new Map<string, FileOutcome>();
   const paths = new Set([...Array.from(local.keys()), ...Array.from(remote.keys()), ...Array.from(base.keys())]);
   // Probe remote-only paths: unreadable is not the same as absent.
   for (const name of Array.from(paths)) if (!local.has(name)) local.set(name, readLocalFile(fs, root, name));
