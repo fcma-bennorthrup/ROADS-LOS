@@ -6,6 +6,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import vm from "node:vm";
 import { AsyncLocalStorage } from "node:async_hooks";
+import * as net from "node:net";
 import { pathToFileURL } from "node:url";
 
 const root = process.cwd();
@@ -64,11 +65,18 @@ export async function run(code, scenario, polluted = false) {
   const originalDenied = Object.fromEntries(Object.entries(local).filter(([name]) => deniedPaths.includes(name)));
   let last = scenario.last === undefined ? "base" : scenario.last;
   let pending = scenario.pending ? plain(scenario.pending) : null;
+  if (pending && scenario.decoratePending) {
+    pending.localHashes = Object.fromEntries([...new Set([
+      ...pending.conflicts.map(f => f.path), ...pending.safeToUpdate.map(f => f.path),
+      ...(pending.safeToDelete ?? []),
+    ])].sort().map(name => [name, name in local ? blobSha(local[name]) : null]));
+  }
   const trace = [];
   let journalWrites = 0;
   let journalRenames = 0;
   const key = (name) => path.posix.relative("/fixture", String(name));
   const files = {
+    realpathSync(name) { return name; },
     readdirSync(dir) {
       const prefix = key(dir) ? `${key(dir)}/` : "";
       trace.push(["list", key(dir)]);
@@ -109,6 +117,7 @@ export async function run(code, scenario, polluted = false) {
     },
     writeFileSync(name, content, encoding) {
       trace.push(["write", key(name), String(content), encoding ?? null]);
+      scenario.onWrite?.({ name: key(name), content, local });
       if (key(name) === ".local/github-sync-recovery.json.tmp" &&
           ++journalWrites === scenario.failJournalWrite) {
         local[key(name)] = '{"torn":';
@@ -143,8 +152,9 @@ export async function run(code, scenario, polluted = false) {
     async createRepository(name, options) { trace.push(["create-repo", name, options]); return { name }; },
     async getRepoTree() {
       trace.push(["head-tree"]);
+      const change = await scenario.onTree?.({ local, remote, trace });
       if (scenario.failHead) throw new Error("synthetic head failure");
-      return { commitSha: scenario.head ?? "head", tree: tree(remote).map((item) => ({
+      return { commitSha: change?.head ?? scenario.head ?? "head", tree: tree(remote).map((item) => ({
         ...item, size: scenario.remoteSizes?.[item.path] ?? Buffer.byteLength(remote[item.path]),
       })) };
     },
@@ -155,8 +165,9 @@ export async function run(code, scenario, polluted = false) {
     },
     async getFileContent(_owner, _repo, name, _ref, encoding = "utf-8") {
       trace.push(["head-content", name]);
+      const change = await scenario.onContent?.({ local, remote, name, ref: _ref, trace });
       if (scenario.fetchErrors?.[name]) throw new Error(scenario.fetchErrors[name]);
-      const value = scenario.remoteAtFetch?.[name] ?? remote[name];
+      const value = change?.content ?? scenario.remoteAtFetch?.[name] ?? remote[name];
       return scenario.nullFetch === name || value === undefined ? null : Buffer.from(value).toString(encoding);
     },
     async getFileContentAtCommit(_owner, _repo, name, ref, encoding = "utf-8") {
@@ -169,7 +180,11 @@ export async function run(code, scenario, polluted = false) {
       if (scenario.failPush) throw new Error("synthetic push failure");
       return { commitSha: "pushed", filesCount: updates.length };
     },
-    async githubRequest() { trace.push(["ref"]); return { object: { sha: scenario.head ?? "head" } }; },
+    async githubRequest() {
+      trace.push(["ref"]);
+      const change = await scenario.onRef?.({ local, remote, trace });
+      return { object: { sha: change?.head ?? scenario.head ?? "head" } };
+    },
     async pushCodebase() { throw new Error("Unexpected legacy push"); },
   };
   const modules = {
@@ -190,7 +205,11 @@ export async function run(code, scenario, polluted = false) {
         if (scenario.failPending) throw new Error("synthetic pending save failure");
         pending = plain(value);
       },
-      clearPendingConflicts() { trace.push(["clear-pending"]); pending = null; },
+      clearPendingConflicts() {
+        trace.push(["clear-pending"]);
+        if (scenario.failClear) throw new Error("synthetic pending clear failure");
+        pending = null;
+      },
     },
   };
   const handlers = new Map();
@@ -201,13 +220,14 @@ export async function run(code, scenario, polluted = false) {
   const context = vm.createContext({
     exports, module: { exports }, Buffer,
     Date: class extends Date { constructor(...args) { super(...(args.length ? args : ["2026-10-14T16:00:00Z"])); } static now() { return 1791993600000; } },
-    process: { cwd: () => "/fixture" },
+    process: { cwd: () => "/fixture", platform: "linux" },
     console: { warn() {}, error() {} },
     require(name) {
       if (name.startsWith("fake:") && fakeModules.includes(name.slice(5))) return modules[name.slice(5)];
       if (name === "fs") return files;
       if (name === "path" || name === "node:path") return path;
       if (name === "node:async_hooks") return { AsyncLocalStorage };
+      if (name === "node:net") return net;
       if (name === "crypto") return crypto;
       if (name === "http") return {};
       throw new Error(`Forbidden module: ${name}`);
@@ -223,7 +243,7 @@ export async function run(code, scenario, polluted = false) {
     : context.module.exports.registerRoutes;
   await register({}, app);
   const responses = [];
-  for (const request of scenario.requests ?? [[scenario.route, scenario.body ?? {}]]) {
+  async function invoke(request) {
     let status = 200;
     let bytes;
     const res = {
@@ -231,8 +251,19 @@ export async function run(code, scenario, polluted = false) {
       status(value) { status = value; return res; },
       json(value) { bytes = JSON.stringify(value); return res; },
     };
-    await handlers.get(request[0])({ body: request[1] }, res);
-    responses.push({ status, bytes });
+    let body = request[1];
+    if (scenario.autoPlan && request[0] === "post /api/github/resolve-conflicts") {
+      const record = local[".local/github-sync-recovery.json"] && JSON.parse(local[".local/github-sync-recovery.json"]);
+      const current = record?.pendingFile
+        ? JSON.parse(local[`.local/github-sync-conflicts/${record.pendingFile}.json`]) : pending;
+      body = { ...body, planId: current && blobSha(JSON.stringify(current)) };
+    }
+    await handlers.get(request[0])({ body }, res);
+    return { status, bytes };
+  }
+  await scenario.onRegistered?.({ invoke, local, trace });
+  for (const request of scenario.requests ?? [[scenario.route, scenario.body ?? {}]]) {
+    responses.push(await invoke(request));
   }
   if (polluted) {
     assert.deepEqual(Object.fromEntries(Object.entries(local).filter(([name]) => deniedPaths.includes(name))), originalDenied);

@@ -16,4 +16,5 @@ treated as proof that no write occurred.
 state. Preserve successful UI and use the approved failure wording: “Sync
 incomplete. The checkpoint was not advanced. Some changes may already have been
 applied. Review the result before retrying.” Snapshot pinning, stale-resolution
-ordering and concurrent-operation locking remain separately scoped.
+ordering and concurrent-operation locking were subsequently approved separately;
+see [Sync snapshot policy](sync-snapshot-policy.md).

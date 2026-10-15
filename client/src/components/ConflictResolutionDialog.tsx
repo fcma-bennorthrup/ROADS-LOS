@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,6 +36,7 @@ interface ConflictFile {
 }
 
 interface ConflictsResponse {
+  planId?: string;
   hasConflicts: boolean;
   operation: "push" | "pull" | null;
   remoteHeadSha?: string;
@@ -160,6 +161,7 @@ export function ConflictResolutionDialog({
   });
 
   const data = externalData || fetchedData;
+  const selectedPlanId = useRef<string | undefined>(undefined);
   const conflicts = data?.conflicts || [];
   const operation = data?.operation;
 
@@ -167,12 +169,13 @@ export function ConflictResolutionDialog({
 
   const setResolution = useCallback(
     (filePath: string, choice: ResolutionChoice, content: string | null) => {
+      if (Object.keys(resolutions).length === 0) selectedPlanId.current = data?.planId;
       setResolutions((prev) => ({
         ...prev,
         [filePath]: { choice, content },
       }));
     },
-    []
+    [data?.planId, resolutions]
   );
 
   const allResolved = useMemo(() => {
@@ -196,6 +199,7 @@ export function ConflictResolutionDialog({
       });
       const res = await apiRequest("POST", "/api/github/resolve-conflicts", {
         resolutions: resolutionEntries,
+        planId: selectedPlanId.current ?? data?.planId,
       });
       return await res.json();
     },

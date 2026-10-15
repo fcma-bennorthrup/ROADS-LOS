@@ -12,6 +12,8 @@ import { computeGitBlobSha } from "./sync-plan";
 import { createSyncMechanics, shouldIgnorePath, isBinaryFile, type SyncFilesystem } from "./sync-mechanics";
 import { prepareEligibility, assertBinarySafety, EligibilityError, oversizedMessage, incompatiblePendingPlan, BLOCKED_ELIGIBILITY_PLAN, readLocalFile } from "./sync-eligibility";
 import { createSyncRecovery } from "./sync-recovery";
+import { createSyncCoordinator } from "./sync-coordination";
+import { snapshotHashes, assertLocalHashes, pendingPlanId, StaleSyncError } from "./sync-snapshot";
 
 export interface SyncRouteAdapters {
   filesystem: SyncFilesystem;
@@ -25,6 +27,7 @@ export interface SyncRouteAdapters {
 // One registrar owns its helper adapters; each registration still owns its
 // original status cache. No defaults are silently substituted for test adapters.
 export function createSyncRouteRegistrar(adapters: SyncRouteAdapters) {
+const coordinator = createSyncCoordinator(path.resolve(adapters.cwd()));
 const recovery = createSyncRecovery(adapters);
 adapters = recovery.adapters;
 const fs = adapters.filesystem;
@@ -98,13 +101,15 @@ async function registerRoutes(
     }
   });
 
-  let syncStatusCache: { data: any; timestamp: number } | null = null;
+  let syncStatusCache: { data: any; timestamp: number; revision: string } | null = null;
   const SYNC_STATUS_CACHE_TTL = 5000;
 
-  app.get("/api/github/sync-status", async (_req, res) => {
+  app.get("/api/github/sync-status", coordinator.wrap(async (_req, res) => {
     try {
       const now = Date.now();
-      if (syncStatusCache && (now - syncStatusCache.timestamp) < SYNC_STATUS_CACHE_TTL && !recovery.result()) {
+      const revision = recovery.revision();
+      if (syncStatusCache && syncStatusCache.revision === revision &&
+          (now - syncStatusCache.timestamp) < SYNC_STATUS_CACHE_TTL && !recovery.result()) {
         return res.json(syncStatusCache.data);
       }
 
@@ -145,14 +150,14 @@ async function registerRoutes(
         ...(incomplete ? { recovery: incomplete } : {}),
       };
 
-      syncStatusCache = { data: result, timestamp: now };
+      syncStatusCache = { data: result, timestamp: now, revision };
       res.json(result);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
-  });
+  }));
 
-   app.post("/api/github/pull", recovery.wrap("pull", async (req, res) => {
+   app.post("/api/github/pull", coordinator.wrap(recovery.wrap("pull", async (req, res) => {
     try {
       syncStatusCache = null;
       const force = req.body?.force === true;
@@ -175,8 +180,11 @@ async function registerRoutes(
         }
       }
       const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
-        remoteTree, baseTree, usableBase ? lastSyncedSha! : undefined);
+        remoteTree, baseTree, usableBase ? lastSyncedSha! : undefined, remoteHeadSha);
       assertBinarySafety(snapshot, usableBase);
+      await recovery.assertHead(OWNER, REPO, remoteHeadSha);
+      assertLocalHashes(fs, projectRoot, snapshotHashes(snapshot.localHashes,
+        [...snapshot.local, ...snapshot.remote, ...snapshot.base].map((f) => f.path)));
       const suffix = oversizedMessage(snapshot.skipped.length);
 
       if (!force && lastSyncedSha && lastSyncedSha === remoteHeadSha) {
@@ -272,12 +280,14 @@ async function registerRoutes(
           conflicts: report.conflicts,
           safeToUpdate: [],
           remoteHeadSha,
+          localHashes: snapshotHashes(snapshot.localHashes, report.conflicts.map((f) => f.path)),
           createdAt: new Date().toISOString(),
         });
       }
 
       res.json({
         commitSha: remoteHeadSha,
+        ...(report.conflicts.length ? { planId: pendingPlanId(getPendingConflicts()!) } : {}),
         filesUpdated: updatedCount,
         filesDeleted: deletedCount,
         safeFiles: report.safeToUpdate.map((f) => f.path),
@@ -296,11 +306,11 @@ async function registerRoutes(
           : `Pulled ${updatedCount} files, deleted ${deletedCount} from ${OWNER}/${REPO}${suffix}`,
       });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(error instanceof StaleSyncError ? 409 : 500).json({ error: error.message });
     }
-  }));
+  })));
 
-  app.post("/api/github/push", recovery.wrap("push", async (req, res) => {
+  app.post("/api/github/push", coordinator.wrap(recovery.wrap("push", async (req, res) => {
     try {
       syncStatusCache = null;
       const commitMessage = req.body?.message || "Update codebase from Replit";
@@ -325,8 +335,11 @@ async function registerRoutes(
         }
       }
       const snapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
-        remoteTree, baseTreeData.tree, usableBase ? lastSyncedSha! : undefined);
+        remoteTree, baseTreeData.tree, usableBase ? lastSyncedSha! : undefined, remoteHeadSha);
       assertBinarySafety(snapshot, usableBase);
+      await recovery.assertHead(OWNER, REPO, remoteHeadSha);
+      assertLocalHashes(fs, projectRoot, snapshotHashes(snapshot.localHashes,
+        [...snapshot.local, ...snapshot.remote, ...snapshot.base].map((f) => f.path)));
       const localFiles = snapshot.local;
       const eligibleRemoteTree = remoteTree.filter((item: any) => !snapshot.skipped.includes(item.path) && !snapshot.excluded.includes(item.path));
       const suffix = oversizedMessage(snapshot.skipped.length);
@@ -349,12 +362,16 @@ async function registerRoutes(
             safeToUpdate: report.safeToUpdate,
             safeToDelete: report.safeToDelete,
             remoteHeadSha,
+            localHashes: snapshotHashes(snapshot.localHashes, [
+              ...report.conflicts.map((f) => f.path), ...report.safeToUpdate.map((f) => f.path), ...report.safeToDelete,
+            ]),
             commitMessage,
             createdAt: new Date().toISOString(),
           });
 
           res.status(409).json({
             error: "Push blocked due to conflicts",
+            planId: pendingPlanId(getPendingConflicts()!),
             message: `${report.conflicts.length} file(s) were modified both locally and remotely since last sync. Resolve conflicts before pushing.${suffix}`,
             conflicts: report.conflicts.map((c) => ({
               path: c.path,
@@ -464,11 +481,11 @@ async function registerRoutes(
         message: `Successfully pushed ${result.filesCount} changed file(s)${deletions.length > 0 ? ` and deleted ${deletions.length} file(s)` : ""} to ${OWNER}/${REPO} (${localFiles.length - changedFiles.length} unchanged files preserved on remote)${result.skippedFiles && result.skippedFiles.length > 0 ? `. Skipped ${result.skippedFiles.length} oversized file(s): ${result.skippedFiles.map((s: any) => s.path).join(", ")}` : ""}${suffix}`,
       });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(error instanceof StaleSyncError ? 409 : 500).json({ error: error.message });
     }
-  }));
+  })));
 
-  app.get("/api/github/conflicts", async (_req, res) => {
+  app.get("/api/github/conflicts", coordinator.wrap(async (_req, res) => {
     try {
       const pending = getPendingConflicts();
       if (!pending) {
@@ -494,6 +511,7 @@ async function registerRoutes(
       res.json({
         hasConflicts: true,
         operation: pending.operation,
+        planId: pendingPlanId(pending),
         remoteHeadSha: pending.remoteHeadSha,
         commitMessage: pending.commitMessage || null,
         createdAt: pending.createdAt,
@@ -509,7 +527,7 @@ async function registerRoutes(
       const message = error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: message });
     }
-  });
+  }));
 
   interface ResolutionEntry {
     path: string;
@@ -517,7 +535,7 @@ async function registerRoutes(
     operation?: string;
   }
 
-  app.post("/api/github/resolve-conflicts", recovery.wrap("resolve-conflicts", async (req, res) => {
+  app.post("/api/github/resolve-conflicts", coordinator.wrap(recovery.wrap("resolve-conflicts", async (req, res) => {
     try {
       const rawBody = req.body;
       const resolutions: unknown[] = Array.isArray(rawBody) ? rawBody : rawBody?.resolutions;
@@ -572,6 +590,15 @@ async function registerRoutes(
         });
         return;
       }
+      if (rawBody?.planId !== pendingPlanId(pending)) throw new StaleSyncError();
+      const expectedLocal = pending.localHashes;
+      // Old plans have no complete local snapshot (including safe updates and
+      // deletions); never infer it from current files and bless stale work.
+      if (!expectedLocal) throw new StaleSyncError();
+      const expectedNames = [...pending.conflicts, ...pending.safeToUpdate,
+        ...(pending.safeToDelete ?? []).map((name) => ({ path: name }))].map((f) => f.path);
+      if (expectedNames.some((name) => !Object.hasOwn(expectedLocal, name))) throw new StaleSyncError();
+      assertLocalHashes(fs, projectRoot, recovery.localExpectations(expectedLocal));
 
       // Recheck eligibility before applying an older plan. This does not move
       // the existing stale-HEAD check or change write-failure recovery.
@@ -589,7 +616,7 @@ async function registerRoutes(
         }
       }
       const pendingSnapshot = await prepareEligibility(fs, adapters.github, projectRoot, OWNER, REPO,
-        currentTree.tree, resolutionBase, resolutionBaseRef);
+        currentTree.tree, resolutionBase, resolutionBaseRef, currentTree.commitSha);
       const plannedNames = new Set([...pending.conflicts, ...pending.safeToUpdate,
         ...(pending.safeToDelete ?? []).map((name) => ({ path: name }))].map((f) => f.path));
       if ([...pendingSnapshot.skipped, ...pendingSnapshot.excluded].some((name) => plannedNames.has(name))
@@ -608,20 +635,9 @@ async function registerRoutes(
         }, !!resolutionBaseRef);
       }
 
-      // Reject a stale push plan before recording intent or changing local
-      // files. Otherwise its recovery record would require an impossible retry.
-      if (pending.operation === "push") {
-        const branchRef = await githubRequest(`/repos/${OWNER}/${REPO}/git/ref/heads/main`);
-        const currentRemoteHead = branchRef.object?.sha as string;
-        if (currentRemoteHead && currentRemoteHead !== pending.remoteHeadSha) {
-          clearPendingConflicts();
-          res.status(409).json({
-            error: "Remote branch has advanced since conflicts were detected. Please pull again to get the latest changes.",
-            staleHead: true,
-          });
-          return;
-        }
-      }
+      if (currentTree.commitSha !== pending.remoteHeadSha) throw new StaleSyncError();
+      await recovery.assertHead(OWNER, REPO, pending.remoteHeadSha);
+      assertLocalHashes(fs, projectRoot, recovery.localExpectations(expectedLocal));
 
       const writtenFiles: string[] = [];
       const deletedFiles: string[] = [];
@@ -695,11 +711,11 @@ async function registerRoutes(
       }
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      res.status(500).json({ error: message });
+      res.status(error instanceof StaleSyncError ? 409 : 500).json({ error: message });
     }
-  }));
+  })));
 
-  app.delete("/api/github/conflicts", async (_req, res) => {
+  app.delete("/api/github/conflicts", coordinator.wrap(recovery.wrap("cancel-conflicts", async (_req, res) => {
     try {
       clearPendingConflicts();
       res.json({ message: "Pending conflicts cleared" });
@@ -707,7 +723,7 @@ async function registerRoutes(
       const message = error instanceof Error ? error.message : String(error);
       res.status(500).json({ error: message });
     }
-  });
+  })));
 
   return httpServer;
 }
@@ -720,6 +736,6 @@ export const registerRoutes = createSyncRouteRegistrar({
   github: { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit },
   checkpoint: { getLastSyncedCommit, setLastSyncedCommit },
   conflicts: { getPendingConflicts, setPendingConflicts, clearPendingConflicts },
-  cwd: () => process.cwd(),
+  cwd: () => fs.realpathSync(process.cwd()),
   clock: Date,
 });

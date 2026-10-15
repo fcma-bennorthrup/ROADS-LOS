@@ -1,4 +1,5 @@
 import { ReplitConnectors } from "@replit/connectors-sdk";
+import { StaleSyncError } from "./sync-snapshot";
 
 const connectors = new ReplitConnectors();
 
@@ -60,11 +61,13 @@ async function pushCodebaseWithDeletions(
   files: { path: string; content: string; encoding?: "utf-8" | "base64" }[],
   deletions: string[],
   message: string,
-  progress?: SyncUploadProgress
+  progress?: SyncUploadProgress,
+  expectedHead?: string,
 ) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
+  if (expectedHead && currentCommitSha !== expectedHead) throw new StaleSyncError();
   const currentCommit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${currentCommitSha}`);
   const baseTreeSha = currentCommit.tree.sha;
 
@@ -132,6 +135,8 @@ async function pushCodebaseWithDeletions(
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  const latest = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+  if (latest.object?.sha !== currentCommitSha) throw new StaleSyncError();
   progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",
@@ -142,10 +147,11 @@ async function pushCodebaseWithDeletions(
   return { commitSha: commit.sha, message: commit.message, filesCount: files.length - skippedFiles.length, deletedCount: deletions.length, skippedFiles };
 }
 
-async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string, progress?: SyncUploadProgress) {
+async function pushCodebase(owner: string, repo: string, files: { path: string; content: string; encoding?: "utf-8" | "base64" }[], message: string, progress?: SyncUploadProgress, expectedHead?: string) {
   const ref = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
   if (!ref.object?.sha) throw new Error(`Could not get ref for ${owner}/${repo}: ${JSON.stringify(ref)}`);
   const currentCommitSha = ref.object.sha;
+  if (expectedHead && currentCommitSha !== expectedHead) throw new StaleSyncError();
   const currentCommit = await githubRequest(`/repos/${owner}/${repo}/git/commits/${currentCommitSha}`);
   const baseTreeSha = currentCommit.tree.sha;
 
@@ -201,6 +207,8 @@ async function pushCodebase(owner: string, repo: string, files: { path: string; 
   });
   if (!commit.sha) throw new Error(`Commit creation failed: ${JSON.stringify(commit)}`);
 
+  const latest = await githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+  if (latest.object?.sha !== currentCommitSha) throw new StaleSyncError();
   progress?.({ state: "publishing" });
   await githubRequest(`/repos/${owner}/${repo}/git/refs/heads/main`, {
     method: "PATCH",

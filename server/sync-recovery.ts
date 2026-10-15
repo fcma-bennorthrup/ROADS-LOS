@@ -3,6 +3,8 @@ import * as path from "node:path";
 import { computeGitBlobSha } from "./sync-plan";
 import type { SyncRouteAdapters } from "./routes";
 import type { RequestHandler } from "express";
+import type { PendingConflicts } from "./pending-conflicts";
+import { StaleSyncError } from "./sync-snapshot";
 
 export const INCOMPLETE_SYNC =
   "Sync incomplete. The checkpoint was not advanced. Some changes may already have been applied. Review the result before retrying.";
@@ -22,12 +24,14 @@ type Record = {
   request: string;
   steps: Step[];
   remote?: { owner: string; repo: string; before: string };
+  pendingFile?: string | null;
 };
-type Session = { record: Record; started: boolean; checkpoint?: string; clear?: boolean };
+type Session = { record: Record; started: boolean; checkpoint?: string; clear?: boolean;
+  pending?: PendingConflicts; remoteHead?: string };
 
 // The journal contains hashes and paths, never source contents or credentials.
 // An unfinished journal is authoritative over a possibly interrupted checkpoint
-// write. Snapshot pinning and multi-process serialization are separate work.
+// write. The checkpoint and pending-generation pointer commit in one rename.
 export function createSyncRecovery(original: SyncRouteAdapters) {
   const context = new AsyncLocalStorage<Session>();
   const fs = original.filesystem;
@@ -44,12 +48,50 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
     return record;
   }
   function save(session: Session) {
+    if (session.record.pendingFile === undefined) {
+      session.record.pendingFile = storePending(pending());
+    }
     fs.mkdirSync(path.dirname(journal), { recursive: true });
     // Same-directory replacement keeps the last complete record readable if
     // writing the next record is interrupted. No multi-file transaction claimed.
     fs.writeFileSync(journal + ".tmp", JSON.stringify(session.record), "utf8");
     fs.renameSync(journal + ".tmp", journal);
     session.started = true;
+  }
+  function storePending(value: PendingConflicts | null): string | null {
+    if (!value) return null;
+    const bytes = JSON.stringify(value);
+    const name = computeGitBlobSha(Buffer.from(bytes));
+    const file = path.join(root, ".local/github-sync-conflicts", name + ".json");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file + ".tmp", bytes, "utf8");
+    fs.renameSync(file + ".tmp", file);
+    return name;
+  }
+  function pending(): PendingConflicts | null {
+    const record = read();
+    if (record?.pendingFile === undefined) return original.conflicts.getPendingConflicts();
+    if (record.pendingFile === null) return null;
+    if (!/^[a-f0-9]{40}$/.test(record.pendingFile)) throw new Error("Invalid pending conflict generation");
+    const bytes = fs.readFileSync(path.join(root, ".local/github-sync-conflicts", record.pendingFile + ".json"), "utf8");
+    if (computeGitBlobSha(Buffer.from(bytes)) !== record.pendingFile) throw new Error("Invalid pending conflict generation");
+    return JSON.parse(bytes);
+  }
+  function cleanPendingGenerations(active: string | null | undefined) {
+    const directory = path.join(root, ".local/github-sync-conflicts");
+    if (!fs.existsSync(directory)) return;
+    // Only successful completion retires old content-bearing generations.
+    // Interrupted operations retain their original generation for manual retry.
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (entry.isFile() && /^[a-f0-9]{40}\.json(?:\.tmp)?$/.test(entry.name) &&
+          entry.name !== `${active}.json`) fs.unlinkSync(path.join(directory, entry.name));
+    }
+  }
+  async function assertHead(owner: string, repo: string, expected: string) {
+    const ref = await original.github.githubRequest(`/repos/${owner}/${repo}/git/ref/heads/main`);
+    if (ref.object?.sha !== expected) throw new StaleSyncError();
+    const session = context.getStore();
+    if (session) session.remoteHead = expected;
   }
   function localHash(name: string): string | null {
     const full = path.resolve(root, name);
@@ -101,7 +143,7 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
     for (const step of steps) {
       const index = session.record.steps.findIndex((s) => s.path === step.path && s.action === step.action);
       if (index < 0) session.record.steps.push(step);
-      else session.record.steps[index] = step;
+      else session.record.steps[index] = { ...step, before: session.record.steps[index].before };
     }
     save(session);
   }
@@ -160,6 +202,14 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
     },
     conflicts: {
       ...original.conflicts,
+      getPendingConflicts: () => context.getStore()?.pending ?? pending(),
+      setPendingConflicts(value) {
+        const session = context.getStore();
+        if (!session) throw new Error("Pending conflicts require an operation");
+        save(session);
+        session.pending = value;
+        session.clear = false;
+      },
       clearPendingConflicts() {
         const session = context.getStore();
         if (session) session.clear = true;
@@ -173,6 +223,7 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
       const session = context.getStore();
       if (!session) throw new Error("Sync upload requires an operation");
       const remote = await original.github.getRepoTree(owner, repo);
+      if (!session.remoteHead || remote.commitSha !== session.remoteHead) throw new StaleSyncError();
       const hashes = new Map(remote.tree.filter((f: any) => f.type === "blob").map((f: any) => [f.path, f.sha]));
       const deletions = method === "pushCodebaseWithDeletions" ? args[0] as string[] : [];
       const steps: Step[] = [
@@ -195,7 +246,7 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
         }
         save(session);
       };
-      const result = await (original.github[method] as Function)(owner, repo, files, ...args, progress);
+      const result = await (original.github[method] as Function)(owner, repo, files, ...args, progress, session.remoteHead);
       if (result.skippedFiles?.length) throw new Error(INCOMPLETE_SYNC);
       steps.forEach((s) => { s.state = "completed"; });
       save(session);
@@ -207,7 +258,10 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
       let previous: Record | null;
       const request = computeGitBlobSha(Buffer.from(JSON.stringify({
         operation, force: req.body?.force === true,
-        ...(operation === "resolve-conflicts" ? { resolutions: req.body?.resolutions } : {}),
+        ...(operation === "resolve-conflicts" ? {
+          resolutions: Array.isArray(req.body) ? req.body : req.body?.resolutions,
+          planId: req.body?.planId,
+        } : {}),
       })));
       try {
         previous = read();
@@ -232,6 +286,7 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
       }
       const session: Session = { started: false, record: {
         version: 1, operation, request, checkpoint: checkpoint(), complete: false,
+        ...(previous?.pendingFile !== undefined ? { pendingFile: previous.pendingFile } : {}),
         steps: previous && !previous.complete ? [...previous.steps] : [],
         ...(previous && !previous.complete && previous.remote ? { remote: previous.remote } : {}),
       } };
@@ -267,23 +322,30 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
             }
           }
           if (!resumed) await handler(req, res, next);
-          if (res.statusCode >= 400) {
+          if (res.statusCode >= 400 && !body?.hasConflicts) {
             if (body?.staleHead && !session.started && !previous?.remote) {
               // Keep the actionable stale response. The explicit normal-pull
               // reconciliation path above handles any older local-only intent.
-              if (session.clear) original.conflicts.clearPendingConflicts();
+              // Stale rejection preserves the pending generation.
             } else if (session.started || (previous && !previous.complete)) {
               body = { error: INCOMPLETE_SYNC, outcomes: session.record.steps };
             }
           } else {
             if (previous && !previous.complete) await verifyFinished(previous);
+            if ((session.clear || session.pending) && !session.started) save(session);
+            const pendingFile = session.clear ? null : session.pending
+              ? storePending(session.pending) : session.record.pendingFile;
             if (session.checkpoint !== undefined) original.checkpoint.setLastSyncedCommit(session.checkpoint);
+            if (session.pending) original.conflicts.setPendingConflicts(session.pending);
+            if (session.clear) original.conflicts.clearPendingConflicts();
             if (session.started || previous) {
               session.record.complete = true;
               if (session.checkpoint !== undefined) session.record.checkpoint = session.checkpoint;
+              session.record.pendingFile = pendingFile;
               save(session);
             }
-            if (session.clear) original.conflicts.clearPendingConflicts();
+            try { cleanPendingGenerations(session.record.pendingFile); }
+            catch { console.warn("Obsolete sync metadata cleanup failed; retained generations will be retried after the next successful sync."); }
           }
         } catch {
           res.status(500);
@@ -294,7 +356,20 @@ export function createSyncRecovery(original: SyncRouteAdapters) {
       json(body);
     };
   }
-  return { adapters, wrap, planLocal, result: () => {
+  function localExpectations(expected: { [name: string]: string | null }) {
+    const result = { ...expected };
+    // Only a verified retry may accept bytes written by its own earlier attempt.
+    for (const step of context.getStore()?.record.steps ?? []) {
+      if (step.action !== "upload" && step.before === expected[step.path] &&
+          localHash(step.path) === step.after) result[step.path] = step.after;
+    }
+    return result;
+  }
+  return { adapters, wrap, planLocal, assertHead, localExpectations,
+    revision: () => computeGitBlobSha(Buffer.from(JSON.stringify(read() ?? {
+      checkpoint: original.checkpoint.getLastSyncedCommit(),
+    }))),
+    result: () => {
     const r = read();
     return r && !r.complete ? { message: INCOMPLETE_SYNC, operation: r.operation,
       outcomes: r.steps.map(({ path, action, state }) => ({ path, action, state })) } : null;

@@ -1,10 +1,11 @@
 import * as path from "path";
 import type { FileEntry } from "./conflict-detection";
 import { isBinaryFile, MAX_FILE_SIZE, shouldIgnorePath, type SyncFilesystem } from "./sync-mechanics";
+import { computeGitBlobSha } from "./sync-plan";
 
 export interface TreeFile { path: string; type: string; sha: string; size?: number }
 export type FileOutcome =
-  | { path: string; state: "eligible"; file: FileEntry }
+  | { path: string; state: "eligible"; file: FileEntry; rawSha?: string }
   | { path: string; state: "absent" | "excluded" | "oversized" | "failed-read" };
 type Snapshot = Map<string, FileOutcome>;
 type Transport = Pick<typeof import("./github"), "getFileContent" | "getFileContentAtCommit">;
@@ -42,7 +43,7 @@ export function readLocalFile(fs: SyncFilesystem, root: string, name: string): F
     const bytes = fs.readFileSync(path.join(root, name));
     if (bytes.length > MAX_FILE_SIZE) return { path: name, state: "oversized" };
     const binary = isBinaryFile(name);
-    return { path: name, state: "eligible", file: {
+    return { path: name, state: "eligible", rawSha: computeGitBlobSha(bytes), file: {
       path: name, content: bytes.toString(binary ? "base64" : "utf8"),
       ...(binary ? { encoding: "base64" as const } : {}),
     } };
@@ -70,7 +71,7 @@ export function collectLocalSnapshot(fs: SyncFilesystem, root: string): Snapshot
   return snapshot;
 }
 
-async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: string, repo: string, ref?: string): Promise<Snapshot> {
+async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: string, repo: string, ref: string, base = false): Promise<Snapshot> {
   const snapshot: Snapshot = new Map();
   for (const item of tree) {
     if (item.type !== "blob" || shouldIgnorePath(item.path)) continue;
@@ -80,9 +81,9 @@ async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: str
     }
     try {
       const encoding = isBinaryFile(item.path) ? "base64" : "utf-8";
-      const content = ref
+      const content = base
         ? await transport.getFileContentAtCommit(owner, repo, item.path, ref, encoding)
-        : await transport.getFileContent(owner, repo, item.path, "main", encoding);
+        : await transport.getFileContent(owner, repo, item.path, ref, encoding);
       if (content === null) throw new Error("Listed file could not be downloaded");
       const bytes = Buffer.from(content, encoding === "base64" ? "base64" : "utf8");
       snapshot.set(item.path, bytes.length > MAX_FILE_SIZE
@@ -101,11 +102,12 @@ async function remoteSnapshot(tree: TreeFile[], transport: Transport, owner: str
 // Every counterpart shares a path's exclusion/size decision before diffing.
 export async function prepareEligibility(
   fs: SyncFilesystem, transport: Transport, root: string, owner: string, repo: string,
-  remoteTree: TreeFile[], baseTree: TreeFile[], baseRef?: string,
+  remoteTree: TreeFile[], baseTree: TreeFile[], baseRef?: string, remoteRef?: string,
 ) {
+  if (remoteTree.length && !remoteRef) throw new Error("Remote snapshot requires a captured commit");
   const local = collectLocalSnapshot(fs, root);
-  const remote = await remoteSnapshot(remoteTree, transport, owner, repo);
-  const base = baseRef ? await remoteSnapshot(baseTree, transport, owner, repo, baseRef) : new Map<string, FileOutcome>();
+  const remote = await remoteSnapshot(remoteTree, transport, owner, repo, remoteRef ?? "");
+  const base = baseRef ? await remoteSnapshot(baseTree, transport, owner, repo, baseRef, true) : new Map<string, FileOutcome>();
   const paths = new Set([...Array.from(local.keys()), ...Array.from(remote.keys()), ...Array.from(base.keys())]);
   // Probe remote-only paths: unreadable is not the same as absent.
   for (const name of Array.from(paths)) if (!local.has(name)) local.set(name, readLocalFile(fs, root, name));
@@ -125,7 +127,10 @@ export async function prepareEligibility(
   if (failed.length) throw new EligibilityError(failed);
   const files = (snapshot: Snapshot) => Array.from(snapshot.values())
     .flatMap((item) => item.state === "eligible" ? [item.file] : []);
-  return { local: files(local), remote: files(remote), base: files(base), skipped, excluded: Array.from(excluded),
+  const localHashes = Object.fromEntries(Array.from(local.entries()).flatMap<[string, string | null]>(([name, entry]) =>
+    entry.state === "eligible" ? [[name, entry.rawSha!]] :
+      entry.state === "absent" ? [[name, null]] : []));
+  return { local: files(local), localHashes, remote: files(remote), base: files(base), skipped, excluded: Array.from(excluded),
     outcomes: Array.from(paths).map((name) => ({
       path: name,
       local: local.get(name)?.state ?? (excluded.has(name) ? "excluded" : skipped.includes(name) ? "oversized" : "absent"),
