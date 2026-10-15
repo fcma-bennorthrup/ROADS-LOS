@@ -9,16 +9,7 @@ import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
 import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import type { Loan, Borrower } from "@shared/schema";
-
-interface LoanWithBorrowers extends Loan {
-  borrowers: Borrower[];
-}
-
-function formatCurrency(value: string): string {
-  const num = parseFloat(value);
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
 
 function ComingSoon({ page }: { page: string }) {
   const message = page === "Fees" ? "Welcome to the party" : page === "Borrower Information" ? "Soon Coming" : "Coming Soon";

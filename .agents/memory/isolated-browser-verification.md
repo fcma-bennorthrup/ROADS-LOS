@@ -21,3 +21,14 @@ two animation frames can still leave checklist geometry and colors in motion.
 **How to apply:** Stabilize fixture inputs rather than normalizing away output
 differences or disabling production styles; compare settled captures separately
 from animation behavior, which those captures do not certify.
+
+Preserve module URL semantics in disposable browser builds and wait for a paint
+after programmatic scrolling before taking comparison screenshots.
+
+**Why:** Eager PDF URL initialization can fail before fixture mount when a
+bundler erases `import.meta.url`. Screenshots taken immediately after scrolling
+can capture the old position even though synchronous DOM measurements agree.
+
+**How to apply:** Use an ESM-compatible fixture build for consumers with module
+URLs. Keep application styles intact and settle scrolling/animations in the
+fixture rather than accepting or hiding unexplained pixel differences.

@@ -72,3 +72,22 @@ differences even when screenshot bytes matched.
 
 **How to apply:** Stabilize observation timing and property ordering without
 discarding values, rounding geometry or modifying application CSS.
+
+The user accepted current local source as the before-refactor reference solely
+for sharing identical loan-page types and currency formatting, retaining the
+accepted dependency lock and reporting existing static-check failures separately.
+
+**Why:** Previously merged component/provider changes no longer match the
+historical audit manifest; older exceptions did not authorize this comparison.
+
+**How to apply:** Keep this baseline acceptance local to that extraction's
+verification. It does not authorize repairs or waive visual proof requirements.
+
+For that loan-display extraction, the user subsequently accepted blocked-font
+verification and the observed Decisioning and Closing & Booking checklist
+focus-outline pixel differences at the tablet viewport; other comparisons stay strict.
+
+**Why:** DOM, styles and geometry agreed, but exact screenshot pixels did not.
+
+**How to apply:** Keep the exceptions confined to the two documented capture pairs.
+Do not treat it as a general pixel tolerance or font-loaded certification.

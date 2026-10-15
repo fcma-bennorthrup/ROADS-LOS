@@ -5,16 +5,7 @@ import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DocumentsContent, ClosingDocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import type { Loan, Borrower } from "@shared/schema";
-
-interface LoanWithBorrowers extends Loan {
-  borrowers: Borrower[];
-}
-
-function formatCurrency(value: string): string {
-  const num = parseFloat(value);
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
 
 function ComingSoon({ page }: { page: string }) {
   return (
