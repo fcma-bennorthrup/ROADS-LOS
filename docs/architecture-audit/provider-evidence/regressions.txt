@@ -1,0 +1,31 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.11 [39m[90m/tmp/provider-verification-z5wvyozu/copy[39m
+
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mrenders only the approved Loan Checklist tasks[33m 329[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mrenders Early Disclosures in the requested order with two not-started actions[32m 108[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mrenders the reset decision and estimate tasks with only not-started actions[32m 153[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mrenders the Figma Blocked and Re-fire action variants[32m 9[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mkeeps an explicitly enabled task in re-fire while remaining actions advance[33m 489[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mkeeps normal in-progress advancement for a task without full re-fire support[32m 54[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mcancels without changing checklist or activity state[32m 102[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/ChecklistPanel.test.tsx[2m > [22mChecklistPanel[2m > [22mresets every task and removes every runtime activity while preserving history[32m 159[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mrenders the four remaining approved items when search is empty[32m 98[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mdoes not return the removed appraisal activity[32m 199[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mdoes not return the removed Loan Estimate activity[32m 96[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mmatches partial strings and returns multiple results[32m 64[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mrestores the full list when search input is cleared[32m 86[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search filter[2m > [22mshows 'No results found' empty state when nothing matches[32m 69[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – activity actions[2m > [22mkeeps actions for the remaining document and credit activities[32m 11[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – sort order[2m > [22mdefaults to newest-first order[32m 10[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – sort order[2m > [22msorts oldest-first when 'Oldest' is selected[32m 49[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – sort order[2m > [22mrestores newest-first when toggled back to 'Newest'[32m 120[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search and sort combined[2m > [22mapplies newest-first sort to the filtered result set[32m 76[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search and sort combined[2m > [22mapplies oldest-first sort to the filtered result set[32m 76[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search and sort combined[2m > [22mshows empty state when search has no matches regardless of sort order[32m 47[2mms[22m[39m
+ [32m✓[39m client/src/components/loan/__tests__/LoanActivityPanel.test.tsx[2m > [22mLoanActivityPanel – search and sort combined[2m > [22mrestores all items in the current sort order after clearing search[32m 68[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m22 passed[39m[22m[90m (22)[39m
+[2m   Start at [22m 17:48:28
+[2m   Duration [22m 5.36s[2m (transform 311ms, setup 244ms, import 566ms, tests 2.48s, environment 1.66s)[22m
+
