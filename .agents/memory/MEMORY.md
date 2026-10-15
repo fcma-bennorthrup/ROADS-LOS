@@ -2,3 +2,4 @@
 - [Setup documentation policy](setup-documentation-policy.md) — Document both observed runtime configurations without certifying compatibility or aligning toolchains.
 - [Isolated browser viewports](isolated-browser-verification.md) — Assert actual content dimensions; headless window size can silently differ.
 - [API logging policy](api-log-policy.md) — Metadata-only request logs approved; preserve format and retention, without body fields or optional counts.
+- [Verification baseline scope](verification-baseline-scope.md) — Documentation-only exceptions for isolated Origination checks do not authorize production or dependency drift.
