@@ -14,3 +14,4 @@
 - [Sync credential policy](sync-credential-policy.md) — Bounded filename exclusions approved; no content scanning, remote cleanup, or broader sync-policy approval.
 - [Locked pricing policy](locked-pricing-policy.md) — Approved loan-scoped retention, missing-term recovery and failed-save behavior; coordinate shared reset ownership.
 - [Isolated visual comparisons](isolated-visual-comparisons.md) — Settle existing transitions before exact captures; distinguish observed results from retained evidence.
+- [Disclosure browser support](disclosure-browser-support.md) — Require Web Locks for disclosure writes; keep saved history readable without them.

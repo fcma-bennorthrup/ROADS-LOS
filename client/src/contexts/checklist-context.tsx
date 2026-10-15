@@ -440,13 +440,18 @@ function ChecklistStateProvider({
       tasksRef.current = next;
       setTasks(next);
     };
+    let unsupportedDisclosureWrite = false;
     const settle = (result: DemoResetResult) => {
       resetController.current = null;
       if (mounted.current) setDemoResetPending(false);
       if (result.outcome === "complete") dismissToasts();
       else toast({
         title: "Demo reset incomplete",
-        description: `${result.outcome === "cancelled" ? "Remaining reset work was cancelled. " : ""}Cleared: ${result.cleared.join(", ") || "none"}. Not cleared: ${result.notCleared.join(", ")}. Enable browser storage and try Reset Demo again.`,
+        description: `${result.outcome === "cancelled" ? "Remaining reset work was cancelled. " : ""}Cleared: ${result.cleared.join(", ") || "none"}. Not cleared: ${result.notCleared.join(", ")}. ${
+          unsupportedDisclosureWrite
+            ? DISCLOSURE_WRITES_UNSUPPORTED
+            : "Enable browser storage and try Reset Demo again."
+        }`,
         variant: "destructive",
       });
       return result;
@@ -455,7 +460,14 @@ function ChecklistStateProvider({
       signal: controller.signal,
       package: taskNames.includes("Closing Package") ? () => resetClosingPackageProgress(loanId) : undefined,
       disclosure: taskNames.includes("Closing Disclosure")
-        ? (committed) => resetClosingDisclosureHistory(loanId, false, controller.signal, committed) : undefined,
+        ? (committed) => {
+          try {
+            return resetClosingDisclosureHistory(loanId, false, controller.signal, committed);
+          } catch (error) {
+            unsupportedDisclosureWrite = error instanceof DisclosureWritesUnsupportedError;
+            throw error;
+          }
+        } : undefined,
       documentTasks: persistReset,
       checklist: () => {
         persistReset(taskNames);

@@ -93,7 +93,11 @@ beforeEach(() => {
   vi.setSystemTime(new Date(clock));
   vi.clearAllMocks();
   vi.spyOn(window, "confirm").mockReturnValue(true);
-  Object.defineProperty(navigator, "locks", { value: undefined, configurable: true });
+  // Serial reset-policy cases run on the supported-browser path. Unsupported
+  // disclosure writes are characterized separately by disclosure-coordination.
+  Object.defineProperty(navigator, "locks", {
+    value: { request: (_name: string, write: () => void) => write() }, configurable: true,
+  });
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
