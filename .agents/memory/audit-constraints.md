@@ -16,6 +16,12 @@ Present recommendations directly in the conversation for individual approval; wr
 
 **How to apply:** Explain each proposed scope, preservation implications and risks before requesting a decision. Report/task completion is not implementation approval.
 
+The user deferred API error standardization and explicitly chose to leave current behavior unchanged.
+
+**Why:** The proposed API-only JSON fallback and consistent error-parser messages were presented for individual approval and were not approved.
+
+**How to apply:** Do not implement these error-status or message changes without renewed explicit approval. This deferral does not authorize a narrower parser rewrite.
+
 The user deferred naming the borrower copy-email button and requested leaving it as it is.
 
 **Why:** The user considers this a UX consideration rather than an architecture consideration.
