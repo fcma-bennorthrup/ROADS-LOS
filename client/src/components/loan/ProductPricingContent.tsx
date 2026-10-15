@@ -153,7 +153,7 @@ export function ProductPricingContent({
   borrowerName = "Richard Jamerson",
 }: ProductPricingContentProps = {}) {
   const {
-    demoResetVersion,
+    consumeDemoReset,
     getActionStatus,
     refireCompletedTask,
     setActionStatus,
@@ -171,12 +171,12 @@ export function ProductPricingContent({
   const [lockDate, setLockDate] = useState(getLockDate());
 
   useEffect(() => {
-    if (demoResetVersion === 0) return;
+    if (!consumeDemoReset("pricing")) return;
     setIsRateLocked(false);
     setIsEditing(false);
     setIsLockModalOpen(false);
     setLockDate(getLockDate());
-  }, [demoResetVersion]);
+  }, [consumeDemoReset]);
 
   const filteredProducts = useMemo(
     () => productData.filter((p) => p.productType === productType),

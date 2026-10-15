@@ -590,7 +590,7 @@ export function CollateralContent({
 }: CollateralContentProps = {}) {
   const [location] = useLocation();
   const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
-  const { demoResetVersion, getActionStatus, setActionStatus } = useChecklist();
+  const { consumeDemoReset, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressFields, setAddressFields] = useState<AddressData>(() =>
     loadSubjectProperty(subjectPropertyStorageKey),
@@ -614,7 +614,7 @@ export function CollateralContent({
   };
 
   useEffect(() => {
-    if (demoResetVersion === 0) return;
+    if (!consumeDemoReset("collateral")) return;
     const clearedAddress = { ...EMPTY_ADDRESS };
     setAddressFields(clearedAddress);
     setSavedAddressFields(clearedAddress);
@@ -624,7 +624,7 @@ export function CollateralContent({
     } catch {
       // The prototype remains usable when browser storage is unavailable.
     }
-  }, [demoResetVersion, subjectPropertyStorageKey]);
+  }, [consumeDemoReset, subjectPropertyStorageKey]);
 
   const handleAddressSave = () => {
     const savedAddress = { ...addressFields };

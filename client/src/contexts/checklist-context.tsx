@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { dismissToasts, toast } from "@/hooks/use-toast";
 import {
@@ -214,6 +214,8 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
   demoResetVersion: number;
+  /** Claim the current reset once per section in this loan provider's lifetime. */
+  consumeDemoReset: (section: "collateral" | "pricing") => boolean;
   /** Set an action to an explicit status and derive its parent task status. */
   setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
@@ -247,6 +249,16 @@ function ChecklistStateProvider({
 }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
   const [demoResetVersion, setDemoResetVersion] = useState(0);
+  // Intentionally not persisted: reloads and loan changes retain their existing
+  // reset lifetime. An absent section can claim the reset on its first visit.
+  const consumedDemoResets = useRef({ collateral: 0, pricing: 0 });
+  const consumeDemoReset = useCallback((section: "collateral" | "pricing") => {
+    if (demoResetVersion === 0 || consumedDemoResets.current[section] >= demoResetVersion) {
+      return false;
+    }
+    consumedDemoResets.current[section] = demoResetVersion;
+    return true;
+  }, [demoResetVersion]);
 
   useEffect(() => {
     const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
@@ -406,6 +418,7 @@ function ChecklistStateProvider({
       value={{
         tasks,
         demoResetVersion,
+        consumeDemoReset,
         setActionStatus,
         completeAction,
         getActionStatus,
