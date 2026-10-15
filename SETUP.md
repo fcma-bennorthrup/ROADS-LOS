@@ -65,7 +65,7 @@ These scripts use POSIX environment-assignment syntax; native Windows-shell comp
 - **Environment loading:** the server startup scripts do not declare a `.env` loader. Creating a `.env` file is not sufficient evidence that values will be loaded. No active loan-path use of `SESSION_SECRET` is present in the inspected server source.
 - **Sync metadata:** `.local/github-sync-state.json` and `.local/pending-conflicts.json` are filesystem state, separate from browser storage and in-memory loan data.
 
-Do not put credentials in project files for this setup. The custom sync scanner does not inherit `.gitignore` and does not explicitly exclude credential-like root files. No secret values were inspected.
+Do not put credentials in project files for this setup. The custom sync scanner does not inherit `.gitignore`. Its filename-based exclusion policy is described below; it cannot detect secrets in otherwise eligible files. No secret values were inspected.
 
 ## GitHub sync: existing behavior and operating boundary
 
@@ -74,10 +74,12 @@ Only push, pull, create a repository or resolve a sync operation when explicitly
 - Sync routes target `fcma-bennorthrup/ROADS-LOS`; GitHub helpers use `main` by default. The custom sync is not local Git branch synchronization.
 - The repository-creation route creates `ROADS-LOS` for the authenticated GitHub user; it does not change the fixed sync target. Do not use it as routine collaborator setup.
 - The scanner skips its named ignored directories, hidden directories and `package-lock.json`. It skips files larger than **7 MiB** and silently skips read failures.
+- The approved credential/runtime policy excludes `.env`, `.env.*` (including templates), `*.pem`, `*.key`, `id_rsa`, `id_dsa`, `id_ecdsa`, `id_ed25519`, `github-sync-state.json` and `pending-conflicts.json` at any depth. Matching is case-sensitive. Other dot-config files retain their existing eligibility.
+- These exclusions apply to status counts, push/pull (including force), deletion planning and conflicts. Excluded files are not transferred, overwritten or deleted; files already present locally or remotely are left alone. Existing pending plans containing excluded conflicts, updates or deletions cannot display file contents or be resolved. Use **Cancel Conflicts** in the resolver, then retry the sync. Cancellation clears only pending metadata, not the excluded files.
 - Recognized binary files are collected as base64 for push, but pull excludes recognized binary extensions, including PDFs. Successful text sync does not prove asset parity.
 - Some partial failures can still advance the recorded sync checkpoint. Force operations can overwrite work; this guide does not recommend using them to repair discrepancies.
 
-These are current implementation limitations, not newly approved policies or security guarantees. Eligibility, authorization, partial completion and concurrency changes are separate decisions in the [approval register](docs/architecture-audit/approval-register.md).
+Except for the explicitly approved credential/runtime exclusions, these are current implementation limitations, not newly approved policies or security guarantees. Broader eligibility, authorization, partial completion and concurrency changes remain separate decisions in the [approval register](docs/architecture-audit/approval-register.md).
 
 ## Pages and prototype scope
 

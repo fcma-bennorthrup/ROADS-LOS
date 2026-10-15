@@ -5,6 +5,7 @@ import { githubRequest, getAuthenticatedUser, getRepository, createRepository, p
 import { getLastSyncedCommit, setLastSyncedCommit } from "./sync-state";
 import { detectPushConflicts, detectPullConflicts, type FileEntry } from "./conflict-detection";
 import { getPendingConflicts, setPendingConflicts, clearPendingConflicts } from "./pending-conflicts";
+import { isCredentialOrRuntimePath, hasExcludedPendingPaths, BLOCKED_SYNC_CONFLICT_MESSAGE } from "./sync-file-policy";
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
@@ -18,6 +19,7 @@ const BINARY_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".sv
 const MAX_FILE_SIZE = 7 * 1024 * 1024;
 
 function shouldIgnorePath(filePath: string): boolean {
+  if (isCredentialOrRuntimePath(filePath)) return true;
   const parts = filePath.split("/");
   const fileName = parts[parts.length - 1];
   if (IGNORE_FILES.has(fileName)) return true;
@@ -41,7 +43,7 @@ function collectLocalFiles(dir: string, base: string = ""): FileEntry[] {
         results.push(...collectLocalFiles(fullPath, relativePath));
       }
     } else if (entry.isFile()) {
-      if (IGNORE_FILES.has(entry.name)) continue;
+      if (IGNORE_FILES.has(entry.name) || isCredentialOrRuntimePath(relativePath)) continue;
       try {
         const stats = fs.statSync(fullPath);
         if (stats.size > MAX_FILE_SIZE) continue;
@@ -625,6 +627,15 @@ export async function registerRoutes(
         res.json({ hasConflicts: false, conflicts: [], operation: null });
         return;
       }
+      if (hasExcludedPendingPaths(pending)) {
+        res.json({
+          hasConflicts: true,
+          conflicts: [],
+          operation: pending.operation,
+          blockedReason: BLOCKED_SYNC_CONFLICT_MESSAGE,
+        });
+        return;
+      }
       res.json({
         hasConflicts: true,
         operation: pending.operation,
@@ -663,6 +674,10 @@ export async function registerRoutes(
       const pending = getPendingConflicts();
       if (!pending) {
         res.status(400).json({ error: "No pending conflicts to resolve" });
+        return;
+      }
+      if (hasExcludedPendingPaths(pending)) {
+        res.status(409).json({ error: BLOCKED_SYNC_CONFLICT_MESSAGE });
         return;
       }
 

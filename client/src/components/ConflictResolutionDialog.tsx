@@ -42,6 +42,7 @@ interface ConflictsResponse {
   commitMessage?: string | null;
   createdAt?: string;
   conflicts: ConflictFile[];
+  blockedReason?: string;
 }
 
 type ResolutionChoice = "local" | "remote" | "manual" | "delete";
@@ -246,6 +247,37 @@ export function ConflictResolutionDialog({
               Fetching conflict details...
             </DialogDescription>
           </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (data?.blockedReason) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sync Conflicts Blocked</DialogTitle>
+            <DialogDescription>{data.blockedReason}</DialogDescription>
+          </DialogHeader>
+          {dismissMutation.isError && (
+            <p role="alert">Could not cancel conflicts. Please try again.</p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => dismissMutation.mutate()}
+              disabled={dismissMutation.isPending}
+              data-testid="button-cancel-blocked-conflicts"
+            >
+              Cancel Conflicts
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     );
