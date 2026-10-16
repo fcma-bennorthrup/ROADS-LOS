@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { readGitHubSyncResponse } from "@/lib/github-response";
 
 interface ConflictFile {
   path: string;
@@ -12,6 +13,7 @@ interface ConflictFile {
 }
 
 interface ConflictsResponse {
+  planId?: string;
   hasConflicts: boolean;
   operation: "push" | "pull" | null;
   remoteHeadSha?: string;
@@ -46,6 +48,7 @@ export function useGitHubSync() {
         setConflictsData({
           hasConflicts: true,
           operation,
+          planId: response.planId,
           remoteHeadSha: response.commitSha,
           conflicts: response.conflicts,
         });
@@ -64,12 +67,15 @@ export function useGitHubSync() {
     mutationFn: async (options?: { force?: boolean }) => {
       const res = await fetch("/api/github/pull", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ force: options?.force ?? false }),
+        // A normal pull needs no payload; the server defaults force to false.
+        ...(options?.force ? {
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ force: true }),
+        } : {}),
         credentials: "include",
       });
-      const body = (await res.json()) as SyncResponse;
-      if (res.status === 409) {
+      const body = (await readGitHubSyncResponse(res)) as SyncResponse;
+      if (res.status === 409 && body.hasConflicts) {
         return body;
       }
       if (!res.ok) {
@@ -87,6 +93,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Pull Failed",
         description: error.message,
@@ -106,8 +115,8 @@ export function useGitHubSync() {
         }),
         credentials: "include",
       });
-      const body = (await res.json()) as SyncResponse;
-      if (res.status === 409) {
+      const body = (await readGitHubSyncResponse(res)) as SyncResponse;
+      if (res.status === 409 && body.hasConflicts) {
         return body;
       }
       if (!res.ok) {
@@ -125,6 +134,9 @@ export function useGitHubSync() {
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Push Failed",
         description: error.message,

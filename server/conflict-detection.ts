@@ -123,6 +123,7 @@ export function detectPullConflicts(
 ): ConflictReport {
   const localMap = buildContentMap(localFiles);
   const remoteMap = buildContentMap(remoteFiles);
+  const remoteEncodingMap = buildEncodingMap(remoteFiles);
   const baseMap = buildContentMap(baseFiles);
 
   const allPaths = new Set([
@@ -155,7 +156,8 @@ export function detectPullConflicts(
 
     if (remoteChanged && !localChanged) {
       if (remoteExists) {
-        safeToUpdate.push({ path: filePath, content: remote! });
+        const encoding = remoteEncodingMap.get(filePath);
+        safeToUpdate.push({ path: filePath, content: remote!, ...(encoding ? { encoding } : {}) });
       } else {
         safeToDelete.push(filePath);
       }

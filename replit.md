@@ -15,7 +15,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Wouter (routing)
 - **Backend**: Express.js, Node.js
-- **Database**: PostgreSQL (via Drizzle ORM)
+- **Active loan storage**: Seeded, process-local MemStorage; PostgreSQL/Drizzle infrastructure exists but is not used by the loan API.
 - **Design System**: Extracted from Figma (ROADS-Designs)
 - **Font**: Source Sans Pro (400, 600 weights)
 - **GitHub Integration**: @replit/connectors-sdk proxy
@@ -40,25 +40,29 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 **Token approval rule (strict):** Before adding, removing, or modifying ANY entry in `client/src/styles/design-tokens.css` or `client/src/lib/design-tokens.ts`, the agent MUST explicitly ask the user for approval and wait for a clear confirmation — even when the user has already supplied the exact specs in the same message. Providing specs is NOT the same as approving the write. Always pause, restate the proposed change (token name + properties + file), and ask "OK to add?" before editing.
 
 ## Pages
-- **Loan Summary** (`/loans/:id`): Landing page when opening a loan from pipeline. Shows:
+- **Loan Summary** (`/loans/:id`): Default loan landing page. Shows:
   - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
   - Content: Borrower Contact Information cards (horizontal Email/Phone layout), Summary & Ratios (4-column data table)
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
   - 240px side nav: Borrower Information, Loan Details, Collateral, Product & Pricing, Fees
   - Collateral page: Subject Property (address fields with edit/save/discard) + Value section (split appraisal with evaluation tabs, edit/save/discard)
-  - Other sub-pages show "Coming Soon" placeholder
+  - Borrower Information, Loan Details, Product & Pricing and Fees each have content implementations; edits have differing local lifetimes, and Fee Save remains a no-op.
 - **Loan Decisioning** (`/loans/:id/decisioning`): Decisioning tab with side navigation:
-  - 240px side nav: Decisioning Summary, Borrower Financials, Item 3, Item 4
-  - All sub-pages show "Coming Soon" placeholder (content pending)
+  - Side nav: Decisioning Summary and Borrower Financials
+  - Decision controls and borrower financial editors, including the balance sheet, are implemented as prototype interactions.
+- **Closing / Booking** (`/loans/:id/closing-booking`): Closing editor and local timed Booking simulation.
+- **Documents** (`/loans/:id/documents`): Disclosures and Closing Documents, with prototype generation, delivery, history and editing states.
+- **History** (`/loans/:id/history`): Static Change Log with filtering, sorting and pagination; distinct from shared Activity state.
 - `/` redirects to `/loans/1` (default mock loan)
-- Tab navigation in header routes between Summary ↔ Origination ↔ Decisioning (other tabs pending)
+- Header navigation links the six loan routes above. Unmatched routes render Not Found.
+- `design-system.tsx` and `loan-coming-soon.tsx` are retained supporting pages without active routes; do not add routes as documentation cleanup.
 
 ## Data Model
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
-- Currently using in-memory storage with seed data (MemStorage)
+- Currently using in-memory storage with seed data (MemStorage), recreated on server restart. Browser-local checklist/activity/document state and component-local edits have separate lifetimes; they are not database persistence.
 
 ## Components
 - `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, 8-stage chevron stepper, metadata, tabs, exports BottomToolbar separately
@@ -76,13 +80,13 @@ client/
       loan/            # Loan page components (Header, SummaryRatios, BorrowerCards)
     styles/            # Design token CSS
     lib/               # Utilities and TypeScript tokens
-    pages/             # Route pages (loan-summary)
+    pages/             # Six loan route pages, fallback and unrouted support pages
     hooks/             # Custom React hooks
 server/
   github.ts            # GitHub API integration via connectors proxy
   routes.ts            # Express API routes
   storage.ts           # Data storage interface (MemStorage with seed data)
-  db.ts                # Database connection
+  db.ts                # Separate database adapter, not active loan storage
 shared/
   schema.ts            # Drizzle ORM schema + Zod validation
 ```
@@ -91,7 +95,7 @@ shared/
 - `GET /api/loans/:id` - Loan details with borrowers (includes ratios, scores, amounts)
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details
-- `POST /api/github/repo` - Create ROADS-LOS repository (one-time setup)
+- `POST /api/github/repo` - Create ROADS-LOS under the authenticated GitHub user; does not retarget sync (not routine collaborator setup)
 - `GET /api/github/sync-status` - Sync status (last synced SHA vs remote HEAD)
 - `POST /api/github/pull` - Pull from GitHub (with conflict detection)
 - `POST /api/github/push` - Push codebase to GitHub (with conflict detection)
@@ -110,3 +114,5 @@ shared/
 ## Running
 - Workflow "Start application" runs `npm run dev`
 - Express backend + Vite frontend on same port
+- `.nvmrc` selects local Node 20.20.0; `.replit` declares Node 24. Both are documented as observed configurations, not verified compatible environments.
+- See [SETUP.md](SETUP.md) for command effects, MemStorage versus database infrastructure, current sync limitations and unverified setup/deployment boundaries. No runtime alignment is implied.

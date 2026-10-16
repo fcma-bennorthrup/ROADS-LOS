@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,12 +36,14 @@ interface ConflictFile {
 }
 
 interface ConflictsResponse {
+  planId?: string;
   hasConflicts: boolean;
   operation: "push" | "pull" | null;
   remoteHeadSha?: string;
   commitMessage?: string | null;
   createdAt?: string;
   conflicts: ConflictFile[];
+  blockedReason?: string;
 }
 
 type ResolutionChoice = "local" | "remote" | "manual" | "delete";
@@ -64,11 +66,11 @@ function DiffViewer({
   localContent: string | null;
   remoteContent: string | null;
 }) {
-  const localLines = (localContent || "").split("\n");
-  const remoteLines = (remoteContent || "").split("\n");
-  const maxLines = Math.max(localLines.length, remoteLines.length);
-
   const diffRows = useMemo(() => {
+    const localLines = (localContent || "").split("\n");
+    const remoteLines = (remoteContent || "").split("\n");
+    const maxLines = Math.max(localLines.length, remoteLines.length);
+
     const rows: Array<{
       lineNum: number;
       local: string;
@@ -86,7 +88,7 @@ function DiffViewer({
       });
     }
     return rows;
-  }, [localLines, remoteLines, maxLines]);
+  }, [localContent, remoteContent]);
 
   return (
     <div className="border rounded-md overflow-auto text-xs font-mono">
@@ -159,6 +161,7 @@ export function ConflictResolutionDialog({
   });
 
   const data = externalData || fetchedData;
+  const selectedPlanId = useRef<string | undefined>(undefined);
   const conflicts = data?.conflicts || [];
   const operation = data?.operation;
 
@@ -166,12 +169,13 @@ export function ConflictResolutionDialog({
 
   const setResolution = useCallback(
     (filePath: string, choice: ResolutionChoice, content: string | null) => {
+      if (Object.keys(resolutions).length === 0) selectedPlanId.current = data?.planId;
       setResolutions((prev) => ({
         ...prev,
         [filePath]: { choice, content },
       }));
     },
-    []
+    [data?.planId, resolutions]
   );
 
   const allResolved = useMemo(() => {
@@ -195,6 +199,7 @@ export function ConflictResolutionDialog({
       });
       const res = await apiRequest("POST", "/api/github/resolve-conflicts", {
         resolutions: resolutionEntries,
+        planId: selectedPlanId.current ?? data?.planId,
       });
       return await res.json();
     },
@@ -211,6 +216,9 @@ export function ConflictResolutionDialog({
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      if (error.message.startsWith("Sync incomplete.")) {
+        queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
+      }
       toast({
         title: "Resolution Failed",
         description: error.message,
@@ -246,6 +254,37 @@ export function ConflictResolutionDialog({
               Fetching conflict details...
             </DialogDescription>
           </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (data?.blockedReason) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sync Conflicts Blocked</DialogTitle>
+            <DialogDescription>{data.blockedReason}</DialogDescription>
+          </DialogHeader>
+          {dismissMutation.isError && (
+            <p role="alert">Could not cancel conflicts. Please try again.</p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={() => dismissMutation.mutate()}
+              disabled={dismissMutation.isPending}
+              data-testid="button-cancel-blocked-conflicts"
+            >
+              Cancel Conflicts
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     );

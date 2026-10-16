@@ -1,24 +1,13 @@
-import { useQuery } from "@tanstack/react-query";
+import { useLoanQuery } from "@/hooks/use-loan-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
-import type { Loan, Borrower } from "@shared/schema";
-
-interface LoanWithBorrowers extends Loan {
-  borrowers: Borrower[];
-}
-
-function formatCurrency(value: string): string {
-  const num = parseFloat(value);
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency } from "@/lib/loan-display";
 
 export default function LoanComingSoonPage({ tabName }: { tabName: string }) {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
 
-  const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
-    queryKey: ["/api/loans", loanId],
-  });
+  const { data: loan, isLoading, error } = useLoanQuery(loanId);
 
   if (isLoading) {
     return (

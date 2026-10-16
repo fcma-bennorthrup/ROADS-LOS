@@ -1,20 +1,11 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useLoanQuery } from "@/hooks/use-loan-query";
 import { useParams } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { DocumentsContent, ClosingDocumentsContent, DOCUMENTS_NAV_ITEMS } from "@/components/loan/DocumentsContent";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
-import type { Loan, Borrower } from "@shared/schema";
-
-interface LoanWithBorrowers extends Loan {
-  borrowers: Borrower[];
-}
-
-function formatCurrency(value: string): string {
-  const num = parseFloat(value);
-  return `$${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatCurrency } from "@/lib/loan-display";
 
 function ComingSoon({ page }: { page: string }) {
   return (
@@ -39,9 +30,7 @@ export default function LoanDocumentsPage() {
   const loanId = params.id || "1";
   const [activeNavItem, setActiveNavItem] = useState("Disclosures");
 
-  const { data: loan, isLoading, error } = useQuery<LoanWithBorrowers>({
-    queryKey: ["/api/loans", loanId],
-  });
+  const { data: loan, isLoading, error } = useLoanQuery(loanId);
 
   if (isLoading) {
     return (

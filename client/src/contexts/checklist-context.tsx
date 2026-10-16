@@ -1,12 +1,17 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
 import {
+  DisclosureWritesUnsupportedError,
+  DISCLOSURE_WRITES_UNSUPPORTED,
   loadClosingDisclosureHistory,
   resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,
 } from "@/lib/closing-disclosure-history";
-import { closingPackageStorageKey } from "@/lib/closing-package-progress";
+import { resetClosingPackageProgress } from "@/lib/closing-package-progress";
+import { coordinateDemoReset, type DemoResetResult } from "@/lib/demo-reset";
+import { LOCKED_PRICING_FIELD, loadLockedPricing, parseLockedPricing, type LockedPricing } from "@/lib/locked-pricing";
 
 export type ChecklistStatus = "not-started" | "in-progress" | "blocked" | "re-fire" | "complete";
 
@@ -166,7 +171,7 @@ const CHECKLIST_STATUSES: ChecklistStatus[] = [
 ];
 
 function getLoanStorageKey(location: string): string {
-  const loanId = location.match(/^\/loans\/([^/]+)/)?.[1] ?? "prototype";
+  const loanId = loanIdFromPath(location, "prototype");
   return `${CHECKLIST_STORAGE_PREFIX}:${loanId}`;
 }
 
@@ -213,7 +218,12 @@ function deriveTaskStatus(actions: ChecklistAction[]): ChecklistStatus {
 
 interface ChecklistContextValue {
   tasks: ChecklistTask[];
+  lockedPricing: LockedPricing | null;
+  commitLockedPricing: (pricing: LockedPricing) => boolean;
   demoResetVersion: number;
+  demoResetPending: boolean;
+  /** Claim the current reset once per section in this loan provider's lifetime. */
+  consumeDemoReset: (section: "collateral" | "pricing") => boolean;
   /** Set an action to an explicit status and derive its parent task status. */
   setActionStatus: (taskName: string, actionIndex: number, status: ChecklistStatus) => void;
   /**
@@ -233,7 +243,7 @@ interface ChecklistContextValue {
    */
   resetTasks: (taskNames: string[]) => void;
   /** Reset tasks and notify mounted demo surfaces to clear their local state. */
-  resetDemoTasks: (taskNames: string[]) => void;
+  resetDemoTasks: (taskNames: string[], resetActivities?: () => void) => DemoResetResult | Promise<DemoResetResult>;
 }
 
 const ChecklistContext = createContext<ChecklistContextValue | null>(null);
@@ -246,7 +256,32 @@ function ChecklistStateProvider({
   storageKey: string;
 }) {
   const [tasks, setTasks] = useState<ChecklistTask[]>(() => loadTasks(storageKey));
+  const [lockedPricing, setLockedPricing] = useState(() => loadLockedPricing(storageKey));
+  const pricingRef = useRef(lockedPricing);
+  pricingRef.current = lockedPricing;
   const [demoResetVersion, setDemoResetVersion] = useState(0);
+  const [demoResetPending, setDemoResetPending] = useState(false);
+  const resetController = useRef<AbortController | null>(null);
+  const mounted = useRef(true);
+  const tasksRef = useRef(tasks);
+  tasksRef.current = tasks;
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      resetController.current?.abort();
+    };
+  }, []);
+  // Intentionally not persisted: reloads and loan changes retain their existing
+  // reset lifetime. An absent section can claim the reset on its first visit.
+  const consumedDemoResets = useRef({ collateral: 0, pricing: 0 });
+  const consumeDemoReset = useCallback((section: "collateral" | "pricing") => {
+    if (demoResetVersion === 0 || consumedDemoResets.current[section] >= demoResetVersion) {
+      return false;
+    }
+    consumedDemoResets.current[section] = demoResetVersion;
+    return true;
+  }, [demoResetVersion]);
 
   useEffect(() => {
     const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
@@ -256,7 +291,7 @@ function ChecklistStateProvider({
       try {
         const nextHistory = loadClosingDisclosureHistory(loanId);
         const next = nextHistory.resetToken;
-        if (removed || next !== token) {
+        if ((removed || next !== token) && !resetController.current) {
           resetTasks(["Closing Disclosure"]);
           // Dedicated disclosure resets must not clear unrelated surfaces.
           // Preserve the broader Reset Demo broadcast for legacy/global resets.
@@ -273,16 +308,44 @@ function ChecklistStateProvider({
     try {
       localStorage.setItem(
         storageKey,
-        JSON.stringify(
-          Object.fromEntries(
-            tasks.map((task) => [task.name, task.actions.map((action) => action.status)]),
-          ),
-        ),
+        serializeChecklist(tasks, lockedPricing),
       );
     } catch {
       // The prototype remains usable when browser storage is unavailable.
     }
-  }, [storageKey, tasks]);
+  }, [storageKey, tasks, lockedPricing]);
+
+  function serializeChecklist(next: ChecklistTask[], pricing: LockedPricing | null) {
+    return JSON.stringify({
+      ...Object.fromEntries(next.map(task => [task.name, task.actions.map(action => action.status)])),
+      ...(pricing ? { [LOCKED_PRICING_FIELD]: pricing } : {}),
+    });
+  }
+
+  function commitLockedPricing(pricing: LockedPricing): boolean {
+    const snapshot = parseLockedPricing(pricing);
+    if (!snapshot) return false;
+    const next = tasksRef.current.map(task => {
+      const statuses: ChecklistStatus[] | null = task.name === "Rate Lock"
+        ? task.actions.map((action, index) => index === 0 ? "complete" : action.status)
+        : task.name === "Loan Estimate" && task.status === "complete"
+          ? ["re-fire", "not-started"] : null;
+      if (!statuses) return task;
+      const actions = task.actions.map((action, index) => ({ ...action, status: statuses[index] ?? action.status }));
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    });
+    try {
+      // Status, exact terms and estimate re-fire commit together, before UI/activity.
+      localStorage.setItem(storageKey, serializeChecklist(next, snapshot));
+    } catch {
+      return false;
+    }
+    pricingRef.current = snapshot;
+    tasksRef.current = next;
+    setLockedPricing(snapshot);
+    setTasks(next);
+    return true;
+  }
 
   const setActionStatus = (
     taskName: string,
@@ -360,58 +423,78 @@ function ChecklistStateProvider({
     );
   };
 
-  const resetDemoTasks = (taskNames: string[]) => {
-    if (taskNames.includes("Closing Package")) {
-      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
-      try {
-        localStorage.removeItem(closingPackageStorageKey(loanId));
-      } catch {
-        toast({
-          title: "Demo could not be reset",
-          description: "Closing Package progress could not be cleared. Enable browser storage and try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-    const finish = () => {
-      dismissToasts();
-      resetTasks(taskNames);
-      setDemoResetVersion((version) => version + 1);
+  function runReset(taskNames: string[], resetActivities?: () => void): DemoResetResult | Promise<DemoResetResult> {
+    if (resetController.current) return { outcome: "pending", cleared: [], notCleared: [] };
+    const controller = new AbortController();
+    resetController.current = controller;
+    setDemoResetPending(true);
+    const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
+    const persistReset = (names: string[]) => {
+      const next = tasksRef.current.map((task) => {
+        if (!names.includes(task.name)) return task;
+        const initial = INITIAL_TASKS.find((candidate) => candidate.name === task.name)!;
+        return { ...initial, actions: initial.actions.map((action) => ({ ...action })) };
+      });
+      const nextPricing = names.includes("Rate Lock") ? null : pricingRef.current;
+      localStorage.setItem(storageKey, serializeChecklist(next, nextPricing));
+      pricingRef.current = nextPricing;
+      setLockedPricing(nextPricing);
+      tasksRef.current = next;
+      setTasks(next);
     };
-    const failed = () => toast({
-      title: "Demo could not be reset",
-      description: "Disclosure history could not be cleared. Enable browser storage and try again.",
-      variant: "destructive",
+    let unsupportedDisclosureWrite = false;
+    const settle = (result: DemoResetResult) => {
+      resetController.current = null;
+      if (mounted.current) setDemoResetPending(false);
+      if (result.outcome === "complete") dismissToasts();
+      else toast({
+        title: "Demo reset incomplete",
+        description: `${result.outcome === "cancelled" ? "Remaining reset work was cancelled. " : ""}Cleared: ${result.cleared.join(", ") || "none"}. Not cleared: ${result.notCleared.join(", ")}. ${
+          unsupportedDisclosureWrite
+            ? DISCLOSURE_WRITES_UNSUPPORTED
+            : "Enable browser storage and try Reset Demo again."
+        }`,
+        variant: "destructive",
+      });
+      return result;
+    };
+    const result = coordinateDemoReset({
+      signal: controller.signal,
+      package: taskNames.includes("Closing Package") ? () => resetClosingPackageProgress(loanId) : undefined,
+      disclosure: taskNames.includes("Closing Disclosure")
+        ? (committed) => {
+          try {
+            return resetClosingDisclosureHistory(loanId, false, controller.signal, committed);
+          } catch (error) {
+            unsupportedDisclosureWrite = error instanceof DisclosureWritesUnsupportedError;
+            throw error;
+          }
+        } : undefined,
+      documentTasks: persistReset,
+      checklist: () => {
+        persistReset(taskNames);
+        setDemoResetVersion((version) => version + 1);
+      },
+      activity: resetActivities,
     });
-    // Clear persisted document history even when Closing Documents is unmounted.
-    if (taskNames.includes("Closing Disclosure")) {
-      const loanId = storageKey.slice(`${CHECKLIST_STORAGE_PREFIX}:`.length);
-      try {
-        const result = resetClosingDisclosureHistory(loanId);
-        if (result) {
-          void result.then(finish, failed);
-          return;
-        }
-      } catch {
-        failed();
-        return;
-      }
-    }
-    finish();
-  };
+    return result instanceof Promise ? result.then(settle) : settle(result);
+  }
 
   return (
     <ChecklistContext.Provider
       value={{
         tasks,
+        lockedPricing,
+        commitLockedPricing,
         demoResetVersion,
+        demoResetPending,
+        consumeDemoReset,
         setActionStatus,
         completeAction,
         getActionStatus,
         refireCompletedTask,
         resetTasks,
-        resetDemoTasks,
+        resetDemoTasks: runReset,
       }}
     >
       {children}

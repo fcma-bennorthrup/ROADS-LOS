@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Isolated Origination verification</title>
+<script>
+localStorage.clear();
+const NativeDate = Date;
+window.Date = class extends NativeDate {
+  constructor(...args) { super(...(args.length ? args : ["2026-10-14T16:00:00Z"])); }
+  static now() { return new NativeDate("2026-10-14T16:00:00Z").getTime(); }
+};
+const deny = () => { throw new Error("VERIFICATION_EXTERNAL_OPERATION_BLOCKED"); };
+window.fetch = deny;
+XMLHttpRequest.prototype.open = deny;
+window.WebSocket = class { constructor() { deny(); } };
+window.__pdfCalls = [];
+window.open = (...args) => { window.__pdfCalls.push(args); return null; };
+</script>
+</head><body><div id="root"></div><script type="module" src="/entry.tsx"></script></body></html>

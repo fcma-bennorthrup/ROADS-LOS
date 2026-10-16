@@ -1,0 +1,27 @@
+[
+  {
+    "case": "dependency hash",
+    "result": "passed",
+    "rejected_before_install": true
+  },
+  {
+    "case": "token expectation",
+    "result": "passed",
+    "rejected_before_install": true
+  },
+  {
+    "case": "other source drift",
+    "result": "passed",
+    "rejected_before_install": true
+  },
+  {
+    "case": "missing new source",
+    "result": "passed",
+    "rejected_before_install": true
+  },
+  {
+    "case": "out-of-scope path",
+    "result": "passed",
+    "rejected_before_install": true
+  }
+]

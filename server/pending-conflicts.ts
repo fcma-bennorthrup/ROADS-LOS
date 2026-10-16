@@ -12,6 +12,7 @@ export interface PendingConflicts {
   remoteHeadSha: string;
   commitMessage?: string;
   createdAt: string;
+  localHashes?: Record<string, string | null>;
 }
 
 export function getPendingConflicts(): PendingConflicts | null {
@@ -20,7 +21,9 @@ export function getPendingConflicts(): PendingConflicts | null {
       const data = JSON.parse(fs.readFileSync(PENDING_CONFLICTS_FILE, "utf-8")) as PendingConflicts;
       return data;
     }
-  } catch {}
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
   return null;
 }
 
@@ -29,7 +32,8 @@ export function setPendingConflicts(pending: PendingConflicts): void {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(PENDING_CONFLICTS_FILE, JSON.stringify(pending, null, 2), "utf-8");
+  fs.writeFileSync(PENDING_CONFLICTS_FILE + ".tmp", JSON.stringify(pending, null, 2), "utf-8");
+  fs.renameSync(PENDING_CONFLICTS_FILE + ".tmp", PENDING_CONFLICTS_FILE);
 }
 
 export function clearPendingConflicts(): void {
@@ -37,5 +41,7 @@ export function clearPendingConflicts(): void {
     if (fs.existsSync(PENDING_CONFLICTS_FILE)) {
       fs.unlinkSync(PENDING_CONFLICTS_FILE);
     }
-  } catch {}
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  }
 }

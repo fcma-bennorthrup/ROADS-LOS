@@ -31,6 +31,11 @@ interface SyncStatus {
   localChangedCount: number;
   localDeletedCount: number;
   localCheckFailed: boolean;
+  recovery?: {
+    message: string;
+    operation: string;
+    outcomes: { path: string; action: string; state: string }[];
+  };
 }
 
 export function GitHubSyncPanel({
@@ -127,6 +132,21 @@ export function GitHubSyncPanel({
             </button>
             </div>
           ) : null}
+
+          {syncStatus?.recovery && (
+            <div role="alert" className="p-3 border rounded-md bg-destructive/5 text-sm">
+              <p>{syncStatus.recovery.message}</p>
+              <details className="mt-2">
+                <summary>Review sync result</summary>
+                <p>Retry the original {syncStatus.recovery.operation} action after reviewing these results.</p>
+                <ul className="max-h-48 overflow-auto">
+                  {syncStatus.recovery.outcomes.map((item, index) => (
+                    <li key={index}>{item.path}: {item.action} — {item.state}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+          )}
 
           {hasPendingConflicts && (
             <div className="flex items-center justify-between gap-2 p-3 border rounded-md bg-destructive/5">

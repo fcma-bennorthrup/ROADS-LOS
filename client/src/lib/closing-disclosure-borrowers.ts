@@ -1,5 +1,6 @@
 import type { Borrower } from "@shared/schema";
 import {
+  DisclosureWritesUnsupportedError,
   loadClosingDisclosureHistory, updateClosingDisclosureHistory,
   type ClosingDisclosureRecord,
 } from "./closing-disclosure-history";
@@ -171,6 +172,7 @@ export async function saveDisclosureBorrowers(
         row.id === snapshot.id ? { ...row, borrowerDetails: merged } : row) };
     });
   } catch (error) {
+    if (error instanceof DisclosureWritesUnsupportedError) throw error;
     if (error instanceof Error && /reset or removed|changed in another window|could not be read/.test(error.message)) throw error;
     throw new Error("Borrower details could not be saved. Your draft is still open. Enable browser storage and try again.");
   }

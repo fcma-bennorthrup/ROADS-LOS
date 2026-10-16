@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
 import { localCalendarDate, withBorrowerDelivery, type DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import {
+  DisclosureWritesUnsupportedError,
   loadClosingDisclosureHistory,
   resetClosingDisclosureHistory,
   subscribeClosingDisclosureHistory,
@@ -64,14 +65,15 @@ export function useClosingDisclosures(loanId: string) {
   }, [demoResetVersion]);
 
   function save(update: (current: ClosingDisclosureHistory) => ClosingDisclosureHistory) {
-    const failed = () => {
-      setError("Disclosure history could not be saved. Please enable browser storage and try again.");
+    const failed = (error: unknown) => {
+      setError(error instanceof DisclosureWritesUnsupportedError ? error.message
+        : "Disclosure history could not be saved. Please enable browser storage and try again.");
     };
     try {
       const result = updateClosingDisclosureHistory(loanId, update);
       if (result) void result.catch(failed);
-    } catch {
-      failed();
+    } catch (error) {
+      failed(error);
     }
   }
 
@@ -121,8 +123,9 @@ export function useClosingDisclosures(loanId: string) {
       resetPending.current = false;
       setResetting(false);
     };
-    const failed = () => {
-      setError("Closing Disclosure could not be reset. Saved history has not been cleared. Enable browser storage and try again.");
+    const failed = (error: unknown) => {
+      setError(error instanceof DisclosureWritesUnsupportedError ? error.message
+        : "Closing Disclosure could not be reset. Saved history has not been cleared. Enable browser storage and try again.");
       finish();
     };
     try {
@@ -131,8 +134,8 @@ export function useClosingDisclosures(loanId: string) {
       const result = resetClosingDisclosureHistory(loanId, true);
       if (result) void result.then(finish, failed);
       else finish();
-    } catch {
-      failed();
+    } catch (error) {
+      failed(error);
     }
   }
 

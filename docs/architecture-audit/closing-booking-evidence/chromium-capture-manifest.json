@@ -1,0 +1,200 @@
+{
+  "chromium_version": "152.0.7977.64",
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      1024,
+      768
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "captures": [
+    {
+      "state": "read",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 68948
+    },
+    {
+      "state": "edit",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 72741
+    },
+    {
+      "state": "calendar",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 86600
+    },
+    {
+      "state": "idle",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 61581
+    },
+    {
+      "state": "booking",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 63540
+    },
+    {
+      "state": "booked",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 67961
+    },
+    {
+      "state": "read",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 65605
+    },
+    {
+      "state": "edit",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 69199
+    },
+    {
+      "state": "calendar",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 82581
+    },
+    {
+      "state": "idle",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 58542
+    },
+    {
+      "state": "booking",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 60481
+    },
+    {
+      "state": "booked",
+      "viewport": [
+        1024,
+        768
+      ],
+      "captured": true,
+      "bytes": 64639
+    },
+    {
+      "state": "read",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 50102
+    },
+    {
+      "state": "edit",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 51952
+    },
+    {
+      "state": "calendar",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 55441
+    },
+    {
+      "state": "idle",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 43405
+    },
+    {
+      "state": "booking",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 45141
+    },
+    {
+      "state": "booked",
+      "viewport": [
+        390,
+        844
+      ],
+      "captured": true,
+      "bytes": 49155
+    },
+    {
+      "state": "checklist-open",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 126301
+    },
+    {
+      "state": "activity-open",
+      "viewport": [
+        1440,
+        900
+      ],
+      "captured": true,
+      "bytes": 118322
+    }
+  ],
+  "screenshots_temporary_only": true
+}

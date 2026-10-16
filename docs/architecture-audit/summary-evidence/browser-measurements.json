@@ -1,0 +1,695 @@
+[
+  {
+    "viewport": [
+      1024,
+      768
+    ],
+    "scroll": {
+      "x": 0,
+      "y": 0,
+      "bodyW": 1024,
+      "bodyH": 768
+    },
+    "grid": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "24px",
+      "fontWeight": "600",
+      "lineHeight": "32px",
+      "color": "rgb(39, 51, 51)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px",
+      "gap": "normal",
+      "display": "block",
+      "gridTemplateColumns": "none"
+    },
+    "section": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px 48px",
+      "gap": "16px",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "sample": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px",
+      "gap": "normal",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "columnRects": [
+      {
+        "id": "column-ratios",
+        "x": 48,
+        "w": 444.5
+      },
+      {
+        "id": "column-reserves",
+        "x": 516.5,
+        "w": 444.5
+      },
+      {
+        "id": "column-amounts",
+        "x": 48,
+        "w": 444.5
+      },
+      {
+        "id": "column-product",
+        "x": 516.5,
+        "w": 444.5
+      }
+    ],
+    "clipped": []
+  },
+  {
+    "viewport": [
+      1024,
+      768
+    ],
+    "scroll": {
+      "x": 0,
+      "y": 0,
+      "bodyW": 1024,
+      "bodyH": 768
+    },
+    "section": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px 48px",
+      "gap": "16px",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "sample": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px",
+      "gap": "normal",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "columns": [
+      {
+        "id": "column-ratios",
+        "css": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgba(0, 0, 0, 0)",
+          "margin": "0px",
+          "padding": "8px",
+          "gap": "12px",
+          "display": "flex",
+          "gridTemplateColumns": "none"
+        },
+        "x": 48,
+        "w": 444.5
+      },
+      {
+        "id": "column-reserves",
+        "css": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgba(0, 0, 0, 0)",
+          "margin": "0px",
+          "padding": "8px",
+          "gap": "12px",
+          "display": "flex",
+          "gridTemplateColumns": "none"
+        },
+        "x": 516.5,
+        "w": 444.5
+      },
+      {
+        "id": "column-amounts",
+        "css": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgba(0, 0, 0, 0)",
+          "margin": "0px",
+          "padding": "8px",
+          "gap": "12px",
+          "display": "flex",
+          "gridTemplateColumns": "none"
+        },
+        "x": 48,
+        "w": 444.5
+      },
+      {
+        "id": "column-product",
+        "css": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgba(0, 0, 0, 0)",
+          "margin": "0px",
+          "padding": "8px",
+          "gap": "12px",
+          "display": "flex",
+          "gridTemplateColumns": "none"
+        },
+        "x": 516.5,
+        "w": 444.5
+      }
+    ],
+    "clipped": []
+  },
+  {
+    "viewport": [
+      1024,
+      768
+    ],
+    "mainBefore": {
+      "clientHeight": 523,
+      "scrollHeight": 618,
+      "scrollTop": 0,
+      "overflow": "auto",
+      "rect": [
+        0,
+        245,
+        1024,
+        523
+      ]
+    },
+    "mainAfter": {
+      "scrollTop": 95,
+      "scrollHeight": 618,
+      "visibleRows": [
+        "row-piti",
+        "row-dti",
+        "row-lcv",
+        "row-pwe-cb-score",
+        "row-rule-of-xx",
+        "row-total-cv",
+        "row-cash-reserves",
+        "row-total-loan-amount",
+        "row-amount-requested",
+        "row-financed-fees",
+        "row-taxes-insurance",
+        "row-cash-to-close",
+        "row-product",
+        "row-final-rate",
+        "row-apr",
+        "row-principal-interest",
+        "row-total-monthly-payment"
+      ]
+    }
+  },
+  {
+    "viewport": [
+      390,
+      844
+    ],
+    "document": {
+      "scrollW": 390,
+      "clientW": 390,
+      "scrollH": 844
+    },
+    "main": {
+      "clientH": 513,
+      "scrollH": 986,
+      "scrollTop": 0,
+      "overflowY": "auto"
+    },
+    "grid": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px",
+      "gap": "24px",
+      "display": "grid",
+      "gridTemplateColumns": "279px"
+    },
+    "section": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px 48px",
+      "gap": "16px",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "sample": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "margin": "0px",
+      "padding": "0px",
+      "gap": "normal",
+      "display": "flex",
+      "gridTemplateColumns": "none"
+    },
+    "columns": [
+      {
+        "id": "column-ratios",
+        "x": 48,
+        "w": 279
+      },
+      {
+        "id": "column-reserves",
+        "x": 48,
+        "w": 279
+      },
+      {
+        "id": "column-amounts",
+        "x": 48,
+        "w": 279
+      },
+      {
+        "id": "column-product",
+        "x": 48,
+        "w": 279
+      }
+    ],
+    "clipped": []
+  },
+  {
+    "viewport": [
+      767,
+      900
+    ],
+    "doc": {
+      "scrollW": 767,
+      "clientW": 767
+    },
+    "main": {
+      "clientH": 640,
+      "scrollH": 922
+    },
+    "grid": {
+      "columns": "656px",
+      "gap": "24px"
+    },
+    "colWidths": [
+      656,
+      656,
+      656,
+      656
+    ],
+    "sections": [
+      {
+        "id": "section-borrower-contacts",
+        "x": 0,
+        "w": 752,
+        "right": 752
+      },
+      {
+        "id": "section-summary-ratios",
+        "x": 0,
+        "w": 752,
+        "right": 752
+      }
+    ],
+    "offscreen": [
+      {
+        "id": "card-borrower-second",
+        "rect": [
+          48,
+          332,
+          316,
+          154,
+          364
+        ]
+      },
+      {
+        "id": "card-borrower-first",
+        "rect": [
+          388,
+          332,
+          316,
+          154,
+          704
+        ]
+      }
+    ],
+    "font": "\"Source Sans Pro\", sans-serif"
+  },
+  {
+    "viewport": [
+      768,
+      900
+    ],
+    "doc": {
+      "scrollW": 768,
+      "clientW": 768
+    },
+    "grid": {
+      "columns": "316.5px 316.5px",
+      "gap": "24px"
+    },
+    "columnWidths": [
+      316.5,
+      316.5,
+      316.5,
+      316.5
+    ],
+    "borrowers": [
+      {
+        "id": "card-borrower-second",
+        "x": 48,
+        "width": 316.5,
+        "right": 364.5
+      },
+      {
+        "id": "card-borrower-first",
+        "x": 388.5,
+        "width": 316.5,
+        "right": 705
+      }
+    ],
+    "main": {
+      "clientH": 640,
+      "scrollH": 642
+    }
+  },
+  {
+    "viewport": [
+      1279,
+      900
+    ],
+    "doc": {
+      "scrollW": 1279,
+      "clientW": 1279
+    },
+    "grid": {
+      "columns": "579.5px 579.5px",
+      "gap": "24px"
+    },
+    "columnWidths": [
+      579.5,
+      579.5,
+      579.5,
+      579.5
+    ],
+    "main": {
+      "clientH": 655,
+      "scrollH": 655
+    },
+    "borrowers": [
+      {
+        "id": "card-borrower-second",
+        "right": 627.5,
+        "width": 579.5
+      },
+      {
+        "id": "card-borrower-first",
+        "right": 1231,
+        "width": 579.5
+      }
+    ]
+  },
+  {
+    "viewport": [
+      1280,
+      900
+    ],
+    "doc": {
+      "scrollW": 1280,
+      "clientW": 1280
+    },
+    "grid": {
+      "columns": "278px 278px 278px 278px",
+      "gap": "24px"
+    },
+    "columnWidths": [
+      278,
+      278,
+      278,
+      278
+    ],
+    "main": {
+      "clientH": 655,
+      "scrollH": 655
+    },
+    "bodyFont": "\"Source Sans Pro\", sans-serif"
+  },
+  {
+    "viewport": [
+      1280,
+      900
+    ],
+    "fontAndResources": {
+      "clock": "2026-10-14T16:00:00.000Z",
+      "fonts": {
+        "status": "loaded",
+        "size": 0,
+        "sourceSansCheck": true,
+        "computedFamily": "\"Source Sans Pro\", sans-serif"
+      },
+      "fallbackMetrics": {
+        "font": "16px \"Source Sans Pro\", sans-serif",
+        "pitiTextWidth": 87.77618408203125
+      },
+      "typography": {
+        "body": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgb(255, 255, 255)"
+        },
+        "row": {
+          "fontFamily": "\"Source Sans Pro\", sans-serif",
+          "fontSize": "16px",
+          "fontWeight": "400",
+          "lineHeight": "24px",
+          "color": "rgb(39, 52, 52)",
+          "background": "rgba(0, 0, 0, 0)",
+          "margin": "0px",
+          "padding": "0px"
+        },
+        "section": {
+          "gap": "16px",
+          "padding": "0px 48px",
+          "background": "rgba(0, 0, 0, 0)"
+        }
+      },
+      "resources": [
+        "http://127.0.0.1:4179/fixture.css",
+        "http://127.0.0.1:4179/fixture.js",
+        "http://127.0.0.1:4179/favicon.ico"
+      ],
+      "requestEvidence": [
+        {
+          "url": "/api/loans/synthetic",
+          "credentials": "include"
+        }
+      ]
+    }
+  },
+  {
+    "viewport": [
+      767,
+      900
+    ],
+    "grid": "656px",
+    "gridGap": "24px",
+    "document": {
+      "w": 767,
+      "clientW": 767
+    },
+    "main": {
+      "client": 640,
+      "scroll": 922
+    },
+    "font": "\"Source Sans Pro\", sans-serif",
+    "cols": [
+      656,
+      656,
+      656,
+      656
+    ],
+    "borrowerBounds": [
+      {
+        "id": "card-borrower-second",
+        "x": 48,
+        "right": 364
+      },
+      {
+        "id": "card-borrower-first",
+        "x": 388,
+        "right": 704
+      }
+    ]
+  },
+  {
+    "viewport": [
+      768,
+      900
+    ],
+    "grid": "316.5px 316.5px",
+    "gap": "24px",
+    "documentWidth": 768,
+    "main": [
+      640,
+      642
+    ],
+    "cards": [
+      {
+        "id": "card-borrower-second",
+        "x": 48,
+        "w": 316.5,
+        "right": 364.5
+      },
+      {
+        "id": "card-borrower-first",
+        "x": 388.5,
+        "w": 316.5,
+        "right": 705
+      }
+    ],
+    "font": "\"Source Sans Pro\", sans-serif"
+  },
+  {
+    "viewport": [
+      1279,
+      900
+    ],
+    "grid": "579.5px 579.5px",
+    "gap": "24px",
+    "doc": [
+      1279,
+      1279
+    ],
+    "main": [
+      655,
+      655
+    ],
+    "font": "\"Source Sans Pro\", sans-serif"
+  },
+  {
+    "audit": {
+      "url": "http://127.0.0.1:4179/loans/synthetic?clipboard=deferred",
+      "origin": "http://127.0.0.1:4179",
+      "clock": "2026-10-14T16:00:00.000Z",
+      "csp": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'none'; connect-src 'none'; base-uri 'none'; form-action 'none'",
+      "fontSet": {
+        "status": "loaded",
+        "size": 0,
+        "computed": "\"Source Sans Pro\", sans-serif"
+      },
+      "fixtureEvidence": {
+        "requests": [
+          {
+            "url": "/api/loans/synthetic",
+            "credentials": "include"
+          }
+        ],
+        "copies": [
+          "beta@example.invalid",
+          "alpha@example.invalid"
+        ],
+        "pendingCopies": [
+          {},
+          {}
+        ]
+      },
+      "resources": [
+        "http://127.0.0.1:4179/fixture.css",
+        "http://127.0.0.1:4179/fixture.js",
+        "http://127.0.0.1:4179/favicon.ico"
+      ],
+      "nonFixtureResources": []
+    }
+  },
+  {
+    "viewport": [
+      1440,
+      900
+    ],
+    "document": {
+      "scrollWidth": 1440,
+      "clientWidth": 1440
+    },
+    "main": {
+      "clientHeight": 655,
+      "scrollHeight": 655,
+      "scrollTop": 0
+    },
+    "grid": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "24px",
+      "gridTemplateColumns": "318px 318px 318px 318px"
+    },
+    "section": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "padding": "0px 48px",
+      "margin": "0px",
+      "gap": "16px",
+      "gridTemplateColumns": "none"
+    },
+    "row": {
+      "fontFamily": "\"Source Sans Pro\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "24px",
+      "color": "rgb(39, 52, 52)",
+      "background": "rgba(0, 0, 0, 0)",
+      "padding": "0px",
+      "margin": "0px",
+      "gap": "normal",
+      "gridTemplateColumns": "none"
+    },
+    "columnWidths": [
+      318,
+      318,
+      318,
+      318
+    ]
+  }
+]

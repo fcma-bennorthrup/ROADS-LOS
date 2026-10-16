@@ -1,0 +1,8 @@
+PASS 1440x900: 11 exact DOM/text/styles/focus/scroll/pixel comparisons; stale error and dismissal
+PASS 1024x768: 11 exact DOM/text/styles/focus/scroll/pixel comparisons; stale error and dismissal
+PASS 390x844: 11 exact DOM/text/styles/focus/scroll/pixel comparisons; stale error and dismissal
+PASS 639x844: 11 exact DOM/text/styles/focus/scroll/pixel comparisons; stale error and dismissal
+PASS 640x844: 11 exact DOM/text/styles/focus/scroll/pixel comparisons; stale error and dismissal
+PASS: changing displayed plan cannot relabel older selections; success clears/closes through existing callback
+PASS: pull busy denial is a failure; detected-plan identity reaches resolution request
+PASS: push busy denial is a failure; detected-plan identity reaches resolution request
