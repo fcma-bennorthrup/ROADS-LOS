@@ -1,8 +1,8 @@
 import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
 import { useClosingPackage } from "@/hooks/use-closing-package";
 import { useState } from "react";
-import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
-import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
+import sampleClosingDisclosurePdf from "@assets/SampleCD_1777397678654.pdf";
+import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1777397693832.pdf";
 import { ClosingDocumentIcon } from "./ClosingDocumentIcon";
 import { ClosingDisclosureBorrowerEditor } from "./ClosingDisclosureBorrowerEditor";
 import { ClosingDisclosureBorrowerCells } from "./ClosingDisclosureBorrowerCells";
