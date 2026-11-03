@@ -12,8 +12,10 @@ interface RoadsDropdownProps {
   options: DropdownOption[];
   placeholder?: string;
   testId?: string;
-  variant?: "standalone" | "inline";
+  variant?: "standalone" | "inline" | "field";
   openUpward?: boolean;
+  ariaLabel?: string;
+  disabled?: boolean;
 }
 
 export function RoadsDropdown({
@@ -24,9 +26,15 @@ export function RoadsDropdown({
   testId,
   variant = "standalone",
   openUpward = false,
+  ariaLabel,
+  disabled = false,
 }: RoadsDropdownProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (disabled) setOpen(false);
+  }, [disabled]);
 
   useEffect(() => {
     if (!open) return;
@@ -43,9 +51,11 @@ export function RoadsDropdown({
 
   return (
     <div style={{ position: "relative", flex: variant === "inline" ? 1 : undefined }} ref={containerRef}>
-      {variant === "standalone" ? (
+      {variant !== "inline" ? (
         <button
           type="button"
+          disabled={disabled}
+          aria-expanded={!disabled && open}
           onClick={() => setOpen((v) => !v)}
           className="label-strong"
           style={{
@@ -53,23 +63,27 @@ export function RoadsDropdown({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-            backgroundColor: "var(--roads-bg-primary)",
-            border: "1px solid var(--roads-border-dark)",
+            padding: variant === "field"
+              ? "var(--roads-spacing-component-xs) var(--roads-spacing-component-m)"
+              : "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+            backgroundColor: disabled ? "var(--roads-bg-light)" : "var(--roads-bg-primary)",
+            border: disabled ? "1px solid var(--roads-border-subtle)" : "1px solid var(--roads-border-dark)",
             borderRadius: "var(--roads-radius-2xs)",
-            color: value ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
-            cursor: "pointer",
+            color: disabled ? "var(--roads-text-tertiary)" : value ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
+            cursor: disabled ? "default" : "pointer",
             lineHeight: "20px",
-            height: 44,
+            height: variant === "field" ? 40 : 44,
           }}
           data-testid={testId}
+          aria-label={ariaLabel}
         >
-          <span>{selectedLabel || placeholder}</span>
-          <ChevronDown style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} />
+          <span style={variant === "field" ? { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } : undefined}>{selectedLabel || placeholder}</span>
+          <ChevronDown style={{ width: 16, height: 16, flexShrink: variant === "field" ? 0 : undefined, color: disabled ? "var(--roads-text-tertiary)" : "var(--roads-icon-dark)" }} />
         </button>
       ) : (
         <button
           type="button"
+          disabled={disabled}
           onClick={() => setOpen((v) => !v)}
           style={{
             display: "flex",
@@ -84,6 +98,7 @@ export function RoadsDropdown({
             gap: "var(--roads-spacing-component-xs)",
           }}
           data-testid={testId}
+          aria-label={ariaLabel}
         >
           <span
             className="label-strong"
@@ -103,7 +118,7 @@ export function RoadsDropdown({
         </button>
       )}
 
-      {open && (
+      {open && !disabled && (
         <div
           style={{
             position: "absolute",
