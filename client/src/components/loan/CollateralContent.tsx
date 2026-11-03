@@ -6,6 +6,8 @@ import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import type { Borrower } from "@shared/schema";
+import { RoadsDropdown } from "./RoadsDropdown";
 
 function CollateralField({
   label,
@@ -213,6 +215,10 @@ interface AddressData {
   zip: string;
 }
 
+interface SubjectPropertyData extends AddressData {
+  collateralOwnerId: string;
+}
+
 interface EvaluationData {
   estimatedValue: string;
   evaluationDate: string;
@@ -359,7 +365,7 @@ function getSubjectPropertyStorageKey(location: string): string {
   return `${SUBJECT_PROPERTY_STORAGE_PREFIX}:${loanId}`;
 }
 
-function loadSubjectProperty(storageKey: string): AddressData {
+function loadSubjectProperty(storageKey: string): SubjectPropertyData {
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) ?? "null") as unknown;
     if (
@@ -369,12 +375,16 @@ function loadSubjectProperty(storageKey: string): AddressData {
         (key) => key in saved && typeof (saved as Record<string, unknown>)[key] === "string",
       )
     ) {
-      return { ...(saved as AddressData) };
+      return {
+        ...(saved as AddressData),
+        collateralOwnerId: typeof (saved as Partial<SubjectPropertyData>).collateralOwnerId === "string"
+          ? (saved as SubjectPropertyData).collateralOwnerId : "",
+      };
     }
   } catch {
     // Fall through to the prototype defaults.
   }
-  return { ...DEFAULT_ADDRESS };
+  return { ...DEFAULT_ADDRESS, collateralOwnerId: "" };
 }
 
 const EMPTY_EVALUATION: EvaluationData = {
@@ -583,20 +593,22 @@ function TaskButtonsSection({
 interface CollateralContentProps {
   loanNumber?: string;
   borrowerName?: string;
+  borrowers?: Pick<Borrower, "id" | "name">[];
 }
 
 export function CollateralContent({
   loanNumber = "123456789",
   borrowerName = "Richard Jamerson",
+  borrowers = [],
 }: CollateralContentProps = {}) {
   const [location] = useLocation();
   const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
   const { consumeDemoReset, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressFields, setAddressFields] = useState<AddressData>(() =>
+  const [addressFields, setAddressFields] = useState<SubjectPropertyData>(() =>
     loadSubjectProperty(subjectPropertyStorageKey),
   );
-  const [savedAddressFields, setSavedAddressFields] = useState<AddressData>(() =>
+  const [savedAddressFields, setSavedAddressFields] = useState<SubjectPropertyData>(() =>
     loadSubjectProperty(subjectPropertyStorageKey),
   );
 
@@ -610,13 +622,13 @@ export function CollateralContent({
   const [eval2Fields, setEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
   const [savedEval2Fields, setSavedEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
 
-  const updateAddressField = (key: keyof AddressData) => (value: string) => {
+  const updateAddressField = (key: keyof SubjectPropertyData) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
   };
 
   useEffect(() => {
     if (!consumeDemoReset("collateral")) return;
-    const clearedAddress = { ...EMPTY_ADDRESS };
+    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "" };
     setAddressFields(clearedAddress);
     setSavedAddressFields(clearedAddress);
     setIsEditingAddress(false);
@@ -710,6 +722,25 @@ export function CollateralContent({
           isEditing={isEditingAddress}
           onFieldChange={updateAddressField}
         />
+        <div style={{ padding: "0 var(--roads-spacing-component-3xl)" }}>
+            <div className="flex flex-col" style={{ width: 288, maxWidth: "100%", gap: "var(--roads-spacing-component-xs)" }}
+              data-testid="field-collateral-owner">
+              <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}>
+                Collateral Owner
+              </span>
+              <RoadsDropdown
+                variant="field"
+                disabled={!isEditingAddress}
+                ariaLabel="Collateral Owner"
+                value={addressFields.collateralOwnerId}
+                onChange={updateAddressField("collateralOwnerId")}
+                options={borrowers.map(borrower => ({ value: borrower.id, label: borrower.name }))}
+                placeholder={borrowers.length === 0 ? "No borrowers on this loan" :
+                  addressFields.collateralOwnerId ? "Previous borrower unavailable" : "Select collateral owner"}
+                testId="select-collateral-owner"
+              />
+            </div>
+        </div>
         <EditControls
           isEditing={isEditingAddress}
           onEdit={() => { setSavedAddressFields({ ...addressFields }); setIsEditingAddress(true); }}

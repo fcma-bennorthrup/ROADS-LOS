@@ -22,11 +22,11 @@ function ActivityState() {
   );
 }
 
-function renderCollateral() {
+function renderCollateral(borrowers: { id: string; name: string }[] = []) {
   return render(
     <LoanActivityProvider>
       <ChecklistProvider>
-        <CollateralContent loanNumber="246813579" borrowerName="Jordan Lee" />
+        <CollateralContent loanNumber="246813579" borrowerName="Jordan Lee" borrowers={borrowers} />
         <ChecklistPanel onClose={() => undefined} />
         <ActivityState />
         <Toaster />
@@ -47,6 +47,49 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
+  it("populates owner choices from borrowers and saves the selection across remounts", () => {
+    const borrowers = [{ id: "borrower-a", name: "Jordan Lee" }, { id: "borrower-b", name: "Casey Lee" }];
+    const view = renderCollateral(borrowers);
+    expect(screen.getByTestId("select-collateral-owner")).toBeDisabled();
+    expect(screen.getByTestId("select-collateral-owner")).toHaveStyle({ height: "40px" });
+    expect(screen.getByTestId("field-collateral-owner")).toHaveStyle({ width: "288px" });
+    fireEvent.click(screen.getByTestId("select-collateral-owner"));
+    expect(screen.queryAllByTestId(/^select-collateral-owner-option-/)).toHaveLength(0);
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("select-collateral-owner")).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Collateral Owner" }));
+    fireEvent.click(screen.getByTestId("select-collateral-owner-option-borrower-b"));
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    expect(screen.getByTestId("field-collateral-owner")).toHaveTextContent("Casey Lee");
+    view.unmount();
+    renderCollateral(borrowers);
+    expect(screen.getByTestId("field-collateral-owner")).toHaveTextContent("Casey Lee");
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.click(screen.getByTestId("select-collateral-owner"));
+    fireEvent.click(screen.getByTestId("select-collateral-owner-option-borrower-a"));
+    fireEvent.click(screen.getByTestId("address-button-discard"));
+    expect(screen.getByTestId("field-collateral-owner")).toHaveTextContent("Casey Lee");
+  });
+
+  it("does not invent borrowers when the loan has none", () => {
+    renderCollateral();
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("select-collateral-owner")).toHaveTextContent("No borrowers on this loan");
+    fireEvent.click(screen.getByTestId("select-collateral-owner"));
+    expect(screen.queryAllByTestId(/^select-collateral-owner-option-/)).toHaveLength(0);
+  });
+
+  it("keeps legacy saved addresses when no owner has been stored", () => {
+    const loanId = window.location.pathname.match(/\/loans\/([^/]+)/)?.[1] ?? "prototype";
+    localStorage.setItem(`loan-subject-property:${loanId}`, JSON.stringify({
+      address1: "Existing property", address2: "", city: "Town", county: "County", state: "KY", zip: "40000",
+    }));
+    renderCollateral([{ id: "b", name: "A Borrower" }]);
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("input-address-1")).toHaveValue("Existing property");
+    expect(screen.getByTestId("select-collateral-owner")).toHaveTextContent("Select collateral owner");
+  });
+
   it("uses Reset Demo as the only reset control", () => {
     renderCollateral();
 
