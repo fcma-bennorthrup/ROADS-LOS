@@ -13,6 +13,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { LoanDemoControls } from "@/components/LoanDemoControls";
 import {
   GitBranch,
   ArrowDown,
@@ -71,14 +73,17 @@ export function GitHubSyncPanel({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitBranch className="w-5 h-5" />
-            GitHub Sync
+            Prototype Admin Controls
           </DialogTitle>
           <DialogDescription>
-            Sync your project with GitHub. Pull remote changes or push local
-            changes.
+            Manage project sync or simulate the current loan’s application journey.
           </DialogDescription>
         </DialogHeader>
 
+        <Tabs defaultValue="github">
+          <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger><TabsTrigger value="demo">Demo Controls</TabsTrigger></TabsList>
+          <TabsContent value="demo"><LoanDemoControls /></TabsContent>
+          <TabsContent value="github">
         <div className="flex flex-col gap-4">
           {statusLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -232,6 +237,8 @@ export function GitHubSyncPanel({
           </div>
         </div>
 
+          </TabsContent>
+        </Tabs>
         <DialogFooter>
           <Button
             variant="outline"

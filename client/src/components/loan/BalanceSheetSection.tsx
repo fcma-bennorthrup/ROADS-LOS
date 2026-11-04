@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { MoreVertical, Pencil, ChevronDown } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 
+import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
+
 interface AssetData {
   id: string;
   assetType: string;
@@ -563,7 +565,7 @@ function LiabilityCard({
   );
 }
 
-const SAMPLE_CURRENT_ASSETS: AssetData[] = [
+export const SAMPLE_CURRENT_ASSETS: AssetData[] = [
   {
     id: "ca-1",
     assetType: "Checking Account",
@@ -573,7 +575,7 @@ const SAMPLE_CURRENT_ASSETS: AssetData[] = [
   },
 ];
 
-const SAMPLE_NON_CURRENT_ASSETS: AssetData[] = [
+export const SAMPLE_NON_CURRENT_ASSETS: AssetData[] = [
   {
     id: "nca-1",
     assetType: "Retirement",
@@ -583,7 +585,7 @@ const SAMPLE_NON_CURRENT_ASSETS: AssetData[] = [
   },
 ];
 
-const SAMPLE_CURRENT_LIABILITIES: LiabilityData[] = [
+export const SAMPLE_CURRENT_LIABILITIES: LiabilityData[] = [
   {
     id: "cl-1",
     liabilityType: "Credit Card",
@@ -595,7 +597,7 @@ const SAMPLE_CURRENT_LIABILITIES: LiabilityData[] = [
   },
 ];
 
-const SAMPLE_NON_CURRENT_LIABILITIES: LiabilityData[] = [
+export const SAMPLE_NON_CURRENT_LIABILITIES: LiabilityData[] = [
   {
     id: "ncl-1",
     liabilityType: "Auto Loan",
@@ -762,14 +764,15 @@ function BalanceSheetRow({
 }
 
 export function BalanceSheetSection() {
-  const [currentAssets, setCurrentAssets] = useState<AssetData[]>(SAMPLE_CURRENT_ASSETS);
-  const [nonCurrentAssets, setNonCurrentAssets] = useState<AssetData[]>(SAMPLE_NON_CURRENT_ASSETS);
-  const [currentLiabilities, setCurrentLiabilities] = useState<LiabilityData[]>(SAMPLE_CURRENT_LIABILITIES);
-  const [nonCurrentLiabilities, setNonCurrentLiabilities] = useState<LiabilityData[]>(SAMPLE_NON_CURRENT_LIABILITIES);
+  const [currentAssets, setCurrentAssets] = useLoanState<AssetData[]>("current-assets", SAMPLE_CURRENT_ASSETS);
+  const [nonCurrentAssets, setNonCurrentAssets] = useLoanState<AssetData[]>("noncurrent-assets", SAMPLE_NON_CURRENT_ASSETS);
+  const [currentLiabilities, setCurrentLiabilities] = useLoanState<LiabilityData[]>("current-liabilities", SAMPLE_CURRENT_LIABILITIES);
+  const [nonCurrentLiabilities, setNonCurrentLiabilities] = useLoanState<LiabilityData[]>("noncurrent-liabilities", SAMPLE_NON_CURRENT_LIABILITIES);
 
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
   const [assetBuffer, setAssetBuffer] = useState<AssetData | null>(null);
   const [liabilityBuffer, setLiabilityBuffer] = useState<LiabilityData | null>(null);
+  useLoanEditing("balance-editor", editTarget !== null);
 
   function handleEditAsset(category: "currentAssets" | "nonCurrentAssets", index: number) {
     const list = category === "currentAssets" ? currentAssets : nonCurrentAssets;

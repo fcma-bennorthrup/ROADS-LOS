@@ -15,6 +15,7 @@ import { createSyncRecovery } from "./sync-recovery";
 import { createSyncCoordinator } from "./sync-coordination";
 import { statusReadDeadline, statusLocalFiles, statusContentSize, StatusReadTimeout } from "./sync-status-read";
 import { snapshotHashes, assertLocalHashes, pendingPlanId, StaleSyncError } from "./sync-snapshot";
+import { registerLoanApplicationRoutes } from "./loan-application";
 
 export interface SyncRouteAdapters {
   filesystem: SyncFilesystem;
@@ -58,6 +59,7 @@ async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  registerLoanApplicationRoutes(app);
 
   app.get("/api/github/user", async (_req, res) => {
     try {

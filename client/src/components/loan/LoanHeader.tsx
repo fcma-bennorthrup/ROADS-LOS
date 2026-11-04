@@ -18,6 +18,7 @@ import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useChecklist } from "@/contexts/checklist-context";
+import { applicationStore } from "@/lib/loan-application-store";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -109,7 +110,7 @@ export function LoanHeader({
         style={{ gap: "16px", paddingTop: "16px" }}
       >
         <BreadcrumbBar loanNumber={loanNumber} />
-        <StageStepper />
+        <StageStepper currentStep={applicationStore.document && applicationStore.document.mode !== "existing" ? 0 : 2} />
         <HeaderTextBlock
           loanType={loanType}
           loanNumber={loanNumber}

@@ -16,6 +16,7 @@ import { useGitHubSync } from "@/hooks/use-github-sync";
 import { GitHubSyncContext } from "@/contexts/github-sync-context";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { LoanActivityProvider } from "@/contexts/loan-activity-context";
+import { LoanApplicationProvider } from "@/contexts/loan-application-context";
 
 export { useGitHubSyncContext } from "@/contexts/github-sync-context";
 
@@ -48,11 +49,11 @@ function AppContent() {
         hasPendingConflicts: sync.hasPendingConflicts,
       }}
     >
-      <LoanActivityProvider>
+      <LoanApplicationProvider><LoanActivityProvider>
         <ChecklistProvider>
           <Router />
         </ChecklistProvider>
-      </LoanActivityProvider>
+      </LoanActivityProvider></LoanApplicationProvider>
       <ConflictResolutionDialog
         open={sync.conflictDialogOpen}
         onOpenChange={sync.setConflictDialogOpen}

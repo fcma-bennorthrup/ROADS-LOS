@@ -2,6 +2,9 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown, Pencil, Calendar } from "lucide-react";
 import { BalanceSheetSection } from "./BalanceSheetSection";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
+import { applicationStore } from "@/lib/loan-application-store";
+import { applicationView } from "@shared/loan-application";
 
 interface IncomeSourceData {
   id: string;
@@ -390,7 +393,7 @@ function IncomeSourceCard({
   );
 }
 
-const SAMPLE_BORROWERS: Borrower[] = [
+export const SAMPLE_BORROWERS: Borrower[] = [
   {
     name: "Richard Jamerson",
     isPrimaryWageEarner: true,
@@ -455,9 +458,14 @@ const SAMPLE_BORROWERS: Borrower[] = [
 
 export function BorrowerFinancialsContent() {
   const [activeBorrowerIndex, setActiveBorrowerIndex] = useState(0);
-  const [borrowers, setBorrowers] = useState<Borrower[]>(SAMPLE_BORROWERS);
+  const [savedBorrowers, setBorrowers] = useLoanState<Borrower[]>("income", SAMPLE_BORROWERS,
+    SAMPLE_BORROWERS.map((b, index) => ({ ...b, name: `Borrower ${index + 1}`, incomeSources: [] })));
+  const loanBorrowers = applicationStore.document ? applicationView(applicationStore.document).borrowers : null;
+  const borrowers = savedBorrowers.map((b, index) => ({ ...b,
+    name: loanBorrowers ? loanBorrowers[index]?.name || `Borrower ${index + 1}` : b.name }));
   const [editingSourceIndex, setEditingSourceIndex] = useState<number | null>(null);
   const [editBuffer, setEditBuffer] = useState<IncomeSourceData | null>(null);
+  useLoanEditing("income-editor", editingSourceIndex !== null);
 
   const activeBorrower = borrowers[activeBorrowerIndex];
 

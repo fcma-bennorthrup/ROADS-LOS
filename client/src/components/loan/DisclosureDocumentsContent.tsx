@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLoanState } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
@@ -75,13 +76,17 @@ interface DocumentSectionProps extends DocumentPresentationProps {
 function useLocalDocumentProgress(
   onGenerated: DocumentSectionProps["onGenerated"],
   resetVersion: DocumentSectionProps["resetVersion"],
+  section: string,
 ): DocumentProgress {
-  const [generationState, setGenerationState] = useState<GenerationState>("idle");
-  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
-  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
+  const [generationState, setGenerationState] = useLoanState<GenerationState>(`${section}-generation`, "idle", "idle", false);
+  const [lastGenerated, setLastGenerated] = useLoanState<string | null>(`${section}-generated-at`, null, null, false);
+  const [lastDelivered, setLastDelivered] = useLoanState<string | null>(`${section}-delivered-at`, null, null, false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousReset = useRef(resetVersion);
 
   useEffect(() => {
+    if (previousReset.current === resetVersion) return;
+    previousReset.current = resetVersion;
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -135,7 +140,7 @@ export function DocumentSection({
   ...presentation
 }: DocumentSectionProps) {
   // Keep the local controller mounted even in retained mode, preserving mode switches.
-  const localProgress = useLocalDocumentProgress(onGenerated, resetVersion);
+  const localProgress = useLocalDocumentProgress(onGenerated, resetVersion, presentation.testIdPrefix);
   const progress = retainedProgress ? retainedDocumentPresentation(retainedProgress) : localProgress;
   return <DocumentSectionPresentation {...presentation} progress={progress} />;
 }

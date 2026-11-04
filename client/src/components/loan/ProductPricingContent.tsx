@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useLoanDraft } from "@/contexts/loan-application-context";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { RoadsDatePicker } from "./RoadsDatePicker";
@@ -162,9 +163,9 @@ export function ProductPricingContent({
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const initialPricing = getActionStatus("Rate Lock", 0) === "complete" ? lockedPricing : null;
-  const [productType, setProductType] = useState(initialPricing?.productType ?? "fixed");
-  const [selectedProductId, setSelectedProductId] = useState(initialPricing?.productId ?? "4370");
-  const [termOverride, setTermOverride] = useState<string | null>(initialPricing?.termOverride ?? null);
+  const [productType, setProductType, saveProductType] = useLoanDraft("pricing-type", initialPricing?.productType ?? "fixed", "", false);
+  const [selectedProductId, setSelectedProductId, saveProductId] = useLoanDraft("pricing-product", initialPricing?.productId ?? "4370", "", false);
+  const [termOverride, setTermOverride, saveTerm] = useLoanDraft<string | null>("pricing-term", initialPricing?.termOverride ?? null, null, false);
   const [isRateLocked, setIsRateLocked] = useState(
     () => getActionStatus("Rate Lock", 0) === "complete",
   );
@@ -193,15 +194,15 @@ export function ProductPricingContent({
   );
 
   const currentProduct = useMemo(
-    () => productData.find((p) => p.productId === selectedProductId) ?? filteredProducts[0],
+    () => productData.find((p) => p.productId === selectedProductId) ?? { ...productData[0], productId: "", label: "", term: 0, baseRate: 0 },
     [selectedProductId, filteredProducts]
   );
 
   const confirmedPricing = isRateLocked ? lockedPricing : null;
   const termsUnavailable = isRateLocked && !confirmedPricing;
   const baseRate = confirmedPricing?.baseRate ?? currentProduct.baseRate;
-  const adjustments = confirmedPricing?.adjustments ?? totalAdjustments;
-  const discounts = confirmedPricing?.discounts ?? totalDiscounts;
+  const adjustments = confirmedPricing?.adjustments ?? (currentProduct.productId ? totalAdjustments : 0);
+  const discounts = confirmedPricing?.discounts ?? (currentProduct.productId ? totalDiscounts : 0);
   const finalRate = confirmedPricing?.finalRate ?? baseRate + adjustments - discounts;
 
   const handleProductTypeChange = (value: string) => {
@@ -223,6 +224,8 @@ export function ProductPricingContent({
   const handleEditToggle = () => {
     if (!isEditing) {
       savedState.current = { productType, productId: selectedProductId, termOverride };
+    } else {
+      saveProductType(); saveProductId(); saveTerm();
     }
     setIsEditing(!isEditing);
   };
@@ -235,7 +238,8 @@ export function ProductPricingContent({
   };
 
   const handleLockRate = () => {
-    if (termsUnavailable) return;
+    if (termsUnavailable || !currentProduct.productId) return;
+    saveProductType(); saveProductId(); saveTerm();
     const completesRateLockAction = getActionStatus("Rate Lock", 0) !== "complete";
     const lockedAt = new Date();
     if (!commitLockedPricing({

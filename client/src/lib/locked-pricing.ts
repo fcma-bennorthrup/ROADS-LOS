@@ -1,3 +1,4 @@
+import { loanStorage as localStorage } from "./loan-application-store";
 /** Confirmed prototype terms only; never borrower or lending-service data. */
 export interface LockedPricing {
   version: 1;

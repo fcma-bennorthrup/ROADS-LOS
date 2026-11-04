@@ -1,3 +1,5 @@
+import { applicationStore } from "@/lib/loan-application-store";
+
 export function DisabledRadio({
   groupName,
   optionValue,
@@ -11,7 +13,7 @@ export function DisabledRadio({
   label: string;
   testId: string;
 }) {
-  const checked = optionValue === selectedValue;
+  const checked = optionValue === applicationStore.read(`question-${groupName}`, selectedValue);
   return (
     <label
       className="flex items-center body-100"
@@ -105,7 +107,7 @@ export function DisabledCheckbox({
     >
       <input
         type="checkbox"
-        checked={checked}
+        checked={applicationStore.read(`question-${testId}`, checked)}
         readOnly
         disabled
         style={{
@@ -148,7 +150,7 @@ export function MoneyDisplayField({ value, label, testId }: { value: string; lab
       >
         <span className="label-strong" style={{ color: "var(--roads-text-secondary)" }}>$</span>
         <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
-          {value || "\u00A0"}
+          {applicationStore.read(`question-${testId}`, value) || "\u00A0"}
         </span>
       </div>
     </div>

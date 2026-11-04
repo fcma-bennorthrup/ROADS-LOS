@@ -161,6 +161,7 @@ const INITIAL_TASKS: ChecklistTask[] = [
   },
 ];
 
+import { applicationStore, loanStorage as localStorage } from "@/lib/loan-application-store";
 const CHECKLIST_STORAGE_PREFIX = "loan-checklist-statuses";
 const CHECKLIST_STATUSES: ChecklistStatus[] = [
   "not-started",
@@ -176,10 +177,14 @@ function getLoanStorageKey(location: string): string {
 }
 
 function loadTasks(storageKey: string): ChecklistTask[] {
+  const defaults = applicationStore.document && applicationStore.document.mode !== "existing"
+    ? INITIAL_TASKS.map(task => ({ ...task, status: "not-started" as ChecklistStatus,
+      actions: task.actions.map(action => ({ ...action, status: "not-started" as ChecklistStatus })) }))
+    : INITIAL_TASKS;
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, unknown>;
 
-    return INITIAL_TASKS.map((task) => {
+    return defaults.map((task) => {
       const statuses = saved[task.name];
       if (!Array.isArray(statuses)) {
         return { ...task, actions: task.actions.map((action) => ({ ...action })) };
@@ -198,7 +203,7 @@ function loadTasks(storageKey: string): ChecklistTask[] {
       return { ...task, actions, status: deriveTaskStatus(actions) };
     });
   } catch {
-    return INITIAL_TASKS.map((task) => ({
+    return defaults.map((task) => ({
       ...task,
       actions: task.actions.map((action) => ({ ...action })),
     }));

@@ -4,6 +4,7 @@ import { RoadsDropdown } from "./RoadsDropdown";
 import { DeclarationsSection } from "./borrower-presentation/DeclarationsSection";
 import { MilitarySection } from "./borrower-presentation/MilitarySection";
 import { DemographicSection } from "./borrower-presentation/DemographicSection";
+import { useLoanDraft } from "@/contexts/loan-application-context";
 
 const MARITAL_OPTIONS = [
   { value: "single", label: "Single" },
@@ -89,7 +90,7 @@ interface BorrowerInfo {
   farmInvolvement: string;
 }
 
-const RICHARD_DATA: BorrowerInfo = {
+export const RICHARD_DATA: BorrowerInfo = {
   firstName: "Richard",
   lastName: "Jamerson",
   ssn: "XXX-XX-1234",
@@ -106,7 +107,7 @@ const RICHARD_DATA: BorrowerInfo = {
   farmInvolvement: "part_time",
 };
 
-const JANE_DATA: BorrowerInfo = {
+export const JANE_DATA: BorrowerInfo = {
   firstName: "Jane",
   lastName: "Jamerson",
   ssn: "XXX-XX-5678",
@@ -150,13 +151,15 @@ function PrimaryChip() {
 function BorrowerTabs({
   active,
   onChange,
+  borrowers = BORROWERS,
 }: {
   active: string;
   onChange: (id: string) => void;
+  borrowers?: typeof BORROWERS;
 }) {
   return (
     <div className="flex" data-testid="borrower-tabs">
-      {BORROWERS.map((b) => {
+      {borrowers.map((b) => {
         const isActive = b.id === active;
         return (
           <button
@@ -606,10 +609,14 @@ function PersonalInfoSection({
 export function BorrowerInformationContent() {
   const [activeBorrower, setActiveBorrower] = useState<string>("richard");
 
-  const [richardData, setRichardData] = useState<BorrowerInfo>({ ...RICHARD_DATA });
-  const [janeData, setJaneData] = useState<BorrowerInfo>({ ...JANE_DATA });
-  const richardSaved = useRef<BorrowerInfo>({ ...RICHARD_DATA });
-  const janeSaved = useRef<BorrowerInfo>({ ...JANE_DATA });
+  const [richardData, setRichardData, saveRichard] = useLoanDraft<BorrowerInfo>("borrower-primary", { ...RICHARD_DATA });
+  const [janeData, setJaneData, saveJane] = useLoanDraft<BorrowerInfo>("borrower-secondary", { ...JANE_DATA });
+  const richardSaved = useRef<BorrowerInfo>({ ...richardData });
+  const janeSaved = useRef<BorrowerInfo>({ ...janeData });
+  const borrowers = BORROWERS.map((b, index) => {
+    const info = index === 0 ? richardData : janeData;
+    return { ...b, name: `${info.firstName} ${info.lastName}`.trim() || `Borrower ${index + 1}` };
+  });
 
   const [isEditingRichard, setIsEditingRichard] = useState(false);
   const [isEditingJane, setIsEditingJane] = useState(false);
@@ -620,7 +627,7 @@ export function BorrowerInformationContent() {
   const saved = isRichard ? richardSaved : janeSaved;
   const isEditing = isRichard ? isEditingRichard : isEditingJane;
   const setIsEditing = isRichard ? setIsEditingRichard : setIsEditingJane;
-  const borrower = BORROWERS.find((b) => b.id === activeBorrower)!;
+  const borrower = borrowers.find((b) => b.id === activeBorrower)!;
 
   const setField = <K extends keyof BorrowerInfo>(key: K) => (value: BorrowerInfo[K]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -632,6 +639,7 @@ export function BorrowerInformationContent() {
   };
 
   const handleSave = () => {
+    (isRichard ? saveRichard : saveJane)();
     saved.current = { ...data };
     setIsEditing(false);
   };
@@ -658,7 +666,7 @@ export function BorrowerInformationContent() {
         Borrower Information
       </h2>
 
-      <BorrowerTabs active={activeBorrower} onChange={setActiveBorrower} />
+      <BorrowerTabs active={activeBorrower} onChange={setActiveBorrower} borrowers={borrowers} />
 
       <PersonalInfoSection
         borrowerName={borrower.name}
