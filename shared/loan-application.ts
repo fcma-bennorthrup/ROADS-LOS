@@ -8,6 +8,7 @@ export interface LoanApplication {
   revision: number;
   sections: Record<string, unknown>;
   changeLog?: import("./loan-history").LoanChange[];
+  businessRules?: import("./business-rules").LoanBusinessRules;
 }
 
 /** Empty data values without removing the form's structural identifiers. */

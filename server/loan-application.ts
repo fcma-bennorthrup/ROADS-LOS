@@ -4,16 +4,32 @@ import { z } from "zod";
 import { storage } from "./storage";
 import { applicationView, type LoanApplication } from "../shared/loan-application";
 import { changesForSave } from "../shared/loan-history";
+import { evaluateLoanRules } from "../shared/business-rules";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
 async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
-  if (existing.rows[0]) return existing.rows[0].document;
+  if (existing.rows[0]) {
+    const document: LoanApplication = existing.rows[0].document;
+    if (document.businessRules) return document;
+    // Adopt existing saved loans once; persist any trigger before a later edit
+    // can remove one of its inputs. CAS avoids racing a collaborator's save.
+    const initialized = { ...document,
+      // Revision zero is the existing browser-data adoption marker.
+      revision: document.revision === 0 ? 0 : document.revision + 1,
+      businessRules: evaluateLoanRules(document) };
+    const result = await pool.query(
+      `UPDATE prototype_loan_applications SET document=$2
+       WHERE loan_id=$1 AND (document->>'revision')::int=$3 RETURNING document`,
+      [id, JSON.stringify(initialized), document.revision]);
+    return result.rows[0]?.document ?? load(id);
+  }
   const loan = await storage.getLoan(id);
   if (!loan) return null;
   const document: LoanApplication = { loan, borrowers: await storage.getBorrowersByLoanId(id),
     mode: "existing", generation: 0, revision: 0, sections: {} };
+  document.businessRules = evaluateLoanRules(document);
   await pool.query("INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING", [id, JSON.stringify(document)]);
   return (await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id])).rows[0].document;
 }
@@ -65,11 +81,12 @@ export function registerLoanApplicationRoutes(app: Express) {
         ? current.sections[section] : parsed.data.baseline;
       const history = [...(current.changeLog ?? []),
         ...changesForSave(section, previous, value, revision + 1)];
+      const businessRules = evaluateLoanRules({ ...current, sections: { ...current.sections, [section]: value } });
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document =
-         jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb)
+         jsonb_set(jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb), '{businessRules}', $7::jsonb)
          WHERE loan_id=$1 AND (document->>'generation')::int=$4 AND (document->>'revision')::int=$5 RETURNING document`,
-        [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history)]);
+        [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history), JSON.stringify(businessRules)]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
       res.json(result.rows[0].document);
     } catch { res.status(503).json({ error: "Changes were not saved. Retry when the database is available." }); }
@@ -121,6 +138,7 @@ export function registerLoanApplicationRoutes(app: Express) {
             .map(([key, value]) => [key, (value as unknown[]).map(() => "not-started")]),
         ));
       }
+      next.businessRules = evaluateLoanRules(next);
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document=$2
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,

@@ -19,6 +19,7 @@ import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { applicationStore } from "@/lib/loan-application-store";
+import { useApplicationStatus } from "@/contexts/loan-application-context";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -85,8 +86,10 @@ export function LoanHeader({
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [, navigate] = useLocation();
   const { tasks } = useChecklist();
-  const showTridDaysRemaining =
-    tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
+  const app = useApplicationStatus().document;
+  const showTridDaysRemaining = app
+    ? app.businessRules?.trid.status === "required"
+    : tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
 
   const handleTabClick = (tab: string) => {
     setCurrentTab(tab);
@@ -364,7 +367,7 @@ function HeaderTextBlock({
             }}
             data-testid="chip-trid-days"
           >
-            {tridDaysRemaining} TRID Days Remaining
+            TRID — Loan Estimate Required
           </span>
         )}
       </div>
