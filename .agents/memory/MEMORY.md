@@ -21,3 +21,4 @@
 - [Disposable evidence](disposable-evidence.md) — Retain safe verification logs immediately; temporary directories may not survive session resumption.
 - [Token equivalence policy](token-equivalence-policy.md) — Approved read-only map preserves intentional differences; no normalization or repair authority.
 - [Sync status read policy](sync-status-read-policy.md) — Bound read-only checks without weakening mutation locks, recovery or pinned comparisons.
+- [Loan demo data ownership](loan-demo-ownership.md) — Persistent application data belongs to each loan, not each tester; future pipeline will contain multiple loans.
