@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { applicationView, type LoanApplication } from "../shared/loan-application";
 import { changesForSave } from "../shared/loan-history";
 import { evaluateLoanRules } from "../shared/business-rules";
+import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -42,7 +43,7 @@ const writeSchema = z.object({
   baseline: z.unknown().optional(),
 });
 const actionSchema = z.object({
-  action: z.enum(["reset", "blend"]),
+  action: z.enum(["reset", "blend", "trid"]),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
   confirmed: z.literal(true),
@@ -98,6 +99,19 @@ export function registerLoanApplicationRoutes(app: Express) {
       const current = await load(String(req.params.id));
       if (!current) return void res.status(404).json({ error: "Loan not found" });
       const { action, generation, revision } = parsed.data;
+      if (action === "trid") {
+        if (current.generation !== generation || current.revision !== revision)
+          return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
+        if (current.businessRules?.trid.status === "satisfied")
+          return void res.status(409).json({ error: "TRID is already satisfied. Reset the demo loan to start a new journey." });
+        const next = triggerTridDemo(current, parsed.data.sections ?? {});
+        const result = await pool.query(
+          `UPDATE prototype_loan_applications SET document=$2
+           WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
+          [req.params.id, JSON.stringify(next), generation, revision]);
+        if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
+        return void res.json(result.rows[0].document);
+      }
       const seed = await storage.getLoan(String(req.params.id)) ?? current.loan;
       if (!seed) return void res.status(404).json({ error: "Loan template not found" });
       const loan = { ...seed };
