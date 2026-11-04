@@ -7,6 +7,7 @@ export interface LoanApplication {
   generation: number;
   revision: number;
   sections: Record<string, unknown>;
+  changeLog?: import("./loan-history").LoanChange[];
 }
 
 /** Empty data values without removing the form's structural identifiers. */

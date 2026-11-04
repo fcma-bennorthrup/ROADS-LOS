@@ -12,4 +12,10 @@ The user chose to remove the sample entries and show an empty log until loan-spe
 
 **Why:** Reusing sample entries across loans contradicts the loan-isolation requirement; an empty log must retain the requested full-height table layout.
 
-**How to apply:** Do not retain samples for loan 1 or add a real recording service without further approval. Preserve the table shell and fill the available viewport content area when empty.
+**How to apply:** Do not retain sample history. Preserve the table shell and fill the available viewport content area when empty.
+
+The user now approved a working loan change log: do not record initial values; record later changes, and clear it with the prototype reset.
+
+**Why:** Demo history should reflect edits to the current application, not seed data or previous demo runs.
+
+**How to apply:** Log committed edits, not drafts or initial population. Keep history loan-owned and clear it atomically with demo replacement.

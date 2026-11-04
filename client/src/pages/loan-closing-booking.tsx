@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLoanQuery } from "@/hooks/use-loan-query";
-import { useParams } from "wouter";
+import { useParams, useSearch } from "wouter";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { SideNav } from "@/components/loan/SideNav";
 import { ClosingContent } from "@/components/loan/ClosingContent";
@@ -34,7 +34,11 @@ function ComingSoon({ page }: { page: string }) {
 export default function LoanClosingBookingPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
-  const [activeNavItem, setActiveNavItem] = useState("Closing");
+  const search = useSearch();
+  const [activeNavItem, setActiveNavItem] = useState(() => {
+    const section = new URLSearchParams(search).get("section") ?? "";
+    return CLOSING_BOOKING_NAV_ITEMS.includes(section) ? section : "Closing";
+  });
 
   const { data: loan, isLoading, error } = useLoanQuery(loanId);
 

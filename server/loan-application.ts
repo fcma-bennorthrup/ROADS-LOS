@@ -3,6 +3,7 @@ import pg from "pg";
 import { z } from "zod";
 import { storage } from "./storage";
 import { applicationView, type LoanApplication } from "../shared/loan-application";
+import { changesForSave } from "../shared/loan-history";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -22,6 +23,7 @@ const writeSchema = z.object({
   revision: z.number().int().nonnegative(),
   section: z.string().min(1).max(160).regex(/^[a-zA-Z0-9:_-]+$/),
   value: z.unknown(),
+  baseline: z.unknown().optional(),
 });
 const actionSchema = z.object({
   action: z.enum(["reset", "blend"]),
@@ -54,11 +56,20 @@ export function registerLoanApplicationRoutes(app: Express) {
     if (["__proto__", "constructor", "prototype"].includes(section))
       return void res.status(400).json({ error: "Invalid section." });
     try {
+      const current = await load(String(req.params.id));
+      if (!current || current.generation !== generation || current.revision !== revision)
+        return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
+      // Existing prototype defaults live in the client until first saved. Only use
+      // that baseline when no authoritative saved section exists.
+      const previous = Object.hasOwn(current.sections, section)
+        ? current.sections[section] : parsed.data.baseline;
+      const history = [...(current.changeLog ?? []),
+        ...changesForSave(section, previous, value, revision + 1)];
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document =
-         jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1))
+         jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb)
          WHERE loan_id=$1 AND (document->>'generation')::int=$4 AND (document->>'revision')::int=$5 RETURNING document`,
-        [req.params.id, section, JSON.stringify(value ?? null), generation, revision]);
+        [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history)]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
       res.json(result.rows[0].document);
     } catch { res.status(503).json({ error: "Changes were not saved. Retry when the database is available." }); }
@@ -95,6 +106,7 @@ export function registerLoanApplicationRoutes(app: Express) {
         phone: action === "blend" ? `(502) 555-${index === 0 ? "0142" : "0188"}` : "",
       }));
       const next: LoanApplication = { loan, borrowers, mode: action === "blend" ? "blend" : "empty",
+        changeLog: [],
         generation: generation + 1, revision: revision + 1,
         sections: action === "blend" ? Object.fromEntries(
           Object.entries(parsed.data.sections ?? {}).filter(([key]) =>
