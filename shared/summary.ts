@@ -22,6 +22,8 @@ export function calculateSummary(app: LoanApplication) {
   const cash = calculateSummaryCash(app);
   const totalCv = collateralValue(app.sections);
   const lcv = loanToCollateralValue(payments.totalLoanAmount, totalCv);
+  const ruleOfXx = lcv !== "" && payments.amortizationMonths !== null
+    ? String(Number((Number(lcv) + payments.amortizationMonths / 12).toFixed(2))) : null;
   const rawInterest = payments.principalInterest !== null
     && payments.totalLoanAmount !== null && payments.finalRate !== null
     ? payments.totalLoanAmount * payments.finalRate / 1200 : null;
@@ -37,9 +39,10 @@ export function calculateSummary(app: LoanApplication) {
   };
   return {
     ...payments, ...incomeDebt, ...cash,
-    totalCv, lcv: lcv === "" ? null : Number(lcv), pitiBreakdown,
+    totalCv, lcv: lcv === "" ? null : Number(lcv), pitiBreakdown, ruleOfXx,
     missing: Array.from(new Set([
-      ...payments.missing, ...incomeDebt.missing, ...cash.missing,
+      ...payments.missing, ...incomeDebt.missing, ...cash.missing.filter(message => !message.startsWith("Rule of XX:")),
+      ...(ruleOfXx === null ? ["Rule of XX: L/CV and a saved amortization term are required."] : []),
       ...(totalCv === null ? ["Total CV: a positive saved estimated or reported collateral value is required for every active evaluation."] : []),
       ...(lcv === "" ? ["L/CV: authoritative total loan amount and positive total collateral value are required."] : []),
     ])),

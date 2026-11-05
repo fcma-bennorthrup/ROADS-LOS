@@ -22,7 +22,7 @@ export function summaryDebugCopy(message: string): string {
   if (message.startsWith("Cash Reserves:")) return "Cash Reserves: define which assets count and what closing costs to deduct.";
   if (message.startsWith("Cash to Close:")) return "Cash to Close: define how down payment, fees, deposits, credits, and payoffs should be combined.";
   if (message.startsWith("PWE CB Score:")) return "PWE CB Score: add saved bureau scores and define which score to use.";
-  if (message.startsWith("Rule of XX:")) return "Rule of XX: define the formula and required inputs.";
+  if (message.startsWith("Rule of XX:")) return "Rule of XX: complete L/CV and save the amortization term in Product & Pricing. ARM amortization terms are not supported yet.";
   if (message.startsWith("Total CV:")) return "Total CV: save a value greater than zero for each active appraisal in Collateral. Reported Value Total takes priority over Estimated Value.";
   if (message.startsWith("L/CV:")) return "L/CV: complete Total Loan Amount and Total CV.";
   if (message.includes("extra borrower")) return "Income: match each income record to a borrower on this loan.";

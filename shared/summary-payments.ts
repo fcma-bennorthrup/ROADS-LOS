@@ -10,6 +10,7 @@ export interface SummaryPayments {
   /** Percentage points, not a decimal fraction. */
   finalRate: number | null;
   principalInterest: number | null;
+  amortizationMonths: number | null;
   monthlyPropertyTaxes: number | null;
   monthlyInsurance: number | null;
   taxesInsurance: number | null;
@@ -103,12 +104,14 @@ export function calculateSummaryPayments(app: LoanApplication): SummaryPayments 
     missing.push("finalRate: saved pricing terms are unavailable; locking is not required.");
   }
   let principalInterest: number | null = null;
+  let amortizationMonths: number | null = null;
   if (pricing?.productType === "arm") {
     missing.push("principalInterest: ARM amortization term and adjustment/payment schedule are not captured; catalog term is the initial fixed-rate period.");
   } else if (pricing) {
     const rawTerm = pricing.termOverride === null ? pricing.catalogTerm : pricing.termOverride;
     const term = typeof rawTerm === "number" ? rawTerm
       : typeof rawTerm === "string" && /^\d+$/.test(rawTerm.trim()) ? Number(rawTerm.trim()) : NaN;
+    if (Number.isSafeInteger(term) && term > 0) amortizationMonths = term;
     if (!Number.isSafeInteger(term) || term <= 0) {
       missing.push("principalInterest: save a positive whole-month fixed-product term; blank overrides are not replaced by catalog defaults.");
     } else if (totalLoanAmount !== null && finalRate !== null) {
@@ -146,7 +149,7 @@ export function calculateSummaryPayments(app: LoanApplication): SummaryPayments 
   }
   missing.push("apr: finance-charge classifications, amount financed, disbursement timing and a complete dated payment schedule are not captured; note rate is not APR.");
   return {
-    totalLoanAmount, amountRequested, financedFees, product, finalRate, principalInterest,
+    totalLoanAmount, amountRequested, financedFees, product, finalRate, principalInterest, amortizationMonths,
     monthlyPropertyTaxes, monthlyInsurance, taxesInsurance,
     totalMonthlyPayment: totalMonthlyPayment !== null && Number.isFinite(totalMonthlyPayment) ? totalMonthlyPayment : null,
     apr: null, missing,

@@ -25,6 +25,20 @@ function savedApplication(): LoanApplication {
 }
 
 describe("saved Summary projection", () => {
+  it("adds L/CV percentage points to saved amortization years", () => {
+    const app = savedApplication();
+    app.sections["loan-details"] = { requestedLoanAmount: "160000" };
+    delete app.sections["storage:loan-checklist-statuses:summary-test"];
+    Object.assign(app.sections, { "pricing-type": "fixed", "pricing-product": "4374", "pricing-term": null });
+    expect(calculateSummary(app).ruleOfXx).toBe("110");
+    expect(calculateSummary(app).missing.some(m => m.startsWith("Rule of XX:"))).toBe(false);
+    app.sections["pricing-term"] = "180";
+    expect(calculateSummary(app).ruleOfXx).toBe("95");
+    app.sections["pricing-term"] = "";
+    expect(calculateSummary(app).ruleOfXx).toBeNull();
+    Object.assign(app.sections, { "pricing-type": "arm", "pricing-product": "4245", "pricing-term": null });
+    expect(calculateSummary(app).ruleOfXx).toBeNull();
+  });
   it("uses authoritative saved totals for Summary only, not legacy financed fee columns", () => {
     const app = savedApplication();
     const before = JSON.stringify(app);
@@ -34,7 +48,7 @@ describe("saved Summary projection", () => {
       totalLoanAmount: 100000, financedFees: 0, totalCv: 200000, lcv: 50,
       principalInterest: 599.55, monthlyIncome: 5000, monthlyDebt: 0,
       piti: null, dti: null, apr: null, cashReserves: null, cashToClose: null,
-      pweCbScore: null, ruleOfXx: null,
+      pweCbScore: null, ruleOfXx: "80",
       pitiBreakdown: { interest: 500, taxes: null, insurance: null, totalHousingCosts: null, grossMonthlyIncome: 5000, percentage: null },
     });
     expect(view.summary.pitiBreakdown.principal).toBeCloseTo(99.55);
