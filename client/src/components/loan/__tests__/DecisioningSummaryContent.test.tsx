@@ -108,12 +108,10 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     );
 
     const loanEstimate = screen.getByTestId("checklist-task-loan-estimate");
-    expect(within(loanEstimate).getByTestId("status-icon-in-progress")).toBeInTheDocument();
+    expect(within(loanEstimate).queryByTestId("status-icon-in-progress")).not.toBeInTheDocument();
     fireEvent.click(within(loanEstimate).getByRole("button"));
     const estimateRows = within(loanEstimate).getAllByTestId(/^action-row-/);
-    expect(within(estimateRows[0]).getByTestId("chip-in-progress")).toHaveTextContent(
-      "In Progress",
-    );
+    expect(within(estimateRows[0]).queryByTestId("chip-in-progress")).not.toBeInTheDocument();
     expect(within(estimateRows[1]).getByTestId("status-icon-not-started")).toBeInTheDocument();
   });
 

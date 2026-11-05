@@ -20,6 +20,16 @@ the fixed chip label “TRID day 0”.
 
 **How to apply:** Keep the label fixed; retain the existing trigger/delivery behavior.
 
+TRID also triggers again when a rate lock is updated. The Loan Estimate checklist
+must consume both TRID triggers, rather than starting from decision-letter delivery.
+
+**Why:** The user explicitly resolved the conflict between the checklist sequence
+and the business rules on 2026-11-05.
+
+**How to apply:** Start the estimate task from the six saved inputs, reopen it for
+a confirmed rate-lock update, and require generation and delivery of the new
+estimate to satisfy the reopened cycle.
+
 ECOA starts when Blend imports a complete application in this prototype.
 Show the fixed label “30 ECOA days remaining” until a credit decision is rendered,
 the decision letter is generated, and that letter is delivered.

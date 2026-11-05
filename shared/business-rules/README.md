@@ -18,10 +18,17 @@ Do not add a DSL, rules editor, external engine, or fields to support a rule.
   There is currently **no purchase-price field**; no inferred purchase price,
   new field, or UI sample default is substituted.
 - When all six exist, retain the trigger even if a field is later cleared.
+- The checklist consumes required TRID to start Generate Loan Estimate, not
+  decision-letter delivery.
+- A confirmed rate-lock update starts a new TRID cycle, even with missing initial
+  inputs. Its saved cycle counter and re-fired estimate actions commit together.
+  Initial locking also retains the existing redisclosure behavior if an estimate
+  was already completed.
 - Saved Loan Estimate checklist delivery (action 2) satisfies the rule.
   Generation alone and Closing Disclosure delivery do not.
 - Existing Loan Estimate re-fire resets delivery and makes triggered TRID
   required again until re-delivery.
+- Re-fired estimates must be generated again before delivery is enabled.
 - Demo reset/import starts a new lifecycle. Prior triggers aren't carried over.
 
 The chip displays hard-coded “TRID day 0” while required; it is not a calculated day count or compliance deadline. Business-day

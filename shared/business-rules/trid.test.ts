@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LoanApplication } from "../loan-application";
 import { evaluateLoanRules } from "./index";
+import { loanEstimateActionsForTrid, RATE_LOCK_TRID_VERSION } from "./trid";
 
 const now = "2026-11-04T12:00:00.000Z";
 function application(): LoanApplication {
@@ -17,6 +18,40 @@ function application(): LoanApplication {
   };
 }
 describe("TRID business rule", () => {
+  it("starts the checklist from TRID without waiting for a decision letter", () => {
+    expect(loanEstimateActionsForTrid("required", ["not-started", "not-started"]))
+      .toEqual(["in-progress", "not-started"]);
+    expect(loanEstimateActionsForTrid("required", ["complete", "not-started"]))
+      .toEqual(["complete", "not-started"]);
+    expect(loanEstimateActionsForTrid("not-triggered", ["not-started", "not-started"]))
+      .toEqual(["not-started", "not-started"]);
+  });
+  it("reopens TRID on a saved rate-lock update and requires regeneration then delivery", () => {
+    const app = application();
+    const key = "storage:loan-checklist-statuses:trid-test";
+    app.sections[key] = JSON.stringify({ "Loan Estimate": ["complete", "complete"] });
+    app.businessRules = evaluateLoanRules(app, now);
+    expect(app.businessRules.trid.status).toBe("satisfied");
+    const actions = loanEstimateActionsForTrid("satisfied", ["complete", "complete"], true);
+    expect(actions).toEqual(["re-fire", "not-started"]);
+    app.sections[key] = JSON.stringify({ "Loan Estimate": actions, [RATE_LOCK_TRID_VERSION]: 1 });
+    app.businessRules = evaluateLoanRules(app, "2026-11-05T12:00:00.000Z");
+    expect(app.businessRules.trid).toMatchObject({ status: "required", rateLockVersion: 1, satisfiedAt: null });
+    app.sections[key] = JSON.stringify({ "Loan Estimate": ["complete", "re-fire"], [RATE_LOCK_TRID_VERSION]: 1 });
+    app.businessRules = evaluateLoanRules(app, now);
+    expect(app.businessRules.trid.status).toBe("required");
+    app.sections[key] = JSON.stringify({ "Loan Estimate": ["complete", "complete"], [RATE_LOCK_TRID_VERSION]: 1 });
+    app.businessRules = evaluateLoanRules(app, now);
+    expect(app.businessRules.trid.status).toBe("satisfied");
+    expect(evaluateLoanRules(app, now).trid.status).toBe("satisfied");
+  });
+  it("can trigger from a rate-lock update even with missing six-input data", () => {
+    const app = application();
+    app.sections = { "storage:loan-checklist-statuses:trid-test": JSON.stringify({
+      [RATE_LOCK_TRID_VERSION]: 1, "Loan Estimate": ["re-fire", "not-started"],
+    }) };
+    expect(evaluateLoanRules(app, now).trid.status).toBe("required");
+  });
   it("triggers only when all six saved inputs exist", () => {
     const app = application();
     expect(evaluateLoanRules(app, now).trid).toMatchObject({ status: "required", triggeredAt: now, missing: [] });

@@ -104,9 +104,6 @@ export function DecisioningSummaryContent({
 
     const deliveredAt = new Date();
     setActionStatus("Decision Letter", 1, "complete");
-    if (getActionStatus("Loan Estimate", 0) === "not-started") {
-      setActionStatus("Loan Estimate", 0, "in-progress");
-    }
     addActivity({
       id: "decision-letter-delivered",
       title: "Document Delivered",

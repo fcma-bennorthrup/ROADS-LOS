@@ -5,6 +5,20 @@ export interface TridResult {
   triggeredAt: string | null;
   satisfiedAt: string | null;
   missing: string[];
+  rateLockVersion?: number;
+}
+
+export const RATE_LOCK_TRID_VERSION = "__rateLockTridVersion";
+
+/** A confirmed update starts a new estimate cycle, even before initial TRID completion. */
+export function loanEstimateActionsForTrid(
+  status: TridResult["status"],
+  actions: string[],
+  rateLockUpdated = false,
+): string[] {
+  if (rateLockUpdated) return ["re-fire", "not-started"];
+  if (status === "required" && actions[0] === "not-started") return ["in-progress", actions[1] ?? "not-started"];
+  return actions;
 }
 
 const record = (value: unknown): Record<string, unknown> =>
@@ -47,16 +61,23 @@ export function evaluateTrid(app: LoanApplication, now: string): TridResult {
   };
   const missing = Object.entries(fields).filter(([, present]) => !present).map(([key]) => key);
   const previous = app.businessRules?.trid;
-  const triggeredAt = previous?.triggeredAt ?? (missing.length === 0 ? now : null);
+  let triggeredAt = previous?.triggeredAt ?? (missing.length === 0 ? now : null);
+  let rateLockVersion = previous?.rateLockVersion ?? 0;
   let delivered = false;
   try {
     const checklist = JSON.parse(String(sections[`storage:loan-checklist-statuses:${app.loan.id}`] ?? "{}"));
+    const savedVersion = checklist?.[RATE_LOCK_TRID_VERSION];
+    if (Number.isSafeInteger(savedVersion) && savedVersion > rateLockVersion) {
+      rateLockVersion = savedVersion;
+      triggeredAt = now;
+    }
     delivered = checklist?.["Loan Estimate"]?.[1] === "complete";
   } catch { /* Invalid/missing saved progress never proves delivery. */ }
   return {
-    status: !triggeredAt ? "not-triggered" : delivered ? "satisfied" : "required",
+    status: !triggeredAt ? "not-triggered" : delivered && rateLockVersion === (previous?.rateLockVersion ?? 0) ? "satisfied" : "required",
     triggeredAt,
-    satisfiedAt: triggeredAt && delivered ? previous?.satisfiedAt ?? now : null,
+    satisfiedAt: triggeredAt && delivered && rateLockVersion === (previous?.rateLockVersion ?? 0) ? previous?.satisfiedAt ?? now : null,
     missing,
+    rateLockVersion,
   };
 }

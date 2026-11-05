@@ -46,6 +46,7 @@ interface SecondaryAction {
   onClick: () => void;
   testId?: string;
   marksDelivered?: boolean;
+  disabled?: boolean;
 }
 
 interface DocumentPresentationProps {
@@ -226,13 +227,13 @@ function DocumentSectionPresentation({
             <button
               key={`${testIdPrefix}-secondary-${index}`}
               onClick={() => {
-                if (generationState !== "generated" || (action.marksDelivered && error)) return;
+                if (action.disabled || generationState !== "generated" || (action.marksDelivered && error)) return;
                 action.onClick();
                 if (action.marksDelivered) {
                   progress.deliver();
                 }
               }}
-              aria-disabled={generationState !== "generated" || Boolean(action.marksDelivered && error)}
+              aria-disabled={action.disabled || generationState !== "generated" || Boolean(action.marksDelivered && error)}
               className="label-strong"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
@@ -241,7 +242,7 @@ function DocumentSectionPresentation({
                   "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
                 borderRadius: "var(--roads-radius-2xs)",
                 border: "1px solid var(--roads-border-dark)",
-                cursor: generationState !== "generated" ? "not-allowed" : "pointer",
+                cursor: action.disabled || generationState !== "generated" ? "not-allowed" : "pointer",
                 whiteSpace: "nowrap",
               }}
               data-testid={
@@ -373,6 +374,7 @@ export function DocumentsContent() {
           },
           {
             label: "Deliver Loan Estimate",
+            disabled: getActionStatus("Loan Estimate", 0) !== "complete",
             onClick: handleLoanEstimateDelivered,
             marksDelivered: true,
           },
