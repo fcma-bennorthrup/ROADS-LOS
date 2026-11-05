@@ -26,45 +26,51 @@ export function LoanDemoControls() {
         }),
       });
       store.install(next);
+      setAction(null);
       window.dispatchEvent(new Event("loan-application-replaced"));
     } catch (error) { setError((error as Error).message); }
     finally { setBusy(false); }
   }
-  return <div className="flex flex-col gap-4" data-testid="loan-demo-controls">
+  function actionControl(kind: "reset" | "blend" | "trid", label: string) {
+    return action === kind ? <div role="alert" className="rounded-md border border-red-300 bg-red-50 p-3 text-red-950 dark:border-red-800 dark:bg-red-950 dark:text-red-100 space-y-3">
+      <p className="text-sm">{kind === "trid"
+        ? "Save demo data in missing TRID fields? Save or discard open edits first."
+        : `${kind === "reset" ? "Clear all application data and progress?" : `Replace with demo data for ${borrowerCount} ${borrowerCount === 1 ? "borrower" : "borrowers"}?`} Saved and unsaved data will be replaced for everyone. Cannot be undone.`}</p>
+      <div className="flex flex-col gap-2">
+        <Button autoFocus className="h-auto whitespace-normal py-2" variant="destructive" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : "Confirm replacement"}</Button>
+        <Button variant="outline" disabled={busy} onClick={() => { setAction(null); setError(""); }}>Cancel</Button>
+      </div>
+    </div> : <Button className="w-full h-auto whitespace-normal py-2" variant={kind === "blend" ? "default" : "outline"} disabled={busy || !!store.error || (kind === "trid" && store.document?.businessRules?.trid.status === "satisfied")} onClick={() => { setAction(kind); setError(""); }}>{label}</Button>;
+  }
+  return <div className="flex flex-col gap-3" data-testid="loan-demo-controls">
     <p className="text-sm text-muted-foreground">
-      Loan {store.document?.loan.loanNumber}. These actions affect this loan for everyone viewing it. Other loans are not affected. Use synthetic data only.
+      Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
-    <div className="rounded border p-4 space-y-2">
-      <h3 className="font-semibold">Start with a blank application</h3>
-      <p className="text-sm">Clear borrower details, financials, collateral, fees, pricing, and workflow progress. Keep the loan available for manual entry.</p>
-      <Button variant="outline" disabled={busy || !!store.error} onClick={() => setAction("reset")}>Reset All Application Data</Button>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    <div className="min-w-0 rounded border p-4 space-y-3" data-testid="demo-reset-card">
+      <h3 className="font-semibold">Blank application</h3>
+      <p className="text-sm text-muted-foreground">Clear all application data and progress for manual entry.</p>
+      {actionControl("reset", "Reset All Application Data")}
     </div>
-    <div className="rounded border p-4 space-y-2">
-      <h3 className="font-semibold">Simulate a point-of-sale import</h3>
-      <p className="text-sm">Replace the application with mock borrowers, loan details, income, assets, liabilities, and property data. This does not contact Blend or complete underwriting.</p>
-      <fieldset disabled={busy} className="flex gap-4 text-sm">
-        <legend className="mb-2 font-medium">Borrowers to import</legend>
+    <div className="min-w-0 rounded border p-4 space-y-3" data-testid="demo-blend-card">
+      <h3 className="font-semibold">Blend import</h3>
+      <p className="text-sm text-muted-foreground">Replace the application with mock borrower and loan data.</p>
+      <fieldset disabled={busy} className="flex flex-wrap gap-x-3 gap-y-2 text-sm">
+        <legend className="sr-only">Borrowers to import</legend>
         {([1, 2] as const).map(count => <label key={count} className="flex items-center gap-2">
           <input type="radio" name="blend-borrower-count" value={count} checked={borrowerCount === count} onChange={() => setBorrowerCount(count)} />
           {count} {count === 1 ? "borrower" : "borrowers"}
         </label>)}
       </fieldset>
-      <Button disabled={busy || !!store.error} onClick={() => setAction("blend")}>New Blend Import</Button>
+      {actionControl("blend", "New Blend Import")}
     </div>
-    <div className="rounded border p-4 space-y-2">
-      <h3 className="font-semibold">Simulate a complete TRID application</h3>
-      <p className="text-sm">Fill missing required fields with synthetic borrower, address, loan amount, income, and estimated value data, then save them to trigger TRID. Existing valid values and unrelated loan data are preserved.</p>
-      <Button variant="outline" disabled={busy || !!store.error || store.document?.businessRules?.trid.status === "satisfied"} onClick={() => setAction("trid")}>Trigger TRID</Button>
-      {store.document?.businessRules?.trid.status === "satisfied" && <p className="text-sm">TRID is already satisfied. Reset the demo loan to start a new journey.</p>}
+    <div className="min-w-0 rounded border p-4 space-y-3" data-testid="demo-trid-card">
+      <h3 className="font-semibold">TRID application</h3>
+      <p className="text-sm text-muted-foreground">Fill and save missing TRID fields. Keep existing valid data.</p>
+      {actionControl("trid", "Trigger TRID")}
+      {store.document?.businessRules?.trid.status === "satisfied" && <p className="text-sm">Already satisfied. Reset to start again.</p>}
     </div>
-    {action && <div role="alert" className="rounded border border-amber-600 bg-amber-50 p-4 text-black space-y-3">
-      <p>{action === "trid" ? "Fill and save missing TRID inputs for this loan? Missing or invalid required values will receive demo data. Save or discard open edits first. This does not reset the loan or undo Loan Estimate delivery."
-        : `${action === "reset" ? "Clear all application data?" : `Replace this application with mock Blend data for ${borrowerCount} ${borrowerCount === 1 ? "borrower" : "borrowers"}?`} Saved and unsaved entries and workflow results for this loan will be replaced for all viewers. This cannot be undone here.`}</p>
-      <div className="flex gap-2">
-        <Button variant={action === "trid" ? "default" : "destructive"} disabled={busy || store.pending > 0} onClick={run}>{busy ? "Applying…" : action === "trid" ? "Save and trigger TRID" : "Confirm replacement"}</Button>
-        <Button variant="outline" disabled={busy} onClick={() => setAction(null)}>Cancel</Button>
-      </div>
-    </div>}
+    </div>
     {error && <p role="alert" className="text-red-700">{error}</p>}
   </div>;
 }

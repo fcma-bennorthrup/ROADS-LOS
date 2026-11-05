@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoanDemoControls } from "./LoanDemoControls";
 
@@ -17,6 +17,27 @@ vi.mock("@/lib/blend-demo-fixture", () => ({
 beforeEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe("Trigger TRID button", () => {
+  it("replaces only the clicked button with an inline confirmation and restores it on cancel", () => {
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "Reset All Application Data" }));
+    expect(screen.queryByRole("button", { name: "Reset All Application Data" })).toBeNull();
+    expect(within(screen.getByTestId("demo-reset-card")).getByRole("alert")).toBeTruthy();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "New Blend Import" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(screen.getByRole("button", { name: "Reset All Application Data" })).toBeTruthy();
+    expect(mocks.request).not.toHaveBeenCalled();
+  });
+  it("moves confirmation to the newly selected card without running either action", () => {
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "Reset All Application Data" }));
+    fireEvent.click(screen.getByRole("button", { name: "Trigger TRID" }));
+    expect(within(screen.getByTestId("demo-reset-card")).queryByRole("alert")).toBeNull();
+    expect(within(screen.getByTestId("demo-trid-card")).getByRole("alert")).toBeTruthy();
+    expect(screen.getAllByRole("alert")).toHaveLength(1);
+    expect(mocks.request).not.toHaveBeenCalled();
+  });
   it.each([1, 2])("submits the selected %i borrower Blend import", async count => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });
     render(<LoanDemoControls />);

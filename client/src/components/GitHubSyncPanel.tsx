@@ -50,9 +50,11 @@ export function GitHubSyncPanel({
   const { pullMutation, pushMutation, openConflictDialog, hasPendingConflicts } =
     useGitHubSyncContext();
   const [commitMessage, setCommitMessage] = useState("Update from Replit");
+  const [activeTab, setActiveTab] = useState("github");
 
   useEffect(() => {
     if (open) {
+      setActiveTab("github");
       queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
     }
@@ -69,7 +71,7 @@ export function GitHubSyncPanel({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className={activeTab === "demo" ? "max-w-6xl w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto" : undefined}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitBranch className="w-5 h-5" />
@@ -80,7 +82,7 @@ export function GitHubSyncPanel({
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="github">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger><TabsTrigger value="demo">Demo Controls</TabsTrigger></TabsList>
           <TabsContent value="demo"><LoanDemoControls /></TabsContent>
           <TabsContent value="github">
