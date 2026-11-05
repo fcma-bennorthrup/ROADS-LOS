@@ -2,7 +2,7 @@ export interface SummaryRatiosData {
   piti: string;
   dti: string;
   lcv: string;
-  pweCbScore: number;
+  pweCbScore: number | null;
   ruleOfXx: string | null;
   totalCv: string;
   cashReserves: string;
@@ -58,7 +58,7 @@ function DataColumn({ children, testId }: { children: React.ReactNode; testId: s
   );
 }
 
-export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
+export function SummaryRatios({ data, missing = [] }: { data: SummaryRatiosData; missing?: string[] }) {
   return (
     <section
       className="flex flex-col"
@@ -80,14 +80,14 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
         style={{ gap: "var(--roads-spacing-component-xl)" }}
       >
         <DataColumn testId="column-ratios">
-          <KeyValueRow label="PITI" value={`${data.piti}%`} testId="piti" />
-          <KeyValueRow label="DTI" value={`${data.dti}%`} testId="dti" />
+          <KeyValueRow label="PITI" value={data.piti ? `${data.piti}%` : "—"} testId="piti" />
+          <KeyValueRow label="DTI" value={data.dti ? `${data.dti}%` : "—"} testId="dti" />
           <KeyValueRow label="L/CV" value={data.lcv ? `${data.lcv}%` : "—"} testId="lcv" />
-          <KeyValueRow label="PWE CB Score" value={String(data.pweCbScore)} testId="pwe-cb-score" />
+          <KeyValueRow label="PWE CB Score" value={data.pweCbScore === null ? "—" : String(data.pweCbScore)} testId="pwe-cb-score" />
         </DataColumn>
 
         <DataColumn testId="column-reserves">
-          <KeyValueRow label="Rule of XX" value={data.ruleOfXx ?? "--"} testId="rule-of-xx" />
+          <KeyValueRow label="Rule of XX" value={data.ruleOfXx ?? "—"} testId="rule-of-xx" />
           <KeyValueRow label="Total CV" value={data.totalCv} testId="total-cv" />
           <KeyValueRow label="Cash Reserves" value={data.cashReserves} testId="cash-reserves" />
         </DataColumn>
@@ -103,11 +103,17 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
         <DataColumn testId="column-product">
           <KeyValueRow label="Product" value={data.product} testId="product" />
           <KeyValueRow label="Final Rate" value={data.finalRate} testId="final-rate" />
-          <KeyValueRow label="APR" value={`${data.apr}%`} testId="apr" />
+          <KeyValueRow label="APR" value={data.apr ? `${data.apr}%` : "—"} testId="apr" />
           <KeyValueRow label="Principal & Interest" value={data.principalInterest} testId="principal-interest" />
           <KeyValueRow label="Total Monthly Payment" value={data.totalMonthlyPayment} testId="total-monthly-payment" />
         </DataColumn>
       </div>
+      {missing.length > 0 && <details className="body-100" style={{ color: "var(--roads-text-secondary)" }} data-testid="summary-missing-inputs">
+        <summary className="cursor-pointer">Unavailable calculations · missing data or definitions</summary>
+        <ul className="list-disc pl-5 mt-2 space-y-1">
+          {missing.map(message => <li key={message}>{message}</li>)}
+        </ul>
+      </details>}
     </section>
   );
 }
