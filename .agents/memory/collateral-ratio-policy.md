@@ -9,4 +9,10 @@ Use Estimated Value initially and switch to Reported Value Total once reported.
 
 **How to apply:** Summary Total CV and L/CV must use the same saved valuation. Do not retain sample ratios when underlying values are missing.
 
+Saved pricing is sufficient for PITI and DTI; a rate lock is not required.
+
+**Why:** The user explicitly rejected a lock prerequisite for summary calculations.
+
+**How to apply:** Use saved unlocked selections with the same pricing catalog as the editor, while retaining confirmed terms for locked loans. Never calculate from unsaved edits.
+
 The user authorized Monthly Property Taxes and Monthly Insurance inputs on Collateral, saved once on Subject Property rather than per evaluation. Blank or invalid costs remain unavailable; only an explicit zero establishes no cost. Use these same monthly amounts in Summary housing payments and the PITI breakdown, preserving PITI as housing costs divided by gross monthly income.

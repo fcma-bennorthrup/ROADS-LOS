@@ -1,5 +1,6 @@
 import type { LoanApplication } from "./loan-application";
 import { currencyAmount } from "./loan-collateral-value";
+import { productData, totalAdjustments, totalDiscounts } from "./pricing-catalog";
 
 export interface SummaryPayments {
   totalLoanAmount: number | null;
@@ -27,11 +28,22 @@ function record(value: unknown): Record<string, unknown> | null {
 // adapter imports applicationView. Validate the same persisted v1 contract here
 // without browser storage, defaults, or a runtime applicationView dependency.
 function savedPricing(app: LoanApplication): Record<string, unknown> | null {
+  // Confirmed locks retain their saved terms; an unlocked loan uses its saved
+  // product selection, never the editor's unsaved defaults.
   const raw = app.sections[`storage:loan-checklist-statuses:${app.loan.id}`];
-  if (typeof raw !== "string") return null;
-  let checklist: Record<string, unknown> | null;
-  try { checklist = record(JSON.parse(raw)); } catch { return null; }
-  if (!Array.isArray(checklist?.["Rate Lock"]) || checklist["Rate Lock"][0] !== "complete") return null;
+  let checklist: Record<string, unknown> | null = null;
+  try { checklist = typeof raw === "string" ? record(JSON.parse(raw)) : null; } catch { return null; }
+  if (!Array.isArray(checklist?.["Rate Lock"]) || checklist["Rate Lock"][0] !== "complete") {
+    const product = productData.find(p => p.productId === app.sections["pricing-product"]
+      && p.productType === app.sections["pricing-type"]);
+    const term = app.sections["pricing-term"];
+    if (!product || (term !== undefined && term !== null && typeof term !== "string")) return null;
+    return {
+      productType: product.productType, productLabel: product.label,
+      catalogTerm: product.term, termOverride: term ?? null,
+      finalRate: product.baseRate + totalAdjustments - totalDiscounts,
+    };
+  }
   const p = record(checklist.__lockedPricing);
   if (!p) return null;
   const ids = p.productType === "fixed" ? ["4370", "4371", "4372", "4373", "4374"]
@@ -87,8 +99,8 @@ export function calculateSummaryPayments(app: LoanApplication): SummaryPayments 
   const product = pricing ? pricing.productLabel as string : null;
   const finalRate = pricing ? pricing.finalRate as number : null;
   if (!pricing) {
-    missing.push("product: confirmed saved rate-lock terms are unavailable.");
-    missing.push("finalRate: confirmed saved rate-lock terms are unavailable.");
+    missing.push("product: save a valid product selection in Product & Pricing.");
+    missing.push("finalRate: saved pricing terms are unavailable; locking is not required.");
   }
   let principalInterest: number | null = null;
   if (pricing?.productType === "arm") {

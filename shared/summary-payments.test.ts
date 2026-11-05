@@ -32,6 +32,22 @@ function ready(overrides: Record<string, unknown> = {}) {
 }
 
 describe("saved summary payments", () => {
+  it("calculates payments from saved unlocked pricing and preserves locked terms", () => {
+    const app = ready();
+    delete app.sections["storage:loan-checklist-statuses:payments-test"];
+    app.sections["pricing-type"] = "fixed";
+    app.sections["pricing-product"] = "4374";
+    app.sections["pricing-term"] = null;
+    app.sections["subject-property"] = { monthlyPropertyTaxes: "100", monthlyInsurance: "50" };
+    const result = calculateSummaryPayments(app);
+    expect(result.finalRate).toBe(7.4);
+    expect(result.principalInterest).toBeGreaterThan(0);
+    expect(result.totalMonthlyPayment).toBe(result.principalInterest! + 150);
+    app.sections["pricing-term"] = "";
+    expect(calculateSummaryPayments(app).principalInterest).toBeNull();
+    app.sections["storage:loan-checklist-statuses:payments-test"] = lock();
+    expect(calculateSummaryPayments(app).finalRate).toBe(6);
+  });
   it("adds saved monthly property costs once, independently of split evaluations", () => {
     const app = ready();
     app.sections["subject-property"] = { monthlyPropertyTaxes: "$125.50", monthlyInsurance: "74.50" };
@@ -136,12 +152,12 @@ describe("saved summary payments", () => {
     expect(calculateSummaryPayments(app)).toMatchObject({ product: null, finalRate: null, principalInterest: null });
   });
 
-  it("does not derive a final rate from saved draft product/term or another loan's lock", () => {
+  it("uses this loan's saved selections rather than another loan's lock", () => {
     const app = application({
       "pricing-type": "fixed", "pricing-product": "4374", "pricing-term": "360",
       "storage:loan-checklist-statuses:other-loan": lock(),
     });
-    expect(calculateSummaryPayments(app)).toMatchObject({ product: null, finalRate: null });
+    expect(calculateSummaryPayments(app)).toMatchObject({ product: "4374 - 30 year fixed", finalRate: 7.4 });
   });
 
   it("recognizes explicit cash-only fees as not financed without adding LE and CD amounts", () => {
