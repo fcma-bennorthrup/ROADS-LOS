@@ -30,3 +30,12 @@ and regulatory validation are outside this prototype rule.
 
 Test new rules beside their implementation. Include incomplete inputs,
 saved/unsaved boundaries, delivery, reset, and stale-write rejection as relevant.
+
+## ECOA
+
+Blend import stands in for a complete application and starts ECOA. The header
+shows the fixed label “30 ECOA days remaining”; no elapsed-day calculation.
+All three saved checklist actions must be complete to satisfy it: Loan Decision,
+Generate Decision Letter, and Deliver Decision Letter. A decision or generation
+alone does not hide the chip. Reset clears the lifecycle; re-import starts a
+new one. Existing saved Blend imports are adopted when loaded.

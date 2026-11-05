@@ -19,3 +19,13 @@ the fixed chip label “TRID day 0”.
 **Why:** This prototype will not explore TRID day calculations.
 
 **How to apply:** Keep the label fixed; retain the existing trigger/delivery behavior.
+
+ECOA starts when Blend imports a complete application in this prototype.
+Show the fixed label “30 ECOA days remaining” until a credit decision is rendered,
+the decision letter is generated, and that letter is delivered.
+
+**Why:** The user chose Blend import as the prototype completeness signal and
+explicitly requested a hard-coded clock.
+
+**How to apply:** Require all three saved actions to hide ECOA. Do not add an
+elapsed-day calculation or a separate application-completeness workflow.

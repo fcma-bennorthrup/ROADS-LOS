@@ -122,6 +122,7 @@ export function LoanHeader({
           amount={amount}
           applicationType={applicationType}
           ecoaDaysRemaining={ecoaDaysRemaining}
+          showEcoaDaysRemaining={app ? app.businessRules?.ecoa?.status === "required" : true}
           tridDaysRemaining={tridDaysRemaining}
           showTridDaysRemaining={showTridDaysRemaining}
         />
@@ -280,6 +281,7 @@ interface HeaderTextBlockProps {
   amount: string;
   applicationType: string;
   ecoaDaysRemaining: number;
+  showEcoaDaysRemaining: boolean;
   tridDaysRemaining: number;
   showTridDaysRemaining: boolean;
 }
@@ -292,6 +294,7 @@ function HeaderTextBlock({
   amount,
   applicationType,
   ecoaDaysRemaining,
+  showEcoaDaysRemaining,
   tridDaysRemaining,
   showTridDaysRemaining,
 }: HeaderTextBlockProps) {
@@ -341,7 +344,7 @@ function HeaderTextBlock({
 
         <span style={{ color: "var(--roads-border-subtle)", height: "24px", display: "inline-flex", alignItems: "center" }}>|</span>
 
-        <span
+        {showEcoaDaysRemaining && <span
           className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-warning-subtle)",
@@ -352,8 +355,8 @@ function HeaderTextBlock({
           }}
           data-testid="chip-ecoa-days"
         >
-          {ecoaDaysRemaining} ECOA Days Remaining
-        </span>
+          30 ECOA days remaining
+        </span>}
 
         {showTridDaysRemaining && (
           <span
