@@ -9,6 +9,8 @@ export interface SummaryPayments {
   /** Percentage points, not a decimal fraction. */
   finalRate: number | null;
   principalInterest: number | null;
+  monthlyPropertyTaxes: number | null;
+  monthlyInsurance: number | null;
   taxesInsurance: number | null;
   totalMonthlyPayment: number | null;
   apr: number | null;
@@ -58,7 +60,8 @@ function savedPricing(app: LoanApplication): Record<string, unknown> | null {
  * blank), otherwise saved catalog months; ARM catalog months are NOT an
  * amortization term. Payment is rounded once to cents.
  *
- * No saved recurring tax/insurance inputs exist. Closing date alone supplies
+ * Recurring taxes and insurance are saved monthly on the subject property,
+ * independently of appraisal evaluations. Closing date alone supplies
  * neither an APR payment schedule nor finance-charge classifications. APR
  * therefore remains unavailable even with zero fees and a known note rate.
  */
@@ -108,11 +111,32 @@ export function calculateSummaryPayments(app: LoanApplication): SummaryPayments 
   if (principalInterest === null && !missing.some(reason => reason.startsWith("principalInterest:"))) {
     missing.push("principalInterest: total loan amount and confirmed fixed-product rate and term are required.");
   }
-  missing.push("taxesInsurance: recurring property-tax and insurance amounts and their periods are not captured.");
-  missing.push("totalMonthlyPayment: principal and interest plus recurring taxes and insurance are required.");
+  const property = record(app.sections["subject-property"]);
+  const monthlyPropertyTaxes = currencyAmount(property?.monthlyPropertyTaxes);
+  const monthlyInsurance = currencyAmount(property?.monthlyInsurance);
+  if (monthlyPropertyTaxes === null) {
+    missing.push("taxesInsurance: save valid nonnegative Monthly Property Taxes in Collateral; enter 0 explicitly if none.");
+  }
+  if (monthlyInsurance === null) {
+    missing.push("taxesInsurance: save valid nonnegative Monthly Insurance in Collateral; enter 0 explicitly if none.");
+  }
+  const recurringSum = monthlyPropertyTaxes !== null && monthlyInsurance !== null
+    ? monthlyPropertyTaxes + monthlyInsurance : null;
+  const taxesInsurance = recurringSum !== null && Number.isFinite(recurringSum) ? recurringSum : null;
+  if (recurringSum !== null && taxesInsurance === null) {
+    missing.push("taxesInsurance: saved monthly property-tax and insurance amounts produce a non-finite total.");
+  }
+  const paymentSum = principalInterest !== null && taxesInsurance !== null ? principalInterest + taxesInsurance : null;
+  const totalMonthlyPayment = paymentSum !== null && Number.isFinite(paymentSum)
+    ? Math.round(paymentSum * 100) / 100 : null;
+  if (totalMonthlyPayment === null || !Number.isFinite(totalMonthlyPayment)) {
+    missing.push("totalMonthlyPayment: valid principal and interest plus saved monthly property taxes and insurance are required.");
+  }
   missing.push("apr: finance-charge classifications, amount financed, disbursement timing and a complete dated payment schedule are not captured; note rate is not APR.");
   return {
     totalLoanAmount, amountRequested, financedFees, product, finalRate, principalInterest,
-    taxesInsurance: null, totalMonthlyPayment: null, apr: null, missing,
+    monthlyPropertyTaxes, monthlyInsurance, taxesInsurance,
+    totalMonthlyPayment: totalMonthlyPayment !== null && Number.isFinite(totalMonthlyPayment) ? totalMonthlyPayment : null,
+    apr: null, missing,
   };
 }

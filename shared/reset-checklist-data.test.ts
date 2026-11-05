@@ -9,7 +9,8 @@ function fixture(): LoanApplication {
     mode: "blend", generation: 1, revision: 5, changeLog: [{ field: "First Name" }],
     sections: {
       "borrower-primary": { firstName: "Demo", lastName: "Applicant", ssn: "XXX-XX-1234" },
-      "subject-property": { address1: "1 Demo Street", city: "Louisville", state: "KY", zip: "40234" },
+      "subject-property": { address1: "1 Demo Street", city: "Louisville", state: "KY", zip: "40234",
+        monthlyPropertyTaxes: "125.50", monthlyInsurance: "0" },
       "loan-details": { requestedLoanAmount: "145000" },
       income: [{ incomeSources: [{ incomeType: "W2", baseEmploymentIncome: "5000" }] }],
       "evaluation-1": { estimatedValue: "195000", appraiser: "Demo Appraiser" },

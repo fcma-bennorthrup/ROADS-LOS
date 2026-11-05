@@ -36,7 +36,8 @@ export function blendDemoSections(loanId: string, borrowerCount: 1 | 2 = 2): Rec
     "noncurrent-assets": SAMPLE_NON_CURRENT_ASSETS,
     "current-liabilities": SAMPLE_CURRENT_LIABILITIES,
     "noncurrent-liabilities": SAMPLE_NON_CURRENT_LIABILITIES,
-    "subject-property": { ...DEFAULT_ADDRESS, address1: "125 Meadow Lane", address2: "", collateralOwnerId: `${loanId}-primary` },
+    "subject-property": { ...DEFAULT_ADDRESS, address1: "125 Meadow Lane", address2: "", collateralOwnerId: `${loanId}-primary`,
+      monthlyPropertyTaxes: "", monthlyInsurance: "" },
     fees: [],
   };
 }

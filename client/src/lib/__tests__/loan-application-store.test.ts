@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { applicationStore } from "../loan-application-store";
 import { applicationView, emptyFields, type LoanApplication } from "@shared/loan-application";
+import { act, renderHook } from "@testing-library/react";
+import { useLoanDraft } from "@/contexts/loan-application-context";
+import { blendDemoSections, tridDemoSections } from "../blend-demo-fixture";
 
 function fixture(mode: LoanApplication["mode"] = "existing"): LoanApplication {
   return { mode, generation: 1, revision: 0, sections: {},
@@ -18,6 +21,47 @@ describe("loan application persistence", () => {
     applicationStore.install(fixture("empty"));
     expect(applicationStore.read("form", { name: "Sample", amount: "100" })).toEqual({ name: "", amount: "" });
     expect(applicationStore.read("income", [1], [])).toEqual([]);
+  });
+  it("keeps monthly costs blank in empty loans and Blend imports", () => {
+    applicationStore.install(fixture("empty"));
+    const fields = { address1: "Prototype address", monthlyPropertyTaxes: "", monthlyInsurance: "" };
+    expect(applicationStore.read("subject-property", fields)).toEqual({
+      address1: "", monthlyPropertyTaxes: "", monthlyInsurance: "",
+    });
+    for (const sections of [blendDemoSections("test-loan"), tridDemoSections("test-loan")]) {
+      const state = fixture("blend");
+      state.sections = sections;
+      applicationStore.install(state);
+      expect(applicationStore.read("subject-property", fields)).toMatchObject({
+        monthlyPropertyTaxes: "", monthlyInsurance: "",
+      });
+    }
+  });
+  it("commits monthly property costs through useLoanDraft and persists explicit clearing", async () => {
+    const state = fixture("empty");
+    applicationStore.install(state);
+    const fetchMock = vi.fn(async (_url: string, options: RequestInit) => {
+      const payload = JSON.parse(String(options.body));
+      state.sections[payload.section] = payload.value;
+      state.revision++;
+      return new Response(JSON.stringify(state));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    const fields = { monthlyPropertyTaxes: "", monthlyInsurance: "" };
+    const { result, unmount } = renderHook(() => useLoanDraft("subject-property", fields));
+    act(() => result.current[1]({ monthlyPropertyTaxes: "125.50", monthlyInsurance: "0" }));
+    expect(applicationStore.document?.sections["subject-property"]).toBeUndefined();
+    act(() => result.current[2]());
+    await applicationStore.flush();
+    expect(applicationStore.document?.sections["subject-property"]).toEqual({
+      monthlyPropertyTaxes: "125.50", monthlyInsurance: "0",
+    });
+    expect(JSON.parse(String(fetchMock.mock.calls[0][1].body)).baseline).toEqual(fields);
+    act(() => result.current[1](fields));
+    act(() => result.current[2]());
+    await applicationStore.flush();
+    expect(applicationStore.document?.sections["subject-property"]).toEqual(fields);
+    unmount();
   });
   it("imports application values but not workflow outcomes", () => {
     applicationStore.install(fixture("blend"));

@@ -30,8 +30,7 @@ export function calculateSummary(app: LoanApplication) {
     ? payments.principalInterest - interest : null;
   const pitiBreakdown: PitiBreakdown = {
     principal, interest,
-    // Recurring tax and insurance inputs do not exist in the saved contract.
-    taxes: null, insurance: null,
+    taxes: payments.monthlyPropertyTaxes, insurance: payments.monthlyInsurance,
     totalHousingCosts: payments.totalMonthlyPayment,
     grossMonthlyIncome: incomeDebt.monthlyIncome,
     percentage: incomeDebt.piti,

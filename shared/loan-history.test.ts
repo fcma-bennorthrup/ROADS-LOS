@@ -2,6 +2,17 @@ import { describe, expect, it } from "vitest";
 import { changesForSave } from "./loan-history";
 
 describe("saved loan change history", () => {
+  it("treats monthly property costs as Collateral fields with normal baseline and edit history", () => {
+    const blank = { monthlyPropertyTaxes: "", monthlyInsurance: "" };
+    const saved = { monthlyPropertyTaxes: "125.50", monthlyInsurance: "0" };
+    expect(changesForSave("subject-property", blank, saved, 1)).toEqual([]);
+    const rows = changesForSave("subject-property", saved,
+      { monthlyPropertyTaxes: "150", monthlyInsurance: "" }, 2);
+    expect(rows).toMatchObject([
+      { field: "Subject Property / Monthly Property Taxes", section: "Collateral", previousValue: "125.50", newValue: "150" },
+      { field: "Subject Property / Monthly Insurance", section: "Collateral", previousValue: "0", newValue: "—" },
+    ]);
+  });
   it("does not record initialization or blank fields receiving their first value", () => {
     expect(changesForSave("loan-details", undefined, { amount: "100" }, 1)).toEqual([]);
     expect(changesForSave("loan-details", { amount: "" }, { amount: "100" }, 1)).toEqual([]);

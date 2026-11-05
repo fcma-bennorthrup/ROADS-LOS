@@ -52,7 +52,7 @@ describe("saved Summary projection", () => {
     expect(result.pitiBreakdown.interest).toBe(0);
     expect(result.pitiBreakdown.principal).toBe(277.78);
     expect(result.piti).toBeNull();
-    expect(result.missing.join(" ")).toContain("property-tax");
+    expect(result.missing.join(" ")).toContain("Monthly Property Taxes");
   });
 
   it("does not fall back to sample columns when saved inputs are absent", () => {
@@ -63,5 +63,21 @@ describe("saved Summary projection", () => {
       if (key !== "missing" && key !== "pitiBreakdown") expect(value, key).toBeNull();
     }
     expect(Object.values(result.pitiBreakdown).every(value => value === null)).toBe(true);
+  });
+
+  it("uses the same monthly costs for the PITI breakdown, housing percentage and DTI", () => {
+    const app = savedApplication();
+    app.sections["subject-property"] = { monthlyPropertyTaxes: "125.50", monthlyInsurance: "74.50" };
+    app.sections["current-liabilities"] = [{ id: "card", monthlyPayment: "100", toBePaidOff: "No" }];
+    const result = calculateSummary(app);
+    expect(result).toMatchObject({
+      principalInterest: 599.55, taxesInsurance: 200, totalMonthlyPayment: 799.55,
+      piti: 799.55 / 5000 * 100, dti: 899.55 / 5000 * 100,
+      pitiBreakdown: { interest: 500, taxes: 125.5, insurance: 74.5,
+        totalHousingCosts: 799.55, grossMonthlyIncome: 5000, percentage: 799.55 / 5000 * 100 },
+    });
+    expect(result.pitiBreakdown.principal).toBeCloseTo(99.55);
+    app.sections["subject-property"] = { monthlyPropertyTaxes: "0", monthlyInsurance: "" };
+    expect(calculateSummary(app).pitiBreakdown).toMatchObject({ taxes: 0, insurance: null, percentage: null });
   });
 });

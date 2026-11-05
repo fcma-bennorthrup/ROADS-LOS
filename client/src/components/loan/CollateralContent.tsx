@@ -219,6 +219,8 @@ interface AddressData {
 
 interface SubjectPropertyData extends AddressData {
   collateralOwnerId: string;
+  monthlyPropertyTaxes: string;
+  monthlyInsurance: string;
 }
 
 interface EvaluationData {
@@ -381,12 +383,16 @@ function loadSubjectProperty(storageKey: string): SubjectPropertyData {
         ...(saved as AddressData),
         collateralOwnerId: typeof (saved as Partial<SubjectPropertyData>).collateralOwnerId === "string"
           ? (saved as SubjectPropertyData).collateralOwnerId : "",
+        monthlyPropertyTaxes: typeof (saved as Partial<SubjectPropertyData>).monthlyPropertyTaxes === "string"
+          ? (saved as SubjectPropertyData).monthlyPropertyTaxes : "",
+        monthlyInsurance: typeof (saved as Partial<SubjectPropertyData>).monthlyInsurance === "string"
+          ? (saved as SubjectPropertyData).monthlyInsurance : "",
       };
     }
   } catch {
     // Fall through to the prototype defaults.
   }
-  return { ...DEFAULT_ADDRESS, collateralOwnerId: "" };
+  return { ...DEFAULT_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
 }
 
 const EMPTY_EVALUATION: EvaluationData = {
@@ -629,7 +635,7 @@ export function CollateralContent({
 
   useEffect(() => {
     if (!consumeDemoReset("collateral")) return;
-    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "" };
+    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
     saveAddress(clearedAddress);
     setAddressFields(clearedAddress);
     setSavedAddressFields(clearedAddress);
@@ -728,6 +734,15 @@ export function CollateralContent({
           isEditing={isEditingAddress}
           onFieldChange={updateAddressField}
         />
+        <div className="flex flex-wrap items-center" style={{
+          padding: "0 var(--roads-spacing-component-3xl)",
+          gap: "var(--roads-spacing-component-3xl)",
+        }}>
+          <CollateralField label="Monthly Property Taxes" value={addressFields.monthlyPropertyTaxes ?? ""}
+            hasLeadingIcon isEditing={isEditingAddress} onChange={updateAddressField("monthlyPropertyTaxes")} />
+          <CollateralField label="Monthly Insurance" value={addressFields.monthlyInsurance ?? ""}
+            hasLeadingIcon isEditing={isEditingAddress} onChange={updateAddressField("monthlyInsurance")} />
+        </div>
         <div style={{ padding: "0 var(--roads-spacing-component-3xl)" }}>
             <div className="flex flex-col" style={{ width: 288, maxWidth: "100%", gap: "var(--roads-spacing-component-xs)" }}
               data-testid="field-collateral-owner">

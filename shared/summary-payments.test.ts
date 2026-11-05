@@ -32,6 +32,55 @@ function ready(overrides: Record<string, unknown> = {}) {
 }
 
 describe("saved summary payments", () => {
+  it("adds saved monthly property costs once, independently of split evaluations", () => {
+    const app = ready();
+    app.sections["subject-property"] = { monthlyPropertyTaxes: "$125.50", monthlyInsurance: "74.50" };
+    app.sections["appraisal-split"] = true;
+    app.sections["evaluation-1"] = { monthlyPropertyTaxes: "999" };
+    app.sections["evaluation-2"] = { monthlyInsurance: "999" };
+    const result = calculateSummaryPayments(app);
+    expect(result).toMatchObject({
+      monthlyPropertyTaxes: 125.5, monthlyInsurance: 74.5, taxesInsurance: 200, totalMonthlyPayment: 799.55,
+    });
+    expect(result.missing.some(reason => /^(taxesInsurance|totalMonthlyPayment):/.test(reason))).toBe(false);
+    expect(result.apr).toBeNull();
+  });
+
+  it("accepts explicitly saved zero monthly costs without requiring a rate lock for their subtotal", () => {
+    const app = application({ "subject-property": { monthlyPropertyTaxes: "0", monthlyInsurance: 0 } });
+    expect(calculateSummaryPayments(app)).toMatchObject({
+      monthlyPropertyTaxes: 0, monthlyInsurance: 0, taxesInsurance: 0, totalMonthlyPayment: null,
+    });
+    const zeroLoan = ready();
+    zeroLoan.sections["subject-property"] = { monthlyPropertyTaxes: "0", monthlyInsurance: "0" };
+    zeroLoan.sections["loan-details"] = { requestedLoanAmount: "0" };
+    expect(calculateSummaryPayments(zeroLoan)).toMatchObject({
+      principalInterest: 0, taxesInsurance: 0, totalMonthlyPayment: 0,
+    });
+  });
+
+  it.each([undefined, null, "", " ", "n/a", "-1", "Infinity", Infinity, NaN, true])(
+    "does not replace missing or invalid monthly costs %j with zero", value => {
+      for (const field of ["monthlyPropertyTaxes", "monthlyInsurance"]) {
+        const app = ready();
+        app.sections["subject-property"] = { monthlyPropertyTaxes: "0", monthlyInsurance: "0", [field]: value };
+        const result = calculateSummaryPayments(app);
+        expect(result[field as "monthlyPropertyTaxes" | "monthlyInsurance"]).toBeNull();
+        expect(result.taxesInsurance).toBeNull();
+        expect(result.totalMonthlyPayment).toBeNull();
+        expect(result.missing.join(" ")).toContain(field === "monthlyPropertyTaxes" ? "Monthly Property Taxes" : "Monthly Insurance");
+      }
+    },
+  );
+
+  it("rejects non-finite monthly totals", () => {
+    const app = ready();
+    app.sections["subject-property"] = { monthlyPropertyTaxes: "9".repeat(308), monthlyInsurance: "9".repeat(308) };
+    expect(calculateSummaryPayments(app).taxesInsurance).toBeNull();
+    expect(calculateSummaryPayments(app).totalMonthlyPayment).toBeNull();
+    expect(calculateSummaryPayments(app).missing.join(" ")).toContain("non-finite total");
+  });
+
   it("never uses sample summary columns or defaults as authoritative inputs", () => {
     const result = calculateSummaryPayments(application());
     for (const [field, value] of Object.entries(result)) {
