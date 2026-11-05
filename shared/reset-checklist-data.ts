@@ -21,6 +21,7 @@ export function resetChecklistData(current: LoanApplication): LoanApplication {
     sections[`${prefix}-delivered-at`] = null;
   }
   sections["credit-pulled"] = false;
+  delete sections["credit-scores"];
   sections["booking-state"] = "idle";
   sections["booking-at"] = null;
   sections["pricing-type"] = "";

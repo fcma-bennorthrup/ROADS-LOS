@@ -3,6 +3,7 @@ import { collateralValue, loanToCollateralValue } from "./loan-collateral-value"
 import { calculateSummaryPayments } from "./summary-payments";
 import { calculateSummaryIncomeDebt } from "./summary-income-debt";
 import { calculateSummaryCash } from "./summary-cash";
+import { evaluatePrimaryWageEarner } from "./business-rules/primary-wage-earner";
 
 export interface PitiBreakdown {
   /** First scheduled payment; not an average over the loan term. */
@@ -20,6 +21,7 @@ export function calculateSummary(app: LoanApplication) {
   const payments = calculateSummaryPayments(app);
   const incomeDebt = calculateSummaryIncomeDebt(app, payments.totalMonthlyPayment);
   const cash = calculateSummaryCash(app);
+  const pwe = evaluatePrimaryWageEarner(app);
   const totalCv = collateralValue(app.sections);
   const lcv = loanToCollateralValue(payments.totalLoanAmount, totalCv);
   const ruleOfXx = lcv !== "" && payments.amortizationMonths !== null
@@ -39,9 +41,12 @@ export function calculateSummary(app: LoanApplication) {
   };
   return {
     ...payments, ...incomeDebt, ...cash,
-    totalCv, lcv: lcv === "" ? null : Number(lcv), pitiBreakdown, ruleOfXx,
+    totalCv, lcv: lcv === "" ? null : Number(lcv), pitiBreakdown, ruleOfXx, pweCbScore: pwe.creditScore,
     missing: Array.from(new Set([
-      ...payments.missing, ...incomeDebt.missing, ...cash.missing.filter(message => !message.startsWith("Rule of XX:")),
+      ...payments.missing, ...incomeDebt.missing, ...cash.missing.filter(message => !/^(Rule of XX|PWE CB Score):/.test(message)),
+      ...(pwe.creditScore === null ? [pwe.borrowerId === null
+        ? "PWE CB Score: save income for every borrower to identify the primary wage earner."
+        : "PWE CB Score: pull credit in Decisioning to save this borrower's demo credit score."] : []),
       ...(ruleOfXx === null ? ["Rule of XX: L/CV and a saved amortization term are required."] : []),
       ...(totalCv === null ? ["Total CV: a positive saved estimated or reported collateral value is required for every active evaluation."] : []),
       ...(lcv === "" ? ["L/CV: authoritative total loan amount and positive total collateral value are required."] : []),

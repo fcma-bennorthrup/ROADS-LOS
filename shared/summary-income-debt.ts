@@ -1,5 +1,6 @@
 import type { LoanApplication } from "./loan-application";
 import { currencyAmount } from "./loan-collateral-value";
+import { incomeSourceTotals } from "./business-rules/primary-wage-earner";
 
 export interface SummaryIncomeDebt {
   /** Complete monthly housing costs / combined gross monthly income * 100. */
@@ -16,12 +17,6 @@ function record(value: unknown): Record<string, unknown> {
     ? value as Record<string, unknown> : {};
 }
 
-function supplied(value: unknown): boolean {
-  return value !== undefined && value !== null && String(value).trim() !== "";
-}
-
-const COMPONENTS = ["baseEmploymentIncome", "overtime", "bonuses", "commissions", "other"] as const;
-
 /**
  * Saved-data prototype, not an underwriting qualification calculation.
  *
@@ -31,8 +26,8 @@ const COMPONENTS = ["baseEmploymentIncome", "overtime", "bonuses", "commissions"
  * to that payment and is a percentage (25, not .25), without UI rounding.
  *
  * Income is positional, like BorrowerFinancialsContent: income[0] is primary,
- * income[1] secondary. Prefer saved totalMonthlyIncome, then totalYearlyIncome
- * / 12, then annual components / 12 (the existing income editor's convention).
+ * income[1] secondary. Shared income rules calculate annual components / 12,
+ * falling back to saved totals only when components are absent.
  * There is no saved pay-frequency field: no weekly/hourly conversion is guessed.
  * Blank optional components contribute zero only if another component is explicit.
  * A blank borrower/source is unknown, not an assertion of zero income.
@@ -78,19 +73,8 @@ export function calculateSummaryIncomeDebt(
           incomeMissing(`${path}: historical-job income qualification is unsupported.`);
           return;
         }
-        // An invalid explicit total must not silently fall back to another field.
-        let monthly: number | null;
-        if (supplied(source.totalMonthlyIncome)) {
-          monthly = currencyAmount(source.totalMonthlyIncome);
-        } else if (supplied(source.totalYearlyIncome)) {
-          const yearly = currencyAmount(source.totalYearlyIncome);
-          monthly = yearly === null ? null : yearly / 12;
-        } else {
-          const components = COMPONENTS.filter(key => supplied(source[key]));
-          const amounts = components.map(key => currencyAmount(source[key]));
-          monthly = components.length > 0 && amounts.every(amount => amount !== null)
-            ? (amounts as number[]).reduce((sum, amount) => sum + amount, 0) / 12 : null;
-        }
+        // Use the same income calculation as the PWE rule and income editor.
+        const monthly = incomeSourceTotals(source)?.monthly ?? null;
         if (monthly === null || !Number.isFinite(monthly))
           incomeMissing(`${path}: valid monthly income or annual income is missing; unsupported pay-frequency conversions are not inferred.`);
         else incomeTotal += monthly;

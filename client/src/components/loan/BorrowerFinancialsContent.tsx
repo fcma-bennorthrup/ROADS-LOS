@@ -2,7 +2,8 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown, Pencil, Calendar } from "lucide-react";
 import { BalanceSheetSection } from "./BalanceSheetSection";
 import { RoadsDropdown } from "./RoadsDropdown";
-import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
+import { useLoanState, useLoanEditing, useApplicationStatus } from "@/contexts/loan-application-context";
+import { evaluatePrimaryWageEarner, incomeSourceTotals } from "@shared/business-rules/primary-wage-earner";
 import { applicationStore } from "@/lib/loan-application-store";
 import { applicationView } from "@shared/loan-application";
 
@@ -457,10 +458,12 @@ export const SAMPLE_BORROWERS: Borrower[] = [
 ];
 
 export function BorrowerFinancialsContent() {
+  const app = useApplicationStatus().document;
   const [activeBorrowerIndex, setActiveBorrowerIndex] = useState(0);
   const [savedBorrowers, setBorrowers] = useLoanState<Borrower[]>("income", SAMPLE_BORROWERS,
     SAMPLE_BORROWERS.map((b, index) => ({ ...b, name: `Borrower ${index + 1}`, incomeSources: [] })));
   const loanBorrowers = applicationStore.document ? applicationView(applicationStore.document).borrowers : null;
+  const pweIndex = app ? evaluatePrimaryWageEarner(app).borrowerIndex : null;
   const borrowers = savedBorrowers.map((b, index) => ({ ...b,
     name: loanBorrowers ? loanBorrowers[index]?.name || `Borrower ${index + 1}` : b.name }));
   const [editingSourceIndex, setEditingSourceIndex] = useState<number | null>(null);
@@ -477,21 +480,15 @@ export function BorrowerFinancialsContent() {
   function handleSave() {
     if (editBuffer === null || editingSourceIndex === null) return;
 
-    const base = parseFloat(editBuffer.baseEmploymentIncome.replace(/,/g, "")) || 0;
-    const overtime = parseFloat(editBuffer.overtime.replace(/,/g, "")) || 0;
-    const bonuses = parseFloat(editBuffer.bonuses.replace(/,/g, "")) || 0;
-    const commissions = parseFloat(editBuffer.commissions.replace(/,/g, "")) || 0;
-    const other = parseFloat(editBuffer.other.replace(/,/g, "")) || 0;
-    const yearly = base + overtime + bonuses + commissions + other;
-    const monthly = yearly / 12;
+    const totals = incomeSourceTotals({ ...editBuffer, totalMonthlyIncome: "", totalYearlyIncome: "" });
 
     const fmt = (n: number) =>
       `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     const updated = {
       ...editBuffer,
-      totalMonthlyIncome: fmt(monthly),
-      totalYearlyIncome: fmt(yearly),
+      totalMonthlyIncome: totals ? fmt(totals.monthly) : "",
+      totalYearlyIncome: totals ? fmt(totals.yearly) : "",
     };
 
     setBorrowers((prev) => {
@@ -588,7 +585,7 @@ export function BorrowerFinancialsContent() {
             >
               Income
             </span>
-            {activeBorrower.isPrimaryWageEarner && (
+            {pweIndex === activeBorrowerIndex && (
               <div
                 className="body-200-strong flex items-center"
                 style={{

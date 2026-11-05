@@ -35,10 +35,10 @@ describe("saved summary income and debt", () => {
     expect(JSON.stringify(app)).toBe(before);
   });
 
-  it("prefers monthly, then yearly, then annual components, without double counting totals", () => {
+  it("recomputes annual components without double counting stale totals", () => {
     const app = application({ income: [{ incomeSources: [
-      { totalMonthlyIncome: "1000", totalYearlyIncome: "999999", baseEmploymentIncome: "999999" },
-      { totalMonthlyIncome: "", totalYearlyIncome: "24000", baseEmploymentIncome: "999999" },
+      { totalMonthlyIncome: "999999", totalYearlyIncome: "999999", baseEmploymentIncome: "12000" },
+      { totalMonthlyIncome: "", totalYearlyIncome: "999999", baseEmploymentIncome: "24000" },
       { baseEmploymentIncome: "12000", overtime: "1200", bonuses: "600", commissions: "600", other: "0" },
     ] }] });
     expect(calculateSummaryIncomeDebt(app, 420).monthlyIncome).toBe(4200);

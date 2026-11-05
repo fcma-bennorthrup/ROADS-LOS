@@ -3,6 +3,14 @@ name: Prototype business rules
 description: User-approved lightweight rule logic and TRID requirements
 ---
 Keep prototype business rules centralized in code; do not build a business-rule engine.
+
+PWE is the borrower with the highest saved income; Summary PWE CB Score uses that
+borrower's hard-pull score. The income-page chip must move when saved incomes change.
+
+**Why:** The user explicitly defined PWE selection and score ownership.
+
+**How to apply:** Share income calculations between the rule, editor, and Summary;
+keep scores attached to borrower IDs, not income rank. Demo scores are synthetic.
 The real application uses a third-party rule engine.
 
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLoanState } from "@/contexts/loan-application-context";
+import { useLoanState, useApplicationStatus } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
@@ -22,6 +22,8 @@ export function DecisioningSummaryContent({
   const [isDecisioned, setIsDecisioned] = useState(() => getActionStatus("Loan Decision", 0) === "complete");
   const [letterGenerated, setLetterGenerated] = useState(() => getActionStatus("Decision Letter", 0) === "complete");
   const [creditPulled, setCreditPulled] = useLoanState("credit-pulled", false, false, false);
+  const app = useApplicationStatus().document;
+  const hasCreditResults = creditPulled && (!app || !!app.sections["credit-scores"]);
   const observedResetVersion = useRef(demoResetVersion);
   const { addActivity } = useActivityPanel();
   const { toast } = useToast();
@@ -240,7 +242,7 @@ export function DecisioningSummaryContent({
         <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
             onClick={handlePullCredit}
-            disabled={creditPulled || pullingCredit}
+            disabled={hasCreditResults || pullingCredit}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: creditPulled ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
