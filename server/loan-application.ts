@@ -6,6 +6,7 @@ import { applicationView, type LoanApplication } from "../shared/loan-applicatio
 import { changesForSave } from "../shared/loan-history";
 import { evaluateLoanRules } from "../shared/business-rules";
 import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
+import { populateDemoCredit } from "../shared/demo-credit";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -52,6 +53,29 @@ const actionSchema = z.object({
 });
 
 export function registerLoanApplicationRoutes(app: Express) {
+  app.post("/api/loans/:id/application/credit", async (req, res) => {
+    const parsed = z.object({
+      generation: z.number().int().nonnegative(),
+      revision: z.number().int().nonnegative(),
+    }).safeParse(req.body);
+    if (!parsed.success) return void res.status(400).json({ error: "Invalid credit request." });
+    try {
+      const current = await load(String(req.params.id));
+      if (!current) return void res.status(404).json({ error: "Loan not found." });
+      const { generation, revision } = parsed.data;
+      if (current.generation !== generation || current.revision !== revision)
+        return void res.status(409).json({ error: "The loan changed. Reload before pulling credit." });
+      let next: LoanApplication;
+      try { next = populateDemoCredit(current); }
+      catch (error) { return void res.status(400).json({ error: (error as Error).message }); }
+      const result = await pool.query(
+        `UPDATE prototype_loan_applications SET document=$2
+         WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
+        [req.params.id, JSON.stringify(next), generation, revision]);
+      if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload before pulling credit." });
+      res.json(result.rows[0].document);
+    } catch { res.status(503).json({ error: "Credit could not be saved. Please retry." }); }
+  });
   app.get("/api/loans/:id/application", async (req, res) => {
     try {
       const document = await load(String(req.params.id));
