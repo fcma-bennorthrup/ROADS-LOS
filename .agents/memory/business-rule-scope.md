@@ -47,3 +47,12 @@ application chip for the two-borrower application and omit it for one borrower.
 
 **How to apply:** Keep this chip decision in business rules and ensure a
 single-borrower import does not retain the prior secondary borrower's data.
+
+The first and last tracker chevrons are temporary, visually unchanged demo
+controls that move one stage backward or forward without persisting the stage.
+
+**Why:** The user intends business rules to drive the loan stage eventually;
+the current controls are only for demonstration.
+
+**How to apply:** Do not save demo stage overrides to the loan or browser storage,
+or let them complete checklist tasks.

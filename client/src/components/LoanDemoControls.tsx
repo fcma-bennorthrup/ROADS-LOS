@@ -5,7 +5,7 @@ import { applicationRequest } from "@/lib/loan-application-store";
 
 export function LoanDemoControls() {
   const store = useApplicationStatus();
-  const [action, setAction] = useState<"reset" | "blend" | "trid" | null>(null);
+  const [action, setAction] = useState<"reset" | "blend" | "trid" | "checklist" | null>(null);
   const [busy, setBusy] = useState(false);
   const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
   const [error, setError] = useState("");
@@ -14,9 +14,9 @@ export function LoanDemoControls() {
     setBusy(true); setError("");
     try {
       await store.flush();
-      if (action === "trid" && store.dirty) throw new Error("Save or discard your open edits before triggering TRID.");
+      if ((action === "trid" || action === "checklist") && store.dirty) throw new Error("Save or discard your open edits before continuing.");
       const current = store.document!;
-      const fixtures = action !== "reset" ? await import("@/lib/blend-demo-fixture") : null;
+      const fixtures = action === "blend" || action === "trid" ? await import("@/lib/blend-demo-fixture") : null;
       const sections = action === "trid" ? fixtures!.tridDemoSections(current.loan.id)
         : action === "blend" ? fixtures!.blendDemoSections(current.loan.id, borrowerCount) : undefined;
       const next = await applicationRequest(current.loan.id, "/demo", {
@@ -31,10 +31,10 @@ export function LoanDemoControls() {
     } catch (error) { setError((error as Error).message); }
     finally { setBusy(false); }
   }
-  function actionControl(kind: "reset" | "blend" | "trid", label: string) {
+  function actionControl(kind: "reset" | "blend" | "trid" | "checklist", label: string) {
     return <div className="mt-auto h-28 shrink-0 flex flex-col justify-end">{action === kind ? <div role="alert" aria-label={`Confirm ${label}`} className="rounded-md border border-red-300 bg-red-50 p-2 dark:border-red-800 dark:bg-red-950">
       <div className="flex flex-col gap-2">
-        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : "Confirm replacement"}</Button>
+        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : kind === "checklist" ? "Confirm reset" : "Confirm replacement"}</Button>
         <Button variant="secondary" disabled={busy} onClick={() => { setAction(null); setError(""); }}>Cancel</Button>
       </div>
     </div> : <Button className="w-full h-auto whitespace-normal py-2" variant="secondary" disabled={busy || !!store.error || (kind === "trid" && store.document?.businessRules?.trid.status === "satisfied")} onClick={() => { setAction(kind); setError(""); }}>{label}</Button>}</div>;
@@ -66,6 +66,11 @@ export function LoanDemoControls() {
       <p className="text-sm text-muted-foreground">Fill and save missing TRID fields. Keep existing valid data.</p>
       {store.document?.businessRules?.trid.status === "satisfied" && <p className="text-sm">Already satisfied. Reset to start again.</p>}
       {actionControl("trid", "Trigger TRID")}
+    </div>
+    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-checklist-card">
+      <h3 className="font-semibold">Checklist data</h3>
+      <p className="text-sm text-muted-foreground">Clear task progress, generated documents, credit results, rate locks, and activity. Keep application data.</p>
+      {actionControl("checklist", "Reset Checklist Data")}
     </div>
     </div>
     {error && <p role="alert" className="text-red-700">{error}</p>}

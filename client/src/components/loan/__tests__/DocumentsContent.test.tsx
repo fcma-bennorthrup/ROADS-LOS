@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DocumentsContent } from "../DisclosureDocumentsContent";
-import { ChecklistPanel } from "../ChecklistPanel";
+import { ChecklistPanel } from "./LegacyChecklistResetHarness";
 import { LoanActivityPanel } from "../LoanActivityPanel";
 import { ChecklistProvider, useChecklist } from "@/contexts/checklist-context";
 import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";

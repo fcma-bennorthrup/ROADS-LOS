@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollateralContent } from "../CollateralContent";
-import { ChecklistPanel } from "../ChecklistPanel";
+import { ChecklistPanel } from "./LegacyChecklistResetHarness";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import {
   LoanActivityProvider,
@@ -90,12 +90,12 @@ describe("CollateralContent Subject Property workflow", () => {
     expect(screen.getByTestId("select-collateral-owner")).toHaveTextContent("Select collateral owner");
   });
 
-  it("uses Reset Demo as the only reset control", () => {
+  it("does not expose a reset control in the checklist or collateral panel", () => {
     renderCollateral();
 
     expect(screen.queryByTestId("button-reset-checklist")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Reset$/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset Demo" })).toBeInTheDocument();
+    expect(within(screen.getByTestId("checklist-panel")).queryByRole("button", { name: "Reset Demo" })).not.toBeInTheDocument();
   });
 
   it("starts Title Work and Appraisal Evaluation when the edited address is saved", () => {

@@ -17,6 +17,18 @@ vi.mock("@/lib/blend-demo-fixture", () => ({
 beforeEach(() => { cleanup(); vi.clearAllMocks(); });
 
 describe("Trigger TRID button", () => {
+  it("confirms the checklist-only reset without requesting import fixtures", async () => {
+    mocks.request.mockResolvedValue({ loan: { id: "demo" } });
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "Reset Checklist Data" }));
+    expect(mocks.request).not.toHaveBeenCalled();
+    expect(within(screen.getByTestId("demo-checklist-card")).getByRole("alert")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Confirm reset" }));
+    await waitFor(() => expect(mocks.store.install).toHaveBeenCalled());
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toEqual({
+      action: "checklist", generation: 1, revision: 2, confirmed: true,
+    });
+  });
   it("replaces only the clicked button with an inline confirmation and restores it on cancel", () => {
     render(<LoanDemoControls />);
     fireEvent.click(screen.getByRole("button", { name: "Reset All Application Data" }));

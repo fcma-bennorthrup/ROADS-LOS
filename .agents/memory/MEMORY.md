@@ -23,3 +23,4 @@
 - [Sync status read policy](sync-status-read-policy.md) — Bound read-only checks without weakening mutation locks, recovery or pinned comparisons.
 - [Loan demo data ownership](loan-demo-ownership.md) — Persistent application data belongs to each loan, not each tester; future pipeline will contain multiple loans.
 - [Prototype business rules](business-rule-scope.md) — Centralize lightweight rules using existing saved fields only; TRID is satisfied by Loan Estimate delivery.
+- [Checklist demo reset](checklist-reset-scope.md) — Clear task outputs through prototype controls, preserving application inputs and allowing rules to restart required tasks.

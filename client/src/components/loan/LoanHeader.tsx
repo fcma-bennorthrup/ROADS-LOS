@@ -113,7 +113,7 @@ export function LoanHeader({
         style={{ gap: "16px", paddingTop: "16px" }}
       >
         <BreadcrumbBar loanNumber={loanNumber} />
-        <StageStepper currentStep={applicationStore.document && applicationStore.document.mode !== "existing" ? 0 : 2} />
+        <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} initialStep={applicationStore.document && applicationStore.document.mode !== "existing" ? 0 : 2} />
         <HeaderTextBlock
           loanType={loanType}
           loanNumber={loanNumber}
@@ -213,7 +213,9 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
+export function StageStepper({ initialStep = 2 }: { initialStep?: number }) {
+  // Demo-only navigation: deliberately not written to the loan or browser storage.
+  const [currentStep, setCurrentStep] = useState(initialStep);
   return (
     <div
       className="flex w-full"
@@ -224,6 +226,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
         const isLast = index === STAGES.length - 1;
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
+        const isControl = index === 0 || isLast;
+        const Stage = isControl ? "button" : "div";
 
         let bgColor: string;
         let textColor: string;
@@ -252,7 +256,14 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
             }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            <div
+            <Stage
+              {...(isControl ? {
+                type: "button" as const,
+                "aria-label": index === 0 ? "Move loan stage backward" : "Move loan stage forward",
+                "aria-disabled": index === 0 ? currentStep === 0 : currentStep === STAGES.length - 1,
+                onClick: () => setCurrentStep(step => Math.max(0, Math.min(STAGES.length - 1, step + (index === 0 ? -1 : 1)))),
+              } : {})}
+              aria-current={isActive ? "step" : undefined}
               className="flex items-center justify-center w-full h-full caption-100-strong"
               style={{
                 backgroundColor: bgColor,
@@ -261,11 +272,12 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 paddingLeft: 20,
                 paddingRight: 20,
                 gap: 4,
+                ...(isControl ? { border: 0, cursor: "default" } : {}),
               }}
             >
               {isCompleted && <Check className="w-4 h-4 flex-shrink-0" />}
               <span className="truncate">{stage.label}</span>
-            </div>
+            </Stage>
           </div>
         );
       })}

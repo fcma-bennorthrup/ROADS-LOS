@@ -27,7 +27,7 @@ export const applicationStore = {
   read<T>(key: string, initial: T, blank?: T, applicationData = true): T {
     if (!document) return initial;
     if (Object.hasOwn(document.sections, key)) return document.sections[key] as T;
-    if (document.mode === "empty" || (!applicationData && document.mode === "blend")) {
+    if (document.mode === "empty" || (!applicationData && (document.mode === "blend" || document.sections["checklist-reset"] === true))) {
       const value = blank === undefined ? emptyFields(initial) : blank;
       baselines.set(key, value);
       return value;

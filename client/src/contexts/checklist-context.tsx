@@ -178,7 +178,7 @@ function getLoanStorageKey(location: string): string {
 }
 
 function loadTasks(storageKey: string): ChecklistTask[] {
-  const defaults = applicationStore.document && applicationStore.document.mode !== "existing"
+  const defaults = applicationStore.document && (applicationStore.document.mode !== "existing" || applicationStore.document.sections["checklist-reset"])
     ? INITIAL_TASKS.map(task => ({ ...task, status: "not-started" as ChecklistStatus,
       actions: task.actions.map(action => ({ ...action, status: "not-started" as ChecklistStatus })) }))
     : INITIAL_TASKS;

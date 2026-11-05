@@ -7,6 +7,7 @@ import { changesForSave } from "../shared/loan-history";
 import { evaluateLoanRules } from "../shared/business-rules";
 import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
 import { populateDemoCredit } from "../shared/demo-credit";
+import { resetChecklistData } from "../shared/reset-checklist-data";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -44,7 +45,7 @@ const writeSchema = z.object({
   baseline: z.unknown().optional(),
 });
 const actionSchema = z.object({
-  action: z.enum(["reset", "blend", "trid"]),
+  action: z.enum(["reset", "blend", "trid", "checklist"]),
   borrowerCount: z.union([z.literal(1), z.literal(2)]).optional().default(2),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
@@ -124,6 +125,17 @@ export function registerLoanApplicationRoutes(app: Express) {
       const current = await load(String(req.params.id));
       if (!current) return void res.status(404).json({ error: "Loan not found" });
       const { action, generation, revision } = parsed.data;
+      if (action === "checklist") {
+        if (current.generation !== generation || current.revision !== revision)
+          return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
+        const next = resetChecklistData(current);
+        const result = await pool.query(
+          `UPDATE prototype_loan_applications SET document=$2
+           WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
+          [req.params.id, JSON.stringify(next), generation, revision]);
+        if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
+        return void res.json(result.rows[0].document);
+      }
       if (action === "trid") {
         if (current.generation !== generation || current.revision !== revision)
           return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
