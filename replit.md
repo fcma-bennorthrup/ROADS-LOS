@@ -112,6 +112,7 @@ shared/
 - For push conflicts: resolving writes locally then re-pushes all files to GitHub
 
 ## Running
+- Summary PITI user-confirmed formula: (monthly principal + interest + property taxes + insurance) / combined gross monthly borrower income × 100. Show a percentage; missing inputs are unavailable, not zero. The tooltip uses the first scheduled payment's principal/interest breakdown, not a term average.
 - Workflow "Start application" runs `npm run dev`
 - Express backend + Vite frontend on same port
 - `.nvmrc` selects local Node 20.20.0; `.replit` declares Node 24. Both are documented as observed configurations, not verified compatible environments.

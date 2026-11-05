@@ -1,6 +1,7 @@
 import type { Loan, Borrower } from "./schema";
 import { evaluateJointCredit } from "./business-rules/joint-credit";
 import { collateralValue, currencyAmount, loanToCollateralValue } from "./loan-collateral-value";
+import { calculateSummary } from "./summary";
 
 export interface LoanApplication {
   loan: Loan;
@@ -47,5 +48,5 @@ export function applicationView(app: LoanApplication) {
   const value = collateralValue(app.sections);
   loan.totalCv = value === null ? "" : String(value);
   loan.lcv = loanToCollateralValue(loan.totalLoanAmount, value);
-  return { ...loan, borrowers };
+  return { ...loan, borrowers, summary: calculateSummary(app) };
 }

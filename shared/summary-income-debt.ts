@@ -2,7 +2,7 @@ import type { LoanApplication } from "./loan-application";
 import { currencyAmount } from "./loan-collateral-value";
 
 export interface SummaryIncomeDebt {
-  /** Complete monthly principal, interest, taxes and insurance, in dollars. */
+  /** Complete monthly housing costs / combined gross monthly income * 100. */
   piti: number | null;
   dti: number | null;
   monthlyIncome: number | null;
@@ -25,9 +25,9 @@ const COMPONENTS = ["baseEmploymentIncome", "overtime", "bonuses", "commissions"
 /**
  * Saved-data prototype, not an underwriting qualification calculation.
  *
- * PITI means principal, interest, taxes and insurance in monthly dollars, per
- * the user's clarification (despite the current UI's percentage suffix).
- * The caller must supply that complete payment. DTI adds retained liabilities
+ * User-confirmed PITI = monthly principal + interest + taxes + insurance,
+ * divided by combined gross monthly borrower income, multiplied by 100.
+ * The caller must supply that complete housing payment in dollars. DTI adds retained liabilities
  * to that payment and is a percentage (25, not .25), without UI rounding.
  *
  * Income is positional, like BorrowerFinancialsContent: income[0] is primary,
@@ -157,10 +157,10 @@ export function calculateSummaryIncomeDebt(
     return null;
   };
   return {
-    piti: housing,
+    piti: percentage(housing),
     dti: percentage(housing !== null && monthlyDebt !== null ? housing + monthlyDebt : null),
     monthlyIncome,
     monthlyDebt,
-    missing: [...new Set(missing)],
+    missing: Array.from(new Set(missing)),
   };
 }

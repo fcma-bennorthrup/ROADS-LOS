@@ -30,7 +30,7 @@ describe("saved summary income and debt", () => {
     }, 2);
     const before = JSON.stringify(app);
     expect(calculateSummaryIncomeDebt(app, 2000)).toEqual({
-      monthlyIncome: 10000, monthlyDebt: 500, piti: 2000, dti: 25, missing: [],
+      monthlyIncome: 10000, monthlyDebt: 500, piti: 20, dti: 25, missing: [],
     });
     expect(JSON.stringify(app)).toBe(before);
   });
@@ -42,13 +42,13 @@ describe("saved summary income and debt", () => {
       { baseEmploymentIncome: "12000", overtime: "1200", bonuses: "600", commissions: "600", other: "0" },
     ] }] });
     expect(calculateSummaryIncomeDebt(app, 420).monthlyIncome).toBe(4200);
-    expect(calculateSummaryIncomeDebt(app, 420).piti).toBe(420);
+    expect(calculateSummaryIncomeDebt(app, 420).piti).toBe(10);
   });
 
   it("distinguishes explicit zero from absent/blank income and debt", () => {
     const zero = application({ income: [{ incomeSources: [{ totalMonthlyIncome: "0" }] }] });
     expect(calculateSummaryIncomeDebt(zero, 0)).toMatchObject({
-      monthlyIncome: 0, monthlyDebt: 0, piti: 0, dti: null,
+      monthlyIncome: 0, monthlyDebt: 0, piti: null, dti: null,
     });
     expect(calculateSummaryIncomeDebt(zero, 0).missing.join(" ")).toContain("positive");
     for (const income of [undefined, [], [{ incomeSources: [] }], [{ incomeSources: [{}] }]]) {
@@ -65,7 +65,7 @@ describe("saved summary income and debt", () => {
 
   it("does not present partial borrower income as a complete denominator", () => {
     const result = calculateSummaryIncomeDebt(application({}, 2), 1000);
-    expect(result).toMatchObject({ monthlyIncome: null, monthlyDebt: 0, piti: 1000, dti: null });
+    expect(result).toMatchObject({ monthlyIncome: null, monthlyDebt: 0, piti: null, dti: null });
     expect(result.missing.join(" ")).toContain("borrower 2");
     expect(calculateSummaryIncomeDebt(application({}, 0), 1000).monthlyIncome).toBeNull();
     expect(calculateSummaryIncomeDebt(application({
@@ -102,7 +102,7 @@ describe("saved summary income and debt", () => {
       { monthlyPayment: "100", toBePaidOff: true },
     ]) {
       const result = calculateSummaryIncomeDebt(application({ "current-liabilities": [row] }), 1000);
-      expect(result).toMatchObject({ monthlyIncome: 5000, monthlyDebt: null, piti: 1000, dti: null });
+      expect(result).toMatchObject({ monthlyIncome: 5000, monthlyDebt: null, piti: 20, dti: null });
       expect(result.missing.length).toBeGreaterThan(0);
     }
     const plannedPayoff = calculateSummaryIncomeDebt(application({
@@ -126,7 +126,7 @@ describe("saved summary income and debt", () => {
   it("does not guess whether an unpaid mortgage is the subject-property loan", () => {
     expect(calculateSummaryIncomeDebt(application({
       "noncurrent-liabilities": [{ liabilityType: "Mortgage", monthlyPayment: "500", toBePaidOff: "No" }],
-    }), 1000)).toMatchObject({ piti: 1000, dti: 30, monthlyDebt: 500 });
+    }), 1000)).toMatchObject({ piti: 20, dti: 30, monthlyDebt: 500 });
   });
 
   it("preserves known totals when housing is invalid and prevents nonfinite ratios", () => {
@@ -140,6 +140,6 @@ describe("saved summary income and debt", () => {
     }), 1000).monthlyIncome).toBeNull();
     expect(calculateSummaryIncomeDebt(application({
       income: [{ incomeSources: [{ totalMonthlyIncome: Number.MIN_VALUE }] }],
-    }), 1000)).toMatchObject({ piti: 1000, dti: null });
+    }), 1000)).toMatchObject({ piti: null, dti: null });
   });
 });

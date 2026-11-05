@@ -6,6 +6,9 @@ import { BorrowerCards } from "@/components/loan/BorrowerCards";
 import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import { formatCurrency } from "@/lib/loan-display";
 
+const money = (value: number | null) => value === null ? "—" : formatCurrency(String(value));
+const percent = (value: number | null) => value === null ? "" : value.toFixed(2);
+
 export default function LoanSummaryPage() {
   const params = useParams<{ id: string }>();
   const loanId = params.id || "1";
@@ -46,6 +49,7 @@ export default function LoanSummaryPage() {
     );
   }
 
+  const summary = loan.summary;
   return (
     <div
       className="h-screen flex flex-row overflow-hidden"
@@ -58,7 +62,7 @@ export default function LoanSummaryPage() {
           cifNumber={loan.cifNumber}
           loanType={loan.loanType}
           borrowerName={loan.primaryBorrowerName}
-          amount={formatCurrency(loan.displayAmount)}
+          amount={money(summary.amountRequested)}
           applicationType={loan.applicationType}
           ecoaDaysRemaining={loan.ecoaDaysRemaining}
           tridDaysRemaining={loan.tridDaysRemaining}
@@ -75,24 +79,26 @@ export default function LoanSummaryPage() {
           >
             <BorrowerCards borrowers={loan.borrowers} />
             <SummaryRatios
+              missing={summary.missing}
+              pitiBreakdown={summary.pitiBreakdown}
               data={{
-                piti: loan.piti,
-                dti: loan.dti,
-                lcv: loan.lcv,
-                pweCbScore: loan.pweCbScore,
-                ruleOfXx: loan.ruleOfXx,
-                totalCv: loan.totalCv ? formatCurrency(loan.totalCv) : "—",
-                cashReserves: formatCurrency(loan.cashReserves),
-                totalLoanAmount: loan.totalLoanAmount ? formatCurrency(loan.totalLoanAmount) : "—",
-                amountRequested: formatCurrency(loan.amountRequested),
-                financedFees: formatCurrency(loan.financedFees),
-                taxesInsurance: formatCurrency(loan.taxesInsurance),
-                product: loan.product,
-                finalRate: `${loan.finalRate}%`,
-                principalInterest: formatCurrency(loan.principalInterest),
-                totalMonthlyPayment: formatCurrency(loan.totalMonthlyPayment),
-                cashToClose: formatCurrency(loan.cashToClose),
-                apr: loan.apr,
+                piti: percent(summary.piti),
+                dti: percent(summary.dti),
+                lcv: percent(summary.lcv),
+                pweCbScore: summary.pweCbScore,
+                ruleOfXx: summary.ruleOfXx,
+                totalCv: money(summary.totalCv),
+                cashReserves: money(summary.cashReserves),
+                totalLoanAmount: money(summary.totalLoanAmount),
+                amountRequested: money(summary.amountRequested),
+                financedFees: money(summary.financedFees),
+                taxesInsurance: money(summary.taxesInsurance),
+                product: summary.product ?? "—",
+                finalRate: summary.finalRate === null ? "—" : `${percent(summary.finalRate)}%`,
+                principalInterest: money(summary.principalInterest),
+                totalMonthlyPayment: money(summary.totalMonthlyPayment),
+                cashToClose: money(summary.cashToClose),
+                apr: percent(summary.apr),
               }}
             />
           </main>

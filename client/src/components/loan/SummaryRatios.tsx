@@ -1,3 +1,6 @@
+import type { PitiBreakdown } from "@shared/summary";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 export interface SummaryRatiosData {
   piti: string;
   dti: string;
@@ -18,7 +21,13 @@ export interface SummaryRatiosData {
   apr: string;
 }
 
-function KeyValueRow({ label, value, testId }: { label: string; value: string; testId: string }) {
+function KeyValueRow({ label, value, testId, tooltip }: { label: string; value: string; testId: string; tooltip?: React.ReactNode }) {
+  const valueElement = <span
+    className="body-100"
+    style={{ color: "var(--roads-text-primary)" }}
+    data-testid={`text-${testId}`}
+    {...(tooltip ? { tabIndex: 0, "aria-label": `${label}: ${value}. Show calculation breakdown` } : {})}
+  >{value}</span>;
   return (
     <div
       className="flex items-center justify-between w-full"
@@ -31,13 +40,12 @@ function KeyValueRow({ label, value, testId }: { label: string; value: string; t
       >
         {label}
       </span>
-      <span
-        className="body-100"
-        style={{ color: "var(--roads-text-primary)" }}
-        data-testid={`text-${testId}`}
-      >
-        {value}
-      </span>
+      {tooltip ? <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>{valueElement}</TooltipTrigger>
+          <TooltipContent side="bottom" data-testid="tooltip-piti">{tooltip}</TooltipContent>
+        </Tooltip>
+      </TooltipProvider> : valueElement}
     </div>
   );
 }
@@ -58,7 +66,26 @@ function DataColumn({ children, testId }: { children: React.ReactNode; testId: s
   );
 }
 
-export function SummaryRatios({ data, missing = [] }: { data: SummaryRatiosData; missing?: string[] }) {
+function PitiDetails({ breakdown }: { breakdown: PitiBreakdown }) {
+  const money = (value: number | null) => value === null ? "Unavailable" : value.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  const rows = [
+    ["Monthly principal", money(breakdown.principal)],
+    ["Monthly interest", money(breakdown.interest)],
+    ["Monthly property taxes", money(breakdown.taxes)],
+    ["Monthly insurance", money(breakdown.insurance)],
+    ["Total monthly housing costs", money(breakdown.totalHousingCosts)],
+    ["Combined gross monthly income", money(breakdown.grossMonthlyIncome)],
+    ["PITI percentage", breakdown.percentage === null ? "Unavailable" : `${breakdown.percentage.toFixed(2)}%`],
+  ];
+  return <div className="max-w-sm space-y-2">
+    <p className="font-semibold">First-payment monthly breakdown</p>
+    <dl>{rows.map(([label, value]) => <div className="flex justify-between gap-4" key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+    <p>PITI = (principal + interest + taxes + insurance) ÷ combined gross monthly income × 100.</p>
+    <p>First scheduled principal and interest, not a term average. Missing inputs are unavailable, never assumed zero.</p>
+  </div>;
+}
+
+export function SummaryRatios({ data, missing = [], pitiBreakdown }: { data: SummaryRatiosData; missing?: string[]; pitiBreakdown?: PitiBreakdown }) {
   return (
     <section
       className="flex flex-col"
@@ -80,7 +107,8 @@ export function SummaryRatios({ data, missing = [] }: { data: SummaryRatiosData;
         style={{ gap: "var(--roads-spacing-component-xl)" }}
       >
         <DataColumn testId="column-ratios">
-          <KeyValueRow label="PITI" value={data.piti ? `${data.piti}%` : "—"} testId="piti" />
+          <KeyValueRow label="PITI" value={data.piti ? `${data.piti}%` : "—"} testId="piti"
+            tooltip={pitiBreakdown ? <PitiDetails breakdown={pitiBreakdown} /> : undefined} />
           <KeyValueRow label="DTI" value={data.dti ? `${data.dti}%` : "—"} testId="dti" />
           <KeyValueRow label="L/CV" value={data.lcv ? `${data.lcv}%` : "—"} testId="lcv" />
           <KeyValueRow label="PWE CB Score" value={data.pweCbScore === null ? "—" : String(data.pweCbScore)} testId="pwe-cb-score" />
