@@ -4,7 +4,7 @@ import { ChecklistProvider, useChecklist } from "./checklist-context";
 
 const state = vi.hoisted(() => ({
   version: 0,
-  document: { mode: "empty", businessRules: { trid: { status: "not-triggered" } } },
+  document: { mode: "empty", businessRules: { trid: { status: "not-triggered" }, loanDecision: { ready: false } } },
   listeners: new Set<() => void>(),
 }));
 vi.mock("@/lib/loan-application-store", () => ({
@@ -20,8 +20,12 @@ vi.mock("@/lib/loan-application-store", () => ({
   },
 }));
 function Probe() {
-  const { tasks } = useChecklist();
-  return <div data-testid="estimate-status">{tasks.find(t => t.name === "Loan Estimate")?.actions.map(a => a.status).join(",")}</div>;
+  const { tasks, setActionStatus } = useChecklist();
+  return <>
+    <div data-testid="estimate-status">{tasks.find(t => t.name === "Loan Estimate")?.actions.map(a => a.status).join(",")}</div>
+    <div data-testid="decision-status">{tasks.find(t => t.name === "Loan Decision")?.actions[0].status}</div>
+    <button onClick={() => setActionStatus("Loan Decision", 0, "complete")}>Complete decision</button>
+  </>;
 }
 afterEach(() => { cleanup(); localStorage.clear(); });
 it("starts the estimate when the acknowledged TRID rule changes and retains progress on reload", () => {
@@ -36,4 +40,18 @@ it("starts the estimate when the acknowledged TRID rule changes and retains prog
   view.unmount();
   render(<ChecklistProvider><Probe /></ChecklistProvider>);
   expect(screen.getByTestId("estimate-status")).toHaveTextContent("in-progress,not-started");
+});
+it("starts Loan Decision from the acknowledged rule and preserves completion on reload", () => {
+  const view = render(<ChecklistProvider><Probe /></ChecklistProvider>);
+  expect(screen.getByTestId("decision-status")).toHaveTextContent("not-started");
+  act(() => {
+    state.document.businessRules.loanDecision.ready = true;
+    state.version++;
+    state.listeners.forEach(fn => fn());
+  });
+  expect(screen.getByTestId("decision-status")).toHaveTextContent("in-progress");
+  act(() => { screen.getByText("Complete decision").click(); });
+  view.unmount();
+  render(<ChecklistProvider><Probe /></ChecklistProvider>);
+  expect(screen.getByTestId("decision-status")).toHaveTextContent("complete");
 });

@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, ReactNode } from "react";
 import { loanEstimateActionsForTrid, RATE_LOCK_TRID_VERSION } from "@shared/business-rules/trid";
+import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 import { useLocation } from "wouter";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
@@ -273,6 +274,17 @@ function ChecklistStateProvider({
   tasksRef.current = tasks;
   useSyncExternalStore(applicationStore.subscribe, applicationStore.snapshot, applicationStore.snapshot);
   const tridStatus = applicationStore.document?.businessRules?.trid.status;
+  const decisionReady = applicationStore.document?.businessRules?.loanDecision?.ready;
+  useEffect(() => {
+    if (!decisionReady) return;
+    setTasks(prev => prev.map(task => {
+      if (task.name !== "Loan Decision") return task;
+      const status = loanDecisionActionStatus(decisionReady, task.actions[0].status) as ChecklistStatus;
+      if (status === task.actions[0].status) return task;
+      const actions = task.actions.map((action, index) => index === 0 ? { ...action, status } : action);
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    }));
+  }, [decisionReady]);
   const rateLockVersion = useRef<number>(0);
   {
     try {

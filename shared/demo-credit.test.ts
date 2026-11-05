@@ -20,6 +20,7 @@ describe("demo credit liabilities", () => {
         .filter(row => row.borrowerId === borrower.id)).toHaveLength(2);
     }
     expect(result.sections["credit-pulled"]).toBe(true);
+    expect(result.businessRules?.loanDecision.ready).toBe(true);
     expect(result.revision).toBe(4);
     expect(current.sections["credit-pulled"]).toBeUndefined();
     expect(populateDemoCredit(result)).toBe(result);

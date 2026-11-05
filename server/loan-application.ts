@@ -16,7 +16,7 @@ async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
     const document: LoanApplication = existing.rows[0].document;
-    if (document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit) return document;
+    if (document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
     const initialized = { ...document,

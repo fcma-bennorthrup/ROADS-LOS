@@ -63,3 +63,9 @@ the current controls are only for demonstration.
 
 **How to apply:** Do not save demo stage overrides to the loan or browser storage,
 or let them complete checklist tasks.
+
+Loan Decision starts from a saved successful credit pull, with no additional prerequisites.
+
+**Why:** The user approved centralizing this existing trigger without changing behavior.
+
+**How to apply:** Keep it in shared business rules and have the checklist consume it; do not add TRID or disclosure prerequisites or reopen completed decisions.

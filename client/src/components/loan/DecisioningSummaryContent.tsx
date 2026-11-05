@@ -5,6 +5,7 @@ import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useToast } from "@/hooks/use-toast";
 import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
+import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 
 interface DecisioningSummaryContentProps {
   loanNumber?: string;
@@ -51,8 +52,11 @@ export function DecisioningSummaryContent({
         applicationStore.install(next);
       }
       setCreditPulled(true);
-      if (getActionStatus("Loan Decision", 0) !== "complete") {
-        setActionStatus("Loan Decision", 0, "in-progress");
+      // Standalone component previews have no saved document/provider rule result.
+      // The application checklist consumes the acknowledged business rule instead.
+      if (!applicationStore.document) {
+        setActionStatus("Loan Decision", 0,
+          loanDecisionActionStatus(true, getActionStatus("Loan Decision", 0)) as "complete" | "in-progress");
       }
     } catch (error) {
       toast({ variant: "destructive", title: "Credit pull failed", description: (error as Error).message });

@@ -38,6 +38,14 @@ and regulatory validation are outside this prototype rule.
 Test new rules beside their implementation. Include incomplete inputs,
 saved/unsaved boundaries, delivery, reset, and stale-write rejection as relevant.
 
+## Loan Decision
+
+A saved successful credit pull makes Loan Decision ready to start. The checklist
+consumes this result and starts incomplete decisions without reopening completed
+ones. No TRID, Loan Estimate, or other task prerequisites are added. Credit-pull
+validation still requires a named borrower and saved/discarded open edits.
+Resetting checklist data clears credit and readiness; failed pulls do not start it.
+
 ## ECOA
 
 Blend import stands in for a complete application and starts ECOA. The header

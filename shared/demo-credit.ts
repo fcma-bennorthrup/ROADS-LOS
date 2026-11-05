@@ -1,4 +1,5 @@
 import { applicationView, type LoanApplication } from "./loan-application";
+import { evaluateLoanRules } from "./business-rules";
 
 /** Synthetic credit accounts, not a bureau integration. Existing entries are preserved. */
 export function populateDemoCredit(current: LoanApplication): LoanApplication {
@@ -28,5 +29,7 @@ export function populateDemoCredit(current: LoanApplication): LoanApplication {
     sections[key] = [...existing, ...additions.filter(row => !existing.some(old => old.id === row.id))];
   }
   sections["credit-pulled"] = true;
-  return { ...current, sections, revision: current.revision + 1 };
+  const next = { ...current, sections, revision: current.revision + 1 };
+  next.businessRules = evaluateLoanRules(next);
+  return next;
 }
