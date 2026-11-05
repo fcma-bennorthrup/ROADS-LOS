@@ -22,6 +22,13 @@ describe("Trigger TRID button", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reset All Application Data" }));
     expect(screen.queryByRole("button", { name: "Reset All Application Data" })).toBeNull();
     expect(within(screen.getByTestId("demo-reset-card")).getByRole("alert")).toBeTruthy();
+    expect(within(screen.getByRole("alert")).queryByText(/cannot be undone|saved and unsaved/i)).toBeNull();
+    for (const button of screen.getAllByRole("button")) {
+      expect(button.className).toContain("bg-secondary");
+    }
+    for (const kind of ["reset", "blend", "trid"]) {
+      expect(screen.getByTestId(`demo-${kind}-card`).className).toContain("h-80");
+    }
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "New Blend Import" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
