@@ -304,7 +304,7 @@ function HeaderTextBlock({
       style={{ padding: "0 24px", gap: "var(--roads-spacing-component-3xs)" }}
     >
       <div className="flex items-center caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
-        <span>{loanType}</span>
+        <span>SLP</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>Loan: {loanNumber}</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
