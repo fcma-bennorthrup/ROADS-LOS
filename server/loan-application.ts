@@ -6,6 +6,7 @@ import { applicationView, type LoanApplication } from "../shared/loan-applicatio
 import { changesForSave } from "../shared/loan-history";
 import { evaluateLoanRules } from "../shared/business-rules";
 import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
+import { applyTridDemoAction } from "../shared/business-rules/trid-demo-actions";
 import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
 
@@ -45,7 +46,7 @@ const writeSchema = z.object({
   baseline: z.unknown().optional(),
 });
 const actionSchema = z.object({
-  action: z.enum(["reset", "blend", "trid", "checklist"]),
+  action: z.enum(["reset", "blend", "trid", "checklist", "trid-reset", "trid-manual"]),
   borrowerCount: z.union([z.literal(1), z.literal(2)]).optional().default(2),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
@@ -125,10 +126,10 @@ export function registerLoanApplicationRoutes(app: Express) {
       const current = await load(String(req.params.id));
       if (!current) return void res.status(404).json({ error: "Loan not found" });
       const { action, generation, revision } = parsed.data;
-      if (action === "checklist") {
+      if (action === "checklist" || action === "trid-reset" || action === "trid-manual") {
         if (current.generation !== generation || current.revision !== revision)
           return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
-        const next = resetChecklistData(current);
+        const next = action === "checklist" ? resetChecklistData(current) : applyTridDemoAction(current, action);
         const result = await pool.query(
           `UPDATE prototype_loan_applications SET document=$2
            WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,

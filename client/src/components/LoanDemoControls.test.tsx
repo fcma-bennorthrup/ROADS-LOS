@@ -14,9 +14,30 @@ vi.mock("@/lib/blend-demo-fixture", () => ({
   tridDemoSections: () => ({ "evaluation-1": { estimatedValue: "195000" } }),
   blendDemoSections: (_id: string, count: number) => ({ income: Array(count).fill({}) }),
 }));
-beforeEach(() => { cleanup(); vi.clearAllMocks(); });
+beforeEach(() => {
+  cleanup(); vi.clearAllMocks();
+  mocks.store.document.businessRules.trid.status = "not-triggered";
+  mocks.store.dirty = false;
+});
 
 describe("Trigger TRID button", () => {
+  it.each([
+    ["Reset TRID Data", "Confirm reset", "trid-reset"],
+    ["Manually Trigger TRID", "Confirm trigger", "trid-manual"],
+  ])("offers and confirms %s after satisfaction", async (label, confirmation, action) => {
+    mocks.store.document.businessRules.trid.status = "satisfied";
+    mocks.request.mockResolvedValue({ loan: { id: "demo" } });
+    render(<LoanDemoControls />);
+    expect(screen.getByRole("button", { name: "Reset TRID Data" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Manually Trigger TRID" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    expect(mocks.request).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: confirmation }));
+    await waitFor(() => expect(mocks.store.install).toHaveBeenCalled());
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toEqual({
+      action, generation: 1, revision: 2, confirmed: true,
+    });
+  });
   it("confirms the checklist-only reset without requesting import fixtures", async () => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });
     render(<LoanDemoControls />);

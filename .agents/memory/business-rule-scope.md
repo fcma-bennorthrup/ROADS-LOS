@@ -16,6 +16,13 @@ regulatory compliance or invent a business-day deadline policy.
 The user explicitly scoped TRID day tracking out of this prototype and approved
 the fixed chip label “TRID day 0”.
 
+After TRID satisfaction, demo controls offer separate input reset and manual trigger actions.
+Reset clears the six TRID application inputs; manual trigger preserves them and reopens the estimate cycle.
+
+**Why:** The user explicitly chose clearing application inputs rather than only estimate progress.
+
+**How to apply:** Keep unrelated tasks intact and require a new Loan Estimate generation/delivery after a manual trigger.
+
 **Why:** This prototype will not explore TRID day calculations.
 
 **How to apply:** Keep the label fixed; retain the existing trigger/delivery behavior.
