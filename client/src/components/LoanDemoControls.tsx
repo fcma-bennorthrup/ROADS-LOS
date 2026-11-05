@@ -7,6 +7,7 @@ export function LoanDemoControls() {
   const store = useApplicationStatus();
   const [action, setAction] = useState<"reset" | "blend" | "trid" | null>(null);
   const [busy, setBusy] = useState(false);
+  const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
   const [error, setError] = useState("");
   async function run() {
     if (!action || !store.document || busy) return;
@@ -17,10 +18,11 @@ export function LoanDemoControls() {
       const current = store.document!;
       const fixtures = action !== "reset" ? await import("@/lib/blend-demo-fixture") : null;
       const sections = action === "trid" ? fixtures!.tridDemoSections(current.loan.id)
-        : action === "blend" ? fixtures!.blendDemoSections(current.loan.id) : undefined;
+        : action === "blend" ? fixtures!.blendDemoSections(current.loan.id, borrowerCount) : undefined;
       const next = await applicationRequest(current.loan.id, "/demo", {
         method: "POST", body: JSON.stringify({
           action, generation: current.generation, revision: current.revision, confirmed: true, sections,
+          ...(action === "blend" ? { borrowerCount } : {}),
         }),
       });
       store.install(next);
@@ -40,6 +42,13 @@ export function LoanDemoControls() {
     <div className="rounded border p-4 space-y-2">
       <h3 className="font-semibold">Simulate a point-of-sale import</h3>
       <p className="text-sm">Replace the application with mock borrowers, loan details, income, assets, liabilities, and property data. This does not contact Blend or complete underwriting.</p>
+      <fieldset disabled={busy} className="flex gap-4 text-sm">
+        <legend className="mb-2 font-medium">Borrowers to import</legend>
+        {([1, 2] as const).map(count => <label key={count} className="flex items-center gap-2">
+          <input type="radio" name="blend-borrower-count" value={count} checked={borrowerCount === count} onChange={() => setBorrowerCount(count)} />
+          {count} {count === 1 ? "borrower" : "borrowers"}
+        </label>)}
+      </fieldset>
       <Button disabled={busy || !!store.error} onClick={() => setAction("blend")}>New Blend Import</Button>
     </div>
     <div className="rounded border p-4 space-y-2">
@@ -50,7 +59,7 @@ export function LoanDemoControls() {
     </div>
     {action && <div role="alert" className="rounded border border-amber-600 bg-amber-50 p-4 text-black space-y-3">
       <p>{action === "trid" ? "Fill and save missing TRID inputs for this loan? Missing or invalid required values will receive demo data. Save or discard open edits first. This does not reset the loan or undo Loan Estimate delivery."
-        : `${action === "reset" ? "Clear all application data?" : "Replace this application with mock Blend data?"} Saved and unsaved entries and workflow results for this loan will be replaced for all viewers. This cannot be undone here.`}</p>
+        : `${action === "reset" ? "Clear all application data?" : `Replace this application with mock Blend data for ${borrowerCount} ${borrowerCount === 1 ? "borrower" : "borrowers"}?`} Saved and unsaved entries and workflow results for this loan will be replaced for all viewers. This cannot be undone here.`}</p>
       <div className="flex gap-2">
         <Button variant={action === "trid" ? "default" : "destructive"} disabled={busy || store.pending > 0} onClick={run}>{busy ? "Applying…" : action === "trid" ? "Save and trigger TRID" : "Confirm replacement"}</Button>
         <Button variant="outline" disabled={busy} onClick={() => setAction(null)}>Cancel</Button>

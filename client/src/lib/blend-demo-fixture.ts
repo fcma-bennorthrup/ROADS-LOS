@@ -22,16 +22,16 @@ export function tridDemoSections(loanId: string): Record<string, unknown> {
 
 // Reuse the prototype's synthetic form templates, captured as a complete snapshot
 // on import rather than re-reading defaults after future code changes.
-export function blendDemoSections(loanId: string): Record<string, unknown> {
+export function blendDemoSections(loanId: string, borrowerCount: 1 | 2 = 2): Record<string, unknown> {
   return {
     "borrower-primary": RICHARD_DATA,
-    "borrower-secondary": JANE_DATA,
+    ...(borrowerCount === 2 ? { "borrower-secondary": JANE_DATA } : {}),
     "loan-details": {
       loanType: "purchase", loanPurpose: "primary_dwelling", requestedLoanAmount: "145000.00",
       downPaymentAmount: "$50,000.00", downPaymentSource: "cash_on_hand",
       tellTheStory: "Synthetic Blend application for prototype demos.", intentToProceed: false, brpLoan: false,
     },
-    income: SAMPLE_BORROWERS.map((borrower, index) => ({ ...borrower, name: `${index === 0 ? "Richard" : "Jane"} Jamerson` })),
+    income: SAMPLE_BORROWERS.slice(0, borrowerCount).map((borrower, index) => ({ ...borrower, name: `${index === 0 ? "Richard" : "Jane"} Jamerson` })),
     "current-assets": SAMPLE_CURRENT_ASSETS,
     "noncurrent-assets": SAMPLE_NON_CURRENT_ASSETS,
     "current-liabilities": SAMPLE_CURRENT_LIABILITIES,

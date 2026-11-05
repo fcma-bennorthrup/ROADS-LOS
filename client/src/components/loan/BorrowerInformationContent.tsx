@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { applicationStore } from "@/lib/loan-application-store";
 import { Pencil, Calendar, ChevronDown } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { DeclarationsSection } from "./borrower-presentation/DeclarationsSection";
@@ -613,7 +614,7 @@ export function BorrowerInformationContent() {
   const [janeData, setJaneData, saveJane] = useLoanDraft<BorrowerInfo>("borrower-secondary", { ...JANE_DATA });
   const richardSaved = useRef<BorrowerInfo>({ ...richardData });
   const janeSaved = useRef<BorrowerInfo>({ ...janeData });
-  const borrowers = BORROWERS.map((b, index) => {
+  const borrowers = BORROWERS.slice(0, applicationStore.document?.borrowers.length ?? 2).map((b, index) => {
     const info = index === 0 ? richardData : janeData;
     return { ...b, name: `${info.firstName} ${info.lastName}`.trim() || `Borrower ${index + 1}` };
   });

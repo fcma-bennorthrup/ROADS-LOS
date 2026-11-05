@@ -1,4 +1,5 @@
 import type { Loan, Borrower } from "./schema";
+import { evaluateJointCredit } from "./business-rules/joint-credit";
 
 export interface LoanApplication {
   loan: Loan;
@@ -26,6 +27,7 @@ export function emptyFields<T>(value: T): T {
 
 export function applicationView(app: LoanApplication) {
   const loan = { ...app.loan };
+  loan.applicationType = evaluateJointCredit(app).showChip ? "Joint Credit Application" : "";
   const borrowers = app.borrowers.map((borrower, index) => {
     const info = app.sections[index === 0 ? "borrower-primary" : "borrower-secondary"] as Record<string, string> | undefined;
     return info ? { ...borrower, name: `${info.firstName} ${info.lastName}`.trim(),

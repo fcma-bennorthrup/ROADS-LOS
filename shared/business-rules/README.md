@@ -39,3 +39,10 @@ All three saved checklist actions must be complete to satisfy it: Loan Decision,
 Generate Decision Letter, and Deliver Decision Letter. A decision or generation
 alone does not hide the chip. Reset clears the lifecycle; re-import starts a
 new one. Existing saved Blend imports are adopted when loaded.
+
+## Joint credit
+
+Blend demo controls support one or two borrowers (default two). A single-borrower
+import has no secondary personal-information section or secondary income record.
+The joint-credit rule shows “Joint Credit Application” for two or more named
+borrowers, and no chip for one borrower or blank reset slots.

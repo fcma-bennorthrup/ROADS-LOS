@@ -29,3 +29,11 @@ explicitly requested a hard-coded clock.
 
 **How to apply:** Require all three saved actions to hide ECOA. Do not add an
 elapsed-day calculation or a separate application-completeness workflow.
+
+Blend demo imports must offer one or two borrowers. Show the joint-credit
+application chip for the two-borrower application and omit it for one borrower.
+
+**Why:** The user needs both application scenarios for demos.
+
+**How to apply:** Keep this chip decision in business rules and ensure a
+single-borrower import does not retain the prior secondary borrower's data.

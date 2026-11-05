@@ -120,7 +120,7 @@ export function LoanHeader({
           cifNumber={cifNumber}
           borrowerName={borrowerName}
           amount={amount}
-          applicationType={applicationType}
+          applicationType={app ? app.businessRules?.jointCredit?.showChip ? "Joint Credit Application" : "" : applicationType}
           ecoaDaysRemaining={ecoaDaysRemaining}
           showEcoaDaysRemaining={app ? app.businessRules?.ecoa?.status === "required" : true}
           tridDaysRemaining={tridDaysRemaining}
@@ -328,7 +328,7 @@ function HeaderTextBlock({
           {amount}
         </span>
 
-        <span
+        {applicationType && <span
           className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-brand-subtle)",
@@ -340,7 +340,7 @@ function HeaderTextBlock({
           data-testid="chip-application-type"
         >
           {applicationType}
-        </span>
+        </span>}
 
         <span style={{ color: "var(--roads-border-subtle)", height: "24px", display: "inline-flex", alignItems: "center" }}>|</span>
 

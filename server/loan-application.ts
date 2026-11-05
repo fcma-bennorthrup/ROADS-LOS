@@ -13,7 +13,7 @@ async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
     const document: LoanApplication = existing.rows[0].document;
-    if (document.businessRules?.trid && document.businessRules?.ecoa) return document;
+    if (document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
     const initialized = { ...document,
@@ -44,6 +44,7 @@ const writeSchema = z.object({
 });
 const actionSchema = z.object({
   action: z.enum(["reset", "blend", "trid"]),
+  borrowerCount: z.union([z.literal(1), z.literal(2)]).optional().default(2),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
   confirmed: z.literal(true),
@@ -125,12 +126,12 @@ export function registerLoanApplicationRoutes(app: Express) {
       loan.tridDaysRemaining = 0;
       loan.cifNumber = "";
       loan.loanType = action === "blend" ? "Purchase" : "";
-      loan.applicationType = action === "blend" ? "Joint Credit Application" : "";
+      loan.applicationType = action === "blend" && parsed.data.borrowerCount === 2 ? "Joint Credit Application" : "";
       loan.amountRequested = action === "blend" ? "145000.00" : "0";
       loan.displayAmount = loan.amountRequested;
       loan.totalLoanAmount = loan.amountRequested;
       loan.primaryBorrowerName = action === "blend" ? "Richard Jamerson" : "";
-      const borrowers = ["primary", "secondary"].map((role, index) => ({
+      const borrowers = ["primary", "secondary"].slice(0, action === "blend" ? parsed.data.borrowerCount : 2).map((role, index) => ({
         id: `${loan.id}-${role}`, loanId: loan.id, isPrimary: index === 0,
         name: action === "blend" ? `${index === 0 ? "Richard" : "Jane"} Jamerson` : "",
         email: action === "blend" ? `${index === 0 ? "richard" : "jane"}.jamerson@example.com` : "",
@@ -143,6 +144,10 @@ export function registerLoanApplicationRoutes(app: Express) {
           Object.entries(parsed.data.sections ?? {}).filter(([key]) =>
             ["borrower-primary", "borrower-secondary", "loan-details", "income", "current-assets", "noncurrent-assets", "current-liabilities", "noncurrent-liabilities", "subject-property", "fees"].includes(key)),
         ) : {} };
+      if (action === "blend" && parsed.data.borrowerCount === 1) {
+        delete next.sections["borrower-secondary"];
+        if (Array.isArray(next.sections.income)) next.sections.income = next.sections.income.slice(0, 1);
+      }
       const checklistKey = `storage:loan-checklist-statuses:${loan.id}`;
       const previousChecklist = current.sections[checklistKey];
       if (typeof previousChecklist === "string") {
