@@ -24,7 +24,7 @@ Do not add a DSL, rules editor, external engine, or fields to support a rule.
   required again until re-delivery.
 - Demo reset/import starts a new lifecycle. Prior triggers aren't carried over.
 
-The chip expresses required status, not a compliance deadline. Business-day
+The chip displays hard-coded “TRID day 0” while required; it is not a calculated day count or compliance deadline. Business-day
 calendars, holidays, jurisdiction, legal applicability, actual delivery evidence,
 and regulatory validation are outside this prototype rule.
 

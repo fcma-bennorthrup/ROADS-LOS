@@ -12,3 +12,10 @@ TRID requires SSN, name, purchase address, loan amount, income information and e
 property value (purchase price may stand in if such a field exists). Delivering a Loan
 Estimate satisfies TRID; generating one does not. Do not present prototype logic as
 regulatory compliance or invent a business-day deadline policy.
+
+The user explicitly scoped TRID day tracking out of this prototype and approved
+the fixed chip label “TRID day 0”.
+
+**Why:** This prototype will not explore TRID day calculations.
+
+**How to apply:** Keep the label fixed; retain the existing trigger/delivery behavior.

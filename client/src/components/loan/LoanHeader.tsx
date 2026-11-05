@@ -367,7 +367,7 @@ function HeaderTextBlock({
             }}
             data-testid="chip-trid-days"
           >
-            TRID — Loan Estimate Required
+            TRID day 0
           </span>
         )}
       </div>
