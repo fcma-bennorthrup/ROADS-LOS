@@ -85,7 +85,7 @@ function PitiDetails({ breakdown }: { breakdown: PitiBreakdown }) {
   </div>;
 }
 
-export function SummaryRatios({ data, missing = [], pitiBreakdown }: { data: SummaryRatiosData; missing?: string[]; pitiBreakdown?: PitiBreakdown }) {
+export function SummaryRatios({ data, pitiBreakdown }: { data: SummaryRatiosData; pitiBreakdown?: PitiBreakdown }) {
   return (
     <section
       className="flex flex-col"
@@ -136,12 +136,6 @@ export function SummaryRatios({ data, missing = [], pitiBreakdown }: { data: Sum
           <KeyValueRow label="Total Monthly Payment" value={data.totalMonthlyPayment} testId="total-monthly-payment" />
         </DataColumn>
       </div>
-      {missing.length > 0 && <details className="body-100" style={{ color: "var(--roads-text-secondary)" }} data-testid="summary-missing-inputs">
-        <summary className="cursor-pointer">Unavailable calculations · missing data or definitions</summary>
-        <ul className="list-disc pl-5 mt-2 space-y-1">
-          {missing.map(message => <li key={message}>{message}</li>)}
-        </ul>
-      </details>}
     </section>
   );
 }

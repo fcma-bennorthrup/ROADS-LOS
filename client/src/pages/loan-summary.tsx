@@ -79,7 +79,6 @@ export default function LoanSummaryPage() {
           >
             <BorrowerCards borrowers={loan.borrowers} />
             <SummaryRatios
-              missing={summary.missing}
               pitiBreakdown={summary.pitiBreakdown}
               data={{
                 piti: percent(summary.piti),

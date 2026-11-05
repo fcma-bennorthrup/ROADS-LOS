@@ -20,6 +20,7 @@ import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
+import { SummaryDebugDialog } from "./SummaryDebugDialog";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -503,6 +504,7 @@ export function BottomToolbar() {
 
 function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
   const [open, setOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -569,7 +571,13 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
         >
           Prototype Admin Controls
         </button>
+        <button data-testid="menu-item-debug" className="body-100 w-full text-left rounded hover:bg-muted"
+          style={{ height: 40, padding: "0 12px", color: "var(--roads-text-primary)" }}
+          onClick={() => { setOpen(false); setDebugOpen(true); }}>
+          Debug
+        </button>
       </div>
+      <SummaryDebugDialog open={debugOpen} onOpenChange={setDebugOpen} />
     </div>
   );
 }

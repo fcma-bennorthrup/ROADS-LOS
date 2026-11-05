@@ -67,10 +67,7 @@ describe("Summary saved-data UI and PITI breakdown", () => {
     for (const field of ["piti", "dti", "lcv", "pwe-cb-score", "rule-of-xx", "total-cv", "cash-reserves", "total-loan-amount", "amount-requested", "financed-fees", "taxes-insurance", "cash-to-close", "product", "final-rate", "apr", "principal-interest", "total-monthly-payment"]) {
       expect(screen.getByTestId(`text-${field}`)).toHaveTextContent("—");
     }
-    const user = userEvent.setup();
-    await user.click(screen.getByText("Unavailable calculations · missing data or definitions"));
-    expect(screen.getByTestId("summary-missing-inputs")).toHaveTextContent("finance-charge classifications");
-    expect(screen.getByTestId("summary-missing-inputs")).toHaveTextContent("Rule of XX");
+    expect(screen.queryByTestId("summary-missing-inputs")).not.toBeInTheDocument();
   });
 
   it("renders saved authoritative amounts, zero financed fees and matching L/CV on the page", () => {
