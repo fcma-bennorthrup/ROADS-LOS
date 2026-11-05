@@ -622,13 +622,14 @@ export function BorrowerInformationContent() {
   const [isEditingRichard, setIsEditingRichard] = useState(false);
   const [isEditingJane, setIsEditingJane] = useState(false);
 
-  const isRichard = activeBorrower === "richard";
+  const selectedBorrower = borrowers.length === 1 ? borrowers[0].id : activeBorrower;
+  const isRichard = selectedBorrower === "richard";
   const data = isRichard ? richardData : janeData;
   const setData = isRichard ? setRichardData : setJaneData;
   const saved = isRichard ? richardSaved : janeSaved;
   const isEditing = isRichard ? isEditingRichard : isEditingJane;
   const setIsEditing = isRichard ? setIsEditingRichard : setIsEditingJane;
-  const borrower = borrowers.find((b) => b.id === activeBorrower)!;
+  const borrower = borrowers.find((b) => b.id === selectedBorrower)!;
 
   const setField = <K extends keyof BorrowerInfo>(key: K) => (value: BorrowerInfo[K]) => {
     setData((prev) => ({ ...prev, [key]: value }));
@@ -665,9 +666,10 @@ export function BorrowerInformationContent() {
         data-testid="text-borrower-information-title"
       >
         Borrower Information
+        {borrowers.length === 1 && <> — {borrowers[0].name}</>}
       </h2>
 
-      <BorrowerTabs active={activeBorrower} onChange={setActiveBorrower} borrowers={borrowers} />
+      {borrowers.length > 1 && <BorrowerTabs active={selectedBorrower} onChange={setActiveBorrower} borrowers={borrowers} />}
 
       <PersonalInfoSection
         borrowerName={borrower.name}
