@@ -1,5 +1,6 @@
 import type { Loan, Borrower } from "./schema";
 import { evaluateJointCredit } from "./business-rules/joint-credit";
+import { collateralValue, currencyAmount, loanToCollateralValue } from "./loan-collateral-value";
 
 export interface LoanApplication {
   loan: Loan;
@@ -35,11 +36,16 @@ export function applicationView(app: LoanApplication) {
   });
   const details = app.sections["loan-details"] as Record<string, string> | undefined;
   if (details) {
-    loan.amountRequested = String(Number(details.requestedLoanAmount.replace(/[^0-9.-]/g, "")) || 0);
+    loan.amountRequested = String(currencyAmount(details.requestedLoanAmount) ?? 0);
     loan.displayAmount = loan.amountRequested;
-    loan.totalLoanAmount = String(Number(loan.amountRequested) + Number(loan.financedFees));
+    const requested = currencyAmount(details.requestedLoanAmount);
+    const fees = currencyAmount(loan.financedFees);
+    loan.totalLoanAmount = requested !== null && fees !== null ? String(requested + fees) : "";
     loan.loanType = ({ purchase: "Purchase", construction: "Construction", cash_out: "Cash Out", refinance: "Refinance" } as Record<string, string>)[details.loanType] ?? "";
   }
   loan.primaryBorrowerName = borrowers[0]?.name || "";
+  const value = collateralValue(app.sections);
+  loan.totalCv = value === null ? "" : String(value);
+  loan.lcv = loanToCollateralValue(loan.totalLoanAmount, value);
   return { ...loan, borrowers };
 }

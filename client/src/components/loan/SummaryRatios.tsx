@@ -82,7 +82,7 @@ export function SummaryRatios({ data }: { data: SummaryRatiosData }) {
         <DataColumn testId="column-ratios">
           <KeyValueRow label="PITI" value={`${data.piti}%`} testId="piti" />
           <KeyValueRow label="DTI" value={`${data.dti}%`} testId="dti" />
-          <KeyValueRow label="L/CV" value={`${data.lcv}%`} testId="lcv" />
+          <KeyValueRow label="L/CV" value={data.lcv ? `${data.lcv}%` : "—"} testId="lcv" />
           <KeyValueRow label="PWE CB Score" value={String(data.pweCbScore)} testId="pwe-cb-score" />
         </DataColumn>
 
