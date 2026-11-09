@@ -219,6 +219,7 @@ interface AddressData {
 }
 
 interface SubjectPropertyData extends AddressData {
+  parcel?: string;
   collateralOwnerId: string;
   monthlyPropertyTaxes: string;
   monthlyInsurance: string;
@@ -240,10 +241,12 @@ function AddressFields({
   fields,
   isEditing,
   onFieldChange,
+  parcelField,
 }: {
   fields: AddressData;
   isEditing: boolean;
   onFieldChange: (key: keyof AddressData) => (value: string) => void;
+  parcelField?: { value: string; onChange: (value: string) => void };
 }) {
   return (
     <div
@@ -264,6 +267,8 @@ function AddressFields({
         onStateChange={onFieldChange("state")}
         onZipChange={onFieldChange("zip")}
       />
+      {parcelField && <CollateralField label="Parcel" value={parcelField.value}
+        isEditing={isEditing} onChange={parcelField.onChange} />}
     </div>
   );
 }
@@ -382,6 +387,8 @@ function loadSubjectProperty(storageKey: string): SubjectPropertyData {
     ) {
       return {
         ...(saved as AddressData),
+        parcel: typeof (saved as Partial<SubjectPropertyData>).parcel === "string"
+          ? (saved as SubjectPropertyData).parcel : "",
         collateralOwnerId: typeof (saved as Partial<SubjectPropertyData>).collateralOwnerId === "string"
           ? (saved as SubjectPropertyData).collateralOwnerId : "",
         monthlyPropertyTaxes: typeof (saved as Partial<SubjectPropertyData>).monthlyPropertyTaxes === "string"
@@ -393,7 +400,7 @@ function loadSubjectProperty(storageKey: string): SubjectPropertyData {
   } catch {
     // Fall through to the prototype defaults.
   }
-  return { ...DEFAULT_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
+  return { ...DEFAULT_ADDRESS, parcel: "", collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
 }
 
 const EMPTY_EVALUATION: EvaluationData = {
@@ -637,7 +644,7 @@ export function CollateralContent({
 
   useEffect(() => {
     if (!consumeDemoReset("collateral")) return;
-    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
+    const clearedAddress = { ...EMPTY_ADDRESS, parcel: "", collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
     saveAddress(clearedAddress);
     setAddressFields(clearedAddress);
     setSavedAddressFields(clearedAddress);
@@ -735,6 +742,7 @@ export function CollateralContent({
           fields={addressFields}
           isEditing={isEditingAddress}
           onFieldChange={updateAddressField}
+          parcelField={{ value: addressFields.parcel ?? "", onChange: updateAddressField("parcel") }}
         />
         <div className="flex flex-wrap items-center" style={{
           padding: "0 var(--roads-spacing-component-3xl)",

@@ -7,6 +7,13 @@ import type { LoanBusinessRules } from "./business-rules";
 export const LOAN_DOCUMENT_VERSION = 1;
 const object = z.record(z.unknown());
 const fields = z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]));
+// Parcel is an optional text identifier (leading zeros and separators matter).
+// Existing documents without it remain valid; saves persist it in the same
+// subject-property JSON section without rewriting other loans.
+export const subjectPropertySchema = fields.refine(
+  value => value.parcel === undefined || typeof value.parcel === "string",
+  "Parcel must be text.",
+);
 const ownedRow = z.object({ id: z.string(), borrowerId: z.string().optional() }).passthrough();
 const income = z.array(z.object({
   incomeSources: z.array(z.object({ id: z.string() }).passthrough()),
@@ -16,7 +23,7 @@ const income = z.array(z.object({
  * recognized section structures are checked without stripping saved fields. */
 export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "borrower-primary": fields, "borrower-secondary": fields,
-  "loan-details": fields, "subject-property": fields,
+  "loan-details": fields, "subject-property": subjectPropertySchema,
   "evaluation-1": fields, "evaluation-2": fields,
   income,
   "current-assets": z.array(ownedRow), "noncurrent-assets": z.array(ownedRow),

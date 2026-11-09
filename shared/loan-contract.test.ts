@@ -1,10 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { assertLoanDocument, loanApplicationSchema } from "./loan-contract";
+import { assertLoanDocument, loanApplicationSchema, subjectPropertySchema } from "./loan-contract";
 import { newLoanApplication } from "./loan-factory";
 import { blendDemoSections } from "../client/src/lib/blend-demo-fixture";
 import { shouldIgnorePath } from "../server/sync-mechanics";
 
 describe("shared loan model", () => {
+  it("accepts legacy property data and text parcel IDs, not numeric identifiers", () => {
+    expect(subjectPropertySchema.safeParse({ zip: "40234" }).success).toBe(true);
+    for (const parcel of ["", "000-012-A", "Lot 3 / Block 2"])
+      expect(subjectPropertySchema.safeParse({ zip: "40234", parcel }).success).toBe(true);
+    expect(subjectPropertySchema.safeParse({ parcel: 123 }).success).toBe(false);
+  });
   it.each([1, 2] as const)("validates actual Blend fixtures with %i borrowers", borrowerCount => {
     const loan = newLoanApplication({ id: "model", loanNumber: "123456790", source: "blend",
       borrowerCount, sections: blendDemoSections("model", borrowerCount) });
