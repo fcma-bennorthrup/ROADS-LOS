@@ -1,11 +1,14 @@
 import { applicationView, emptyFields, type LoanApplication } from "@shared/loan-application";
 import { queryClient } from "./queryClient";
+import { apiRequest } from "./queryClient";
+import type { LoanStage } from "@shared/loan-stages";
 
 let document: LoanApplication | null = null;
 let queue = Promise.resolve();
 let pending = 0;
 let failure = "";
 let version = 0;
+let epoch = 0;
 const listeners = new Set<() => void>();
 const drafts = new Set<string>();
 const baselines = new Map<string, unknown>();
@@ -19,6 +22,7 @@ export const applicationStore = {
   get dirty() { return drafts.size > 0; },
   markDraft(key: string, dirty: boolean) { dirty ? drafts.add(key) : drafts.delete(key); },
   install(next: LoanApplication) {
+    epoch++;
     baselines.clear();
     document = next; failure = ""; drafts.clear();
     queryClient.setQueryData(["/api/loans", next.loan.id], applicationView(next));
@@ -42,28 +46,61 @@ export const applicationStore = {
         JSON.stringify(document.sections[key]) === JSON.stringify(value)) return;
     const generation = document.generation;
     const loanId = document.loan.id;
+    const installedEpoch = epoch;
     const baseline = baselines.get(key);
     // Update synchronously so existing read/modify/write stores see their own write.
     document.sections = { ...document.sections, [key]: value };
     pending++; notify();
     queue = queue.then(async () => {
       if (failure) throw new Error(failure);
-      if (!document || document.loan.id !== loanId || document.generation !== generation)
+      if (!document || epoch !== installedEpoch || document.loan.id !== loanId || document.generation !== generation)
         throw new Error("The active loan was replaced. Reload before saving.");
       const next = await applicationRequest(loanId, "", {
         method: "PUT", body: JSON.stringify({ section: key, value, baseline, generation, revision: document.revision }),
       });
+      if (epoch !== installedEpoch || document?.loan.id !== loanId) return;
       // Keep any newer queued optimistic values while acknowledging this revision.
       document = { ...next, sections: { ...next.sections, ...document.sections } };
       queryClient.setQueryData(["/api/loans", loanId], applicationView(document));
-    }).catch(error => { failure = error.message; }).finally(() => { pending--; notify(); });
+    }).catch(error => { if (epoch === installedEpoch) failure = error.message; }).finally(() => { pending--; notify(); });
   },
-  async flush() { await queue; if (failure) throw new Error(failure); },
+  changeStage(stage: LoanStage) {
+    if (!document) return Promise.reject(new Error("No active loan."));
+    const loanId = document.loan.id;
+    const installedEpoch = epoch;
+    pending++; notify();
+    const operation = queue.then(async () => {
+      if (failure) throw new Error(failure);
+      if (!document || document.loan.id !== loanId || epoch !== installedEpoch)
+        throw new Error("The active loan was replaced. Reload before saving.");
+      const response = await apiRequest("PUT", `/api/loans/${encodeURIComponent(loanId)}/stage`, {
+        stage, generation: document.generation, revision: document.revision,
+      });
+      const next: LoanApplication = await response.json();
+      if (epoch !== installedEpoch || document?.loan.id !== loanId) return;
+      // Stage acknowledges only a header change. Never install here: it clears
+      // open drafts and can erase section edits queued while this request ran.
+      document = { ...next, sections: { ...next.sections, ...document.sections } };
+      queryClient.setQueryData(["/api/loans", loanId], applicationView(document));
+      void queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
+    });
+    queue = operation.catch(error => {
+      if (epoch === installedEpoch) failure = error.message;
+    }).finally(() => { pending--; notify(); });
+    return operation;
+  },
+  async flush() {
+    // A save can be queued while an earlier network request is being drained.
+    // Leaving must await that tail too, not just the original promise.
+    let tail: Promise<void>;
+    do { tail = queue; await tail; } while (tail !== queue);
+    if (failure) throw new Error(failure);
+  },
 };
 
 export async function applicationRequest(id: string, suffix = "", options: RequestInit = {}): Promise<LoanApplication> {
   const response = await fetch(`/api/loans/${encodeURIComponent(id)}/application${suffix}`, {
-    ...options, headers: { "Content-Type": "application/json", ...options.headers },
+    ...options, credentials: "include", headers: { "Content-Type": "application/json", ...options.headers },
   });
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || "Loan data request failed.");

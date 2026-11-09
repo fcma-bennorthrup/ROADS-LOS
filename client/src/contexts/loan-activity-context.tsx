@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { useOptionalLoanId } from "@/contexts/loan-id-context";
 import { loanIdFromPath } from "@/lib/loan-path";
 
 export interface ActivityItem {
@@ -44,7 +45,7 @@ const INITIAL_ACTIVITY_ITEMS: ActivityItem[] = [
   },
 ];
 
-import { loanStorage as localStorage } from "@/lib/loan-application-store";
+import { applicationStore, loanStorage as localStorage } from "@/lib/loan-application-store";
 const ACTIVITY_STORAGE_PREFIX = "loan-runtime-activity";
 
 function getLoanStorageKey(location: string): string {
@@ -53,9 +54,12 @@ function getLoanStorageKey(location: string): string {
 }
 
 function loadActivityItems(storageKey: string): ActivityItem[] {
+  // Legacy seed activity belongs to loan 1, not to newly created packages.
+  const initialItems = !applicationStore.document || applicationStore.document.mode === "existing"
+    ? INITIAL_ACTIVITY_ITEMS : [];
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) ?? "[]") as unknown;
-    if (!Array.isArray(saved)) return INITIAL_ACTIVITY_ITEMS;
+    if (!Array.isArray(saved)) return initialItems;
 
     const runtimeItems = saved.flatMap((item): ActivityItem[] => {
       if (
@@ -90,13 +94,13 @@ function loadActivityItems(storageKey: string): ActivityItem[] {
       return [{ id: item.id, title: item.title, description: item.description, timestamp: item.timestamp, date, link }];
     });
 
-    const initialIds = new Set(INITIAL_ACTIVITY_ITEMS.map((item) => item.id));
+    const initialIds = new Set(initialItems.map((item) => item.id));
     return [
-      ...INITIAL_ACTIVITY_ITEMS,
+      ...initialItems,
       ...runtimeItems.filter((item) => !initialIds.has(item.id)),
     ];
   } catch {
-    return INITIAL_ACTIVITY_ITEMS;
+    return initialItems;
   }
 }
 
@@ -125,7 +129,10 @@ function LoanActivityStateProvider({
 
   useEffect(() => {
     try {
-      const initialIds = new Set(INITIAL_ACTIVITY_ITEMS.map((item) => item.id));
+      const initialIds = new Set(
+        !applicationStore.document || applicationStore.document.mode === "existing"
+          ? INITIAL_ACTIVITY_ITEMS.map((item) => item.id) : [],
+      );
       localStorage.setItem(
         storageKey,
         JSON.stringify(activityItems.filter((item) => !initialIds.has(item.id))),
@@ -146,7 +153,8 @@ function LoanActivityStateProvider({
     // Reset is coordinated explicitly; unlike ordinary prototype updates, a
     // denied reset write must be reported and must not clear mounted activity.
     localStorage.setItem(storageKey, "[]");
-    setActivityItems(INITIAL_ACTIVITY_ITEMS.map((item) => ({ ...item })));
+    setActivityItems(!applicationStore.document || applicationStore.document.mode === "existing"
+      ? INITIAL_ACTIVITY_ITEMS.map((item) => ({ ...item })) : []);
   };
 
   return (
@@ -167,7 +175,8 @@ function LoanActivityStateProvider({
 
 export function LoanActivityProvider({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const storageKey = getLoanStorageKey(location);
+  const id = useOptionalLoanId();
+  const storageKey = id ? `${ACTIVITY_STORAGE_PREFIX}:${id}` : getLoanStorageKey(location);
 
   return (
     <LoanActivityStateProvider key={storageKey} storageKey={storageKey}>

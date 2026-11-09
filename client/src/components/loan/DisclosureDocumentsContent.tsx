@@ -349,7 +349,7 @@ export function DocumentsContent() {
         secondaryActions={[
           {
             label: "Download At-App Disclosures",
-            onClick: () => window.open("/at-app-disclosures.pdf", "_blank"),
+            onClick: () => { /* PDF previews retired; retain the prototype control. */ },
           },
           {
             label: "Deliver At-App Disclosures",
@@ -370,7 +370,7 @@ export function DocumentsContent() {
         secondaryActions={[
           {
             label: "View Loan Estimate",
-            onClick: () => window.open("/loan-estimate.pdf", "_blank"),
+            onClick: () => { /* PDF previews retired; retain the prototype control. */ },
           },
           {
             label: "Deliver Loan Estimate",

@@ -1,33 +1,53 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { StageStepper } from "../LoanHeader";
+import { applicationStore } from "@/lib/loan-application-store";
+import type { LoanApplication } from "@shared/loan-application";
+import { LOAN_STAGES } from "@shared/loan-stages";
 
 vi.mock("@/components/GitHubSyncPanel", () => ({ GitHubSyncPanel: () => null }));
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+function install(index = 2) {
+  const state = { loan: { id: "stage-test", stage: LOAN_STAGES[index] }, borrowers: [],
+    sections: {}, generation: 0, revision: 0, mode: "empty" } as unknown as LoanApplication;
+  applicationStore.install(state);
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+    const payload = JSON.parse(String(options.body));
+    expect(payload.revision).toBe(state.revision);
+    state.loan.stage = payload.stage;
+    state.revision++;
+    return new Response(JSON.stringify(state));
+  }));
+}
 
-it("moves one stage at a time with the endpoint chevrons and stops at both ends", () => {
-  const { container } = render(<StageStepper initialStep={2} />);
-  const active = () => container.querySelector('[aria-current="step"]')?.textContent;
-  const back = screen.getByRole("button", { name: "Move loan stage backward" });
-  const forward = screen.getByRole("button", { name: "Move loan stage forward" });
-  expect(screen.getAllByRole("button")).toHaveLength(2);
-  expect(active()).toBe("Loan Setup");
-  fireEvent.click(forward);
-  expect(active()).toBe("Decisioning");
-  fireEvent.click(back);
-  expect(active()).toBe("Loan Setup");
-  for (let i = 0; i < 10; i++) fireEvent.click(back);
-  expect(active()).toBe("Customer Application");
-  expect(back).toHaveAttribute("aria-disabled", "true");
-  for (let i = 0; i < 10; i++) fireEvent.click(forward);
-  expect(active()).toBe("Loan Certification");
-  expect(forward).toHaveAttribute("aria-disabled", "true");
-});
-
-it("does not retain demo stage changes after remounting", () => {
-  const first = render(<StageStepper initialStep={0} />);
+it("persists neighbouring stages with CAS and retains the saved stage on remount", async () => {
+  install();
+  const first = render(<StageStepper />);
+  expect(first.container.querySelector('[aria-current="step"]')).toHaveTextContent("Loan Setup");
   fireEvent.click(screen.getByRole("button", { name: "Move loan stage forward" }));
+  await waitFor(() => expect(first.container.querySelector('[aria-current="step"]')).toHaveTextContent("Decisioning"));
+  await act(() => applicationStore.flush());
+  expect(fetch).toHaveBeenCalledWith("/api/loans/stage-test/stage", expect.objectContaining({ method: "PUT", credentials: "include" }));
   first.unmount();
-  const second = render(<StageStepper initialStep={0} />);
-  expect(second.container.querySelector('[aria-current="step"]')).toHaveTextContent("Customer Application");
+  const second = render(<StageStepper />);
+  expect(second.container.querySelector('[aria-current="step"]')).toHaveTextContent("Decisioning");
+});
+it("stops at both endpoints without changing the chevron controls", async () => {
+  install(0);
+  const view = render(<StageStepper />);
+  expect(screen.getAllByRole("button")).toHaveLength(2);
+  expect(screen.getByRole("button", { name: "Move loan stage backward" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "Move loan stage backward" }));
+  expect(fetch).not.toHaveBeenCalled();
+  act(() => install(7));
+  expect(screen.getByRole("button", { name: "Move loan stage forward" })).toBeDisabled();
+  expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Loan Certification");
+});
+it("shows stage-save failure without advancing the persisted step", async () => {
+  install();
+  vi.stubGlobal("fetch", vi.fn(async () => new Response("Loan changed", { status: 409 })));
+  const view = render(<StageStepper />);
+  fireEvent.click(screen.getByRole("button", { name: "Move loan stage forward" }));
+  await screen.findByRole("alert");
+  expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Loan Setup");
 });

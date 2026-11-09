@@ -7,6 +7,7 @@ import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { useLocation } from "wouter";
+import { useOptionalLoanId } from "@/contexts/loan-id-context";
 import { useToast } from "@/hooks/use-toast";
 import type { Borrower } from "@shared/schema";
 import { RoadsDropdown } from "./RoadsDropdown";
@@ -610,7 +611,8 @@ export function CollateralContent({
   borrowers = [],
 }: CollateralContentProps = {}) {
   const [location] = useLocation();
-  const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
+  const loanId = useOptionalLoanId();
+  const subjectPropertyStorageKey = loanId ? `${SUBJECT_PROPERTY_STORAGE_PREFIX}:${loanId}` : getSubjectPropertyStorageKey(location);
   const { consumeDemoReset, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressFields, setAddressFields, saveAddress] = useLoanDraft<SubjectPropertyData>("subject-property",

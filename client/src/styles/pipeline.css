@@ -1,0 +1,105 @@
+.pipeline-page {
+  min-height: 100dvh;
+  background: var(--roads-bg-page);
+  color: var(--roads-text-primary);
+}
+.pipeline-content {
+  padding: var(--roads-spacing-component-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--roads-spacing-component-xl);
+}
+.pipeline-heading, .pipeline-filters, .pipeline-stage-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--roads-spacing-component-xs);
+}
+.pipeline-heading { justify-content: space-between; }
+.pipeline-filters { gap: var(--roads-spacing-component-l); }
+.pipeline-stage-filters { flex: 1; }
+.pipeline-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--roads-spacing-component-xs);
+  padding: var(--roads-spacing-component-m) var(--roads-spacing-component-l);
+  border-radius: var(--roads-radius-2xs);
+  color: var(--roads-text-reverse);
+  background: var(--roads-bg-action);
+}
+.pipeline-button:disabled { background: var(--roads-bg-action-disabled); cursor: not-allowed; }
+.pipeline-secondary {
+  color: var(--roads-text-link);
+  background: var(--roads-bg-primary);
+  border: 1px solid var(--roads-border-brand);
+}
+.pipeline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--roads-spacing-component-xs);
+  border-radius: var(--roads-radius-2xs);
+  padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-m);
+  color: var(--roads-text-brand);
+  background: var(--roads-bg-brand-subtle);
+}
+.pipeline-chip[aria-pressed="true"] {
+  background: var(--roads-bg-brand);
+  color: var(--roads-text-reverse);
+}
+.pipeline-search {
+  display: flex;
+  align-items: center;
+  gap: var(--roads-spacing-component-xs);
+  border: 1px solid var(--roads-border-dark);
+  border-radius: var(--roads-radius-2xs);
+  padding: var(--roads-spacing-component-m);
+  background: var(--roads-bg-primary);
+}
+.pipeline-search input { background: transparent; outline: none; width: 100%; }
+.pipeline-search:focus-within { outline: 2px solid var(--roads-border-brand); }
+.pipeline-table-wrap { overflow-x: auto; }
+.pipeline-table { width: 100%; border-collapse: collapse; }
+.pipeline-table th, .pipeline-table td {
+  text-align: left;
+  padding: var(--roads-spacing-component-l) var(--roads-spacing-component-m);
+  border-bottom: 1px solid var(--roads-border-subtle);
+}
+.pipeline-table th { background: var(--roads-bg-light); white-space: nowrap; }
+.pipeline-table th button { display: inline-flex; align-items: center; gap: var(--roads-spacing-component-2xs); }
+.pipeline-table tbody tr[data-loan] { cursor: pointer; }
+.pipeline-table tbody tr[data-loan]:hover { background: var(--roads-bg-light); }
+.pipeline-table a { color: var(--roads-text-link); }
+.pipeline-table td:nth-child(5), .pipeline-table th:nth-child(5) { text-align: right; white-space: nowrap; }
+.pipeline-stage { padding: var(--roads-spacing-component-2xs) var(--roads-spacing-component-xs); white-space: nowrap; }
+.pipeline-state {
+  text-align: center;
+  padding: var(--roads-spacing-layout-xs) var(--roads-spacing-component-xl);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: var(--roads-spacing-component-l);
+  background: var(--roads-bg-light);
+}
+.pipeline-error { color: var(--roads-text-error); }
+.pipeline-skeleton {
+  height: var(--roads-spacing-component-l);
+  background: var(--roads-bg-dark);
+  border-radius: var(--roads-radius-2xs);
+}
+.pipeline-form { display: flex; flex-direction: column; gap: var(--roads-spacing-component-xl); }
+.pipeline-form fieldset { display: flex; flex-direction: column; gap: var(--roads-spacing-component-m); }
+.pipeline-form legend { margin-bottom: var(--roads-spacing-component-m); }
+.pipeline-form label { display: flex; align-items: center; gap: var(--roads-spacing-component-xs); }
+.pipeline-page button:focus-visible, .pipeline-page a:focus-visible {
+  outline: 2px solid var(--roads-border-brand);
+  outline-offset: var(--roads-spacing-component-2xs);
+}
+@media (max-width: 767px) {
+  .pipeline-content { padding: var(--roads-spacing-component-l); }
+  .pipeline-filters { align-items: stretch; flex-direction: column; }
+  .pipeline-search { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pipeline-page .animate-pulse { animation: none; }
+}

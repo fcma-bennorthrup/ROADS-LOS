@@ -7,8 +7,7 @@ import LoanSummaryPage from "@/pages/loan-summary";
 import { applicationView, type LoanApplication } from "@shared/loan-application";
 
 const query = vi.hoisted(() => ({ data: undefined as unknown }));
-vi.mock("@/hooks/use-loan-query", () => ({ useLoanQuery: () => query }));
-vi.mock("wouter", () => ({ useParams: () => ({ id: "test" }) }));
+vi.mock("@/components/loan/LoanWorkspace", () => ({ useWorkspaceLoan: () => query.data }));
 vi.mock("../LoanHeader", () => ({ LoanHeader: () => null, BottomToolbar: () => null }));
 vi.mock("../BorrowerCards", () => ({ BorrowerCards: () => null }));
 vi.mock("../LoanActivityPanel", () => ({ LoanActivityPanel: () => null }));

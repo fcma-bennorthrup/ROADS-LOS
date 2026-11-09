@@ -1,6 +1,6 @@
 import { RICHARD_DATA, JANE_DATA } from "@/components/loan/BorrowerInformationContent";
 import { SAMPLE_BORROWERS } from "@/components/loan/BorrowerFinancialsContent";
-import { SAMPLE_CURRENT_ASSETS, SAMPLE_NON_CURRENT_ASSETS, SAMPLE_CURRENT_LIABILITIES, SAMPLE_NON_CURRENT_LIABILITIES } from "@/components/loan/BalanceSheetSection";
+import { SAMPLE_CURRENT_ASSETS, SAMPLE_NON_CURRENT_ASSETS } from "@/components/loan/BalanceSheetSection";
 import { DEFAULT_ADDRESS } from "@/components/loan/CollateralContent";
 import { emptyFields } from "@shared/loan-application";
 
@@ -32,10 +32,10 @@ export function blendDemoSections(loanId: string, borrowerCount: 1 | 2 = 2): Rec
       tellTheStory: "Synthetic Blend application for prototype demos.", intentToProceed: false, brpLoan: false,
     },
     income: SAMPLE_BORROWERS.slice(0, borrowerCount).map((borrower, index) => ({ ...borrower, name: `${index === 0 ? "Richard" : "Jane"} Jamerson` })),
-    "current-assets": SAMPLE_CURRENT_ASSETS,
-    "noncurrent-assets": SAMPLE_NON_CURRENT_ASSETS,
-    "current-liabilities": SAMPLE_CURRENT_LIABILITIES,
-    "noncurrent-liabilities": SAMPLE_NON_CURRENT_LIABILITIES,
+    "current-assets": SAMPLE_CURRENT_ASSETS.map(asset => ({ ...asset, borrowerId: `${loanId}-primary` })),
+    "noncurrent-assets": SAMPLE_NON_CURRENT_ASSETS.map(asset => ({ ...asset, borrowerId: `${loanId}-primary` })),
+    "current-liabilities": [],
+    "noncurrent-liabilities": [],
     "subject-property": { ...DEFAULT_ADDRESS, address1: "125 Meadow Lane", address2: "", collateralOwnerId: `${loanId}-primary`,
       monthlyPropertyTaxes: "", monthlyInsurance: "" },
     fees: [],

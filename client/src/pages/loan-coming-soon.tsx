@@ -1,11 +1,10 @@
 import { useLoanQuery } from "@/hooks/use-loan-query";
-import { useParams } from "wouter";
+import { useLoanId } from "@/contexts/loan-id-context";
 import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
 import { formatCurrency } from "@/lib/loan-display";
 
 export default function LoanComingSoonPage({ tabName }: { tabName: string }) {
-  const params = useParams<{ id: string }>();
-  const loanId = params.id || "1";
+  const loanId = useLoanId();
 
   const { data: loan, isLoading, error } = useLoanQuery(loanId);
 

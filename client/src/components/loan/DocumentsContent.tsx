@@ -1,8 +1,6 @@
 import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
 import { useClosingPackage } from "@/hooks/use-closing-package";
 import { useState } from "react";
-import sampleClosingDisclosurePdf from "@assets/SampleCD_1776881551872.pdf";
-import sampleClosingPackagePdf from "@assets/Redacted-ClosingPackage_Redacted_1776881993129.pdf";
 import { ClosingDocumentIcon } from "./ClosingDocumentIcon";
 import { ClosingDisclosureBorrowerEditor } from "./ClosingDisclosureBorrowerEditor";
 import { ClosingDisclosureBorrowerCells } from "./ClosingDisclosureBorrowerCells";
@@ -152,9 +150,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                               type="button"
                               className="closing-disclosure-icon-button"
                               aria-label={`View Closing Disclosure CD ${record.id}`}
-                              onClick={() =>
-                                window.open(sampleClosingDisclosurePdf, "_blank", "noopener,noreferrer")
-                              }
+                              onClick={() => { /* PDF previews retired; retain the prototype control. */ }}
                               data-testid={`button-view-closing-disclosure-${record.id}`}
                             >
                               <ClosingDocumentIcon kind="file" />
@@ -186,8 +182,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
             secondaryActions={[
               {
                 label: "View Closing Package",
-                onClick: () =>
-                  window.open(sampleClosingPackagePdf, "_blank", "noopener,noreferrer"),
+                onClick: () => { /* PDF previews retired; retain the prototype control. */ },
               },
               {
                 label: "Deliver Closing Package",
