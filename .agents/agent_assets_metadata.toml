@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ngVAMgUhLljeGf2wIDvlL"
+uri = "file://generated-artifacts/ROADS-Release-Notes-Nov-2-8-2026.pdf"
+type = "pdf"
+title = "ROADS Weekly Release Notes · November 2–8"
+description = "Two-page summary of completed features, practical improvements, and remaining prototype limitations."
+logical_id = "738cdbdc-2144-48a4-873f-6b0771d70125"
+content_hash = "sha256:74d14c1ab12cf436257b0ffdcf5fdad8c206590efb4c7cb095b78c0863511251"
+size = 53970
+mtime_ms = 1794233139209
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:fe33a2ad-8515-4e59-b2c4-2d8455ceb970/738cdbdc-2144-48a4-873f-6b0771d70125/d0042389-519d-469c-973b-312377247203"
+storage_version_token = "1794233157376728"
+content_type = "application/pdf"
