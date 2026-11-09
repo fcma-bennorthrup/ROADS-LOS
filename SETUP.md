@@ -62,6 +62,7 @@ These scripts use POSIX environment-assignment syntax; native Windows-shell comp
 - **Browser state:** checklist, activity and some document progress use browser-local storage. Other edits are component-local. A local Save is not evidence of a database write.
 - **Database infrastructure:** `server/db.ts`, `shared/schema.ts` and `drizzle.config.ts` exist, but the loan API does not import the database adapter. PostgreSQL provisioning is not a prerequisite for this in-memory loan path.
 - **Database command:** `npm run db:push` maps to `drizzle-kit push`. The Drizzle configuration requires `DATABASE_URL` and targets a database schema mutation. It is not a normal prototype setup step and must not be run without separate database authorization.
+- **Collaborator setup:** Follow `docs/database-collaboration.md`. Run `npm run db:check`; if reviewed development upgrades are pending, explicitly run `npm run db:upgrade:dev`, then check again and restart. These commands target only the active loan model and its development upgrade ledger, not all legacy Drizzle tables. They never copy loan data from GitHub.
 - **Environment loading:** the server startup scripts do not declare a `.env` loader. Creating a `.env` file is not sufficient evidence that values will be loaded. No active loan-path use of `SESSION_SECRET` is present in the inspected server source.
 - **Sync metadata:** `.local/github-sync-state.json` and `.local/pending-conflicts.json` are filesystem state, separate from browser storage and in-memory loan data.
 

@@ -1,23 +1,8 @@
-import type { Loan, Borrower } from "./schema";
 import { evaluateJointCredit } from "./business-rules/joint-credit";
 import { collateralValue, currencyAmount, loanToCollateralValue } from "./loan-collateral-value";
 import { calculateSummary } from "./summary";
 
-export interface LoanApplication {
-  loan: Loan;
-  borrowers: Borrower[];
-  mode: "existing" | "empty" | "blend";
-  generation: number;
-  revision: number;
-  sections: Record<string, unknown>;
-  changeLog?: import("./loan-history").LoanChange[];
-  businessRules?: import("./business-rules").LoanBusinessRules;
-  meta?: {
-    createdAt: string;
-    updatedAt: string;
-    source: "seed" | "blank" | "blend";
-  };
-}
+export type LoanApplication = import("./loan-contract").LoanDocument;
 
 /** Empty data values without removing the form's structural identifiers. */
 export function emptyFields<T>(value: T): T {

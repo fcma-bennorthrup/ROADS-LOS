@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { storage } from "../server/storage";
 import { newLoanApplication } from "./loan-factory";
 import { evaluateLoanRules } from "./business-rules";
@@ -35,6 +35,8 @@ async function previousFactory(blend: boolean, count: 1 | 2, sections: Record<st
 }
 
 describe("loan factory compatibility", () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-11-09T12:00:00.000Z")); });
+  afterEach(() => vi.useRealTimers());
   for (const source of ["blank", "blend"] as const) for (const count of [1, 2] as const) {
     it(`preserves ${source} with ${count} borrowers, apart from new metadata`, async () => {
       const sections = { income: [{ incomeSources: [] }, { incomeSources: [] }],
@@ -43,7 +45,8 @@ describe("loan factory compatibility", () => {
         "current-liabilities": [], "storage:old": "must not carry over", "credit-pulled": true };
       const actual = newLoanApplication({ id: "1", loanNumber: "123456789", source,
         borrowerCount: count, sections, generation: 4, revision: 8, now: "2026-11-09T12:00:00.000Z" });
-      const { meta, ...document } = actual;
+      const { meta, schemaVersion, ...document } = actual;
+      expect(schemaVersion).toBe(1);
       expect(document).toEqual(await previousFactory(source === "blend", count, sections));
       expect(meta).toEqual({ createdAt: "2026-11-09T12:00:00.000Z", updatedAt: "2026-11-09T12:00:00.000Z", source });
     });

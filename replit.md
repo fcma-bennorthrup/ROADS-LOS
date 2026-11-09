@@ -61,6 +61,9 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - `design-system.tsx` and `loan-coming-soon.tsx` are retained supporting pages without active routes; do not add routes as documentation cleanup.
 
 ## Data Model
+- **Database collaboration rule:** Before changing stored models or after a GitHub pull, follow `docs/database-collaboration.md`. Keep model, append-only upgrades and tests together in synced paths. Never silently repair drift or share credentials/data between projects.
+- `npm run db:check` is read-only. `npm run db:upgrade:dev` explicitly applies reviewed development upgrades; it is never run by app startup, build, Publish, or automatically after a pull.
+- Runtime loan validation is defined in `shared/loan-contract.ts`. Development upgrade history is recorded in `roads_development_upgrades` with immutable-file checksums.
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
@@ -98,6 +101,7 @@ shared/
 ```
 
 ## API Routes
+- `GET /api/database/compatibility` - Fresh, read-only check of the pulled code against this project's database; no apply endpoint
 - `GET /api/loans` - Lightweight pipeline projections, newest update first, no-store
 - `POST /api/loans` - Create a blank loan from `{ source: "blank" }`; returns `{ id, loanNumber }`. Blend creation then calls the existing demo import with client-built sections.
 - `PUT /api/loans/:id/stage` - Save a validated stage with `{ stage, generation, revision }`; returns the updated document or 409 on stale input

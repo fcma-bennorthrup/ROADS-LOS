@@ -30,6 +30,21 @@ beforeEach(() => {
   db.connect.mockResolvedValue({ query: db.query, release: db.release });
 });
 describe("pipeline API", () => {
+  it("rejects malformed sections before a database write", async () => {
+    const result = await request("PUT /api/loans/:id/application", {
+      generation: 0, revision: 0, section: "current-liabilities", value: "invalid",
+    });
+    expect(result.statusCode).toBe(400);
+    expect(db.query).not.toHaveBeenCalled();
+  });
+  it("rejects a newer document format without overwriting its data", async () => {
+    const current = document(); current.schemaVersion = 999;
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] });
+    const result = await request("PUT /api/loans/:id/stage", { stage: "Decisioning", generation: 0, revision: 0 });
+    expect(result.statusCode).toBe(409);
+    expect(result.body.error).toContain("does not match this code version");
+    expect(db.query).toHaveBeenCalledTimes(1);
+  });
   it("lists projections, newest first, without leaking full documents", async () => {
     const a = document(), b = document("other");
     b.meta!.updatedAt = "2026-11-09T00:00:00.000Z";
