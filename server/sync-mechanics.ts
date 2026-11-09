@@ -3,6 +3,7 @@ import * as path from "path";
 import type { FileEntry } from "./conflict-detection";
 import { isCredentialOrRuntimePath } from "./sync-file-policy";
 import { planTreeDiff } from "./sync-plan";
+import { RETIRED_PROTOTYPE_PDFS } from "./retired-prototype-pdfs";
 
 export type SyncFilesystem = Pick<typeof filesystem, "readdirSync" | "lstatSync" | "statSync" | "readFileSync" | "existsSync" | "mkdirSync" | "writeFileSync" | "unlinkSync" | "renameSync">;
 type ContentTransport = Pick<typeof import("./github"), "getFileContent" | "getFileContentAtCommit">;
@@ -13,6 +14,7 @@ const BINARY_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".ico", ".sv
 export const MAX_FILE_SIZE = 7 * 1024 * 1024;
 
 export function shouldIgnorePath(filePath: string): boolean {
+  if (RETIRED_PROTOTYPE_PDFS.has(filePath)) return true;
   if (isCredentialOrRuntimePath(filePath)) return true;
   const parts = filePath.split("/");
   const fileName = parts[parts.length - 1];
@@ -38,7 +40,7 @@ export function createSyncMechanics(fs: SyncFilesystem, transport: ContentTransp
           results.push(...collectLocalFiles(fullPath, relativePath));
         }
       } else if (entry.isFile()) {
-        if (IGNORE_FILES.has(entry.name) || isCredentialOrRuntimePath(relativePath)) continue;
+        if (shouldIgnorePath(relativePath)) continue;
         try {
           const stats = fs.statSync(fullPath);
           if (stats.size > MAX_FILE_SIZE) continue;
