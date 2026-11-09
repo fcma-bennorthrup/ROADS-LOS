@@ -12,6 +12,7 @@ export const emptyClosingPackageProgress = (): ClosingPackageProgress => ({
   generatingUntil: null,
 });
 
+import { loanStorage as localStorage } from "./loan-application-store";
 export function closingPackageStorageKey(loanId: string) {
   return `loan-closing-package:${loanId}`;
 }
@@ -82,7 +83,7 @@ export function subscribeClosingPackageProgress(loanId: string, changed: () => v
     if ((event as CustomEvent<string>).detail === loanId) changed();
   };
   const storage = (event: StorageEvent) => {
-    if (event.storageArea && event.storageArea !== localStorage) return;
+    if (event.storageArea && event.storageArea !== window.localStorage) return;
     if (event.key !== null && event.key !== closingPackageStorageKey(loanId)) return;
     // Ignore event payloads: delayed notifications must never restore older state.
     changed();

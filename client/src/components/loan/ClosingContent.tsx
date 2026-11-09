@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 import { RoadsDatePicker } from "./RoadsDatePicker";
+import { useLoanDraft } from "@/contexts/loan-application-context";
 
 interface ClosingDetailsState {
   closingDate: string;
@@ -14,8 +15,8 @@ export function ClosingContent() {
   };
 
   const [isEditing, setIsEditing] = useState(false);
-  const [fields, setFields] = useState<ClosingDetailsState>({ ...defaultState });
-  const savedFields = useRef<ClosingDetailsState>({ ...defaultState });
+  const [fields, setFields, saveFields] = useLoanDraft<ClosingDetailsState>("closing-details", { ...defaultState }, { ...defaultState }, false);
+  const savedFields = useRef<ClosingDetailsState>({ ...fields });
 
   const handleEditToggle = () => {
     if (!isEditing) {
@@ -25,6 +26,7 @@ export function ClosingContent() {
   };
 
   const handleSave = () => {
+    saveFields();
     savedFields.current = { ...fields };
     setIsEditing(false);
   };

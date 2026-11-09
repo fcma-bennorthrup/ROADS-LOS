@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useLoanState } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
@@ -45,6 +46,7 @@ interface SecondaryAction {
   onClick: () => void;
   testId?: string;
   marksDelivered?: boolean;
+  disabled?: boolean;
 }
 
 interface DocumentPresentationProps {
@@ -75,13 +77,17 @@ interface DocumentSectionProps extends DocumentPresentationProps {
 function useLocalDocumentProgress(
   onGenerated: DocumentSectionProps["onGenerated"],
   resetVersion: DocumentSectionProps["resetVersion"],
+  section: string,
 ): DocumentProgress {
-  const [generationState, setGenerationState] = useState<GenerationState>("idle");
-  const [lastGenerated, setLastGenerated] = useState<string | null>(null);
-  const [lastDelivered, setLastDelivered] = useState<string | null>(null);
+  const [generationState, setGenerationState] = useLoanState<GenerationState>(`${section}-generation`, "idle", "idle", false);
+  const [lastGenerated, setLastGenerated] = useLoanState<string | null>(`${section}-generated-at`, null, null, false);
+  const [lastDelivered, setLastDelivered] = useLoanState<string | null>(`${section}-delivered-at`, null, null, false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const previousReset = useRef(resetVersion);
 
   useEffect(() => {
+    if (previousReset.current === resetVersion) return;
+    previousReset.current = resetVersion;
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -135,7 +141,7 @@ export function DocumentSection({
   ...presentation
 }: DocumentSectionProps) {
   // Keep the local controller mounted even in retained mode, preserving mode switches.
-  const localProgress = useLocalDocumentProgress(onGenerated, resetVersion);
+  const localProgress = useLocalDocumentProgress(onGenerated, resetVersion, presentation.testIdPrefix);
   const progress = retainedProgress ? retainedDocumentPresentation(retainedProgress) : localProgress;
   return <DocumentSectionPresentation {...presentation} progress={progress} />;
 }
@@ -221,13 +227,13 @@ function DocumentSectionPresentation({
             <button
               key={`${testIdPrefix}-secondary-${index}`}
               onClick={() => {
-                if (generationState !== "generated" || (action.marksDelivered && error)) return;
+                if (action.disabled || generationState !== "generated" || (action.marksDelivered && error)) return;
                 action.onClick();
                 if (action.marksDelivered) {
                   progress.deliver();
                 }
               }}
-              aria-disabled={generationState !== "generated" || Boolean(action.marksDelivered && error)}
+              aria-disabled={action.disabled || generationState !== "generated" || Boolean(action.marksDelivered && error)}
               className="label-strong"
               style={{
                 backgroundColor: "var(--roads-bg-primary)",
@@ -236,7 +242,7 @@ function DocumentSectionPresentation({
                   "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
                 borderRadius: "var(--roads-radius-2xs)",
                 border: "1px solid var(--roads-border-dark)",
-                cursor: generationState !== "generated" ? "not-allowed" : "pointer",
+                cursor: action.disabled || generationState !== "generated" ? "not-allowed" : "pointer",
                 whiteSpace: "nowrap",
               }}
               data-testid={
@@ -368,6 +374,7 @@ export function DocumentsContent() {
           },
           {
             label: "Deliver Loan Estimate",
+            disabled: getActionStatus("Loan Estimate", 0) !== "complete",
             onClick: handleLoanEstimateDelivered,
             marksDelivered: true,
           },

@@ -1,6 +1,7 @@
 import type { ChangeLogEntry } from "./history-data";
 
 export function parseTimestamp(ts: string): number {
+  if (ts.includes("T")) return Date.parse(ts);
   const [datePart, timePart, ampm] = ts.split(" ");
   const [month, day, year] = datePart.split("/").map(Number);
   let [hours, minutes] = timePart.split(":").map(Number);
@@ -29,7 +30,7 @@ export function filterAndSortHistory(
     );
   }
   const sorted = [...data].sort((a, b) => {
-    const diff = parseTimestamp(a.timestamp) - parseTimestamp(b.timestamp);
+    const diff = parseTimestamp(a.timestamp) - parseTimestamp(b.timestamp) || a.id - b.id;
     return sortDirection === "desc" ? -diff : diff;
   });
   return sorted;

@@ -99,8 +99,10 @@ export default function LoanOriginationPage() {
           <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
             {activeNavItem === "Collateral" && (
               <CollateralContent
+                key={loan.id}
                 loanNumber={loan.loanNumber}
                 borrowerName={loan.primaryBorrowerName}
+                borrowers={loan.borrowers}
               />
             )}
             {activeNavItem === "Product & Pricing" && (

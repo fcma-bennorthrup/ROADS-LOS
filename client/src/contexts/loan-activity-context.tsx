@@ -44,6 +44,7 @@ const INITIAL_ACTIVITY_ITEMS: ActivityItem[] = [
   },
 ];
 
+import { loanStorage as localStorage } from "@/lib/loan-application-store";
 const ACTIVITY_STORAGE_PREFIX = "loan-runtime-activity";
 
 function getLoanStorageKey(location: string): string {

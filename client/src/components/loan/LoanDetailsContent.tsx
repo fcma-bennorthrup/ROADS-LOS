@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { useLoanDraft } from "@/contexts/loan-application-context";
 
 function LoanDetailField({
   label,
@@ -124,8 +125,8 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
   };
 
   const [isEditing, setIsEditing] = useState(false);
-  const [fields, setFields] = useState<LoanDetailsState>({ ...defaultState });
-  const savedFields = useRef<LoanDetailsState>({ ...defaultState });
+  const [fields, setFields, saveFields] = useLoanDraft<LoanDetailsState>("loan-details", { ...defaultState });
+  const savedFields = useRef<LoanDetailsState>({ ...fields });
 
   const handleEditToggle = () => {
     if (!isEditing) {
@@ -135,6 +136,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
   };
 
   const handleSave = () => {
+    saveFields();
     savedFields.current = { ...fields };
     setIsEditing(false);
   };

@@ -5,6 +5,7 @@ export interface ClosingDisclosureRecord {
   borrowerDetails?: import("./closing-disclosure-borrowers").BorrowerDisclosureDetails[];
 }
 
+import { loanStorage as localStorage } from "./loan-application-store";
 export function closingDisclosureStorageKey(loanId: string) {
   return `loan-closing-disclosures:${loanId}`;
 }
@@ -106,7 +107,7 @@ export function subscribeClosingDisclosureHistory(
   onChange: (removed: boolean) => void,
 ) {
   const storage = (event: StorageEvent) => {
-    if (event.storageArea && event.storageArea !== localStorage) return;
+    if (event.storageArea && event.storageArea !== window.localStorage) return;
     if (event.key === null || event.key === closingDisclosureStorageKey(loanId)) {
       onChange(event.newValue === null);
     }
