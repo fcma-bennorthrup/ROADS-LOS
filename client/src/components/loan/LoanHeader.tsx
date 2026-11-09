@@ -18,6 +18,9 @@ import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useChecklist } from "@/contexts/checklist-context";
+import { applicationStore } from "@/lib/loan-application-store";
+import { useApplicationStatus } from "@/contexts/loan-application-context";
+import { SummaryDebugDialog } from "./SummaryDebugDialog";
 
 const STAGES = [
   { label: "Customer Application", status: "completed" },
@@ -84,8 +87,10 @@ export function LoanHeader({
   const [currentTab, setCurrentTab] = useState(activeTab);
   const [, navigate] = useLocation();
   const { tasks } = useChecklist();
-  const showTridDaysRemaining =
-    tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
+  const app = useApplicationStatus().document;
+  const showTridDaysRemaining = app
+    ? app.businessRules?.trid.status === "required"
+    : tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
 
   const handleTabClick = (tab: string) => {
     setCurrentTab(tab);
@@ -109,15 +114,16 @@ export function LoanHeader({
         style={{ gap: "16px", paddingTop: "16px" }}
       >
         <BreadcrumbBar loanNumber={loanNumber} />
-        <StageStepper />
+        <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} initialStep={applicationStore.document && applicationStore.document.mode !== "existing" ? 0 : 2} />
         <HeaderTextBlock
           loanType={loanType}
           loanNumber={loanNumber}
           cifNumber={cifNumber}
           borrowerName={borrowerName}
           amount={amount}
-          applicationType={applicationType}
+          applicationType={app ? app.businessRules?.jointCredit?.showChip ? "Joint Credit Application" : "" : applicationType}
           ecoaDaysRemaining={ecoaDaysRemaining}
+          showEcoaDaysRemaining={app ? app.businessRules?.ecoa?.status === "required" : true}
           tridDaysRemaining={tridDaysRemaining}
           showTridDaysRemaining={showTridDaysRemaining}
         />
@@ -208,7 +214,9 @@ function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
   );
 }
 
-function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
+export function StageStepper({ initialStep = 2 }: { initialStep?: number }) {
+  // Demo-only navigation: deliberately not written to the loan or browser storage.
+  const [currentStep, setCurrentStep] = useState(initialStep);
   return (
     <div
       className="flex w-full"
@@ -219,6 +227,8 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
         const isLast = index === STAGES.length - 1;
         const isCompleted = index < currentStep;
         const isActive = index === currentStep;
+        const isControl = index === 0 || isLast;
+        const Stage = isControl ? "button" : "div";
 
         let bgColor: string;
         let textColor: string;
@@ -247,7 +257,14 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
             }}
             data-testid={`stage-${stage.label.toLowerCase().replace(/\s+/g, "-")}`}
           >
-            <div
+            <Stage
+              {...(isControl ? {
+                type: "button" as const,
+                "aria-label": index === 0 ? "Move loan stage backward" : "Move loan stage forward",
+                "aria-disabled": index === 0 ? currentStep === 0 : currentStep === STAGES.length - 1,
+                onClick: () => setCurrentStep(step => Math.max(0, Math.min(STAGES.length - 1, step + (index === 0 ? -1 : 1)))),
+              } : {})}
+              aria-current={isActive ? "step" : undefined}
               className="flex items-center justify-center w-full h-full caption-100-strong"
               style={{
                 backgroundColor: bgColor,
@@ -256,11 +273,12 @@ function StageStepper({ currentStep = 2 }: { currentStep?: number }) {
                 paddingLeft: 20,
                 paddingRight: 20,
                 gap: 4,
+                ...(isControl ? { border: 0, cursor: "default" } : {}),
               }}
             >
               {isCompleted && <Check className="w-4 h-4 flex-shrink-0" />}
               <span className="truncate">{stage.label}</span>
-            </div>
+            </Stage>
           </div>
         );
       })}
@@ -276,6 +294,7 @@ interface HeaderTextBlockProps {
   amount: string;
   applicationType: string;
   ecoaDaysRemaining: number;
+  showEcoaDaysRemaining: boolean;
   tridDaysRemaining: number;
   showTridDaysRemaining: boolean;
 }
@@ -288,6 +307,7 @@ function HeaderTextBlock({
   amount,
   applicationType,
   ecoaDaysRemaining,
+  showEcoaDaysRemaining,
   tridDaysRemaining,
   showTridDaysRemaining,
 }: HeaderTextBlockProps) {
@@ -297,7 +317,7 @@ function HeaderTextBlock({
       style={{ padding: "0 24px", gap: "var(--roads-spacing-component-3xs)" }}
     >
       <div className="flex items-center caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
-        <span>{loanType}</span>
+        <span>SLP</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>Loan: {loanNumber}</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
@@ -321,7 +341,7 @@ function HeaderTextBlock({
           {amount}
         </span>
 
-        <span
+        {applicationType && <span
           className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-brand-subtle)",
@@ -333,11 +353,11 @@ function HeaderTextBlock({
           data-testid="chip-application-type"
         >
           {applicationType}
-        </span>
+        </span>}
 
         <span style={{ color: "var(--roads-border-subtle)", height: "24px", display: "inline-flex", alignItems: "center" }}>|</span>
 
-        <span
+        {showEcoaDaysRemaining && <span
           className="body-200-strong inline-flex items-center"
           style={{
             backgroundColor: "var(--roads-bg-warning-subtle)",
@@ -348,8 +368,8 @@ function HeaderTextBlock({
           }}
           data-testid="chip-ecoa-days"
         >
-          {ecoaDaysRemaining} ECOA Days Remaining
-        </span>
+          30 ECOA days remaining
+        </span>}
 
         {showTridDaysRemaining && (
           <span
@@ -363,7 +383,7 @@ function HeaderTextBlock({
             }}
             data-testid="chip-trid-days"
           >
-            {tridDaysRemaining} TRID Days Remaining
+            TRID day 0
           </span>
         )}
       </div>
@@ -484,6 +504,7 @@ export function BottomToolbar() {
 
 function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
   const [open, setOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -550,7 +571,13 @@ function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
         >
           Prototype Admin Controls
         </button>
+        <button data-testid="menu-item-debug" className="body-100 w-full text-left rounded hover:bg-muted"
+          style={{ height: 40, padding: "0 12px", color: "var(--roads-text-primary)" }}
+          onClick={() => { setOpen(false); setDebugOpen(true); }}>
+          Debug
+        </button>
       </div>
+      <SummaryDebugDialog open={debugOpen} onOpenChange={setDebugOpen} />
     </div>
   );
 }

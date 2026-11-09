@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>ROADS Prototype — Weekly Release Notes</title>
+<style>
+@page { size: Letter; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; color: #243344; background: white; }
+.page { width: 8.5in; height: 11in; padding: .62in .68in; position: relative; page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+.eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 1.7px; color: #21756c; text-transform: uppercase; }
+h1 { font-size: 29px; margin: 12px 0 7px; letter-spacing: -.7px; }
+.date { color: #657281; font-size: 12px; margin-bottom: 22px; }
+.lead { font-size: 13px; line-height: 1.5; padding: 14px 16px; background: #edf5f3; border-left: 3px solid #21756c; margin-bottom: 22px; }
+h2 { font-size: 16px; margin: 21px 0 9px; color: #163e43; }
+ul { margin: 0; padding-left: 17px; }
+li { font-size: 12px; line-height: 1.48; margin-bottom: 8px; }
+strong { color: #172a3b; }
+.footer { position: absolute; bottom: .42in; left: .68in; right: .68in; border-top: 1px solid #dce3e7; padding-top: 9px; font-size: 9px; color: #687782; display: flex; justify-content: space-between; }
+.note { font-size: 10px; line-height: 1.5; color: #687782; margin-top: 18px; }
+</style></head><body>
+<section class="page">
+<div class="eyebrow">ROADS loan origination prototype</div>
+<h1>Weekly release notes</h1>
+<div class="date">November 2–8, 2026 · Changes recorded November 3–5</div>
+<div class="lead">The prototype now supports repeatable loan demos, saved application data, rule-driven checklist actions, and Summary figures calculated from loan inputs.</div>
+<h2>Application data &amp; demo controls</h2>
+<ul>
+<li><strong>Loan-owned persistence.</strong> Saved application fields are stored with the loan rather than the tester, supporting reloads and shared demos.</li>
+<li><strong>New Demo Controls tab.</strong> Reset application data or import a simulated Blend application with one or two borrowers. Compact, fixed-height cards use secondary buttons and inline confirmation.</li>
+<li><strong>Targeted resets.</strong> Reset checklist outputs without clearing application inputs. Separate TRID actions clear its application inputs or manually trigger a new Loan Estimate cycle.</li>
+<li><strong>Working change log.</strong> History records changes to saved values, not initial values. Resetting the application clears the log.</li>
+</ul>
+<h2>Business rules &amp; checklist behavior</h2>
+<ul>
+<li><strong>TRID.</strong> The six saved application inputs trigger “TRID day 0.” Loan Estimate delivery satisfies it; a rate-lock update triggers it again. The Loan Estimate checklist follows this shared rule.</li>
+<li><strong>ECOA.</strong> Blend import starts “30 ECOA days remaining.” The chip clears after a decision is rendered and its letter is generated and delivered.</li>
+<li><strong>Borrower and decision rules.</strong> Two-borrower applications show the joint-credit chip; single-borrower applications do not. A saved credit pull makes the Loan Decision task ready.</li>
+<li><strong>Demo stage navigation.</strong> Hidden controls on the first and last tracker chevrons move the stage backward or forward without persisting it.</li>
+</ul>
+<h2>Borrower &amp; collateral improvements</h2>
+<ul>
+<li>Added a <strong>Collateral Owner</strong> dropdown populated from the loan’s borrowers, plus saved monthly property-tax and insurance fields.</li>
+<li>Single-borrower information no longer needs a borrower subtab. Updated the header eyebrow to <strong>SLP</strong> and capped contact cards at <strong>435 px</strong>.</li>
+</ul>
+<div class="footer"><span>Prototype release notes · Local project history</span><span>1 / 2</span></div>
+</section>
+<section class="page">
+<div class="eyebrow">Calculations &amp; visibility</div>
+<h1>A more realistic loan summary</h1>
+<div class="date">November 2–8, 2026</div>
+<h2>Live Summary calculations</h2>
+<ul>
+<li><strong>Collateral value &amp; L/CV.</strong> Use estimated values until reported values are saved; combine applicable collateral evaluations. L/CV is total loan amount divided by collateral value.</li>
+<li><strong>Pricing &amp; payments.</strong> Use saved product, rate, supported fee data, and amortization term to calculate supported loan totals and principal-and-interest payments. A rate does not need to be locked for PITI or DTI.</li>
+<li><strong>PITI &amp; DTI.</strong> PITI is monthly principal, interest, taxes, and insurance divided by gross monthly income. DTI also includes supported monthly liabilities. A PITI tooltip shows the numeric breakdown.</li>
+<li><strong>Rule of XX.</strong> Add L/CV percentage points to the amortization term in years, using actual loan data rather than a fixed example.</li>
+<li><strong>Primary wage earner.</strong> Shared income calculations select the highest-income borrower. The PWE chip changes when saved incomes change; the Summary shows that borrower’s simulated credit score after a hard credit pull.</li>
+</ul>
+<h2>Credit demo &amp; debugging</h2>
+<ul>
+<li><strong>Simulated credit results.</strong> Pull Credit populates sample liabilities for each applicable borrower and stores borrower-specific demo scores. Checklist reset clears credit results while retaining application income.</li>
+<li><strong>Debug modal.</strong> Moved unavailable-calculation details out of the Summary into <strong>More → Debug</strong>. Short, actionable messages identify missing inputs or unsupported rules.</li>
+<li><strong>Shared logic &amp; checks.</strong> Centralized business rules, pricing data, and income calculations reduce conflicting results. Added focused regression tests for persistence, resets, rules, and calculations.</li>
+</ul>
+<h2>Still intentionally limited</h2>
+<ul>
+<li><strong>APR, cash reserves, and cash to close</strong> remain unavailable where required inputs or calculation policies have not been defined.</li>
+<li>Unsupported ARM payment assumptions, historical-job income, and planned debt-payoff treatment are surfaced rather than guessed. Missing inputs display as unavailable, not misleading zeroes.</li>
+<li>TRID and ECOA day labels are fixed demo values. Credit data is simulated; this is not a live bureau integration or production compliance engine.</li>
+</ul>
+<p class="note">Scope: completed changes in the local project’s weekly commit history, checked against implementation context. Earlier architectural-audit and GitHub-sync work is outside this reporting period. This document does not certify deployment status.</p>
+<div class="footer"><span>Prototype release notes · Prepared November 9, 2026</span><span>2 / 2</span></div>
+</section>
+</body></html>

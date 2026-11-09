@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ProductPricingContent } from "../ProductPricingContent";
-import { ChecklistPanel } from "../ChecklistPanel";
+import { ChecklistPanel } from "./LegacyChecklistResetHarness";
 import { LoanHeader } from "../LoanHeader";
 import {
   ChecklistProvider,
@@ -145,7 +145,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     const estimateRows = within(loanEstimate).getAllByTestId(/^action-row-/);
     expect(within(estimateRows[0]).getByTestId("chip-re-fire")).toHaveTextContent("Re-fire");
     expect(within(estimateRows[1]).getByTestId("status-icon-not-started")).toBeInTheDocument();
-    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("3 TRID Days Remaining");
+    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("TRID day 0");
 
     const activityState = screen.getByTestId("activity-state");
     expect(activityState).toHaveTextContent(
@@ -215,7 +215,7 @@ describe("ProductPricingContent rate lock workflow", () => {
     );
     expect(screen.getByTestId("button-lock-rate")).toHaveTextContent("Update Rate Lock");
     expect(screen.getByTestId("icon-rate-locked")).toBeInTheDocument();
-    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("3 TRID Days Remaining");
+    expect(screen.getByTestId("chip-trid-days")).toHaveTextContent("TRID day 0");
   });
 
   it("keeps the TRID chip until every re-fired Loan Estimate action is complete", () => {

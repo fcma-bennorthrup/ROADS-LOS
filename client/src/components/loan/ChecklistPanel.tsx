@@ -1,30 +1,14 @@
 import { useState } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { useChecklist } from "@/contexts/checklist-context";
-import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { ActionTimeline, StatusIcon } from "./ChecklistActionTimeline";
 
 export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; centerX?: number }) {
   const [expanded, setExpanded] = useState<number | null>(null);
-  const { tasks, resetDemoTasks, demoResetPending } = useChecklist();
-  const { resetRuntimeActivities } = useActivityPanel();
+  const { tasks } = useChecklist();
 
   const completedCount = tasks.filter((t) => t.status === "complete").length;
   const percent = Math.round((completedCount / tasks.length) * 100);
-  const handleResetDemo = () => {
-    if (demoResetPending) return;
-    const confirmed = window.confirm(
-      "Reset all demo tasks, Subject Property, and demo-generated Loan Activity entries?",
-    );
-    if (!confirmed) return;
-
-    const result = resetDemoTasks(tasks.map((task) => task.name), resetRuntimeActivities);
-    const finish = (value: Awaited<typeof result>) => {
-      if (value.outcome === "complete") setExpanded(null);
-    };
-    if (result instanceof Promise) void result.then(finish);
-    else finish(result);
-  };
 
   return (
     <div
@@ -62,23 +46,6 @@ export function ChecklistPanel({ onClose, centerX }: { onClose: () => void; cent
             Loan Checklist
           </h2>
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-            <button
-              onClick={handleResetDemo}
-              disabled={demoResetPending}
-              className="caption-100-strong"
-              style={{
-                backgroundColor: "var(--roads-bg-primary)",
-                border: "1px solid var(--roads-border-dark)",
-                borderRadius: "var(--roads-radius-2xs)",
-                color: "var(--roads-text-primary)",
-                padding:
-                  "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)",
-                whiteSpace: "nowrap",
-              }}
-              data-testid="button-reset-demo"
-            >
-              Reset Demo
-            </button>
             <button
               onClick={onClose}
               aria-label="Close checklist"

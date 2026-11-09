@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useLoanDraft, useLoanState } from "@/contexts/loan-application-context";
+import { applicationStore, loanStorage as localStorage } from "@/lib/loan-application-store";
 import { Calendar, Pencil } from "lucide-react";
 import { useChecklist, ChecklistStatus } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
@@ -217,6 +219,8 @@ interface AddressData {
 
 interface SubjectPropertyData extends AddressData {
   collateralOwnerId: string;
+  monthlyPropertyTaxes: string;
+  monthlyInsurance: string;
 }
 
 interface EvaluationData {
@@ -330,7 +334,7 @@ function EvaluationTabs({
   );
 }
 
-const DEFAULT_ADDRESS: AddressData = {
+export const DEFAULT_ADDRESS: AddressData = {
   address1: "Address",
   address2: "Address 2",
   city: "Louisville",
@@ -379,12 +383,16 @@ function loadSubjectProperty(storageKey: string): SubjectPropertyData {
         ...(saved as AddressData),
         collateralOwnerId: typeof (saved as Partial<SubjectPropertyData>).collateralOwnerId === "string"
           ? (saved as SubjectPropertyData).collateralOwnerId : "",
+        monthlyPropertyTaxes: typeof (saved as Partial<SubjectPropertyData>).monthlyPropertyTaxes === "string"
+          ? (saved as SubjectPropertyData).monthlyPropertyTaxes : "",
+        monthlyInsurance: typeof (saved as Partial<SubjectPropertyData>).monthlyInsurance === "string"
+          ? (saved as SubjectPropertyData).monthlyInsurance : "",
       };
     }
   } catch {
     // Fall through to the prototype defaults.
   }
-  return { ...DEFAULT_ADDRESS, collateralOwnerId: "" };
+  return { ...DEFAULT_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
 }
 
 const EMPTY_EVALUATION: EvaluationData = {
@@ -605,22 +613,21 @@ export function CollateralContent({
   const subjectPropertyStorageKey = getSubjectPropertyStorageKey(location);
   const { consumeDemoReset, getActionStatus, setActionStatus } = useChecklist();
   const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressFields, setAddressFields] = useState<SubjectPropertyData>(() =>
-    loadSubjectProperty(subjectPropertyStorageKey),
-  );
+  const [addressFields, setAddressFields, saveAddress] = useLoanDraft<SubjectPropertyData>("subject-property",
+    loadSubjectProperty(subjectPropertyStorageKey));
   const [savedAddressFields, setSavedAddressFields] = useState<SubjectPropertyData>(() =>
-    loadSubjectProperty(subjectPropertyStorageKey),
+    addressFields,
   );
 
-  const [isSplit, setIsSplit] = useState(false);
+  const [isSplit, setIsSplit] = useLoanState("appraisal-split", false, false, false);
   const [activeEvalTab, setActiveEvalTab] = useState(1);
 
   const [isEditingValue, setIsEditingValue] = useState(false);
-  const [eval1Fields, setEval1Fields] = useState<FullEvaluationData>({ ...DEFAULT_FULL_EVAL });
-  const [savedEval1Fields, setSavedEval1Fields] = useState<FullEvaluationData>({ ...DEFAULT_FULL_EVAL });
+  const [eval1Fields, setEval1Fields, saveEval1] = useLoanDraft<FullEvaluationData>("evaluation-1", { ...DEFAULT_FULL_EVAL }, { ...EMPTY_FULL_EVAL }, false);
+  const [savedEval1Fields, setSavedEval1Fields] = useState<FullEvaluationData>({ ...eval1Fields });
 
-  const [eval2Fields, setEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
-  const [savedEval2Fields, setSavedEval2Fields] = useState<FullEvaluationData>({ ...EMPTY_FULL_EVAL });
+  const [eval2Fields, setEval2Fields, saveEval2] = useLoanDraft<FullEvaluationData>("evaluation-2", { ...EMPTY_FULL_EVAL }, { ...EMPTY_FULL_EVAL }, false);
+  const [savedEval2Fields, setSavedEval2Fields] = useState<FullEvaluationData>({ ...eval2Fields });
 
   const updateAddressField = (key: keyof SubjectPropertyData) => (value: string) => {
     setAddressFields((prev) => ({ ...prev, [key]: value }));
@@ -628,7 +635,8 @@ export function CollateralContent({
 
   useEffect(() => {
     if (!consumeDemoReset("collateral")) return;
-    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "" };
+    const clearedAddress = { ...EMPTY_ADDRESS, collateralOwnerId: "", monthlyPropertyTaxes: "", monthlyInsurance: "" };
+    saveAddress(clearedAddress);
     setAddressFields(clearedAddress);
     setSavedAddressFields(clearedAddress);
     setIsEditingAddress(false);
@@ -640,6 +648,7 @@ export function CollateralContent({
   }, [consumeDemoReset, subjectPropertyStorageKey]);
 
   const handleAddressSave = () => {
+    saveAddress();
     const savedAddress = { ...addressFields };
     setSavedAddressFields(savedAddress);
     setIsEditingAddress(false);
@@ -671,6 +680,7 @@ export function CollateralContent({
     setIsSplit(false);
     setActiveEvalTab(1);
     setEval2Fields({ ...EMPTY_FULL_EVAL });
+    applicationStore.write("evaluation-2", { ...EMPTY_FULL_EVAL });
     setSavedEval2Fields({ ...EMPTY_FULL_EVAL });
     setIsEditingValue(false);
   };
@@ -682,6 +692,8 @@ export function CollateralContent({
   };
 
   const handleValueSave = () => {
+    saveEval1();
+    saveEval2();
     setSavedEval1Fields({ ...eval1Fields });
     setSavedEval2Fields({ ...eval2Fields });
     setIsEditingValue(false);
@@ -722,6 +734,15 @@ export function CollateralContent({
           isEditing={isEditingAddress}
           onFieldChange={updateAddressField}
         />
+        <div className="flex flex-wrap items-center" style={{
+          padding: "0 var(--roads-spacing-component-3xl)",
+          gap: "var(--roads-spacing-component-3xl)",
+        }}>
+          <CollateralField label="Monthly Property Taxes" value={addressFields.monthlyPropertyTaxes ?? ""}
+            hasLeadingIcon isEditing={isEditingAddress} onChange={updateAddressField("monthlyPropertyTaxes")} />
+          <CollateralField label="Monthly Insurance" value={addressFields.monthlyInsurance ?? ""}
+            hasLeadingIcon isEditing={isEditingAddress} onChange={updateAddressField("monthlyInsurance")} />
+        </div>
         <div style={{ padding: "0 var(--roads-spacing-component-3xl)" }}>
             <div className="flex flex-col" style={{ width: 288, maxWidth: "100%", gap: "var(--roads-spacing-component-xs)" }}
               data-testid="field-collateral-owner">

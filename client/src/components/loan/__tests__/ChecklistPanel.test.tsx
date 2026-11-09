@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ChecklistPanel } from "../ChecklistPanel";
+import { ChecklistPanel } from "./LegacyChecklistResetHarness";
 import { ActionTimeline } from "../ChecklistActionTimeline";
 import { ChecklistAction, ChecklistProvider, useChecklist } from "@/contexts/checklist-context";
 import {

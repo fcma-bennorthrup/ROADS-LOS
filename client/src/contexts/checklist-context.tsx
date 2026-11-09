@@ -1,4 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, ReactNode } from "react";
+import { loanEstimateActionsForTrid, RATE_LOCK_TRID_VERSION } from "@shared/business-rules/trid";
+import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 import { useLocation } from "wouter";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
@@ -161,6 +163,7 @@ const INITIAL_TASKS: ChecklistTask[] = [
   },
 ];
 
+import { applicationStore, loanStorage as localStorage } from "@/lib/loan-application-store";
 const CHECKLIST_STORAGE_PREFIX = "loan-checklist-statuses";
 const CHECKLIST_STATUSES: ChecklistStatus[] = [
   "not-started",
@@ -176,10 +179,14 @@ function getLoanStorageKey(location: string): string {
 }
 
 function loadTasks(storageKey: string): ChecklistTask[] {
+  const defaults = applicationStore.document && (applicationStore.document.mode !== "existing" || applicationStore.document.sections["checklist-reset"])
+    ? INITIAL_TASKS.map(task => ({ ...task, status: "not-started" as ChecklistStatus,
+      actions: task.actions.map(action => ({ ...action, status: "not-started" as ChecklistStatus })) }))
+    : INITIAL_TASKS;
   try {
     const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Record<string, unknown>;
 
-    return INITIAL_TASKS.map((task) => {
+    return defaults.map((task) => {
       const statuses = saved[task.name];
       if (!Array.isArray(statuses)) {
         return { ...task, actions: task.actions.map((action) => ({ ...action })) };
@@ -198,7 +205,7 @@ function loadTasks(storageKey: string): ChecklistTask[] {
       return { ...task, actions, status: deriveTaskStatus(actions) };
     });
   } catch {
-    return INITIAL_TASKS.map((task) => ({
+    return defaults.map((task) => ({
       ...task,
       actions: task.actions.map((action) => ({ ...action })),
     }));
@@ -265,6 +272,35 @@ function ChecklistStateProvider({
   const mounted = useRef(true);
   const tasksRef = useRef(tasks);
   tasksRef.current = tasks;
+  useSyncExternalStore(applicationStore.subscribe, applicationStore.snapshot, applicationStore.snapshot);
+  const tridStatus = applicationStore.document?.businessRules?.trid.status;
+  const decisionReady = applicationStore.document?.businessRules?.loanDecision?.ready;
+  useEffect(() => {
+    if (!decisionReady) return;
+    setTasks(prev => prev.map(task => {
+      if (task.name !== "Loan Decision") return task;
+      const status = loanDecisionActionStatus(decisionReady, task.actions[0].status) as ChecklistStatus;
+      if (status === task.actions[0].status) return task;
+      const actions = task.actions.map((action, index) => index === 0 ? { ...action, status } : action);
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    }));
+  }, [decisionReady]);
+  const rateLockVersion = useRef<number>(0);
+  {
+    try {
+      rateLockVersion.current = JSON.parse(localStorage.getItem(storageKey) ?? "{}")[RATE_LOCK_TRID_VERSION] ?? 0;
+    } catch { /* Keep the last acknowledged update counter. */ }
+  }
+  useEffect(() => {
+    if (tridStatus !== "required") return;
+    setTasks(prev => prev.map(task => {
+      if (task.name !== "Loan Estimate") return task;
+      const statuses = loanEstimateActionsForTrid(tridStatus, task.actions.map(a => a.status));
+      if (statuses.every((status, i) => status === task.actions[i]?.status)) return task;
+      const actions = task.actions.map((action, i) => ({ ...action, status: statuses[i] as ChecklistStatus }));
+      return { ...task, actions, status: deriveTaskStatus(actions) };
+    }));
+  }, [tridStatus]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -319,25 +355,32 @@ function ChecklistStateProvider({
     return JSON.stringify({
       ...Object.fromEntries(next.map(task => [task.name, task.actions.map(action => action.status)])),
       ...(pricing ? { [LOCKED_PRICING_FIELD]: pricing } : {}),
+      [RATE_LOCK_TRID_VERSION]: rateLockVersion.current,
     });
   }
 
   function commitLockedPricing(pricing: LockedPricing): boolean {
     const snapshot = parseLockedPricing(pricing);
     if (!snapshot) return false;
+    // Preserve initial-lock redisclosure when an estimate was already delivered.
+    const isUpdate = pricingRef.current !== null ||
+      tasksRef.current.some(task => task.name === "Loan Estimate" && task.status === "complete");
     const next = tasksRef.current.map(task => {
       const statuses: ChecklistStatus[] | null = task.name === "Rate Lock"
         ? task.actions.map((action, index) => index === 0 ? "complete" : action.status)
-        : task.name === "Loan Estimate" && task.status === "complete"
-          ? ["re-fire", "not-started"] : null;
+        : task.name === "Loan Estimate"
+          ? loanEstimateActionsForTrid(tridStatus ?? "not-triggered", task.actions.map(a => a.status), isUpdate) as ChecklistStatus[]
+          : null;
       if (!statuses) return task;
       const actions = task.actions.map((action, index) => ({ ...action, status: statuses[index] ?? action.status }));
       return { ...task, actions, status: deriveTaskStatus(actions) };
     });
     try {
+      if (isUpdate) rateLockVersion.current++;
       // Status, exact terms and estimate re-fire commit together, before UI/activity.
       localStorage.setItem(storageKey, serializeChecklist(next, snapshot));
     } catch {
+      if (isUpdate) rateLockVersion.current--;
       return false;
     }
     pricingRef.current = snapshot;

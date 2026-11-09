@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Search } from "lucid
 import { RoadsDropdown } from "./RoadsDropdown";
 import { CHANGE_LOG, COLUMNS, ITEMS_PER_PAGE_OPTIONS, type ChangeLogEntry } from "./history-data";
 import { filterAndSortHistory } from "./history-transforms";
+import { useApplicationStatus } from "@/contexts/loan-application-context";
 
 interface HistoryContentProps {
   loanId: string;
@@ -11,6 +12,8 @@ interface HistoryContentProps {
 }
 
 export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProps) {
+  const store = useApplicationStatus();
+  const entries = store.document?.loan.id === loanId ? store.document.changeLog ?? CHANGE_LOG : CHANGE_LOG;
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState("20");
@@ -18,8 +21,8 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
 
   const filteredAndSortedData = useMemo(() => {
-    return filterAndSortHistory(CHANGE_LOG, searchQuery, sortDirection);
-  }, [searchQuery, sortDirection]);
+    return filterAndSortHistory(entries, searchQuery, sortDirection);
+  }, [entries, searchQuery, sortDirection]);
 
   const perPage = parseInt(itemsPerPage, 10);
   const totalPages = Math.max(1, Math.ceil(filteredAndSortedData.length / perPage));
@@ -52,8 +55,10 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
   const handleLinkClick = (entry: ChangeLogEntry) => {
     if (onNavigateToField) {
       onNavigateToField(entry.navItem);
-    } else if (entry.navItem === "Decisioning") {
-      setLocation(`/loans/${loanId}/decisioning`);
+    } else if (["Decisioning", "Borrower Financials"].includes(entry.navItem)) {
+      setLocation(`/loans/${loanId}/decisioning?section=${encodeURIComponent(entry.navItem)}`);
+    } else if (["Closing", "Booking"].includes(entry.navItem)) {
+      setLocation(`/loans/${loanId}/closing-booking?section=${entry.navItem}`);
     } else {
       setLocation(`/loans/${loanId}/origination?section=${encodeURIComponent(entry.navItem)}`);
     }
@@ -181,6 +186,9 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
                     whiteSpace: "nowrap",
                   }}
                   data-testid={`td-${col.key}-${entry.id}`}
+                  title={col.key === "linkToField" ? entry.section
+                    : col.key === "timestamp" ? new Date(entry.timestamp).toLocaleString()
+                    : String(entry[col.key as keyof typeof entry])}
                 >
                   {col.key === "linkToField" ? (
                     <button
@@ -198,7 +206,7 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
                       {entry.section}
                     </button>
                   ) : (
-                    entry[col.key as keyof typeof entry]
+                    col.key === "timestamp" ? new Date(entry.timestamp).toLocaleString() : entry[col.key as keyof typeof entry]
                   )}
                 </div>
               ))}

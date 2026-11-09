@@ -23,6 +23,7 @@ function BorrowerCard({ borrower }: { borrower: Borrower }) {
       data-testid={`card-borrower-${borrower.id}`}
       className="flex-1 min-w-0"
       style={{
+        maxWidth: 435,
         border: "1px solid var(--roads-border-subtle)",
         borderRadius: "var(--roads-radius-xs)",
         padding: "var(--roads-spacing-component-l)",

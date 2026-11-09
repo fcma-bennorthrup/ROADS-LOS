@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useLoanState } from "@/contexts/loan-application-context";
 
 type BookingState = "idle" | "booking" | "booked";
 
@@ -29,8 +30,8 @@ function formatTimestamp(): string {
 }
 
 export function BookingContent() {
-  const [bookingState, setBookingState] = useState<BookingState>("idle");
-  const [bookedAt, setBookedAt] = useState<string | null>(null);
+  const [bookingState, setBookingState] = useLoanState<BookingState>("booking-state", "idle", "idle", false);
+  const [bookedAt, setBookedAt] = useLoanState<string | null>("booking-at", null, null, false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

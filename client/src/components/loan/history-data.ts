@@ -19,7 +19,7 @@ const SECTION_TO_NAV: Record<string, string> = {
   "Decisioning": "Decisioning",
 };
 
-// No history source exists yet. Never substitute another loan's demo records.
+// Empty fallback for an unloaded loan; never substitute another loan's records.
 export const CHANGE_LOG: ChangeLogEntry[] = [];
 
 export const ITEMS_PER_PAGE_OPTIONS = [

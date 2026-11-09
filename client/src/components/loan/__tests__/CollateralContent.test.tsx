@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { CollateralContent } from "../CollateralContent";
-import { ChecklistPanel } from "../ChecklistPanel";
+import { ChecklistPanel } from "./LegacyChecklistResetHarness";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import {
   LoanActivityProvider,
@@ -47,6 +47,34 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
+  it("starts monthly costs blank and saves and discards them with Subject Property", () => {
+    const view = renderCollateral();
+    expect(screen.queryByTestId("input-monthly-property-taxes")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("input-monthly-property-taxes")).toHaveValue("");
+    expect(screen.getByTestId("input-monthly-insurance")).toHaveValue("");
+    fireEvent.change(screen.getByTestId("input-monthly-property-taxes"), { target: { value: "125.50" } });
+    fireEvent.change(screen.getByTestId("input-monthly-insurance"), { target: { value: "0" } });
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    view.unmount();
+    renderCollateral();
+    expect(screen.getByTestId("field-monthly-property-taxes")).toHaveTextContent("125.50");
+    expect(screen.getByTestId("field-monthly-insurance")).toHaveTextContent("0");
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.change(screen.getByTestId("input-monthly-property-taxes"), { target: { value: "999" } });
+    fireEvent.change(screen.getByTestId("input-monthly-insurance"), { target: { value: "100" } });
+    fireEvent.click(screen.getByTestId("address-button-discard"));
+    expect(screen.getByTestId("field-monthly-property-taxes")).toHaveTextContent("125.50");
+    expect(screen.getByTestId("field-monthly-insurance")).toHaveTextContent("0");
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.change(screen.getByTestId("input-monthly-property-taxes"), { target: { value: "" } });
+    fireEvent.change(screen.getByTestId("input-monthly-insurance"), { target: { value: "" } });
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("input-monthly-property-taxes")).toHaveValue("");
+    expect(screen.getByTestId("input-monthly-insurance")).toHaveValue("");
+  });
+
   it("populates owner choices from borrowers and saves the selection across remounts", () => {
     const borrowers = [{ id: "borrower-a", name: "Jordan Lee" }, { id: "borrower-b", name: "Casey Lee" }];
     const view = renderCollateral(borrowers);
@@ -90,12 +118,12 @@ describe("CollateralContent Subject Property workflow", () => {
     expect(screen.getByTestId("select-collateral-owner")).toHaveTextContent("Select collateral owner");
   });
 
-  it("uses Reset Demo as the only reset control", () => {
+  it("does not expose a reset control in the checklist or collateral panel", () => {
     renderCollateral();
 
     expect(screen.queryByTestId("button-reset-checklist")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^Reset$/ })).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset Demo" })).toBeInTheDocument();
+    expect(within(screen.getByTestId("checklist-panel")).queryByRole("button", { name: "Reset Demo" })).not.toBeInTheDocument();
   });
 
   it("starts Title Work and Appraisal Evaluation when the edited address is saved", () => {
@@ -216,6 +244,10 @@ describe("CollateralContent Subject Property workflow", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     const { unmount } = renderCollateral();
     editAndSaveAddress();
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.change(screen.getByTestId("input-monthly-property-taxes"), { target: { value: "125.50" } });
+    fireEvent.change(screen.getByTestId("input-monthly-insurance"), { target: { value: "0" } });
+    fireEvent.click(screen.getByTestId("address-button-save"));
     fireEvent.click(screen.getByRole("button", { name: "Order Title" }));
     expect(screen.getByTestId("activity-state-title-work-requested")).toBeInTheDocument();
 
@@ -234,6 +266,8 @@ describe("CollateralContent Subject Property workflow", () => {
 
     fireEvent.click(screen.getByTestId("address-button-edit"));
     expect(screen.getByTestId("input-address-1")).toHaveValue("");
+    expect(screen.getByTestId("input-monthly-property-taxes")).toHaveValue("");
+    expect(screen.getByTestId("input-monthly-insurance")).toHaveValue("");
     fireEvent.change(screen.getByTestId("input-address-1"), {
       target: { value: "300 Pine Street" },
     });

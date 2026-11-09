@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useRef } from "react";
+import { useLoanDraft } from "@/contexts/loan-application-context";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { RoadsDatePicker } from "./RoadsDatePicker";
@@ -19,30 +20,7 @@ const rateLockLetterPdf = new URL(
   import.meta.url,
 ).href;
 
-interface ProductEntry {
-  productType: string;
-  productId: string;
-  label: string;
-  term: number;
-  baseRate: number;
-}
-
-const productData: ProductEntry[] = [
-  { productType: "arm", productId: "4251", label: "4251 - 1/1 ARM 2/6 caps", term: 12, baseRate: 6.25 },
-  { productType: "arm", productId: "4243", label: "4243 - 3/1 ARM 2/6 caps", term: 36, baseRate: 6.37 },
-  { productType: "arm", productId: "4245", label: "4245 - 5/1 ARM 2/6 caps", term: 60, baseRate: 6.5 },
-  { productType: "arm", productId: "4247", label: "4247 - 7/1 ARM 2/6 caps", term: 84, baseRate: 6.5 },
-  { productType: "arm", productId: "4240", label: "4240 - 10/1 ARM 9/9caps", term: 120, baseRate: 6.5 },
-  { productType: "arm", productId: "4242", label: "4242 - 15/1 ARM 9/9 caps", term: 180, baseRate: 6.75 },
-  { productType: "fixed", productId: "4370", label: "4370 - 10 year fixed", term: 120, baseRate: 6.125 },
-  { productType: "fixed", productId: "4371", label: "4371 - 15 year fixed", term: 180, baseRate: 6.375 },
-  { productType: "fixed", productId: "4372", label: "4372 - 20 year fixed", term: 240, baseRate: 6.625 },
-  { productType: "fixed", productId: "4373", label: "4373 - 25 year fixed", term: 300, baseRate: 6.75 },
-  { productType: "fixed", productId: "4374", label: "4374 - 30 year fixed", term: 360, baseRate: 6.75 },
-];
-
-const totalAdjustments = 0.65;
-const totalDiscounts = 0;
+import { productData, totalAdjustments, totalDiscounts } from "@shared/pricing-catalog";
 
 const rateAdjustments = [
   { label: "FICO Score", value: "0.025%" },
@@ -162,9 +140,9 @@ export function ProductPricingContent({
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const initialPricing = getActionStatus("Rate Lock", 0) === "complete" ? lockedPricing : null;
-  const [productType, setProductType] = useState(initialPricing?.productType ?? "fixed");
-  const [selectedProductId, setSelectedProductId] = useState(initialPricing?.productId ?? "4370");
-  const [termOverride, setTermOverride] = useState<string | null>(initialPricing?.termOverride ?? null);
+  const [productType, setProductType, saveProductType] = useLoanDraft("pricing-type", initialPricing?.productType ?? "fixed", "", false);
+  const [selectedProductId, setSelectedProductId, saveProductId] = useLoanDraft("pricing-product", initialPricing?.productId ?? "4370", "", false);
+  const [termOverride, setTermOverride, saveTerm] = useLoanDraft<string | null>("pricing-term", initialPricing?.termOverride ?? null, null, false);
   const [isRateLocked, setIsRateLocked] = useState(
     () => getActionStatus("Rate Lock", 0) === "complete",
   );
@@ -193,15 +171,15 @@ export function ProductPricingContent({
   );
 
   const currentProduct = useMemo(
-    () => productData.find((p) => p.productId === selectedProductId) ?? filteredProducts[0],
+    () => productData.find((p) => p.productId === selectedProductId) ?? { ...productData[0], productId: "", label: "", term: 0, baseRate: 0 },
     [selectedProductId, filteredProducts]
   );
 
   const confirmedPricing = isRateLocked ? lockedPricing : null;
   const termsUnavailable = isRateLocked && !confirmedPricing;
   const baseRate = confirmedPricing?.baseRate ?? currentProduct.baseRate;
-  const adjustments = confirmedPricing?.adjustments ?? totalAdjustments;
-  const discounts = confirmedPricing?.discounts ?? totalDiscounts;
+  const adjustments = confirmedPricing?.adjustments ?? (currentProduct.productId ? totalAdjustments : 0);
+  const discounts = confirmedPricing?.discounts ?? (currentProduct.productId ? totalDiscounts : 0);
   const finalRate = confirmedPricing?.finalRate ?? baseRate + adjustments - discounts;
 
   const handleProductTypeChange = (value: string) => {
@@ -223,6 +201,8 @@ export function ProductPricingContent({
   const handleEditToggle = () => {
     if (!isEditing) {
       savedState.current = { productType, productId: selectedProductId, termOverride };
+    } else {
+      saveProductType(); saveProductId(); saveTerm();
     }
     setIsEditing(!isEditing);
   };
@@ -235,7 +215,8 @@ export function ProductPricingContent({
   };
 
   const handleLockRate = () => {
-    if (termsUnavailable) return;
+    if (termsUnavailable || !currentProduct.productId) return;
+    saveProductType(); saveProductId(); saveTerm();
     const completesRateLockAction = getActionStatus("Rate Lock", 0) !== "complete";
     const lockedAt = new Date();
     if (!commitLockedPricing({

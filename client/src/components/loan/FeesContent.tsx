@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 import { Trash2 } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 
@@ -80,10 +81,11 @@ function CurrencyInput({
 }
 
 export function FeesContent() {
-  const [fees, setFees] = useState<FeeRow[]>([]);
+  const [fees, setFees] = useLoanState<FeeRow[]>("fees", []);
   const [feeType, setFeeType] = useState("");
   const [leAmount, setLeAmount] = useState("");
   const [cdAmount, setCdAmount] = useState("");
+  useLoanEditing("fee-editor", !!(feeType || leAmount || cdAmount));
 
   function handleAddFee() {
     if (!feeType) return;

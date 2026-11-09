@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { useLoanState, useApplicationStatus } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useToast } from "@/hooks/use-toast";
+import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
+import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 
 interface DecisioningSummaryContentProps {
   loanNumber?: string;
@@ -18,10 +21,14 @@ export function DecisioningSummaryContent({
   // Keep these local after mount: action-order and reset behavior are unchanged.
   const [isDecisioned, setIsDecisioned] = useState(() => getActionStatus("Loan Decision", 0) === "complete");
   const [letterGenerated, setLetterGenerated] = useState(() => getActionStatus("Decision Letter", 0) === "complete");
-  const [creditPulled, setCreditPulled] = useState(false);
+  const [creditPulled, setCreditPulled] = useLoanState("credit-pulled", false, false, false);
+  const app = useApplicationStatus().document;
+  const hasCreditResults = creditPulled && (!app || !!app.sections["credit-scores"]);
   const observedResetVersion = useRef(demoResetVersion);
   const { addActivity } = useActivityPanel();
   const { toast } = useToast();
+  const [pullingCredit, setPullingCredit] = useState(false);
+  const creditRequestInFlight = useRef(false);
 
   useEffect(() => {
     if (observedResetVersion.current === demoResetVersion) return;
@@ -31,10 +38,33 @@ export function DecisioningSummaryContent({
     setCreditPulled(false);
   }, [demoResetVersion]);
 
-  const handlePullCredit = () => {
-    setCreditPulled(true);
-    if (getActionStatus("Loan Decision", 0) !== "complete") {
-      setActionStatus("Loan Decision", 0, "in-progress");
+  const handlePullCredit = async () => {
+    if (creditRequestInFlight.current) return;
+    creditRequestInFlight.current = true;
+    setPullingCredit(true);
+    try {
+      if (applicationStore.document) {
+        await applicationStore.flush();
+        if (applicationStore.dirty) throw new Error("Save or discard open edits before pulling credit.");
+        const current = applicationStore.document;
+        const next = await applicationRequest(current.loan.id, "/credit", {
+          method: "POST",
+          body: JSON.stringify({ generation: current.generation, revision: current.revision }),
+        });
+        applicationStore.install(next);
+      }
+      setCreditPulled(true);
+      // Standalone component previews have no saved document/provider rule result.
+      // The application checklist consumes the acknowledged business rule instead.
+      if (!applicationStore.document) {
+        setActionStatus("Loan Decision", 0,
+          loanDecisionActionStatus(true, getActionStatus("Loan Decision", 0)) as "complete" | "in-progress");
+      }
+    } catch (error) {
+      toast({ variant: "destructive", title: "Credit pull failed", description: (error as Error).message });
+    } finally {
+      creditRequestInFlight.current = false;
+      setPullingCredit(false);
     }
   };
 
@@ -80,9 +110,6 @@ export function DecisioningSummaryContent({
 
     const deliveredAt = new Date();
     setActionStatus("Decision Letter", 1, "complete");
-    if (getActionStatus("Loan Estimate", 0) === "not-started") {
-      setActionStatus("Loan Estimate", 0, "in-progress");
-    }
     addActivity({
       id: "decision-letter-delivered",
       title: "Document Delivered",
@@ -215,7 +242,7 @@ export function DecisioningSummaryContent({
         <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
             onClick={handlePullCredit}
-            disabled={creditPulled}
+            disabled={hasCreditResults || pullingCredit}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: creditPulled ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
@@ -227,7 +254,7 @@ export function DecisioningSummaryContent({
             }}
             data-testid="button-pull-credit"
           >
-            Pull Credit
+            {pullingCredit ? "Pulling Credit…" : "Pull Credit"}
           </button>
         </div>
       </div>
