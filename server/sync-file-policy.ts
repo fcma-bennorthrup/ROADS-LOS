@@ -1,4 +1,5 @@
 import * as path from "path";
+import { RETIRED_PROTOTYPE_PDFS } from "./retired-prototype-pdfs";
 
 const EXCLUDED_NAMES = new Set([
   ".env",
@@ -28,7 +29,8 @@ export function hasExcludedPendingPaths(pending: {
   safeToUpdate: { path: string }[];
   safeToDelete?: string[];
 }): boolean {
-  return pending.conflicts.some((file) => isCredentialOrRuntimePath(file.path))
-    || pending.safeToUpdate.some((file) => isCredentialOrRuntimePath(file.path))
-    || (pending.safeToDelete ?? []).some(isCredentialOrRuntimePath);
+  const excluded = (name: string) => isCredentialOrRuntimePath(name) || RETIRED_PROTOTYPE_PDFS.has(name);
+  return pending.conflicts.some((file) => excluded(file.path))
+    || pending.safeToUpdate.some((file) => excluded(file.path))
+    || (pending.safeToDelete ?? []).some(excluded);
 }

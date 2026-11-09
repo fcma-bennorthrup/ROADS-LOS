@@ -1,0 +1,35 @@
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+> rest-express@1.0.0 build
+> tsx script/build.ts
+
+building client...
+vite v7.3.0 building client environment for production...
+transforming...
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+A PostCSS plugin did not pass the `from` option to `postcss.parse`. This may cause imported assets to be incorrectly transformed. If you've recently added a PostCSS plugin that raised this warning, please contact the package author to fix the issue.
+✓ 3046 modules transformed.
+rendering chunks...
+computing gzip size...
+../dist/public/index.html                                                                  0.86 kB │ gzip:   0.48 kB
+../dist/public/assets/SampleCD_1777397678654-BEhGlrYt.pdf                                 62.43 kB
+../dist/public/assets/Rate_Lock_Letter_-_Consumer_Redacted_1777397784766-CFH_daPu.pdf     95.51 kB
+../dist/public/assets/Redacted-ClosingPackage_Redacted_1777397693832-DMBQWxxs.pdf      8,734.67 kB
+../dist/public/assets/index-CFG5ztaX.css                                                  96.18 kB │ gzip:  15.65 kB
+../dist/public/assets/blend-demo-fixture-CRs_HZcp.js                                       1.56 kB │ gzip:   0.80 kB
+../dist/public/assets/index-CnKbVZP4.js                                                  705.53 kB │ gzip: 198.31 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 15.87s
+building server...
+
+  dist/index.cjs  1.0mb ⚠️
+
+⚡ Done in 503ms

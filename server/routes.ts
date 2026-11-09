@@ -91,18 +91,6 @@ async function registerRoutes(
     }
   });
 
-  app.get("/api/loans/:id", async (req, res) => {
-    try {
-      const loan = await storage.getLoan(req.params.id);
-      if (!loan) {
-        return res.status(404).json({ error: "Loan not found" });
-      }
-      const borrowers = await storage.getBorrowersByLoanId(req.params.id);
-      res.json({ ...loan, borrowers });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
 
   let syncStatusCache: { data: any; timestamp: number; revision: string } | null = null;
   const SYNC_STATUS_CACHE_TTL = 5000;

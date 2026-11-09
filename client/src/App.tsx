@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -14,9 +14,9 @@ import { Redirect } from "wouter";
 import { ConflictResolutionDialog } from "@/components/ConflictResolutionDialog";
 import { useGitHubSync } from "@/hooks/use-github-sync";
 import { GitHubSyncContext } from "@/contexts/github-sync-context";
-import { ChecklistProvider } from "@/contexts/checklist-context";
-import { LoanActivityProvider } from "@/contexts/loan-activity-context";
-import { LoanApplicationProvider } from "@/contexts/loan-application-context";
+import { LoanScope } from "@/components/loan/LoanScope";
+import { LoanWorkspace } from "@/components/loan/LoanWorkspace";
+import PipelinePage from "@/pages/pipeline";
 
 export { useGitHubSyncContext } from "@/contexts/github-sync-context";
 
@@ -24,17 +24,29 @@ function Router() {
   return (
     <Switch>
       <Route path="/">
-        <Redirect to="/loans/1" />
+        <Redirect to="/pipeline" />
       </Route>
-      <Route path="/loans/:id/origination" component={LoanOriginationPage} />
-      <Route path="/loans/:id/decisioning" component={LoanDecisioningPage} />
-      <Route path="/loans/:id/closing-booking" component={LoanClosingBookingPage} />
-      <Route path="/loans/:id/documents" component={LoanDocumentsPage} />
-      <Route path="/loans/:id/history" component={LoanHistoryPage} />
-      <Route path="/loans/:id" component={LoanSummaryPage} />
+      <Route path="/pipeline" component={PipelinePage} />
+      <Route path="/loans/:id" nest>
+        <LoanRoutes />
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );
+}
+
+function LoanRoutes() {
+  const [location] = useLocation();
+  const path = location.length > 1 ? location.replace(/\/$/, "") : location;
+  if (!["/", "/origination", "/decisioning", "/closing-booking", "/documents", "/history"].includes(path)) return <NotFound />;
+  return <LoanScope><LoanWorkspace><Switch>
+    <Route path="/origination" component={LoanOriginationPage} />
+    <Route path="/decisioning" component={LoanDecisioningPage} />
+    <Route path="/closing-booking" component={LoanClosingBookingPage} />
+    <Route path="/documents" component={LoanDocumentsPage} />
+    <Route path="/history" component={LoanHistoryPage} />
+    <Route path="/" component={LoanSummaryPage} />
+  </Switch></LoanWorkspace></LoanScope>;
 }
 
 function AppContent() {
@@ -49,11 +61,7 @@ function AppContent() {
         hasPendingConflicts: sync.hasPendingConflicts,
       }}
     >
-      <LoanApplicationProvider><LoanActivityProvider>
-        <ChecklistProvider>
-          <Router />
-        </ChecklistProvider>
-      </LoanActivityProvider></LoanApplicationProvider>
+      <Router />
       <ConflictResolutionDialog
         open={sync.conflictDialogOpen}
         onOpenChange={sync.setConflictDialogOpen}

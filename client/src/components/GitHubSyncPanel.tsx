@@ -43,9 +43,11 @@ interface SyncStatus {
 export function GitHubSyncPanel({
   open,
   onOpenChange,
+  loanActive = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  loanActive?: boolean;
 }) {
   const { pullMutation, pushMutation, openConflictDialog, hasPendingConflicts } =
     useGitHubSyncContext();
@@ -78,13 +80,13 @@ export function GitHubSyncPanel({
             Prototype Admin Controls
           </DialogTitle>
           <DialogDescription>
-            Manage project sync or simulate the current loan’s application journey.
+            {loanActive ? "Manage project sync or simulate the current loan’s application journey." : "Manage project sync."}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger><TabsTrigger value="demo">Demo Controls</TabsTrigger></TabsList>
-          <TabsContent value="demo"><LoanDemoControls /></TabsContent>
+          <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger>{loanActive && <TabsTrigger value="demo">Demo Controls</TabsTrigger>}</TabsList>
+          {loanActive && <TabsContent value="demo"><LoanDemoControls /></TabsContent>}
           <TabsContent value="github">
         <div className="flex flex-col gap-4">
           {statusLoading ? (

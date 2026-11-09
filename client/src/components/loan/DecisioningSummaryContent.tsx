@@ -190,7 +190,7 @@ export function DecisioningSummaryContent({
           <button
             onClick={() => {
               if (!letterGenerated) return;
-              window.open("/decision-letter.pdf", "_blank");
+              // PDF previews retired; retain the prototype control and its enabled state.
             }}
             aria-disabled={!letterGenerated}
             className="body-200-strong whitespace-nowrap"

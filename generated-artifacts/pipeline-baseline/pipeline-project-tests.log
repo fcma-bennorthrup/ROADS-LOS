@@ -1,0 +1,997 @@
+npm warn Unknown project config "auto-install-peers". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+npm warn Unknown project config "strict-peer-dependencies". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+
+ RUN  v4.1.11 /home/runner/workspace
+
+ ❯ server/__tests__/sync-snapshot-reads.test.ts (0 test)
+✔ hundreds of unchanged files reuse hash-verified content; a changed file is read once (576.467612ms)
+✔ different pinned versions are read separately and binary bytes are preserved (10.003021ms)
+✔ a stalled comparison releases its lock and cannot proceed after a late response (29.225274ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 647.502588
+✔ known tree sizes need no remote content, preserving eligibility and diffs (31.385197ms)
+✔ unknown sizes use the supplied pinned reader and propagate failures (5.08001ms)
+✔ deadline returns successful reads and propagates transport errors (0.458417ms)
+ ❯ server/__tests__/sync-status-read.test.ts (0 test)
+✔ a timed-out read releases coordination and ignores late results (32.238294ms)
+Browserslist: browsers data (caniuse-lite) is 13 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx (16 tests | 8 failed) 2312ms
+     × keeps package progress when only disclosure history is reset 769ms
+     × keeps exact generation and delivery timestamps after navigation and a fresh mount 321ms
+     × keeps loans isolated including pending generation and resets only the current loan 149ms
+     × reports invalid saved data without overwriting it: broken JSON 62ms
+     × reports invalid saved data without overwriting it: {"generatedAt":null,"deliveredAt":"2026-10-02","generatingUntil":null} 60ms
+     × reports invalid saved data without overwriting it: {} 48ms
+     × does not claim unsaved progress when a write fails at deliver 64ms
+     × reports failed reset removal and retains the displayed package progress 61ms
+ ❯ client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx (31 tests | 2 failed) 4433ms
+     × preserves package generation, PDF preview and delivery when switching tabs 117ms
+     × leaves completed package delivery and in-progress package generation unchanged 114ms
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  server/__tests__/sync-snapshot-reads.test.ts [ server/__tests__/sync-snapshot-reads.test.ts ]
+Error: No test suite found in file /home/runner/workspace/server/__tests__/sync-snapshot-reads.test.ts
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  server/__tests__/sync-status-read.test.ts [ server/__tests__/sync-status-read.test.ts ]
+Error: No test suite found in file /home/runner/workspace/server/__tests__/sync-status-read.test.ts
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 10 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx > Closing Documents tabs and history > preserves package generation, PDF preview and delivery when switching tabs
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  Last Generated:
+Received:
+  Generating Closing Package.
+ ❯ client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx:218:63
+    216|     act(() => vi.advanceTimersByTime(5000));
+    217|     selectTab("Closing Package");
+    218|     expect(screen.getByTestId("text-closing-package-status")).toHaveTe…
+       |                                                               ^
+    219|     fireEvent.click(button("View Closing Package"));
+    220|     expect(open).toHaveBeenCalledWith(expect.stringContaining("Redacte…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx > Dedicated Closing Disclosure reset > leaves completed package delivery and in-progress package generation unchanged
+TestingLibraryElementError: Unable to find an element by: [data-testid="text-closing-package-delivered"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<button>[39m
+      [0mNavigate away/back[0m
+    [36m</button>[39m
+    [36m<button>[39m
+      [0mReset Demo[0m
+    [36m</button>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"closing-documents-content"[39m
+      [33mdata-testid[39m=[32m"closing-documents-content"[39m
+    [36m>[39m
+      [36m<h1[39m
+        [33mclass[39m=[32m"headline-200 closing-documents-heading"[39m
+        [33mdata-testid[39m=[32m"text-closing-documents-title"[39m
+      [36m>[39m
+        [0mClosing Documents[0m
+      [36m</h1>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"closing-documents-tabs"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdir[39m=[32m"ltr"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Closing document types"[39m
+          [33maria-orientation[39m=[32m"horizontal"[39m
+          [33mclass[39m=[32m"inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground closing-documents-tab-list"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mrole[39m=[32m"tablist"[39m
+          [33mstyle[39m=[32m"outline: none;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:r4m:-content-closing-disclosure"[39m
+            [33maria-selected[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"inactive"[39m
+            [33mid[39m=[32m"radix-:r4m:-trigger-closing-disclosure"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"-1"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Disclosure[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:r4m:-content-closing-package"[39m
+            [33maria-selected[39m=[32m"true"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"active"[39m
+            [33mid[39m=[32m"radix-:r4m:-trigger-closing-package"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"0"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Package[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:r4m:-trigger-closing-disclosure"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mid[39m=[32m"radix-:r4m:-content-closing-disclosure"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mstyle[39m=[32m"animation-duration: 0s;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"closing-disclosure-toolbar"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button closing-documents-button-primary"[39m
+              [33mdata-testid[39m=[32m"button-generate-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mGenerate Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-deliver-closing-disclosure"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mDeliver Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-reset-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReset Closing Disclosure[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-live[39m=[32m"polite"[39m
+            [33mclass[39m=[32m"closing-disclosure-feedback"[39m
+          [36m/>[39m
+          [36m<section[39m
+            [33maria-labelledby[39m=[32m"closing-disclosure-history-title"[39m
+            [33mclass[39m=[32m"closing-disclosure-history"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200 closing-disclosure-history-title"[39m
+              [33mid[39m=[32m"closing-disclosure-history-title"[39m
+            [36m>[39m
+              [0mClosing Disclosure[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33maria-label[39m=[32m"Closing Disclosure history, scroll horizontally for all columns"[39m
+              [33mclass[39m=[32m"closing-disclosure-table-scroll"[39m
+              [33mrole[39m=[32m"region"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<table[39m
+                [33mclass[39m=[32m"closing-disclosure-table"[39m
+              [36m>[39m
+                [36m<thead>[39m
+                  [36m<tr>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDocument ID[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDate Generated[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mAssumed Delivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Method[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mCD Viewed[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33maria-label[39m=[32m"Document actions"[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m/>[39m
+                  [36m</tr>[39m
+                [36m</thead>[39m
+                [36m<tbody>[39m
+                  [36m<tr>[39m
+                    [36m<td[39m
+                      [33mclass[39m=[32m"closing-disclosure-empty"[39m
+                      [33mcolspan[39m=[32m"7"[39m
+                      [33mdata-testid[39m=[32m"text-closing-disclosure-empty"[39m
+                    [36m>[39m
+                      [0mNo Closing Disclosures have been generated[0m
+                    [36m</td>[39m
+                  [36m</tr>[39m
+                [36m</tbody>[39m
+              [36m</table>[39m
+            [36m</div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+            [36m>[39m
+              [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+            [36m</p>[39m
+          [36m</section>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:r4m:-trigger-closing-package"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-:r4m:-content-closing-package"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col"[39m
+            [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200"[39m
+              [33mdata-testid[39m=[32m"text-closing-package-title"[39m
+              [33mstyle[39m=[32m"color: var(--roads-text-primary);"[39m
+            [36m>[39m
+              [0mClosing Package[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col"[39m
+              [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"body-100"[39m
+                [33mdata-testid[39m=[32m"text-closing-package-status"[39m
+                [33mstyle[39m=[32m"color: var(--roads-text-secondary);"[39m
+              [36m>[39m
+                [36m<span>[39m
+                  [0mGenerating Closing Package[0m
+                  [36m<span>[39m
+                    [0m.[0m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"body-100"[39m
+                [33mdata-testid[39m=[32m"alert-closing-package-error"[39m
+                [33mrole[39m=[32m"alert"[39m
+                [33mstyle[39m=[32m"color: var(--roads-text-error);"[39m
+              [36m>[39m
+                [0mClosing Package progress could not be saved. Enable browser storage and try again or Reset Demo.[0m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center"[39m
+                [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-generate-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-action); color: var(--roads-text-reverse); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: medium; cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mGenerate Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mView Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package-1"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mDeliver Closing Package[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+          [36m>[39m
+            [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ client/src/components/loan/__tests__/ClosingDocumentsContent.test.tsx:366:30
+    364|     fireEvent.click(button("Deliver Closing Package"));
+    365|     const generated = screen.getByTestId("text-closing-package-status"…
+    366|     const delivered = screen.getByTestId("text-closing-package-deliver…
+       |                              ^
+    367|     selectTab("Closing Disclosure");
+    368|     generate();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > keeps package progress when only disclosure history is reset
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  Last Generated:
+Received:
+  Generating Closing Package.
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:64:63
+     62|     const saved = localStorage.getItem(closingPackageStorageKey("one")…
+     63|     await act(async () => click("Reset Disclosure only"));
+     64|     expect(screen.getByTestId("text-closing-package-status")).toHaveTe…
+       |                                                               ^
+     65|     expect(screen.getByTestId("text-closing-package-delivered")).toBeV…
+     66|     expect(localStorage.getItem(closingPackageStorageKey("one"))).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > keeps exact generation and delivery timestamps after navigation and a fresh mount
+TestingLibraryElementError: Unable to find an element by: [data-testid="text-closing-package-delivered"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<button>[39m
+      [0mNavigate away/back[0m
+    [36m</button>[39m
+    [36m<button>[39m
+      [0mReset Demo[0m
+    [36m</button>[39m
+    [36m<button>[39m
+      [0mReset Disclosure only[0m
+    [36m</button>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"closing-documents-content"[39m
+      [33mdata-testid[39m=[32m"closing-documents-content"[39m
+    [36m>[39m
+      [36m<h1[39m
+        [33mclass[39m=[32m"headline-200 closing-documents-heading"[39m
+        [33mdata-testid[39m=[32m"text-closing-documents-title"[39m
+      [36m>[39m
+        [0mClosing Documents[0m
+      [36m</h1>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"closing-documents-tabs"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdir[39m=[32m"ltr"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Closing document types"[39m
+          [33maria-orientation[39m=[32m"horizontal"[39m
+          [33mclass[39m=[32m"inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground closing-documents-tab-list"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mrole[39m=[32m"tablist"[39m
+          [33mstyle[39m=[32m"outline: none;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:r3:-content-closing-disclosure"[39m
+            [33maria-selected[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"inactive"[39m
+            [33mid[39m=[32m"radix-:r3:-trigger-closing-disclosure"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"-1"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Disclosure[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:r3:-content-closing-package"[39m
+            [33maria-selected[39m=[32m"true"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"active"[39m
+            [33mid[39m=[32m"radix-:r3:-trigger-closing-package"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"0"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Package[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:r3:-trigger-closing-disclosure"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mid[39m=[32m"radix-:r3:-content-closing-disclosure"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mstyle[39m=[32m"animation-duration: 0s;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"closing-disclosure-toolbar"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button closing-documents-button-primary"[39m
+              [33mdata-testid[39m=[32m"button-generate-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mGenerate Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-deliver-closing-disclosure"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mDeliver Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-reset-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReset Closing Disclosure[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-live[39m=[32m"polite"[39m
+            [33mclass[39m=[32m"closing-disclosure-feedback"[39m
+          [36m/>[39m
+          [36m<section[39m
+            [33maria-labelledby[39m=[32m"closing-disclosure-history-title"[39m
+            [33mclass[39m=[32m"closing-disclosure-history"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200 closing-disclosure-history-title"[39m
+              [33mid[39m=[32m"closing-disclosure-history-title"[39m
+            [36m>[39m
+              [0mClosing Disclosure[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33maria-label[39m=[32m"Closing Disclosure history, scroll horizontally for all columns"[39m
+              [33mclass[39m=[32m"closing-disclosure-table-scroll"[39m
+              [33mrole[39m=[32m"region"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<table[39m
+                [33mclass[39m=[32m"closing-disclosure-table"[39m
+              [36m>[39m
+                [36m<thead>[39m
+                  [36m<tr>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDocument ID[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDate Generated[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mAssumed Delivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Method[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mCD Viewed[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33maria-label[39m=[32m"Document actions"[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m/>[39m
+                  [36m</tr>[39m
+                [36m</thead>[39m
+                [36m<tbody>[39m
+                  [36m<tr>[39m
+                    [36m<td[39m
+                      [33mclass[39m=[32m"closing-disclosure-empty"[39m
+                      [33mcolspan[39m=[32m"7"[39m
+                      [33mdata-testid[39m=[32m"text-closing-disclosure-empty"[39m
+                    [36m>[39m
+                      [0mNo Closing Disclosures have been generated[0m
+                    [36m</td>[39m
+                  [36m</tr>[39m
+                [36m</tbody>[39m
+              [36m</table>[39m
+            [36m</div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+            [36m>[39m
+              [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+            [36m</p>[39m
+          [36m</section>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:r3:-trigger-closing-package"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-:r3:-content-closing-package"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col"[39m
+            [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200"[39m
+              [33mdata-testid[39m=[32m"text-closing-package-title"[39m
+              [33mstyle[39m=[32m"color: var(--roads-text-primary);"[39m
+            [36m>[39m
+              [0mClosing Package[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col"[39m
+              [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"body-100"[39m
+                [33mdata-testid[39m=[32m"text-closing-package-status"[39m
+                [33mstyle[39m=[32m"color: var(--roads-text-secondary);"[39m
+              [36m>[39m
+                [36m<span>[39m
+                  [0mGenerating Closing Package[0m
+                  [36m<span>[39m
+                    [0m.[0m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</p>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"body-100"[39m
+                [33mdata-testid[39m=[32m"alert-closing-package-error"[39m
+                [33mrole[39m=[32m"alert"[39m
+                [33mstyle[39m=[32m"color: var(--roads-text-error);"[39m
+              [36m>[39m
+                [0mClosing Package progress could not be saved. Enable browser storage and try again or Reset Demo.[0m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center"[39m
+                [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-generate-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-action); color: var(--roads-text-reverse); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: medium; cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mGenerate Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mView Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package-1"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mDeliver Closing Package[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+          [36m>[39m
+            [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:76:30
+     74|     click("Deliver Closing Package");
+     75|     const generated = screen.getByTestId("text-closing-package-status"…
+     76|     const delivered = screen.getByTestId("text-closing-package-deliver…
+       |                              ^
+     77|     const saved = localStorage.getItem(closingPackageStorageKey("one")…
+     78|     click("Navigate away/back");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > keeps loans isolated including pending generation and resets only the current loan
+TestingLibraryElementError: Unable to find an element by: [data-testid="text-closing-package-delivered"]
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<button>[39m
+      [0mNavigate away/back[0m
+    [36m</button>[39m
+    [36m<button>[39m
+      [0mReset Demo[0m
+    [36m</button>[39m
+    [36m<button>[39m
+      [0mReset Disclosure only[0m
+    [36m</button>[39m
+    [36m<div[39m
+      [33mclass[39m=[32m"closing-documents-content"[39m
+      [33mdata-testid[39m=[32m"closing-documents-content"[39m
+    [36m>[39m
+      [36m<h1[39m
+        [33mclass[39m=[32m"headline-200 closing-documents-heading"[39m
+        [33mdata-testid[39m=[32m"text-closing-documents-title"[39m
+      [36m>[39m
+        [0mClosing Documents[0m
+      [36m</h1>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"closing-documents-tabs"[39m
+        [33mdata-orientation[39m=[32m"horizontal"[39m
+        [33mdir[39m=[32m"ltr"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Closing document types"[39m
+          [33maria-orientation[39m=[32m"horizontal"[39m
+          [33mclass[39m=[32m"inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground closing-documents-tab-list"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mrole[39m=[32m"tablist"[39m
+          [33mstyle[39m=[32m"outline: none;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:rr:-content-closing-disclosure"[39m
+            [33maria-selected[39m=[32m"false"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"inactive"[39m
+            [33mid[39m=[32m"radix-:rr:-trigger-closing-disclosure"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"-1"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Disclosure[0m
+          [36m</button>[39m
+          [36m<button[39m
+            [33maria-controls[39m=[32m"radix-:rr:-content-closing-package"[39m
+            [33maria-selected[39m=[32m"true"[39m
+            [33mclass[39m=[32m"inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm label-strong closing-documents-tab"[39m
+            [33mdata-orientation[39m=[32m"horizontal"[39m
+            [33mdata-radix-collection-item[39m=[32m""[39m
+            [33mdata-state[39m=[32m"active"[39m
+            [33mid[39m=[32m"radix-:rr:-trigger-closing-package"[39m
+            [33mrole[39m=[32m"tab"[39m
+            [33mtabindex[39m=[32m"0"[39m
+            [33mtype[39m=[32m"button"[39m
+          [36m>[39m
+            [0mClosing Package[0m
+          [36m</button>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:rr:-trigger-closing-disclosure"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"inactive"[39m
+          [33mhidden[39m=[32m""[39m
+          [33mid[39m=[32m"radix-:rr:-content-closing-disclosure"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mstyle[39m=[32m"animation-duration: 0s;"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"closing-disclosure-toolbar"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button closing-documents-button-primary"[39m
+              [33mdata-testid[39m=[32m"button-generate-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mGenerate Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-deliver-closing-disclosure"[39m
+              [33mdisabled[39m=[32m""[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mDeliver Closing Disclosure[0m
+            [36m</button>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"label-strong closing-documents-button"[39m
+              [33mdata-testid[39m=[32m"button-reset-closing-disclosure"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [0mReset Closing Disclosure[0m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33maria-live[39m=[32m"polite"[39m
+            [33mclass[39m=[32m"closing-disclosure-feedback"[39m
+          [36m/>[39m
+          [36m<section[39m
+            [33maria-labelledby[39m=[32m"closing-disclosure-history-title"[39m
+            [33mclass[39m=[32m"closing-disclosure-history"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200 closing-disclosure-history-title"[39m
+              [33mid[39m=[32m"closing-disclosure-history-title"[39m
+            [36m>[39m
+              [0mClosing Disclosure[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33maria-label[39m=[32m"Closing Disclosure history, scroll horizontally for all columns"[39m
+              [33mclass[39m=[32m"closing-disclosure-table-scroll"[39m
+              [33mrole[39m=[32m"region"[39m
+              [33mtabindex[39m=[32m"0"[39m
+            [36m>[39m
+              [36m<table[39m
+                [33mclass[39m=[32m"closing-disclosure-table"[39m
+              [36m>[39m
+                [36m<thead>[39m
+                  [36m<tr>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDocument ID[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDate Generated[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mAssumed Delivery Date[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mDelivery Method[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m>[39m
+                      [0mCD Viewed[0m
+                    [36m</th>[39m
+                    [36m<th[39m
+                      [33maria-label[39m=[32m"Document actions"[39m
+                      [33mscope[39m=[32m"col"[39m
+                    [36m/>[39m
+                  [36m</tr>[39m
+                [36m</thead>[39m
+                [36m<tbody>[39m
+                  [36m<tr>[39m
+                    [36m<td[39m
+                      [33mclass[39m=[32m"closing-disclosure-empty"[39m
+                      [33mcolspan[39m=[32m"7"[39m
+                      [33mdata-testid[39m=[32m"text-closing-disclosure-empty"[39m
+                    [36m>[39m
+                      [0mNo Closing Disclosures have been generated[0m
+                    [36m</td>[39m
+                  [36m</tr>[39m
+                [36m</tbody>[39m
+              [36m</table>[39m
+            [36m</div>[39m
+            [36m<p[39m
+              [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+            [36m>[39m
+              [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+            [36m</p>[39m
+          [36m</section>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-labelledby[39m=[32m"radix-:rr:-trigger-closing-package"[39m
+          [33mclass[39m=[32m"mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 closing-documents-panel"[39m
+          [33mdata-orientation[39m=[32m"horizontal"[39m
+          [33mdata-state[39m=[32m"active"[39m
+          [33mid[39m=[32m"radix-:rr:-content-closing-package"[39m
+          [33mrole[39m=[32m"tabpanel"[39m
+          [33mtabindex[39m=[32m"0"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col"[39m
+            [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+          [36m>[39m
+            [36m<h2[39m
+              [33mclass[39m=[32m"headline-200"[39m
+              [33mdata-testid[39m=[32m"text-closing-package-title"[39m
+              [33mstyle[39m=[32m"color: var(--roads-text-primary);"[39m
+            [36m>[39m
+              [0mClosing Package[0m
+            [36m</h2>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex flex-col"[39m
+              [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+            [36m>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"body-100"[39m
+                [33mdata-testid[39m=[32m"text-closing-package-status"[39m
+                [33mstyle[39m=[32m"color: var(--roads-text-secondary);"[39m
+              [36m>[39m
+                [36m<span>[39m
+                  [0mGenerating Closing Package[0m
+                  [36m<span>[39m
+                    [0m.[0m
+                  [36m</span>[39m
+                [36m</span>[39m
+              [36m</p>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex items-center"[39m
+                [33mstyle[39m=[32m"gap: var(--roads-spacing-component-l);"[39m
+              [36m>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-generate-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-action); color: var(--roads-text-reverse); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: medium; cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mGenerate Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mView Closing Package[0m
+                [36m</button>[39m
+                [36m<button[39m
+                  [33maria-disabled[39m=[32m"true"[39m
+                  [33mclass[39m=[32m"label-strong"[39m
+                  [33mdata-testid[39m=[32m"button-secondary-closing-package-1"[39m
+                  [33mstyle[39m=[32m"background-color: var(--roads-bg-primary); color: var(--roads-text-primary); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); border-radius: var(--roads-radius-2xs); border: 1px solid var(--roads-border-dark); cursor: not-allowed; white-space: nowrap;"[39m
+                [36m>[39m
+                  [0mDeliver Closing Package[0m
+                [36m</button>[39m
+              [36m</div>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"caption-100 closing-disclosure-prototype-note"[39m
+          [36m>[39m
+            [0mDelivery is marked for prototype tracking only; no documents are sent.[0m
+          [36m</p>[39m
+        [36m</div>[39m
+      [36m</div>[39m
+    [36m</div>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:139:19
+    137|     view.rerender(<Harness loanId="one" />);
+    138|     packageTab();
+    139|     expect(screen.getByTestId("text-closing-package-delivered")).toBeV…
+       |                   ^
+    140|     act(() => vi.advanceTimersByTime(5000));
+    141|     expect(localStorage.getItem(closingPackageStorageKey("one"))).toBe…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > reports invalid saved data without overwriting it: broken JSON
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > reports invalid saved data without overwriting it: {"generatedAt":null,"deliveredAt":"2026-10-02","generatingUntil":null}
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > reports invalid saved data without overwriting it: {}
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  Last Generated:
+Received:
+  Generating Closing Package.
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:195:65
+    193|       expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    194|       generate();
+    195|       expect(screen.getByTestId("text-closing-package-status")).toHave…
+       |                                                                 ^
+    196|     },
+    197|   );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > does not claim unsaved progress when a write fails at deliver
+AssertionError: expected "bound " to be called once, but got 0 times
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:225:20
+    223|     if (stage === "deliver") {
+    224|       click("View Closing Package");
+    225|       expect(open).toHaveBeenCalledOnce();
+       |                    ^
+    226|       expect(button("Deliver Closing Package")).toHaveAttribute("aria-…
+    227|     } else {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/12]⎯
+
+ FAIL  client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx > loan-scoped Closing Package retention > reports failed reset removal and retains the displayed package progress
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{…} ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   ObjectContaining {
+-     "description": StringContaining "Closing Package progress could not be cleared",
+-     "title": "Demo could not be reset",
++   {
++     "description": "Cleared: none. Not cleared: Closing Package, Closing Disclosure, Checklist. Enable browser storage and try Reset Demo again.",
++     "title": "Demo reset incomplete",
+      "variant": "destructive",
+    },
+  ]
+
+
+Number of calls: 1
+
+ ❯ client/src/components/loan/__tests__/ClosingPackageProgress.test.tsx:240:19
+    238|     vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() =>…
+    239|     click("Reset Demo");
+    240|     expect(toast).toHaveBeenCalledWith(expect.objectContaining({
+       |                   ^
+    241|       title: "Demo could not be reset",
+    242|       description: expect.stringContaining("Closing Package progress c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/12]⎯
+
+
+ Test Files  4 failed | 49 passed (53)
+      Tests  10 failed | 345 passed (355)
+   Start at  19:33:22
+   Duration  75.05s (transform 15.62s, setup 29.55s, import 69.16s, tests 39.99s, environment 129.89s)
+

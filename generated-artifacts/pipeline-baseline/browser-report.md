@@ -1,0 +1,19 @@
+## Result: Journey passed, with verification gaps and one menu-label discrepancy
+
+**Pipeline and creation:** Root redirected to `/pipeline`. The page rendered all seven table columns, the stage filters, search, and sorting. I opened the provided seed loan first and left it unchanged. It remained **#123456790 / `dd68817d-c568-48e0-8c69-be95bc35c029` at Pre-Approval**; its borrower/contact and summary values were empty. Its checklist showed **0% complete**, with all 15 groups at 0 completed.
+
+Created two loans through the New loan dialog and left them in the app (no deletion requested):
+- **Blank:** #123456791 / `38eba7f8-6266-4e3d-8412-98c9c2caac9a`; saved primary first name `Pipeline QA Blank`. It opened at `/origination?section=Borrower%20Information`; reopening showed the saved name. Its final stage is **Booking**.
+- **Two-borrower Blend:** #123456792 / `10510a29-341d-41a7-a0de-e8d8e96e75fb`; saved primary first name `Pipeline QA Blend` (displayed as “Pipeline QA Blend Jamerson”). It opened Summary and showed primary and secondary borrowers; reopening preserved the name.
+
+**Stages and Pipeline behavior:** On the blank test loan, the forward chevron advanced through to Loan Certification (forward disabled at the end); the backward chevron returned it to Booking. First-stage backward and last-stage forward boundaries were disabled. After navigating to Pipeline and refreshing, its row and Booking filter count still showed Booking; selecting Booking isolated that one test loan. Searching `Pipeline QA` returned only the two created loans. Loan # sorting produced ascending order 123456789–123456792.
+
+**Routes and isolation:** Summary, Origination, Decisioning, Closing & Booking, Documents, and History routes all opened for the Blend loan with its own header. The Origination `?section=Borrower%20Information` route worked, the Pipeline breadcrumb worked, and an unknown loan child route rendered the 404 NotFound page. Blend History showed its own borrower-name change only. The Blend checklist showed 0% complete. Its Activity panel showed “No results found,” with no other loan’s data. The seed’s stage/data did not appear on either created loan.
+
+**Credit/financials:** Pull Credit on the test Blend loan changed its credit score to **742** and disabled the Pull Credit button. Borrower Financials showed separate borrower tabs; primary and Jane had distinct income and liability content when switched. The Blend fixture source initializes both liability arrays empty, but I did not inspect the UI before Pull Credit, so the empty pre-pull state is supported by the fixture rather than a before/after browser observation.
+
+**Dirty-draft departure:** Changing the blank loan’s first-name draft and clicking Pipeline produced “Discard unsaved edits and return to Pipeline?” Dismissing the prompt stayed on the loan with the draft intact; accepting returned to Pipeline and retained the saved `Pipeline QA Blank` value. I did not artificially hold a save request in flight, so queue-drain timing itself was not independently exercised.
+
+**Menu note:** Pipeline More showed one item labeled **“Prototype Admin Controls”**, with no Demo or Debug item visible. The inspected handler opens the GitHub sync panel, but the UI did not visibly label the item “GitHub sync”; I did not activate it, as requested. Individual checklist task labels did not expose explicit “Not Started” statuses in the snapshot; I verified 0% and 0 completed across groups instead.
+
+No code was changed. No seed loan was edited, no sync was triggered, and both test loans remain in Pipeline. Browser logs included a Vite WebSocket connection refusal, but the app rendered and the journey continued.

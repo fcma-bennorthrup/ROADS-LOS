@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { LoanHeader } from "../LoanHeader";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { LoanActivityProvider } from "@/contexts/loan-activity-context";
+import { LoanIdProvider } from "@/contexts/loan-id-context";
 import { evaluateLoanRules } from "@shared/business-rules";
 import type { LoanApplication } from "@shared/loan-application";
 
@@ -15,7 +16,7 @@ describe("ECOA header chip", () => {
     const app = { loan: { id: "header-test" }, borrowers: [], sections: {},
       generation: 1, revision: 0, mode: "empty" } as unknown as LoanApplication;
     state.document = app;
-    const header = () => <LoanActivityProvider><ChecklistProvider><LoanHeader /></ChecklistProvider></LoanActivityProvider>;
+    const header = () => <LoanIdProvider id="header-test"><LoanActivityProvider><ChecklistProvider><LoanHeader /></ChecklistProvider></LoanActivityProvider></LoanIdProvider>;
     app.businessRules = evaluateLoanRules(app);
     const view = render(header());
     expect(screen.queryByTestId("chip-ecoa-days")).toBeNull();

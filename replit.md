@@ -15,7 +15,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Wouter (routing)
 - **Backend**: Express.js, Node.js
-- **Active loan storage**: Seeded, process-local MemStorage; PostgreSQL/Drizzle infrastructure exists but is not used by the loan API.
+- **Active loan storage**: PostgreSQL JSON documents in `prototype_loan_applications`, one row per loan. MemStorage supplies only the legacy seed loan `"1"` on its first load.
 - **Design System**: Extracted from Figma (ROADS-Designs)
 - **Font**: Source Sans Pro (400, 600 weights)
 - **GitHub Integration**: @replit/connectors-sdk proxy
@@ -40,8 +40,10 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 **Token approval rule (strict):** Before adding, removing, or modifying ANY entry in `client/src/styles/design-tokens.css` or `client/src/lib/design-tokens.ts`, the agent MUST explicitly ask the user for approval and wait for a clear confirmation — even when the user has already supplied the exact specs in the same message. Providing specs is NOT the same as approving the write. Always pause, restate the proposed change (token name + properties + file), and ask "OK to add?" before editing.
 
 ## Pages
+- **Pipeline** (`/pipeline`, also the `/` redirect): App-level loan index with search, multi-select stage filters, sortable columns, and blank or Blend creation. No deletion, board view, or team assignment.
+- App-level providers wrap both levels. `LoanScope` mounts loan-only providers under `/loans/:id`; `LoanWorkspace` supplies the shared six-tab shell. Pipeline reads projections, never installs a loan document.
 - **Loan Summary** (`/loans/:id`): Default loan landing page. Shows:
-  - Header: breadcrumb, 8-stage chevron stepper, metadata, amount + status chips, tab navigation
+  - Header: Pipeline return breadcrumb, persisted 8-stage chevron stepper, metadata, amount + status chips, tab navigation. The first/last chevrons save backward/forward stage changes with revision checks.
   - Content: Borrower Contact Information cards (horizontal Email/Phone layout), Summary & Ratios (4-column data table)
   - Fixed bottom toolbar: Loan Info, Quick Links, Checklist, Key Dates, Errors
 - **Loan Origination** (`/loans/:id/origination`): Origination tab with side navigation and sub-pages:
@@ -62,7 +64,11 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
-- Currently using in-memory storage with seed data (MemStorage), recreated on server restart. Browser-local checklist/activity/document state and component-local edits have separate lifetimes; they are not database persistence.
+- **Active aggregate**: `LoanApplication` holds loan, borrowers, mode, generation, revision, sections, changeLog, businessRules, and optional `meta { createdAt, updatedAt, source }` (backfilled when loaded). Saved application and workflow data belongs to its loan.
+- `mode: "existing"` is reserved for seed loan `"1"`. New loans use UUIDs, incrementing nine-digit loan numbers, a blank factory, and stage `"Customer Application"`. Existing seed stage is preserved, not reset on migration.
+- Stage and section writes use generation/revision compare-and-swap. All writes refresh `meta.updatedAt`; replacing demo data retains original `createdAt`. Loan-number allocation is transaction-serialized.
+- The single-active-loan client store drains pending saves before departure. Unsaved drafts require confirmation on the Pipeline breadcrumb. Late responses cannot replace another loan's active document.
+- No new tables or schema push are required; the unused Drizzle loan/borrower tables are not the persistence path.
 
 ## Components
 - `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, 8-stage chevron stepper, metadata, tabs, exports BottomToolbar separately
@@ -92,6 +98,13 @@ shared/
 ```
 
 ## API Routes
+- `GET /api/loans` - Lightweight pipeline projections, newest update first, no-store
+- `POST /api/loans` - Create a blank loan from `{ source: "blank" }`; returns `{ id, loanNumber }`. Blend creation then calls the existing demo import with client-built sections.
+- `PUT /api/loans/:id/stage` - Save a validated stage with `{ stage, generation, revision }`; returns the updated document or 409 on stale input
+- `GET /api/loans/:id/application` - Load the loan document
+- `PUT /api/loans/:id/application` - Save a section with revision checks, rule evaluation, and change tracking
+- `POST /api/loans/:id/application/demo` - Loan-scoped reset, Blend import, TRID actions, and checklist reset
+- `POST /api/loans/:id/application/credit` - Simulated borrower-specific credit results
 - `GET /api/loans/:id` - Loan details with borrowers (includes ratios, scores, amounts)
 - `GET /api/github/user` - Authenticated GitHub user info
 - `GET /api/github/repo` - ROADS-LOS repository details

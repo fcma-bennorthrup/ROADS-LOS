@@ -15,11 +15,6 @@ import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useToast } from "@/hooks/use-toast";
 
-const rateLockLetterPdf = new URL(
-  "../../../../attached_assets/Rate_Lock_Letter_-_Consumer_Redacted_1777397784766.pdf",
-  import.meta.url,
-).href;
-
 import { productData, totalAdjustments, totalDiscounts } from "@shared/pricing-catalog";
 
 const rateAdjustments = [
@@ -383,7 +378,7 @@ export function ProductPricingContent({
             {isRateLocked ? "Update Rate Lock" : "Lock Rate"}
           </button>
           <button
-            onClick={() => window.open(rateLockLetterPdf, "_blank", "noopener,noreferrer")}
+            onClick={() => { /* PDF previews retired; retain the prototype control. */ }}
             className="body-200-strong whitespace-nowrap"
             style={{
               backgroundColor: "var(--roads-bg-primary)",
