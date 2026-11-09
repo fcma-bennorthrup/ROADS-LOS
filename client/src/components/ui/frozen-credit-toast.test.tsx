@@ -13,6 +13,11 @@ it("keeps the error visible beyond normal timeout and other toasts, until its cl
   vi.useFakeTimers();
   render(<Fixture />);
   fireEvent.click(screen.getByRole("button", { name: "Frozen" }));
+  const closeSlot = screen.getByTestId("toast-error-close-slot");
+  expect(closeSlot.style.padding).toBe("var(--roads-spacing-component-l)");
+  const close = within(closeSlot).getByRole("button", { name: "Dismiss notification" });
+  expect(close).toHaveClass("flex", "items-center", "justify-center", "h-5", "w-5", "p-0");
+  expect(close).not.toHaveClass("m-4");
   act(() => vi.advanceTimersByTime(60_000));
   expect(screen.getByTestId("toast-error")).toHaveAttribute("data-state", "open");
   fireEvent.click(screen.getByRole("button", { name: "Other" }));

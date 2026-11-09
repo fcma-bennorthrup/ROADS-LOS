@@ -86,14 +86,25 @@ export function Toaster() {
               </div>
             )}
             {action}
-            <ToastClose
+            {variant === "error" ? (
+              <div
+                className="shrink-0"
+                data-testid="toast-error-close-slot"
+                style={{ padding: "var(--roads-spacing-component-l)" }}
+              >
+                <ToastClose
+                  aria-label="Dismiss notification"
+                  className="relative right-auto top-auto flex h-5 w-5 shrink-0 items-center justify-center p-0 text-[var(--roads-text-primary)] opacity-100"
+                />
+              </div>
+            ) : <ToastClose
               aria-label="Dismiss notification"
               className={
                 isInformation
                   ? "relative right-auto top-auto m-4 h-5 w-5 shrink-0 p-0 text-[var(--roads-text-primary)] opacity-100"
                   : undefined
               }
-            />
+            />}
           </Toast>
         )
       })}
