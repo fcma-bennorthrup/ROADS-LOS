@@ -5,3 +5,4 @@
 - [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.
 - [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
 - [Prototype-only scope](prototype-scope.md) — simulation only, never production data or PII; keep recommendations proportionate to prototype needs.
+- [Pipeline design scope](pipeline-design-scope.md) — preserve New Loan/admin access; first visual pass uses current columns and real stage counts.
