@@ -407,7 +407,6 @@ function LiabilityCard({
             data-testid={`text-liability-title-${index}`}
           >
             {title}
-            {liability.borrowerName && <span className="block body-200" style={{ color: "var(--roads-text-secondary)" }}>{liability.borrowerName}</span>}
           </span>
           <div ref={menuRef} style={{ position: "relative" }}>
             <MoreVertical

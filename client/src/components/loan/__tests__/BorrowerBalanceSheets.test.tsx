@@ -44,6 +44,9 @@ it("switches borrower balance sheets and isolates edits, additions and deletions
   state.document = populateDemoCredit(imported(2));
   const view = render(<BorrowerFinancialsContent />);
   expect(screen.getAllByTestId(/^liability-card-/)).toHaveLength(4);
+  for (const card of screen.getAllByTestId(/^liability-card-/)) {
+    expect(within(card).queryByText("Richard Jamerson")).toBeNull();
+  }
   expect(screen.getByText("DEMO-1-101")).toBeInTheDocument();
   expect(screen.queryByText("DEMO-2-101")).toBeNull();
   fireEvent.click(screen.getByTestId("tab-borrower-1"));
