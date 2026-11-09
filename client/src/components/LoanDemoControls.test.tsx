@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoanDemoControls } from "./LoanDemoControls";
 
 const mocks = vi.hoisted(() => ({
-  store: { document: { loan: { id: "demo", loanNumber: "Demo" }, generation: 1, revision: 2,
+  store: { document: { loan: { id: "demo", loanNumber: "Demo" }, generation: 1, revision: 2, sections: {} as Record<string, unknown>,
     businessRules: { trid: { status: "not-triggered" } } },
-    dirty: false, pending: 0, error: "", flush: vi.fn(), install: vi.fn() },
+    dirty: false, pending: 0, error: "", flush: vi.fn(), install: vi.fn(), write: vi.fn() },
   request: vi.fn(),
 }));
 vi.mock("@/contexts/loan-application-context", () => ({ useApplicationStatus: () => mocks.store }));
@@ -18,9 +18,23 @@ beforeEach(() => {
   cleanup(); vi.clearAllMocks();
   mocks.store.document.businessRules.trid.status = "not-triggered";
   mocks.store.dirty = false;
+  mocks.store.document.sections = {};
 });
 
 describe("Trigger TRID button", () => {
+  it("saves the loan's frozen-credit toggle without replacing its data", async () => {
+    const view = render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("switch", { name: "Credit frozen" }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("credit-frozen", true));
+    expect(mocks.store.flush).toHaveBeenCalled();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+    mocks.store.document.sections["credit-frozen"] = true;
+    view.unmount();
+    render(<LoanDemoControls />);
+    expect(screen.getByRole("switch", { name: "Credit frozen" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("switch", { name: "Credit frozen" }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("credit-frozen", false));
+  });
   it.each([
     ["Reset TRID Data", "Confirm reset", "trid-reset"],
     ["Manually Trigger TRID", "Confirm trigger", "trid-manual"],

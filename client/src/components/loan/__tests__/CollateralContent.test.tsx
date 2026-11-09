@@ -47,6 +47,28 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
+  it("shows Parcel after ZIP and supports saving, reloading, discarding and clearing", () => {
+    const view = renderCollateral();
+    const parcel = screen.getByTestId("field-parcel");
+    const zip = screen.getAllByTestId("field-zip")[0];
+    expect(zip.compareDocumentPosition(parcel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    expect(screen.getByTestId("input-parcel")).toHaveValue("");
+    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "001-042-A" } });
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    view.unmount();
+    renderCollateral();
+    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "discard this" } });
+    fireEvent.click(screen.getByTestId("address-button-discard"));
+    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    fireEvent.click(screen.getByTestId("address-button-edit"));
+    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "" } });
+    fireEvent.click(screen.getByTestId("address-button-save"));
+    expect(screen.getByTestId("field-parcel")).not.toHaveTextContent("001-042-A");
+  });
   it("starts monthly costs blank and saves and discards them with Subject Property", () => {
     const view = renderCollateral();
     expect(screen.queryByTestId("input-monthly-property-taxes")).not.toBeInTheDocument();
