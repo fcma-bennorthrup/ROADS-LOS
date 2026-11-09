@@ -56,11 +56,11 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
     if (onNavigateToField) {
       onNavigateToField(entry.navItem);
     } else if (["Decisioning", "Borrower Financials"].includes(entry.navItem)) {
-      setLocation(`/loans/${loanId}/decisioning?section=${encodeURIComponent(entry.navItem)}`);
+      setLocation(`~/loans/${loanId}/decisioning?section=${encodeURIComponent(entry.navItem)}`);
     } else if (["Closing", "Booking"].includes(entry.navItem)) {
-      setLocation(`/loans/${loanId}/closing-booking?section=${entry.navItem}`);
+      setLocation(`~/loans/${loanId}/closing-booking?section=${entry.navItem}`);
     } else {
-      setLocation(`/loans/${loanId}/origination?section=${encodeURIComponent(entry.navItem)}`);
+      setLocation(`~/loans/${loanId}/origination?section=${encodeURIComponent(entry.navItem)}`);
     }
   };
 

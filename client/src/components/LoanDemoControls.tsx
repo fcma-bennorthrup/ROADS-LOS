@@ -27,6 +27,7 @@ export function LoanDemoControls() {
           ...(action === "blend" ? { borrowerCount } : {}),
         }),
       });
+      if (store.document?.loan.id !== current.loan.id || store.document.generation !== current.generation) return;
       store.install(next);
       setAction(null);
       window.dispatchEvent(new Event("loan-application-replaced"));

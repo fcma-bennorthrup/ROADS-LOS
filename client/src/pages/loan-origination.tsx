@@ -1,129 +1,32 @@
 import { useState, useEffect } from "react";
-import { useLoanQuery } from "@/hooks/use-loan-query";
-import { useParams, useSearch } from "wouter";
-import { LoanHeader, BottomToolbar } from "@/components/loan/LoanHeader";
+import { useSearch } from "wouter";
+import { useWorkspaceLoan } from "@/components/loan/LoanWorkspace";
 import { SideNav } from "@/components/loan/SideNav";
 import { CollateralContent } from "@/components/loan/CollateralContent";
 import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
 import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
-import { LoanActivityPanel } from "@/components/loan/LoanActivityPanel";
 import { formatCurrency } from "@/lib/loan-display";
-
-function ComingSoon({ page }: { page: string }) {
-  const message = page === "Fees" ? "Welcome to the party" : page === "Borrower Information" ? "Soon Coming" : "Coming Soon";
-  return (
-    <div
-      className="flex flex-1 items-center justify-center"
-      data-testid={`coming-soon-${page.toLowerCase().replace(/\s+&\s+/g, "-").replace(/\s+/g, "-")}`}
-    >
-      <div className="flex flex-col items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-        <h2 className="headline-300" style={{ color: "var(--roads-text-primary)" }}>
-          {page}
-        </h2>
-        <p className="body-100" style={{ color: "var(--roads-text-secondary)" }}>
-          {message}
-        </p>
-      </div>
-    </div>
-  );
-}
 
 const VALID_NAV_ITEMS = ["Borrower Information", "Loan Details", "Collateral", "Product & Pricing", "Fees"];
 
 export default function LoanOriginationPage() {
-  const params = useParams<{ id: string }>();
-  const loanId = params.id || "1";
+  const loan = useWorkspaceLoan();
   const searchString = useSearch();
   const [activeNavItem, setActiveNavItem] = useState("Borrower Information");
-
   useEffect(() => {
-    const urlParams = new URLSearchParams(searchString);
-    const section = urlParams.get("section");
-    if (section && VALID_NAV_ITEMS.includes(section)) {
-      setActiveNavItem(section);
-    }
+    const section = new URLSearchParams(searchString).get("section");
+    if (section && VALID_NAV_ITEMS.includes(section)) setActiveNavItem(section);
   }, [searchString]);
-
-  const { data: loan, isLoading, error } = useLoanQuery(loanId);
-
-  if (isLoading) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: "var(--roads-bg-page)" }}
-        data-testid="loading-state"
-      >
-        <div className="headline-300" style={{ color: "var(--roads-text-secondary)" }}>
-          Loading loan details...
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !loan) {
-    return (
-      <div
-        className="flex items-center justify-center min-h-screen"
-        style={{ backgroundColor: "var(--roads-bg-page)" }}
-        data-testid="error-state"
-      >
-        <div className="headline-300" style={{ color: "var(--roads-text-error)" }}>
-          Failed to load loan data
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="h-screen flex flex-row overflow-hidden"
-      style={{ backgroundColor: "var(--roads-bg-page)" }}
-      data-testid="loan-origination-page"
-    >
-      <div className="flex-1 flex flex-col min-w-0">
-        <LoanHeader
-          loanNumber={loan.loanNumber}
-          cifNumber={loan.cifNumber}
-          loanType={loan.loanType}
-          borrowerName={loan.primaryBorrowerName}
-          amount={formatCurrency(loan.displayAmount)}
-          applicationType={loan.applicationType}
-          ecoaDaysRemaining={loan.ecoaDaysRemaining}
-          tridDaysRemaining={loan.tridDaysRemaining}
-          activeTab="Origination"
-        />
-        <div className="flex flex-1 min-h-0">
-          <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
-          <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
-            {activeNavItem === "Collateral" && (
-              <CollateralContent
-                key={loan.id}
-                loanNumber={loan.loanNumber}
-                borrowerName={loan.primaryBorrowerName}
-                borrowers={loan.borrowers}
-              />
-            )}
-            {activeNavItem === "Product & Pricing" && (
-              <ProductPricingContent
-                loanNumber={loan.loanNumber}
-                borrowerName={loan.primaryBorrowerName}
-              />
-            )}
-            {activeNavItem === "Loan Details" && (
-              <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />
-            )}
-            {activeNavItem === "Fees" && <FeesContent />}
-            {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
-            {activeNavItem !== "Collateral" && activeNavItem !== "Product & Pricing" && activeNavItem !== "Loan Details" && activeNavItem !== "Fees" && activeNavItem !== "Borrower Information" && <ComingSoon page={activeNavItem} />}
-          </div>
-        </div>
-        <div className="fixed bottom-0 left-0 w-full z-10">
-          <BottomToolbar />
-        </div>
-      </div>
-      <LoanActivityPanel />
+  return <>
+    <SideNav activeItem={activeNavItem} onItemChange={setActiveNavItem} />
+    <div className="flex flex-1 flex-col overflow-y-auto" style={{ minWidth: 0, paddingBottom: "36px" }}>
+      {activeNavItem === "Collateral" && <CollateralContent key={loan.id} loanNumber={loan.loanNumber} borrowerName={loan.primaryBorrowerName} borrowers={loan.borrowers} />}
+      {activeNavItem === "Product & Pricing" && <ProductPricingContent loanNumber={loan.loanNumber} borrowerName={loan.primaryBorrowerName} />}
+      {activeNavItem === "Loan Details" && <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />}
+      {activeNavItem === "Fees" && <FeesContent />}
+      {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
     </div>
-  );
+  </>;
 }

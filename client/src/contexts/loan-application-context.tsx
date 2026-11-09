@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore, type ReactNode, type Dispatch, type SetStateAction, useRef } from "react";
-import { useLocation } from "wouter";
 import { applicationStore, applicationRequest } from "@/lib/loan-application-store";
 import { Button } from "@/components/ui/button";
+import { useLoanId } from "@/contexts/loan-id-context";
 
 export function useApplicationStatus() {
   useSyncExternalStore(applicationStore.subscribe, applicationStore.snapshot);
@@ -16,27 +16,32 @@ export function useLoanEditing(key: string, editing: boolean) {
 }
 
 export function LoanApplicationProvider({ children }: { children: ReactNode }) {
-  const [location] = useLocation();
-  const id = location.match(/^\/loans\/([^/]+)/)?.[1];
+  const id = useLoanId();
   const [loaded, setLoaded] = useState("");
   const [mount, setMount] = useState(0);
   const [loadError, setLoadError] = useState("");
   const [remote, setRemote] = useState(false);
   const store = useApplicationStatus();
+  const active = useRef(false);
   async function refresh() {
     if (!id) return;
     try {
       await store.flush();
       const next = await applicationRequest(id);
-      store.install(next); setLoaded(id); setLoadError(""); setRemote(false); setMount(n => n + 1);
-    } catch (error) { setLoadError((error as Error).message); }
+      if (active.current) {
+        store.install(next); setLoaded(id); setLoadError(""); setRemote(false); setMount(n => n + 1);
+      }
+    } catch (error) { if (active.current) setLoadError((error as Error).message); }
   }
   useEffect(() => {
     let alive = true;
+    active.current = true;
     if (!id) return;
     setLoaded(""); setLoadError("");
-    applicationRequest(id).then(async next => {
-      if (!alive) return;
+    // A direct route change (including browser Back/Forward) can arrive before
+    // the old loan's last save completes. Do not install the next loan over it.
+    store.flush().then(() => alive ? applicationRequest(id) : null).then(async next => {
+      if (!alive || !next) return;
       store.install(next);
       // Preserve the first browser's already-saved prototype workflow data.
       // Never merge old local data back after a reset/import or a shared edit.
@@ -50,22 +55,23 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
       }
       if (alive) { setLoaded(id); setMount(n => n + 1); }
     }).catch(error => { if (alive) setLoadError(error.message); });
-    return () => { alive = false; };
+    return () => { alive = false; active.current = false; };
   }, [id]);
   useEffect(() => {
     if (!id || loaded !== id) return;
+    let alive = true;
     const timer = setInterval(async () => {
       if (store.pending || store.error) return;
       try {
         const next = await applicationRequest(id);
-        if (store.pending || store.document?.loan.id !== id) return;
+        if (!alive || store.pending || store.document?.loan.id !== id) return;
         if (next.revision > store.document.revision) {
           if (store.dirty) { setRemote(true); return; }
           store.install(next); setMount(n => n + 1);
         }
       } catch { /* Keep current data; explicit saves report their own errors. */ }
     }, 3000);
-    return () => clearInterval(timer);
+    return () => { alive = false; clearInterval(timer); };
   }, [id, loaded]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
@@ -76,14 +82,22 @@ export function LoanApplicationProvider({ children }: { children: ReactNode }) {
     window.addEventListener("loan-application-replaced", reset);
     return () => { window.removeEventListener("beforeunload", warn); window.removeEventListener("loan-application-replaced", reset); };
   }, []);
-  if (!id) return children;
-  if (loaded !== id) return <div role="status" className="p-8">{loadError || "Loading loan data…"}{loadError && <Button onClick={refresh}>Retry</Button>}</div>;
+  if (loaded !== id) return <div role="status" className="min-h-[100dvh]" style={{ padding: "var(--roads-spacing-component-2xl)", background: "var(--roads-bg-page)" }} data-testid={loadError ? "error-state" : "loading-state"}>
+    {loadError ? <><p role="alert">{loadError}</p><Button onClick={refresh}>Retry</Button></> :
+      <div className="animate-pulse flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+        <span className="sr-only">Loading loan data…</span>
+        {[0, 1, 2].map(n => <div key={n} style={{ height: "var(--roads-spacing-layout-xs)", background: "var(--roads-bg-light)" }} />)}
+      </div>}
+  </div>;
   return <>
     {(store.error || remote || loadError) && <div role="alert" className="p-3 bg-amber-100 text-black">
       {store.error || loadError || "This loan changed in another session. Your unsaved edits have not been replaced."}
       <Button variant="outline" onClick={() => {
         if (window.confirm("Discard unsaved changes and load the latest loan?"))
-          applicationRequest(id).then(next => { store.install(next); setRemote(false); setLoadError(""); setMount(n => n + 1); });
+          store.flush().catch(() => {}).then(() => applicationRequest(id)).then(next => {
+            if (!active.current) return;
+            store.install(next); setRemote(false); setLoadError(""); setMount(n => n + 1);
+          }).catch(error => { if (active.current) setLoadError(error.message); });
       }}>Reload latest loan</Button>
     </div>}
     {store.pending > 0 && <div role="status" className="fixed bottom-3 right-3 z-[100] rounded bg-white shadow px-3 py-2 text-sm">Saving loan data…</div>}

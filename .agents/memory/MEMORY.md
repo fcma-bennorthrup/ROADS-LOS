@@ -25,3 +25,4 @@
 - [Prototype business rules](business-rule-scope.md) — Centralize lightweight rules using existing saved fields only; TRID is satisfied by Loan Estimate delivery.
 - [Checklist demo reset](checklist-reset-scope.md) — Clear task outputs through prototype controls, preserving application inputs and allowing rules to restart required tasks.
 - [Collateral ratio calculation](collateral-ratio-policy.md) — L/CV uses total loan amount and switches from estimated to reported collateral value.
+- [Pipeline scope](pipeline-scope.md) — Prompts 0–4 approved, deletion excluded; preserve loan UI and distinguish inherited verification failures.

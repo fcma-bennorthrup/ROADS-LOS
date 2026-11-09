@@ -12,6 +12,11 @@ export interface LoanApplication {
   sections: Record<string, unknown>;
   changeLog?: import("./loan-history").LoanChange[];
   businessRules?: import("./business-rules").LoanBusinessRules;
+  meta?: {
+    createdAt: string;
+    updatedAt: string;
+    source: "seed" | "blank" | "blend";
+  };
 }
 
 /** Empty data values without removing the form's structural identifiers. */

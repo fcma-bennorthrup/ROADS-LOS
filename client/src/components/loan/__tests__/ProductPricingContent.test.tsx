@@ -13,6 +13,7 @@ import {
   useActivityPanel,
 } from "@/contexts/loan-activity-context";
 import { Toaster } from "@/components/ui/toaster";
+import { LoanIdProvider } from "@/contexts/loan-id-context";
 
 vi.mock("@/components/GitHubSyncPanel", () => ({
   GitHubSyncPanel: () => null,
@@ -87,7 +88,7 @@ function WorkflowControls() {
 
 function renderProductPricing() {
   return render(
-    <LoanActivityProvider>
+    <LoanIdProvider id="prototype"><LoanActivityProvider>
       <ChecklistProvider>
         <LoanHeader />
         <ProductPricingContent loanNumber="135792468" borrowerName="Morgan Rivera" />
@@ -95,7 +96,7 @@ function renderProductPricing() {
         <ChecklistPanel onClose={() => undefined} />
         <Toaster />
       </ChecklistProvider>
-    </LoanActivityProvider>,
+    </LoanActivityProvider></LoanIdProvider>,
   );
 }
 

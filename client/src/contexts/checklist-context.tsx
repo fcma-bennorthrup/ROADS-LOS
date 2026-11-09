@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, us
 import { loanEstimateActionsForTrid, RATE_LOCK_TRID_VERSION } from "@shared/business-rules/trid";
 import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 import { useLocation } from "wouter";
+import { useOptionalLoanId } from "@/contexts/loan-id-context";
 import { loanIdFromPath } from "@/lib/loan-path";
 import { dismissToasts, toast } from "@/hooks/use-toast";
 import {
@@ -546,7 +547,8 @@ function ChecklistStateProvider({
 }
 export function ChecklistProvider({ children }: { children: ReactNode }) {
   const [location] = useLocation();
-  const storageKey = getLoanStorageKey(location);
+  const id = useOptionalLoanId();
+  const storageKey = id ? `${CHECKLIST_STORAGE_PREFIX}:${id}` : getLoanStorageKey(location);
 
   return (
     <ChecklistStateProvider key={storageKey} storageKey={storageKey}>

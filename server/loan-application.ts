@@ -9,6 +9,10 @@ import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
 import { applyTridDemoAction } from "../shared/business-rules/trid-demo-actions";
 import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
+import { newLoanApplication } from "../shared/loan-factory";
+import { randomUUID } from "node:crypto";
+import { LOAN_STAGES } from "../shared/loan-stages";
+import { pipelineView } from "../shared/pipeline";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -16,23 +20,29 @@ async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
     const document: LoanApplication = existing.rows[0].document;
-    if (document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
+    if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
     const initialized = { ...document,
       // Revision zero is the existing browser-data adoption marker.
       revision: document.revision === 0 ? 0 : document.revision + 1,
+      meta: document.meta ?? {
+        createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        source: id === "1" ? "seed" as const : document.mode === "blend" ? "blend" as const : "blank" as const,
+      },
       businessRules: evaluateLoanRules(document) };
     const result = await pool.query(
-      `UPDATE prototype_loan_applications SET document=$2
+      `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
        WHERE loan_id=$1 AND (document->>'revision')::int=$3 RETURNING document`,
       [id, JSON.stringify(initialized), document.revision]);
     return result.rows[0]?.document ?? load(id);
   }
+  if (id !== "1") return null;
   const loan = await storage.getLoan(id);
   if (!loan) return null;
   const document: LoanApplication = { loan, borrowers: await storage.getBorrowersByLoanId(id),
-    mode: "existing", generation: 0, revision: 0, sections: {} };
+    mode: "existing", generation: 0, revision: 0, sections: {},
+    meta: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), source: "seed" } };
   document.businessRules = evaluateLoanRules(document);
   await pool.query("INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING", [id, JSON.stringify(document)]);
   return (await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id])).rows[0].document;
@@ -55,6 +65,64 @@ const actionSchema = z.object({
 });
 
 export function registerLoanApplicationRoutes(app: Express) {
+  app.get("/api/loans", async (_req, res) => {
+    try {
+      // Ensure the seed is visible even before anyone has opened its detail page.
+      await load("1");
+      const rows = await pool.query("SELECT loan_id FROM prototype_loan_applications");
+      const documents = await Promise.all(rows.rows.map(row => load(row.loan_id)));
+      const loans = documents.filter((row): row is LoanApplication => row !== null).map(pipelineView);
+      loans.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.loanNumber.localeCompare(b.loanNumber));
+      res.set("Cache-Control", "no-store").json(loans);
+    } catch { res.status(503).json({ error: "The pipeline could not be loaded from the database." }); }
+  });
+  app.post("/api/loans", async (req, res) => {
+    if (!z.object({ source: z.literal("blank") }).strict().safeParse(req.body).success)
+      return void res.status(400).json({ error: "Choose a blank application to create a loan." });
+    let client: pg.PoolClient | undefined;
+    try {
+      await load("1");
+      client = await pool.connect();
+      await client.query("BEGIN");
+      // Serialize number allocation across app processes without adding a table.
+      await client.query("SELECT pg_advisory_xact_lock(784219)");
+      const allocation = await client.query(`SELECT GREATEST(COALESCE(MAX(
+        CASE WHEN document->'loan'->>'loanNumber' ~ '^[0-9]{1,9}$'
+        THEN (document->'loan'->>'loanNumber')::bigint END), 123456789), 123456789) + 1 AS number
+        FROM prototype_loan_applications`);
+      const loanNumber = String(allocation.rows[0].number);
+      if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
+      const id = randomUUID();
+      const document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      const inserted = await client.query(
+        "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",
+        [id, JSON.stringify(document)]);
+      if (!inserted.rowCount) throw new Error("Loan identity collision.");
+      await client.query("COMMIT");
+      res.status(201).json({ id, loanNumber });
+    } catch {
+      if (client) await client.query("ROLLBACK").catch(() => {});
+      res.status(503).json({ error: "The loan could not be created. No success was confirmed." });
+    } finally { client?.release(); }
+  });
+  app.put("/api/loans/:id/stage", async (req, res) => {
+    const parsed = z.object({ stage: z.enum(LOAN_STAGES),
+      generation: z.number().int().nonnegative(), revision: z.number().int().nonnegative() }).safeParse(req.body);
+    if (!parsed.success) return void res.status(400).json({ error: "Invalid loan stage." });
+    try {
+      const current = await load(String(req.params.id));
+      if (!current) return void res.status(404).json({ error: "Loan not found" });
+      const { stage, generation, revision } = parsed.data;
+      const result = await pool.query(
+        `UPDATE prototype_loan_applications SET document =
+         jsonb_set(jsonb_set(jsonb_set(document, '{loan,stage}', to_jsonb($2::text)), '{revision}', to_jsonb($4::int + 1)),
+          '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+         WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
+        [req.params.id, stage, generation, revision]);
+      if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
+      res.json(result.rows[0].document);
+    } catch { res.status(503).json({ error: "The stage was not saved. Retry when the database is available." }); }
+  });
   app.post("/api/loans/:id/application/credit", async (req, res) => {
     const parsed = z.object({
       generation: z.number().int().nonnegative(),
@@ -71,7 +139,7 @@ export function registerLoanApplicationRoutes(app: Express) {
       try { next = populateDemoCredit(current); }
       catch (error) { return void res.status(400).json({ error: (error as Error).message }); }
       const result = await pool.query(
-        `UPDATE prototype_loan_applications SET document=$2
+        `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload before pulling credit." });
@@ -112,7 +180,8 @@ export function registerLoanApplicationRoutes(app: Express) {
       const businessRules = evaluateLoanRules({ ...current, sections: { ...current.sections, [section]: value } });
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document =
-         jsonb_set(jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb), '{businessRules}', $7::jsonb)
+         jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb), '{businessRules}', $7::jsonb),
+          '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$4 AND (document->>'revision')::int=$5 RETURNING document`,
         [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history), JSON.stringify(businessRules)]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
@@ -131,7 +200,7 @@ export function registerLoanApplicationRoutes(app: Express) {
           return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
         const next = action === "checklist" ? resetChecklistData(current) : applyTridDemoAction(current, action);
         const result = await pool.query(
-          `UPDATE prototype_loan_applications SET document=$2
+          `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
            WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
           [req.params.id, JSON.stringify(next), generation, revision]);
         if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
@@ -144,48 +213,21 @@ export function registerLoanApplicationRoutes(app: Express) {
           return void res.status(409).json({ error: "TRID is already satisfied. Reset the demo loan to start a new journey." });
         const next = triggerTridDemo(current, parsed.data.sections ?? {});
         const result = await pool.query(
-          `UPDATE prototype_loan_applications SET document=$2
+          `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
            WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
           [req.params.id, JSON.stringify(next), generation, revision]);
         if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
         return void res.json(result.rows[0].document);
       }
-      const seed = await storage.getLoan(String(req.params.id)) ?? current.loan;
-      if (!seed) return void res.status(404).json({ error: "Loan template not found" });
-      const loan = { ...seed };
-      // A POS import is an application, not an approval, appraisal, or rate lock.
-      for (const key of ["financedFees", "taxesInsurance", "finalRate", "principalInterest", "totalMonthlyPayment", "piti", "dti", "lcv", "totalCv", "cashReserves", "cashToClose", "apr"] as const) loan[key] = "0";
-      loan.stage = "Customer Application";
-      loan.product = "";
-      loan.pweCbScore = 0;
-      loan.ruleOfXx = null;
-      loan.ecoaDaysRemaining = 0;
-      loan.tridDaysRemaining = 0;
-      loan.cifNumber = "";
-      loan.loanType = action === "blend" ? "Purchase" : "";
-      loan.applicationType = action === "blend" && parsed.data.borrowerCount === 2 ? "Joint Credit Application" : "";
-      loan.amountRequested = action === "blend" ? "145000.00" : "0";
-      loan.displayAmount = loan.amountRequested;
-      loan.totalLoanAmount = loan.amountRequested;
-      loan.primaryBorrowerName = action === "blend" ? "Richard Jamerson" : "";
-      const borrowers = ["primary", "secondary"].slice(0, action === "blend" ? parsed.data.borrowerCount : 2).map((role, index) => ({
-        id: `${loan.id}-${role}`, loanId: loan.id, isPrimary: index === 0,
-        name: action === "blend" ? `${index === 0 ? "Richard" : "Jane"} Jamerson` : "",
-        email: action === "blend" ? `${index === 0 ? "richard" : "jane"}.jamerson@example.com` : "",
-        phone: action === "blend" ? `(502) 555-${index === 0 ? "0142" : "0188"}` : "",
-      }));
-      const next: LoanApplication = { loan, borrowers, mode: action === "blend" ? "blend" : "empty",
-        changeLog: [],
+      const next = newLoanApplication({
+        id: current.loan.id, loanNumber: current.loan.loanNumber,
+        source: action === "blend" ? "blend" : "blank",
+        borrowerCount: parsed.data.borrowerCount, sections: parsed.data.sections,
         generation: generation + 1, revision: revision + 1,
-        sections: action === "blend" ? Object.fromEntries(
-          Object.entries(parsed.data.sections ?? {}).filter(([key]) =>
-            ["borrower-primary", "borrower-secondary", "loan-details", "income", "current-assets", "noncurrent-assets", "current-liabilities", "noncurrent-liabilities", "subject-property", "fees"].includes(key)),
-        ) : {} };
-      if (action === "blend" && parsed.data.borrowerCount === 1) {
-        delete next.sections["borrower-secondary"];
-        if (Array.isArray(next.sections.income)) next.sections.income = next.sections.income.slice(0, 1);
-      }
-      const checklistKey = `storage:loan-checklist-statuses:${loan.id}`;
+      });
+      const checklistKey = `storage:loan-checklist-statuses:${current.loan.id}`;
+      // A demo replacement is not a new loan: retain its original creation time.
+      if (current.meta) next.meta!.createdAt = current.meta.createdAt;
       const previousChecklist = current.sections[checklistKey];
       if (typeof previousChecklist === "string") {
         const statuses = JSON.parse(previousChecklist);
@@ -196,7 +238,7 @@ export function registerLoanApplicationRoutes(app: Express) {
       }
       next.businessRules = evaluateLoanRules(next);
       const result = await pool.query(
-        `UPDATE prototype_loan_applications SET document=$2
+        `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });

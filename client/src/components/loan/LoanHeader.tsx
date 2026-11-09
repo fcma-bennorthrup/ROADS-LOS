@@ -1,11 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
 import {
-  Menu,
-  ChevronRight,
-  MessageSquare,
-  PanelRight,
-  MoreVertical,
   Check,
   Percent,
   Link2,
@@ -13,25 +8,16 @@ import {
   Calendar,
   AlertTriangle,
 } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
+import { BreadcrumbBar } from "@/components/AppHeader";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
 import { useActivityPanel } from "@/contexts/loan-activity-context";
 import { useChecklist } from "@/contexts/checklist-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
-import { SummaryDebugDialog } from "./SummaryDebugDialog";
+import { useLoanId } from "@/contexts/loan-id-context";
+import { LOAN_STAGES } from "@shared/loan-stages";
 
-const STAGES = [
-  { label: "Customer Application", status: "completed" },
-  { label: "Pre-Approval", status: "completed" },
-  { label: "Loan Setup", status: "active" },
-  { label: "Decisioning", status: "upcoming" },
-  { label: "Loan Finalization", status: "upcoming" },
-  { label: "Closing", status: "upcoming" },
-  { label: "Booking", status: "upcoming" },
-  { label: "Loan Certification", status: "upcoming" },
-] as const;
+const STAGES = LOAN_STAGES.map(label => ({ label }));
 
 const TABS = [
   "Summary",
@@ -84,8 +70,9 @@ export function LoanHeader({
   activeTab = "Summary",
   onTabChange,
 }: LoanHeaderProps) {
-  const [currentTab, setCurrentTab] = useState(activeTab);
   const [, navigate] = useLocation();
+  const loanId = useLoanId();
+  const { activityPanelOpen, toggleActivityPanel } = useActivityPanel();
   const { tasks } = useChecklist();
   const app = useApplicationStatus().document;
   const showTridDaysRemaining = app
@@ -93,13 +80,10 @@ export function LoanHeader({
     : tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
 
   const handleTabClick = (tab: string) => {
-    setCurrentTab(tab);
     onTabChange?.(tab);
     const route = TAB_ROUTES[tab];
     if (route) {
-      const loanMatch = window.location.pathname.match(/\/loans\/([^/]+)/);
-      const id = loanMatch ? loanMatch[1] : "1";
-      navigate(route.replace(":id", id));
+      navigate(`~${route.replace(":id", loanId)}`);
     }
   };
 
@@ -113,8 +97,8 @@ export function LoanHeader({
         className="flex flex-col"
         style={{ gap: "16px", paddingTop: "16px" }}
       >
-        <BreadcrumbBar loanNumber={loanNumber} />
-        <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} initialStep={applicationStore.document && applicationStore.document.mode !== "existing" ? 0 : 2} />
+        <BreadcrumbBar loanNumber={loanNumber} activityPanelOpen={activityPanelOpen} toggleActivityPanel={toggleActivityPanel} />
+        <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} />
         <HeaderTextBlock
           loanType={loanType}
           loanNumber={loanNumber}
@@ -128,7 +112,7 @@ export function LoanHeader({
           showTridDaysRemaining={showTridDaysRemaining}
         />
         <TabNavigation
-          activeTab={currentTab}
+          activeTab={activeTab}
           onTabChange={handleTabClick}
         />
       </div>
@@ -136,88 +120,22 @@ export function LoanHeader({
   );
 }
 
-function BreadcrumbBar({ loanNumber }: { loanNumber: string }) {
-  const [syncPanelOpen, setSyncPanelOpen] = useState(false);
-  const { activityPanelOpen, toggleActivityPanel } = useActivityPanel();
+export function StageStepper() {
+  const store = useApplicationStatus();
+  const currentStep = Math.max(0, LOAN_STAGES.indexOf(store.document?.loan.stage as typeof LOAN_STAGES[number]));
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  async function move(direction: number) {
+    if (busy || store.error || !store.document) return;
+    const next = currentStep + direction;
+    if (next < 0 || next >= STAGES.length) return;
+    setBusy(true); setError("");
+    try { await applicationStore.changeStage(LOAN_STAGES[next]); }
+    catch (error) { setError((error as Error).message); }
+    finally { setBusy(false); }
+  }
   return (
-    <div
-      className="flex items-center justify-between flex-wrap gap-2"
-      style={{ padding: "0 24px" }}
-      data-testid="breadcrumb-bar"
-    >
-      <div className="flex items-center body-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}>
-        <button data-testid="button-menu" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
-          <Menu className="w-5 h-5" />
-        </button>
-        <span data-testid="breadcrumb-pipeline" style={{ marginLeft: "var(--roads-spacing-component-xs)" }}>Pipeline</span>
-        <ChevronRight className="w-5 h-5" />
-        <span data-testid="breadcrumb-loan">Loan: {loanNumber}</span>
-      </div>
-
-      <div className="flex items-center flex-wrap" style={{ gap: "var(--roads-spacing-component-l)" }}>
-        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          <span className="caption-100-strong" style={{ color: "var(--roads-text-primary)" }}>Viewing</span>
-          <Avatar className="w-5 h-5">
-            <AvatarFallback
-              className="caption-100"
-              style={{ backgroundColor: "var(--roads-bg-dark)", color: "var(--roads-text-primary)", fontSize: "10px" }}
-            >
-              RD
-            </AvatarFallback>
-          </Avatar>
-        </div>
-
-        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          <span className="caption-100-strong" style={{ color: "var(--roads-text-primary)" }}>Loan Team</span>
-          <div className="flex -space-x-2.5 items-center" data-testid="avatar-group-loan-team">
-            {["A1", "B2", "C3"].map((initials, i) => (
-              <Avatar key={i} className="w-5 h-5 border" style={{ borderColor: "var(--roads-border-reverse)" }}>
-                <AvatarFallback
-                  style={{ backgroundColor: "var(--roads-bg-brand-subtle)", color: "var(--roads-text-brand)", fontSize: "9px" }}
-                >
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-            <span
-              className="caption-100"
-              style={{
-                color: "var(--roads-text-link)",
-                paddingLeft: "var(--roads-spacing-component-2xs)",
-              }}
-              data-testid="text-avatar-overflow"
-            >
-              +3
-            </span>
-          </div>
-        </div>
-
-        <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
-          <button data-testid="button-messages" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}>
-            <MessageSquare className="w-5 h-5" />
-          </button>
-          <button
-            data-testid="button-sidebar-toggle"
-            className="flex items-center justify-center"
-            onClick={toggleActivityPanel}
-            style={{ color: activityPanelOpen ? "var(--roads-text-brand)" : "var(--roads-icon-dark)" }}
-          >
-            <PanelRight className="w-5 h-5" />
-          </button>
-          <MoreOptionsMenu
-            onGitHubSync={() => setSyncPanelOpen(true)}
-          />
-        </div>
-      </div>
-      <GitHubSyncPanel open={syncPanelOpen} onOpenChange={setSyncPanelOpen} />
-    </div>
-  );
-}
-
-export function StageStepper({ initialStep = 2 }: { initialStep?: number }) {
-  // Demo-only navigation: deliberately not written to the loan or browser storage.
-  const [currentStep, setCurrentStep] = useState(initialStep);
-  return (
+    <>
     <div
       className="flex w-full"
       style={{ padding: "0 24px" }}
@@ -261,8 +179,9 @@ export function StageStepper({ initialStep = 2 }: { initialStep?: number }) {
               {...(isControl ? {
                 type: "button" as const,
                 "aria-label": index === 0 ? "Move loan stage backward" : "Move loan stage forward",
-                "aria-disabled": index === 0 ? currentStep === 0 : currentStep === STAGES.length - 1,
-                onClick: () => setCurrentStep(step => Math.max(0, Math.min(STAGES.length - 1, step + (index === 0 ? -1 : 1)))),
+                "aria-disabled": busy || !!store.error || (index === 0 ? currentStep === 0 : currentStep === STAGES.length - 1),
+                disabled: busy || !!store.error || (index === 0 ? currentStep === 0 : currentStep === STAGES.length - 1),
+                onClick: () => { void move(index === 0 ? -1 : 1); },
               } : {})}
               aria-current={isActive ? "step" : undefined}
               className="flex items-center justify-center w-full h-full caption-100-strong"
@@ -283,6 +202,8 @@ export function StageStepper({ initialStep = 2 }: { initialStep?: number }) {
         );
       })}
     </div>
+    {error && <p role="alert" className="body-200" style={{ padding: "0 24px", color: "var(--roads-text-error)" }}>{error}</p>}
+    </>
   );
 }
 
@@ -498,86 +419,6 @@ export function BottomToolbar() {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-function MoreOptionsMenu({ onGitHubSync }: { onGitHubSync: () => void }) {
-  const [open, setOpen] = useState(false);
-  const [debugOpen, setDebugOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClickOutside(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [open]);
-
-  return (
-    <div className="relative" ref={menuRef}>
-      <button
-        data-testid="button-more-options"
-        className="flex items-center justify-center"
-        style={{ color: "var(--roads-icon-dark)" }}
-        onClick={() => setOpen((prev) => !prev)}
-      >
-        <MoreVertical className="w-5 h-5" />
-      </button>
-      <div
-        style={{
-          position: "absolute",
-          top: "calc(100% + 4px)",
-          right: 0,
-          background: "var(--roads-bg-primary)",
-          borderRadius: "var(--roads-radius-2xs, 4px)",
-          boxShadow: "0px 8px 16px rgba(39, 51, 51, 0.24)",
-          padding: "var(--roads-spacing-component-xs, 8px)",
-          zIndex: 50,
-          visibility: open ? "visible" : "hidden",
-          opacity: open ? 1 : 0,
-        }}
-      >
-        <button
-          data-testid="menu-item-prototype-admin"
-          className="body-100"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            width: "100%",
-            height: 40,
-            padding: "0 12px",
-            color: "var(--roads-text-primary)",
-            background: "transparent",
-            borderRadius: "var(--roads-radius-2xs, 4px)",
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            border: "none",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "var(--roads-bg-light, #f9f9f9)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.background = "transparent";
-          }}
-          onClick={() => {
-            setOpen(false);
-            onGitHubSync();
-          }}
-        >
-          Prototype Admin Controls
-        </button>
-        <button data-testid="menu-item-debug" className="body-100 w-full text-left rounded hover:bg-muted"
-          style={{ height: 40, padding: "0 12px", color: "var(--roads-text-primary)" }}
-          onClick={() => { setOpen(false); setDebugOpen(true); }}>
-          Debug
-        </button>
-      </div>
-      <SummaryDebugDialog open={debugOpen} onOpenChange={setDebugOpen} />
     </div>
   );
 }
