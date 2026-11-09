@@ -1,6 +1,7 @@
 import type { LoanApplication } from "./loan-application";
 import { evaluateLoanRules } from "./business-rules";
 import { LOAN_STAGES } from "./loan-stages";
+import { LOAN_DOCUMENT_VERSION } from "./loan-contract";
 
 export const BLANK_LOAN_TEMPLATE = {
   loanType: "", stage: LOAN_STAGES[0], primaryBorrowerName: "", product: "",
@@ -54,6 +55,7 @@ export function newLoanApplication(input: NewLoanInput): LoanApplication {
   }
   const now = input.now ?? new Date().toISOString();
   const next: LoanApplication = {
+    schemaVersion: LOAN_DOCUMENT_VERSION,
     loan, borrowers, mode: blend ? "blend" : "empty", changeLog: [],
     generation: input.generation ?? 0, revision: input.revision ?? 0, sections,
     meta: { createdAt: now, updatedAt: now, source: input.source },
