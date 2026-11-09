@@ -90,6 +90,31 @@ export function assertDevelopmentUpgrade(env: NodeJS.ProcessEnv, confirmed: bool
     throw new Error("Upgrades are development-only. Use the explicit db:upgrade:dev command in the Project Editor, never Publish or production.");
 }
 
+export async function readAutomaticApprovals(root = process.cwd()): Promise<Record<string, string>> {
+  return z.record(z.string().regex(/^[a-f0-9]{64}$/)).parse(JSON.parse(
+    await readFile(path.join(root, "script/db-upgrades/automatic-approvals.json"), "utf8")));
+}
+
+/** Only exact, reviewed upgrade bytes can run automatically. The ledger and
+ * schema checks still run inside the transaction immediately before applying. */
+export async function automaticallyUpgradeDevelopment(db: Query, upgrades: Upgrade[],
+  approvals: Record<string, string>, env: NodeJS.ProcessEnv) {
+  assertDevelopmentUpgrade(env, true);
+  await db.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
+  let before: DatabaseReport;
+  try { before = await inspectDatabase(db, upgrades); }
+  finally { await db.query("ROLLBACK"); }
+  if (before.status !== "needs-upgrade") return before;
+  const unapproved = upgrades.filter(row => before.pending.includes(row.id) && approvals[row.id] !== row.checksum);
+  if (unapproved.length) return {
+    ...before, status: "blocked" as const,
+    message: "Code pulled, but pending database upgrades need approval. Review them before applying.",
+    issues: [...before.issues, ...unapproved.map(row => `Automatic approval missing or changed: ${row.id}.`)],
+  };
+  const result = await applyDevelopmentUpgrades(db, upgrades, env, true, approvals);
+  return { ...result, message: "Development database upgrades applied and compatibility verified." };
+}
+
 export function upgradeLoanDocument(value: unknown, upgrade: Upgrade) {
   const spec = z.object({
     kind: z.literal("loan-document-version"), fromVersion: z.literal(0), toVersion: z.literal(1),
@@ -107,7 +132,8 @@ export function upgradeLoanDocument(value: unknown, upgrade: Upgrade) {
 }
 
 /** Caller supplies a dedicated connection. No application-startup or production call path. */
-export async function applyDevelopmentUpgrades(db: Query, upgrades: Upgrade[], env: NodeJS.ProcessEnv, confirmed: boolean) {
+export async function applyDevelopmentUpgrades(db: Query, upgrades: Upgrade[], env: NodeJS.ProcessEnv, confirmed: boolean,
+  automaticApprovals?: Record<string, string>) {
   assertDevelopmentUpgrade(env, confirmed);
   await db.query("BEGIN");
   try {
@@ -115,6 +141,8 @@ export async function applyDevelopmentUpgrades(db: Query, upgrades: Upgrade[], e
     await db.query("SELECT pg_advisory_xact_lock(784220)");
     const before = await inspectDatabase(db, upgrades);
     if (before.status === "blocked") throw new Error(before.message + " " + before.issues.join(" "));
+    if (automaticApprovals && upgrades.some(row => before.pending.includes(row.id) && automaticApprovals[row.id] !== row.checksum))
+      throw new Error("Automatic upgrade approval changed. Review pending upgrades before retrying.");
     await db.query(`CREATE TABLE IF NOT EXISTS public.roads_development_upgrades (
       id text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now()
     )`);

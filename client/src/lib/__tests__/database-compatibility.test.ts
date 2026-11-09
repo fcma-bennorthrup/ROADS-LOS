@@ -1,6 +1,17 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { checkDatabaseAfterPull } from "../database-compatibility";
+import { queryClient } from "../queryClient";
 afterEach(() => vi.unstubAllGlobals());
+it("uses the server's final upgrade report without another request", async () => {
+  const fetcher = vi.fn(); vi.stubGlobal("fetch", fetcher);
+  const notify = vi.fn();
+  const report = { status: "blocked" as const, message: "Upgrade needs approval.", pending: ["003-new"],
+    issues: [], documentVersion: 1, checkedLoans: 4 };
+  await checkDatabaseAfterPull(notify, report);
+  expect(fetcher).not.toHaveBeenCalled();
+  expect(queryClient.getQueryData(["/api/database/compatibility"])).toEqual(report);
+  expect(notify).toHaveBeenCalledWith(expect.objectContaining({ description: report.message }));
+});
 it("separates a successful pull from pending database setup", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({
     status: "needs-upgrade", message: "Run npm run db:upgrade:dev", pending: ["001"],

@@ -12,19 +12,38 @@ let inFlight: Promise<DatabaseCompatibilityReport> | undefined;
 
 /** Fresh process reads the newly pulled contract, not the old server module cache.
  * The check command uses a read-only transaction. There is no HTTP apply endpoint. */
-export function checkDatabaseCompatibility(): Promise<DatabaseCompatibilityReport> {
-  if (inFlight) return inFlight;
-  inFlight = new Promise<DatabaseCompatibilityReport>(resolve => {
-    execFile(process.execPath, ["--import", "tsx", "script/database.ts", "check", "--json"],
+function runDatabaseCommand(action: "check" | "auto"): Promise<DatabaseCompatibilityReport> {
+  return new Promise<DatabaseCompatibilityReport>(resolve => {
+    execFile(process.execPath, ["--import", "tsx", "script/database.ts", action, "--json",
+      ...(action === "auto" ? ["--development"] : [])],
       { cwd: process.cwd(), timeout: 20000, maxBuffer: 128 * 1024 }, (_error, stdout) => {
-        try { resolve(reportSchema.parse(JSON.parse(stdout))); }
+        try {
+          // Nonzero exit 2 is a valid incompatible/blocked report, not success.
+          const report = reportSchema.parse(JSON.parse(stdout));
+          if (_error && report.status === "compatible") throw new Error("Unconfirmed completion");
+          resolve(report);
+        }
         catch {
-          resolve({ status: "unavailable", message: "The database check could not run. Run npm run db:check in the project Shell after installing the pulled dependencies.",
+          resolve({ status: "unavailable", message: "Database completion could not be confirmed. Run npm run db:check before retrying; install pulled dependencies if needed.",
             pending: [], issues: [], documentVersion: 1, checkedLoans: 0 });
         }
       });
-  }).finally(() => { inFlight = undefined; });
+  });
+}
+export function checkDatabaseCompatibility(): Promise<DatabaseCompatibilityReport> {
+  if (inFlight) return inFlight;
+  inFlight = runDatabaseCommand("check").finally(() => { inFlight = undefined; });
   return inFlight;
+}
+
+/** Called only after successful pull recovery has committed, under the sync lock.
+ * Do not override NODE_ENV: a deployed server must never spawn a write command. */
+export async function upgradeDatabaseAfterPull(): Promise<DatabaseCompatibilityReport> {
+  if (process.env.NODE_ENV !== "development" ||
+      ["1", "true"].includes(process.env.REPLIT_DEPLOYMENT ?? ""))
+    return { status: "blocked", message: "Automatic database upgrades are development-only and were skipped in this environment.",
+      pending: [], issues: [], documentVersion: 1, checkedLoans: 0 };
+  return runDatabaseCommand("auto");
 }
 
 export function registerDatabaseCompatibilityRoutes(app: Express) {

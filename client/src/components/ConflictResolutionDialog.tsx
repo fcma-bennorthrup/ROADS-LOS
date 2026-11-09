@@ -215,7 +215,7 @@ export function ConflictResolutionDialog({
       setManualContent({});
       setSelectedFileIndex(0);
       onOpenChange(false);
-      if (result.operation === "pull") await checkDatabaseAfterPull(toast);
+      if (result.operation === "pull") await checkDatabaseAfterPull(toast, result.database);
     },
     onError: (error: Error) => {
       if (error.message.startsWith("Sync incomplete.")) {

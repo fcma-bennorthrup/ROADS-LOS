@@ -34,7 +34,8 @@ describe("shared loan model", () => {
   it("keeps the shared model, upgrades and procedure eligible for custom sync", () => {
     for (const path of ["shared/loan-contract.ts", "script/database.ts", "script/db-compatibility.ts",
       "script/db-upgrades/manifest.json", "script/db-upgrades/001-loan-table.sql",
-      "script/db-upgrades/002-document-version.json", "docs/database-collaboration.md", "replit.md"])
+      "script/db-upgrades/002-document-version.json", "script/db-upgrades/automatic-approvals.json",
+      "docs/database-collaboration.md", "replit.md"])
       expect(shouldIgnorePath(path)).toBe(false);
   });
 });

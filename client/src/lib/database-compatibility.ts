@@ -11,9 +11,12 @@ export async function readDatabaseCompatibility(): Promise<DatabaseCompatibility
   return result;
 }
 /** A database warning must never turn a successful code pull into 'Pull Failed'. */
-export async function checkDatabaseAfterPull(notify: (message: { title: string; description: string; variant?: "destructive" }) => unknown) {
+export async function checkDatabaseAfterPull(notify: (message: { title: string; description: string; variant?: "destructive" }) => unknown,
+  automaticResult?: DatabaseCompatibilityReport) {
   try {
-    const report = await readDatabaseCompatibility();
+    // Consume the server's post-upgrade result. GET remains strictly read-only
+    // and is only the compatibility fallback for older running server versions.
+    const report = automaticResult ?? await readDatabaseCompatibility();
     queryClient.setQueryData(DATABASE_COMPATIBILITY_KEY, report);
     if (report.status !== "compatible") notify({
       title: "Code pulled — database needs attention",
@@ -21,6 +24,6 @@ export async function checkDatabaseAfterPull(notify: (message: { title: string; 
     });
   } catch {
     notify({ title: "Code pulled — database check unavailable",
-      description: "Run npm run db:check in the project Shell. The code pull succeeded; no database changes were applied.", variant: "destructive" });
+      description: "The code pull succeeded, but database status is unconfirmed. Run npm run db:check before retrying.", variant: "destructive" });
   }
 }

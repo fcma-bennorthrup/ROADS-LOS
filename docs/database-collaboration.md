@@ -13,6 +13,15 @@ Do not move them into an excluded directory or put database exports in the repo.
 
 ## After pulling code
 
+Pulls through Prototype Admin Controls automatically check, apply exact approved
+development upgrades, and verify the result. This includes successful pull-conflict
+resolution and an already-up-to-date pull. Failed or conflicted code pulls do not
+start database upgrades. Nothing runs on pushes or push-conflict resolution.
+The server performs this work even if the browser disconnects.
+
+For pulls outside those controls, older running app versions, or a reported
+database warning, use these manual recovery steps:
+
 1. Install dependencies if the pulled package files changed.
 2. Run `npm run db:check` in the project's Shell. This checks the current pulled
    files in a read-only database transaction.
@@ -28,9 +37,21 @@ Do not move them into an excluded directory or put database exports in the repo.
 
 In Prototype Admin Controls → GitHub Sync, **Database compatibility** provides
 the same read-only check. A successful pull (including resolved pull conflicts)
-triggers a separate check and warning if needed. It does not run upgrades, undo
-the pull, or change the sync checkpoint. A fresh checker process reads the pulled
-contract rather than the running server's cached copy. The server and browser
+triggers a separate automatic development upgrade and compatibility check. Only
+pending upgrades whose exact checksums match `script/db-upgrades/automatic-approvals.json`
+can run automatically. Any unapproved step stops the entire automatic run before
+database writes. New automatic approval requires explicit review; agents must
+not automatically add new checksums to the approval file.
+
+The code checkpoint is committed first. The sync lock stays held until the
+database command completes, so another pull cannot replace its scripts mid-run.
+A database failure never undoes the code pull or rewrites its checkpoint; it
+appears separately in the response and notification. On an unconfirmed response,
+run the read-only check before retrying: the database transaction may already
+have committed. There are no automatic retries.
+
+A fresh process reads the pulled contract rather than the running server's cached
+copy. The server and browser
 must first have adopted this feature; older copies cannot run the new check
 until restarted/reloaded.
 
@@ -84,8 +105,9 @@ resolve the history deliberately and preserve their data.
 
 ## Upgrade safety
 
-`npm run db:upgrade:dev` is an explicit **development-only** operation, not a
-startup, build, deployment or post-pull hook. It uses an advisory transaction lock,
+`npm run db:upgrade:dev` remains the explicit **development-only** manual fallback.
+The successful-pull hook invokes a stricter automatic mode with checksum approvals.
+Neither mode runs during startup, build or deployment. Both use an advisory transaction lock,
 row locks, an upgrade ledger (`roads_development_upgrades`), SHA-256 checksums,
 and a single transaction. A failed transformation or final check rolls back the
 whole run. Repeating it does not reapply recorded steps.

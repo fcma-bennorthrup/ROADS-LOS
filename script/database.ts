@@ -1,11 +1,13 @@
 import pg from "pg";
-import { applyDevelopmentUpgrades, inspectDatabase, readUpgrades } from "./db-compatibility";
+import { applyDevelopmentUpgrades, assertDevelopmentUpgrade, automaticallyUpgradeDevelopment,
+  inspectDatabase, readAutomaticApprovals, readUpgrades } from "./db-compatibility";
 
 const action = process.argv[2];
 const json = process.argv.includes("--json");
 let pool: pg.Pool | undefined;
 try {
-  if (!["check", "apply"].includes(action)) throw new Error("Use check or apply.");
+  if (!["check", "apply", "auto"].includes(action)) throw new Error("Use check, apply or auto.");
+  if (action !== "check") assertDevelopmentUpgrade(process.env, process.argv.includes("--development"));
   if (!process.env.DATABASE_URL) throw new Error("A development database connection is required.");
   const upgrades = await readUpgrades();
   pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 1, connectionTimeoutMillis: 5000,
@@ -13,7 +15,8 @@ try {
   const client = await pool.connect();
   try {
     let report;
-    if (action === "apply") report = await applyDevelopmentUpgrades(client, upgrades, process.env, process.argv.includes("--development"));
+    if (action === "auto") report = await automaticallyUpgradeDevelopment(client, upgrades, await readAutomaticApprovals(), process.env);
+    else if (action === "apply") report = await applyDevelopmentUpgrades(client, upgrades, process.env, process.argv.includes("--development"));
     else {
       await client.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
       try { report = await inspectDatabase(client, upgrades); }

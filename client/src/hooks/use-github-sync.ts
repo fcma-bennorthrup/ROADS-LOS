@@ -89,7 +89,7 @@ export function useGitHubSync() {
         handleConflictResponse(result, "pull");
       } else {
         toast({ title: "Pull Complete", description: result.message });
-        await checkDatabaseAfterPull(toast);
+        await checkDatabaseAfterPull(toast, result.database);
       }
       queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { applyDevelopmentUpgrades, assertDevelopmentUpgrade, inspectDatabase, readUpgrades } from "./db-compatibility";
+import { applyDevelopmentUpgrades, assertDevelopmentUpgrade, automaticallyUpgradeDevelopment,
+  inspectDatabase, readAutomaticApprovals, readUpgrades } from "./db-compatibility";
 import { newLoanApplication } from "../shared/loan-factory";
 import type { LoanApplication } from "../shared/loan-application";
 
@@ -14,7 +15,7 @@ class FakeDb {
   backup: any;
   async query(sql: string, args: any[] = []): Promise<any> {
     this.calls.push(sql);
-    if (sql === "BEGIN") this.backup = structuredClone({ table: this.table, ledger: this.ledger, applied: this.applied, docs: this.docs });
+    if (sql.startsWith("BEGIN")) this.backup = structuredClone({ table: this.table, ledger: this.ledger, applied: this.applied, docs: this.docs });
     if (sql === "ROLLBACK") Object.assign(this, this.backup);
     if (sql.includes("to_regclass")) return { rows: [{ loans: this.table ? "table" : null, ledger: this.ledger ? "ledger" : null }] };
     if (sql.includes("SELECT id, checksum")) return { rows: structuredClone(this.applied) };
@@ -40,6 +41,47 @@ let db: FakeDb;
 beforeEach(() => { db = new FakeDb(); });
 const dev = { NODE_ENV: "development" };
 describe("development database upgrades", () => {
+  it("automatically applies only approved steps and verifies compatibility", async () => {
+    const upgrades = await readUpgrades();
+    const approvals = await readAutomaticApprovals();
+    expect((await automaticallyUpgradeDevelopment(db as any, upgrades, approvals, dev)).status).toBe("compatible");
+    expect(db.applied).toHaveLength(2);
+    db.calls = [];
+    expect((await automaticallyUpgradeDevelopment(db as any, upgrades, approvals, dev)).status).toBe("compatible");
+    expect(db.calls.some(sql => /CREATE|UPDATE|INSERT|DELETE|ALTER/.test(sql))).toBe(false);
+  });
+  it("blocks the whole automatic run if any pending upgrade lacks exact approval", async () => {
+    const upgrades = await readUpgrades();
+    const approvals = await readAutomaticApprovals();
+    for (const changed of [{}, { ...approvals, [upgrades[1].id]: "changed" }]) {
+      db.calls = [];
+      const report = await automaticallyUpgradeDevelopment(db as any, upgrades, changed, dev);
+      expect(report.status).toBe("blocked");
+      expect(db.calls.some(sql => /CREATE|UPDATE|INSERT|DELETE|ALTER/.test(sql))).toBe(false);
+      expect(db.applied).toEqual([]);
+    }
+  });
+  it("does not try to repair drift or run automatically in production", async () => {
+    const upgrades = await readUpgrades();
+    db.table = true; db.extraColumn = true;
+    expect((await automaticallyUpgradeDevelopment(db as any, upgrades, await readAutomaticApprovals(), dev)).status).toBe("blocked");
+    db.calls = [];
+    await expect(automaticallyUpgradeDevelopment(db as any, upgrades, {}, { NODE_ENV: "production" })).rejects.toThrow();
+    expect(db.calls).toEqual([]);
+  });
+  it("checks approvals again under the transaction lock before writing", async () => {
+    await expect(applyDevelopmentUpgrades(db as any, await readUpgrades(), dev, true, {})).rejects.toThrow("approval");
+    expect(db.calls.some(sql => /CREATE|UPDATE|INSERT|DELETE|ALTER/.test(sql))).toBe(false);
+  });
+  it("rolls back an automatic upgrade failure instead of recording success", async () => {
+    db.table = true; db.failUpdate = true;
+    const document = newLoanApplication({ id: "a", loanNumber: "123456790", source: "blank", borrowerCount: 2 });
+    delete document.schemaVersion;
+    db.docs = [{ loan_id: "a", document }];
+    await expect(automaticallyUpgradeDevelopment(db as any, await readUpgrades(), await readAutomaticApprovals(), dev)).rejects.toThrow();
+    expect(db.applied).toEqual([]);
+    expect(db.docs[0].document.schemaVersion).toBeUndefined();
+  });
   it("checks an empty database without issuing any mutation", async () => {
     const result = await inspectDatabase(db as any, await readUpgrades());
     expect(result.status).toBe("needs-upgrade");
