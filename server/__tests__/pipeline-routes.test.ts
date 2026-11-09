@@ -30,6 +30,31 @@ beforeEach(() => {
   db.connect.mockResolvedValue({ query: db.query, release: db.release });
 });
 describe("pipeline API", () => {
+  it.each([
+    ["Financed", "Seller", "Appraisal provider", true],
+    ["Cash", "Buyer", "", false],
+  ])("saves fee choices %s/%s and reloads them for the same loan", async (methodOfPayment, paidBy, paidTo, shoppedForProvider) => {
+    const current = document("fee-loan");
+    const fees = [{ id: "fee-1", fee: "Appraisal Fee", leAmount: "500.00", cdAmount: "510.00",
+      methodOfPayment, paidBy, paidTo, shoppedForProvider }];
+    const saved = { ...current, revision: current.revision + 1, sections: { ...current.sections, fees } };
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ document: saved }] });
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: current.generation, revision: current.revision, section: "fees", value: fees }, "fee-loan");
+    expect(result.statusCode).toBe(200);
+    expect(db.query.mock.calls[1][0]).toContain("WHERE loan_id=$1");
+    expect(db.query.mock.calls[1][1].slice(0, 3)).toEqual(["fee-loan", "fees", JSON.stringify(fees)]);
+    db.query.mockResolvedValueOnce({ rows: [{ document: saved }] });
+    const reloaded = await request("GET /api/loans/:id/application", {}, "fee-loan");
+    expect(reloaded.body.sections.fees).toEqual(fees);
+  });
+  it("rejects invalid new fee field types before any database write", async () => {
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: 0, revision: 0, section: "fees", value: [{ shoppedForProvider: "yes" }] });
+    expect(result.statusCode).toBe(400);
+    expect(db.query).not.toHaveBeenCalled();
+  });
   it("blocks frozen credit on the server without saving scores, liabilities or task progress", async () => {
     const current = document("frozen-loan");
     current.sections["credit-frozen"] = true;

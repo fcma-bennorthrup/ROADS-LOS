@@ -2,10 +2,10 @@ import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { loans, borrowers } from "./schema";
 import { LOAN_STAGES } from "./loan-stages";
+import { feeRecordSchema } from "./fees";
 import type { LoanBusinessRules } from "./business-rules";
 
 export const LOAN_DOCUMENT_VERSION = 1;
-const object = z.record(z.unknown());
 const fields = z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]));
 // Parcel is an optional text identifier (leading zeros and separators matter).
 // Existing documents without it remain valid; saves persist it in the same
@@ -28,7 +28,7 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   income,
   "current-assets": z.array(ownedRow), "noncurrent-assets": z.array(ownedRow),
   "current-liabilities": z.array(ownedRow), "noncurrent-liabilities": z.array(ownedRow),
-  fees: z.array(object),
+  fees: z.array(feeRecordSchema),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),
   "credit-frozen": z.boolean(),
   "pricing-type": z.string(), "pricing-product": z.string(),
