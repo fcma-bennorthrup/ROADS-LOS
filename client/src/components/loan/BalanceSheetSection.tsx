@@ -6,6 +6,7 @@ import { useLoanState, useLoanEditing } from "@/contexts/loan-application-contex
 
 interface AssetData {
   id: string;
+  borrowerId?: string;
   assetType: string;
   financialInstitution: string;
   accountNumber: string;
@@ -766,11 +767,27 @@ function BalanceSheetRow({
   );
 }
 
-export function BalanceSheetSection() {
-  const [currentAssets, setCurrentAssets] = useLoanState<AssetData[]>("current-assets", SAMPLE_CURRENT_ASSETS);
-  const [nonCurrentAssets, setNonCurrentAssets] = useLoanState<AssetData[]>("noncurrent-assets", SAMPLE_NON_CURRENT_ASSETS);
-  const [currentLiabilities, setCurrentLiabilities] = useLoanState<LiabilityData[]>("current-liabilities", SAMPLE_CURRENT_LIABILITIES);
-  const [nonCurrentLiabilities, setNonCurrentLiabilities] = useLoanState<LiabilityData[]>("noncurrent-liabilities", SAMPLE_NON_CURRENT_LIABILITIES);
+// Keep the loan-wide arrays for summary calculations, but scope every UI mutation
+// to the selected borrower. Older unassigned rows remain on the first borrower.
+function useBorrowerRows<T extends { borrowerId?: string }>(
+  key: string, initial: T[], borrowerId?: string, primaryBorrowerId?: string,
+): [T[], (update: (rows: T[]) => T[]) => void] {
+  const [all, setAll] = useLoanState<T[]>(key, initial);
+  const belongs = (row: T) => !borrowerId || row.borrowerId === borrowerId ||
+    (!row.borrowerId && borrowerId === primaryBorrowerId);
+  return [all.filter(belongs), update => setAll(previous => [
+    ...previous.filter(row => !belongs(row)),
+    ...update(previous.filter(belongs)).map(row => borrowerId ? { ...row, borrowerId } : row),
+  ])];
+}
+
+export function BalanceSheetSection({ borrowerId, primaryBorrowerId }: {
+  borrowerId?: string; primaryBorrowerId?: string;
+}) {
+  const [currentAssets, setCurrentAssets] = useBorrowerRows<AssetData>("current-assets", SAMPLE_CURRENT_ASSETS, borrowerId, primaryBorrowerId);
+  const [nonCurrentAssets, setNonCurrentAssets] = useBorrowerRows<AssetData>("noncurrent-assets", SAMPLE_NON_CURRENT_ASSETS, borrowerId, primaryBorrowerId);
+  const [currentLiabilities, setCurrentLiabilities] = useBorrowerRows<LiabilityData>("current-liabilities", [], borrowerId, primaryBorrowerId);
+  const [nonCurrentLiabilities, setNonCurrentLiabilities] = useBorrowerRows<LiabilityData>("noncurrent-liabilities", [], borrowerId, primaryBorrowerId);
 
   const [editTarget, setEditTarget] = useState<EditTarget>(null);
   const [assetBuffer, setAssetBuffer] = useState<AssetData | null>(null);

@@ -13,3 +13,9 @@ Shared reset/import must invalidate older clients' writes, not just clear the in
 **Why:** A collaborator can have an unsaved form open while another person replaces the application; accepting that older save would restore data the reset was intended to remove.
 
 **How to apply:** Keep replacement and its concurrency marker atomic. Reject stale saves visibly and never re-import old browser-local state after a shared reset or import.
+
+Blend imports must not populate liabilities; those come from the simulated credit pull. Borrower Financials tabs must switch both income and balance-sheet records.
+
+**Why:** The user clarified that liabilities do not come from Blend and must belong to their respective borrowers, not appear together on every tab.
+
+**How to apply:** Keep credit accounts borrower-owned and preserve other borrowers' records during balance-sheet edits. For compatibility, legacy unassigned balance-sheet rows display under the first borrower rather than being duplicated across tabs.

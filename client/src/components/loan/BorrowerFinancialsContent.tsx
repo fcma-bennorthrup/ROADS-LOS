@@ -634,7 +634,11 @@ export function BorrowerFinancialsContent() {
           ))}
         </div>
       </div>
-      <BalanceSheetSection />
+      <BalanceSheetSection
+        key={loanBorrowers?.[activeBorrowerIndex]?.id ?? activeBorrowerIndex}
+        borrowerId={loanBorrowers?.[activeBorrowerIndex]?.id}
+        primaryBorrowerId={loanBorrowers?.[0]?.id}
+      />
     </div>
   );
 }
