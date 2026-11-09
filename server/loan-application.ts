@@ -13,6 +13,7 @@ import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
+import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
 import { assertLoanDocument, LoanContractError, LOAN_DOCUMENT_VERSION, sectionSchemas } from "../shared/loan-contract";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -143,6 +144,8 @@ export function registerLoanApplicationRoutes(app: Express) {
       const { generation, revision } = parsed.data;
       if (current.generation !== generation || current.revision !== revision)
         return void res.status(409).json({ error: "The loan changed. Reload before pulling credit." });
+      if (isCreditFrozen(current))
+        return void res.status(423).json({ code: "CREDIT_FROZEN", error: CREDIT_FROZEN_MESSAGE });
       let next: LoanApplication;
       try { next = populateDemoCredit(current); }
       catch (error) { return void res.status(400).json({ error: (error as Error).message }); }

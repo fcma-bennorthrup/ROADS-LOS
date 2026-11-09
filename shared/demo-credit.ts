@@ -1,8 +1,10 @@
 import { applicationView, type LoanApplication } from "./loan-application";
 import { evaluateLoanRules } from "./business-rules";
+import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "./business-rules/credit-freeze";
 
 /** Synthetic credit accounts, not a bureau integration. Existing entries are preserved. */
 export function populateDemoCredit(current: LoanApplication): LoanApplication {
+  if (isCreditFrozen(current)) throw new Error(CREDIT_FROZEN_MESSAGE);
   if (current.sections["credit-pulled"] === true && current.sections["credit-scores"]) return current;
   const borrowers = applicationView(current).borrowers.filter(b => b.name.trim());
   if (!borrowers.length) throw new Error("Add borrower information before pulling credit.");

@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast"
-import { CircleCheck } from "lucide-react"
+import { CircleCheck, OctagonAlert } from "lucide-react"
 import {
   Toast,
   ToastClose,
@@ -15,13 +15,14 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
-        const isInformation = variant === "information"
+        const isInformation = variant === "information" || variant === "error"
+        const StatusIcon = variant === "error" ? OctagonAlert : CircleCheck
         return (
           <Toast
             key={id}
             variant={variant}
-            data-testid={isInformation ? "toast-information" : undefined}
-            role={isInformation ? "status" : undefined}
+            data-testid={variant === "error" ? "toast-error" : isInformation ? "toast-information" : undefined}
+            role={variant === "error" ? "alert" : isInformation ? "status" : undefined}
             {...props}
           >
             {isInformation && (
@@ -32,14 +33,14 @@ export function Toaster() {
                   padding: "var(--roads-spacing-component-l) 0 var(--roads-spacing-component-l) var(--roads-spacing-component-l)",
                 }}
               >
-                <CircleCheck
+                <StatusIcon
                   aria-hidden="true"
                   className="shrink-0"
                   data-testid="icon-toast-information"
                   style={{
                     width: "20px",
                     height: "20px",
-                    color: "var(--roads-text-information)",
+                    color: variant === "error" ? "var(--roads-text-error)" : "var(--roads-text-information)",
                   }}
                 />
                 <div

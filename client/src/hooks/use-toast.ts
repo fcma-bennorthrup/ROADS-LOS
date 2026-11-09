@@ -76,7 +76,12 @@ export const reducer = (state: State, action: Action): State => {
     case "ADD_TOAST":
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: [
+          ...[action.toast, ...state.toasts].filter((toast, index, list) =>
+            toast.persistent && !list.slice(0, index).some(other =>
+              other.persistent && other.title === toast.title && other.variant === toast.variant)),
+          ...[action.toast, ...state.toasts].filter(toast => !toast.persistent).slice(0, TOAST_LIMIT),
+        ],
       }
 
     case "UPDATE_TOAST":

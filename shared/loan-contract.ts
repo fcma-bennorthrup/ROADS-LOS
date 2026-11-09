@@ -30,6 +30,7 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "current-liabilities": z.array(ownedRow), "noncurrent-liabilities": z.array(ownedRow),
   fees: z.array(object),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),
+  "credit-frozen": z.boolean(),
   "pricing-type": z.string(), "pricing-product": z.string(),
   "pricing-term": z.union([z.string(), z.number(), z.null()]),
   "credit-scores": z.record(z.number().int().min(300).max(850)),

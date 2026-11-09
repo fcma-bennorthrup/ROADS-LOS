@@ -30,6 +30,18 @@ beforeEach(() => {
   db.connect.mockResolvedValue({ query: db.query, release: db.release });
 });
 describe("pipeline API", () => {
+  it("blocks frozen credit on the server without saving scores, liabilities or task progress", async () => {
+    const current = document("frozen-loan");
+    current.sections["credit-frozen"] = true;
+    const before = structuredClone(current);
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] });
+    const result = await request("POST /api/loans/:id/application/credit",
+      { generation: current.generation, revision: current.revision }, "frozen-loan");
+    expect(result.statusCode).toBe(423);
+    expect(result.body.code).toBe("CREDIT_FROZEN");
+    expect(db.query).toHaveBeenCalledTimes(1);
+    expect(current).toEqual(before);
+  });
   it.each(["001-042-A", ""])("persists parcel %j in the selected loan's property section", async parcel => {
     const current = document("parcel-loan");
     current.sections["subject-property"] = { zip: "40234", parcel: "old" };
