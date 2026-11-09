@@ -6,6 +6,7 @@ import { LoanHeader, BottomToolbar } from "./LoanHeader";
 import { LoanActivityPanel } from "./LoanActivityPanel";
 import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
 import { Button } from "@/components/ui/button";
+import { MainNavigation } from "@/components/MainNavigation";
 
 const WorkspaceLoan = createContext<LoanWithBorrowers | null>(null);
 export function useWorkspaceLoan() {
@@ -29,7 +30,8 @@ export function LoanWorkspace({ children }: { children: ReactNode }) {
   const page = location === "/" ? "summary" : location.slice(1);
   const amount = loan.summary.amountRequested;
   return <WorkspaceLoan.Provider value={loan}>
-    <div className="h-screen min-h-[100dvh] flex flex-row overflow-hidden" style={{ backgroundColor: "var(--roads-bg-page)" }} data-testid={`loan-${page}-page`}>
+    <MainNavigation loanActive />
+    <div className="roads-loan-shell h-screen min-h-[100dvh] flex flex-row overflow-hidden" style={{ backgroundColor: "var(--roads-bg-page)" }} data-testid={`loan-${page}-page`}>
       <div className="flex-1 flex flex-col min-w-0">
         <LoanHeader loanNumber={loan.loanNumber} cifNumber={loan.cifNumber} loanType={loan.loanType}
           borrowerName={loan.primaryBorrowerName}
@@ -37,7 +39,7 @@ export function LoanWorkspace({ children }: { children: ReactNode }) {
           applicationType={loan.applicationType} ecoaDaysRemaining={loan.ecoaDaysRemaining}
           tridDaysRemaining={loan.tridDaysRemaining} activeTab={tabs[location] ?? "Summary"} />
         <div className="flex flex-1 min-h-0">{children}</div>
-        <div className="fixed bottom-0 left-0 w-full z-10"><BottomToolbar /></div>
+        <div className="roads-loan-bottom-toolbar"><BottomToolbar /></div>
       </div>
       <LoanActivityPanel />
     </div>

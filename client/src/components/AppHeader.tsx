@@ -51,7 +51,7 @@ export function BreadcrumbBar({ loanNumber, activityPanelOpen, toggleActivityPan
   </div>;
 }
 
-function MoreOptionsMenu({ onGitHubSync, loanActive }: { onGitHubSync: () => void; loanActive: boolean }) {
+export function MoreOptionsMenu({ onGitHubSync, loanActive }: { onGitHubSync: () => void; loanActive: boolean }) {
   const [open, setOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

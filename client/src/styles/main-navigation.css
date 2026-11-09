@@ -1,0 +1,30 @@
+.roads-main-nav {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 80px;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--roads-spacing-component-l);
+  padding: var(--roads-spacing-component-xl) var(--roads-spacing-component-xs);
+  border-right: 1px solid var(--roads-border-subtle);
+  background: var(--roads-bg-light);
+  color: var(--roads-icon-dark);
+}
+.roads-main-nav-logo { width: 48px; height: 48px; object-fit: contain; margin-bottom: var(--roads-spacing-component-xl); }
+.roads-main-nav a, .roads-main-nav button { display: flex; align-items: center; justify-content: center; padding: var(--roads-spacing-component-xs); border-radius: var(--roads-radius-2xs); }
+.roads-main-nav svg { width: 20px; height: 20px; }
+.roads-main-nav [aria-current="page"] { color: var(--roads-icon-brand); }
+.roads-main-nav button:disabled { color: var(--roads-text-tertiary); cursor: not-allowed; }
+.roads-main-nav a:focus-visible { outline: 2px solid var(--roads-border-brand); outline-offset: var(--roads-spacing-component-2xs); }
+.roads-main-nav-error { position: fixed; left: 80px; top: 0; z-index: 50; padding: var(--roads-spacing-component-l); background: var(--roads-bg-error-subtle); color: var(--roads-text-error); }
+.roads-loan-shell { margin-left: 80px; }
+.roads-loan-bottom-toolbar { position: fixed; bottom: 0; left: 80px; right: 0; z-index: 10; }
+/* Loan forms already have their own navigation. Keep their full existing
+   phone width and use the guarded Pipeline breadcrumb at this breakpoint. */
+@media (max-width: 767px) {
+  .roads-main-nav-loan { display: none; }
+  .roads-loan-shell { margin-left: 0; }
+  .roads-loan-bottom-toolbar { left: 0; }
+}

@@ -4,6 +4,8 @@ import type { LoanStage } from "./loan-stages";
 export interface PipelineLoan {
   id: string;
   loanNumber: string;
+  cifNumber?: string;
+  additionalBorrowerCount?: number;
   primaryBorrowerName: string;
   loanType: string;
   stage: LoanStage;
@@ -19,7 +21,9 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
   const view = applicationView(document);
   if (!document.meta) throw new Error("Loan metadata must be initialized before projection.");
   return {
-    id: view.id, loanNumber: view.loanNumber, primaryBorrowerName: view.primaryBorrowerName,
+    id: view.id, loanNumber: view.loanNumber, cifNumber: view.cifNumber,
+    additionalBorrowerCount: Math.max(0, view.borrowers.length - 1),
+    primaryBorrowerName: view.primaryBorrowerName,
     loanType: view.loanType, stage: view.stage as LoanStage,
     amountRequested: view.summary.amountRequested, product: view.summary.product,
     mode: document.mode, revision: document.revision,
