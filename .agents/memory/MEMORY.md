@@ -4,3 +4,4 @@
 - [Cross-tab reset safety](cross-tab-reset-safety.md) — persist reset identity so delayed storage notifications cannot resurrect work started before a reset.
 - [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.
 - [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
+- [Prototype-only scope](prototype-scope.md) — simulation only, never production data or PII; keep recommendations proportionate to prototype needs.
