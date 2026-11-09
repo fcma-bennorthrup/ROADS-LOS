@@ -1,0 +1,6 @@
+{
+  "kind": "loan-document-version",
+  "fromVersion": 0,
+  "toVersion": 1,
+  "description": "Mark existing compatible loan documents as format 1 without changing application fields."
+}

@@ -3,6 +3,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { readGitHubSyncResponse } from "@/lib/github-response";
+import { checkDatabaseAfterPull } from "@/lib/database-compatibility";
 
 interface ConflictFile {
   path: string;
@@ -83,11 +84,12 @@ export function useGitHubSync() {
       }
       return body;
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       if (result.hasConflicts) {
         handleConflictResponse(result, "pull");
       } else {
         toast({ title: "Pull Complete", description: result.message });
+        await checkDatabaseAfterPull(toast, result.database);
       }
       queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
       queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });

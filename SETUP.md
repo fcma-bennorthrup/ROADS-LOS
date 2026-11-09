@@ -58,10 +58,11 @@ These scripts use POSIX environment-assignment syntax; native Windows-shell comp
 
 ## Data and environment
 
-- **Active loan API:** `server/loan-application.ts` reads and saves authoritative documents in PostgreSQL `prototype_loan_applications`. MemStorage provides initial loan and borrower templates only when no saved document exists.
+- **Active loan API:** `server/routes.ts` imports the `MemStorage` singleton from `server/storage.ts`. Loan and borrower seed data live in process memory and are recreated on server restart.
 - **Browser state:** checklist, activity and some document progress use browser-local storage. Other edits are component-local. A local Save is not evidence of a database write.
-- **Database requirement:** The application API uses `pg` and the existing managed `DATABASE_URL`. Run `npm run db:prepare-loans` after pulling backend changes and before starting the app. This idempotent command adds only the missing application table; it does not replace a database, reset documents, or alter other tables. The post-merge hook also runs it. Do not supply a different database to hide a schema error.
+- **Database infrastructure:** `server/db.ts`, `shared/schema.ts` and `drizzle.config.ts` exist, but the loan API does not import the database adapter. PostgreSQL provisioning is not a prerequisite for this in-memory loan path.
 - **Database command:** `npm run db:push` maps to `drizzle-kit push`. The Drizzle configuration requires `DATABASE_URL` and targets a database schema mutation. It is not a normal prototype setup step and must not be run without separate database authorization.
+- **Collaborator setup:** Follow `docs/database-collaboration.md`. App-controlled pulls automatically apply checksum-approved development upgrades and report database results separately. External pulls and older running versions use `npm run db:check` and the manual `npm run db:upgrade:dev` fallback. Restart after adopting new server code. No startup or production upgrades, database credentials, or loan data are copied by this workflow.
 - **Environment loading:** the server startup scripts do not declare a `.env` loader. Creating a `.env` file is not sufficient evidence that values will be loaded. No active loan-path use of `SESSION_SECRET` is present in the inspected server source.
 - **Sync metadata:** `.local/github-sync-state.json` and `.local/pending-conflicts.json` are filesystem state, separate from browser storage and in-memory loan data.
 

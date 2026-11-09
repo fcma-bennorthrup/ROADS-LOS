@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { DatabaseCompatibilityStatus } from "./DatabaseCompatibilityStatus";
 import { useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useGitHubSyncContext } from "@/contexts/github-sync-context";
@@ -88,6 +89,7 @@ export function GitHubSyncPanel({
           <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger>{loanActive && <TabsTrigger value="demo">Demo Controls</TabsTrigger>}</TabsList>
           {loanActive && <TabsContent value="demo"><LoanDemoControls /></TabsContent>}
           <TabsContent value="github">
+        <DatabaseCompatibilityStatus open={open && activeTab === "github"} />
         <div className="flex flex-col gap-4">
           {statusLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

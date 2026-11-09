@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { checkDatabaseAfterPull } from "@/lib/database-compatibility";
 import {
   Dialog,
   DialogContent,
@@ -203,7 +204,7 @@ export function ConflictResolutionDialog({
       });
       return await res.json();
     },
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       toast({
         title: "Conflicts Resolved",
         description: result.message,
@@ -214,6 +215,7 @@ export function ConflictResolutionDialog({
       setManualContent({});
       setSelectedFileIndex(0);
       onOpenChange(false);
+      if (result.operation === "pull") await checkDatabaseAfterPull(toast, result.database);
     },
     onError: (error: Error) => {
       if (error.message.startsWith("Sync incomplete.")) {

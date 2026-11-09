@@ -1,0 +1,7 @@
+{
+  "format": 1,
+  "upgrades": [
+    { "id": "001-loan-table", "file": "001-loan-table.sql", "kind": "sql" },
+    { "id": "002-document-version", "file": "002-document-version.json", "kind": "loan-document-version" }
+  ]
+}

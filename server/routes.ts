@@ -16,8 +16,12 @@ import { createSyncCoordinator } from "./sync-coordination";
 import { statusReadDeadline, statusLocalFiles, statusContentSize, StatusReadTimeout } from "./sync-status-read";
 import { snapshotHashes, assertLocalHashes, pendingPlanId, StaleSyncError } from "./sync-snapshot";
 import { registerLoanApplicationRoutes } from "./loan-application";
+import { upgradeDatabaseAfterPull } from "./database-compatibility";
+import { withDatabaseAfterPull } from "./sync-database-upgrades";
+import type { DatabaseCompatibilityReport } from "../shared/database-compatibility";
 
 export interface SyncRouteAdapters {
+  databaseAfterPull?: () => Promise<DatabaseCompatibilityReport>;
   filesystem: SyncFilesystem;
   github: Pick<typeof import("./github"), "githubRequest" | "getAuthenticatedUser" | "getRepository" | "createRepository" | "pushCodebase" | "pushCodebaseWithDeletions" | "getRepoTree" | "getRepoTreeAtCommit" | "getFileContent" | "getFileContentAtCommit">;
   checkpoint: Pick<typeof import("./sync-state"), "getLastSyncedCommit" | "setLastSyncedCommit">;
@@ -154,7 +158,7 @@ async function registerRoutes(
     }
   }));
 
-   app.post("/api/github/pull", coordinator.wrap(recovery.wrap("pull", async (req, res) => {
+   app.post("/api/github/pull", coordinator.wrap(withDatabaseAfterPull(recovery.wrap("pull", async (req, res) => {
     try {
       syncStatusCache = null;
       const force = req.body?.force === true;
@@ -305,7 +309,7 @@ async function registerRoutes(
     } catch (error: any) {
       res.status(error instanceof StaleSyncError ? 409 : 500).json({ error: error.message });
     }
-  })));
+  }), "pull", adapters.databaseAfterPull, () => Boolean(getPendingConflicts()))));
 
   app.post("/api/github/push", coordinator.wrap(recovery.wrap("push", async (req, res) => {
     try {
@@ -532,7 +536,7 @@ async function registerRoutes(
     operation?: string;
   }
 
-  app.post("/api/github/resolve-conflicts", coordinator.wrap(recovery.wrap("resolve-conflicts", async (req, res) => {
+  app.post("/api/github/resolve-conflicts", coordinator.wrap(withDatabaseAfterPull(recovery.wrap("resolve-conflicts", async (req, res) => {
     try {
       const rawBody = req.body;
       const resolutions: unknown[] = Array.isArray(rawBody) ? rawBody : rawBody?.resolutions;
@@ -710,7 +714,7 @@ async function registerRoutes(
       const message = error instanceof Error ? error.message : String(error);
       res.status(error instanceof StaleSyncError ? 409 : 500).json({ error: message });
     }
-  })));
+  }), "resolve-conflicts", adapters.databaseAfterPull, () => Boolean(getPendingConflicts()))));
 
   app.delete("/api/github/conflicts", coordinator.wrap(recovery.wrap("cancel-conflicts", async (_req, res) => {
     try {
@@ -729,6 +733,7 @@ return registerRoutes;
 }
 
 export const registerRoutes = createSyncRouteRegistrar({
+  databaseAfterPull: upgradeDatabaseAfterPull,
   filesystem: fs,
   github: { githubRequest, getAuthenticatedUser, getRepository, createRepository, pushCodebase, pushCodebaseWithDeletions, getRepoTree, getRepoTreeAtCommit, getFileContent, getFileContentAtCommit },
   checkpoint: { getLastSyncedCommit, setLastSyncedCommit },

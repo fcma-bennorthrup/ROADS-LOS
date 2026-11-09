@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Response } from "express";
 import pg from "pg";
 import { z } from "zod";
 import { storage } from "./storage";
@@ -13,13 +13,19 @@ import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
+import { assertLoanDocument, LoanContractError, LOAN_DOCUMENT_VERSION, sectionSchemas } from "../shared/loan-contract";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+function loanFailure(res: Response, error: unknown, fallback: string) {
+  res.status(error instanceof LoanContractError ? 409 : 503)
+    .json({ error: error instanceof LoanContractError ? error.message : fallback });
+}
 
 async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
     const document: LoanApplication = existing.rows[0].document;
+    assertLoanDocument(document, id);
     if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
@@ -41,9 +47,10 @@ async function load(id: string): Promise<LoanApplication | null> {
   const loan = await storage.getLoan(id);
   if (!loan) return null;
   const document: LoanApplication = { loan, borrowers: await storage.getBorrowersByLoanId(id),
-    mode: "existing", generation: 0, revision: 0, sections: {},
+    mode: "existing", schemaVersion: LOAN_DOCUMENT_VERSION, generation: 0, revision: 0, sections: {},
     meta: { createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), source: "seed" } };
   document.businessRules = evaluateLoanRules(document);
+  assertLoanDocument(document, id);
   await pool.query("INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING", [id, JSON.stringify(document)]);
   return (await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id])).rows[0].document;
 }
@@ -74,7 +81,7 @@ export function registerLoanApplicationRoutes(app: Express) {
       const loans = documents.filter((row): row is LoanApplication => row !== null).map(pipelineView);
       loans.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || a.loanNumber.localeCompare(b.loanNumber));
       res.set("Cache-Control", "no-store").json(loans);
-    } catch { res.status(503).json({ error: "The pipeline could not be loaded from the database." }); }
+    } catch (error) { loanFailure(res, error, "The pipeline could not be loaded from the database."); }
   });
   app.post("/api/loans", async (req, res) => {
     if (!z.object({ source: z.literal("blank") }).strict().safeParse(req.body).success)
@@ -94,15 +101,16 @@ export function registerLoanApplicationRoutes(app: Express) {
       if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
       const id = randomUUID();
       const document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      assertLoanDocument(document, id);
       const inserted = await client.query(
         "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",
         [id, JSON.stringify(document)]);
       if (!inserted.rowCount) throw new Error("Loan identity collision.");
       await client.query("COMMIT");
       res.status(201).json({ id, loanNumber });
-    } catch {
+    } catch (error) {
       if (client) await client.query("ROLLBACK").catch(() => {});
-      res.status(503).json({ error: "The loan could not be created. No success was confirmed." });
+      loanFailure(res, error, "The loan could not be created. No success was confirmed.");
     } finally { client?.release(); }
   });
   app.put("/api/loans/:id/stage", async (req, res) => {
@@ -121,7 +129,7 @@ export function registerLoanApplicationRoutes(app: Express) {
         [req.params.id, stage, generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
       res.json(result.rows[0].document);
-    } catch { res.status(503).json({ error: "The stage was not saved. Retry when the database is available." }); }
+    } catch (error) { loanFailure(res, error, "The stage was not saved. Retry when the database is available."); }
   });
   app.post("/api/loans/:id/application/credit", async (req, res) => {
     const parsed = z.object({
@@ -138,27 +146,28 @@ export function registerLoanApplicationRoutes(app: Express) {
       let next: LoanApplication;
       try { next = populateDemoCredit(current); }
       catch (error) { return void res.status(400).json({ error: (error as Error).message }); }
+      assertLoanDocument(next, current.loan.id);
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload before pulling credit." });
       res.json(result.rows[0].document);
-    } catch { res.status(503).json({ error: "Credit could not be saved. Please retry." }); }
+    } catch (error) { loanFailure(res, error, "Credit could not be saved. Please retry."); }
   });
   app.get("/api/loans/:id/application", async (req, res) => {
     try {
       const document = await load(String(req.params.id));
       if (!document) return void res.status(404).json({ error: "Loan not found" });
       res.set("Cache-Control", "no-store").json(document);
-    } catch { res.status(503).json({ error: "Loan data could not be loaded from the database." }); }
+    } catch (error) { loanFailure(res, error, "Loan data could not be loaded from the database."); }
   });
   app.get("/api/loans/:id", async (req, res) => {
     try {
       const document = await load(String(req.params.id));
       if (!document) return void res.status(404).json({ error: "Loan not found" });
       res.set("Cache-Control", "no-store").json(applicationView(document));
-    } catch { res.status(503).json({ error: "Loan data could not be loaded from the database." }); }
+    } catch (error) { loanFailure(res, error, "Loan data could not be loaded from the database."); }
   });
   app.put("/api/loans/:id/application", async (req, res) => {
     const parsed = writeSchema.safeParse(req.body);
@@ -167,6 +176,9 @@ export function registerLoanApplicationRoutes(app: Express) {
     const { section, value, generation, revision } = parsed.data;
     if (["__proto__", "constructor", "prototype"].includes(section))
       return void res.status(400).json({ error: "Invalid section." });
+    if ((Object.hasOwn(sectionSchemas, section) && !sectionSchemas[section].safeParse(value).success) ||
+        (section.startsWith("storage:") && value !== null && typeof value !== "string"))
+      return void res.status(400).json({ error: "This section does not match the shared loan data model. No changes were saved." });
     try {
       const current = await load(String(req.params.id));
       if (!current || current.generation !== generation || current.revision !== revision)
@@ -186,7 +198,7 @@ export function registerLoanApplicationRoutes(app: Express) {
         [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history), JSON.stringify(businessRules)]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
       res.json(result.rows[0].document);
-    } catch { res.status(503).json({ error: "Changes were not saved. Retry when the database is available." }); }
+    } catch (error) { loanFailure(res, error, "Changes were not saved. Retry when the database is available."); }
   });
   app.post("/api/loans/:id/application/demo", async (req, res) => {
     const parsed = actionSchema.safeParse(req.body);
@@ -199,6 +211,7 @@ export function registerLoanApplicationRoutes(app: Express) {
         if (current.generation !== generation || current.revision !== revision)
           return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
         const next = action === "checklist" ? resetChecklistData(current) : applyTridDemoAction(current, action);
+        assertLoanDocument(next, current.loan.id);
         const result = await pool.query(
           `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
            WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
@@ -212,6 +225,7 @@ export function registerLoanApplicationRoutes(app: Express) {
         if (current.businessRules?.trid.status === "satisfied")
           return void res.status(409).json({ error: "TRID is already satisfied. Reset the demo loan to start a new journey." });
         const next = triggerTridDemo(current, parsed.data.sections ?? {});
+        assertLoanDocument(next, current.loan.id);
         const result = await pool.query(
           `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
            WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
@@ -237,12 +251,13 @@ export function registerLoanApplicationRoutes(app: Express) {
         ));
       }
       next.businessRules = evaluateLoanRules(next);
+      assertLoanDocument(next, current.loan.id);
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });
       res.json(result.rows[0].document);
-    } catch { res.status(503).json({ error: "The demo action did not complete. No success was confirmed." }); }
+    } catch (error) { loanFailure(res, error, "The demo action did not complete. No success was confirmed."); }
   });
 }
