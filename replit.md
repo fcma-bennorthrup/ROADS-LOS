@@ -15,7 +15,7 @@ A living prototype of a Loan Origination System (LOS) built as a full-stack Java
 ## Tech Stack
 - **Frontend**: React, Tailwind CSS, Shadcn UI, Wouter (routing)
 - **Backend**: Express.js, Node.js
-- **Active loan storage**: Seeded, process-local MemStorage; PostgreSQL/Drizzle infrastructure exists but is not used by the loan API.
+- **Active loan storage**: PostgreSQL `prototype_loan_applications` stores authoritative loan documents. MemStorage supplies initial prototype templates only.
 - **Design System**: Extracted from Figma (ROADS-Designs)
 - **Font**: Source Sans Pro (400, 600 weights)
 - **GitHub Integration**: @replit/connectors-sdk proxy
@@ -62,7 +62,7 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
-- Currently using in-memory storage with seed data (MemStorage), recreated on server restart. Browser-local checklist/activity/document state and component-local edits have separate lifetimes; they are not database persistence.
+- Loan application documents persist in PostgreSQL across server restarts. MemStorage seed templates are used only when no saved document exists. Some browser-local and component-local state still has separate lifetimes.
 
 ## Components
 - `client/src/components/loan/LoanHeader.tsx` — Breadcrumb, 8-stage chevron stepper, metadata, tabs, exports BottomToolbar separately
@@ -86,7 +86,8 @@ server/
   github.ts            # GitHub API integration via connectors proxy
   routes.ts            # Express API routes
   storage.ts           # Data storage interface (MemStorage with seed data)
-  db.ts                # Separate database adapter, not active loan storage
+  db.ts                # Drizzle adapter; application routes use pg directly
+  loan-application.ts  # PostgreSQL-backed loan document loading and saving
 shared/
   schema.ts            # Drizzle ORM schema + Zod validation
 ```
