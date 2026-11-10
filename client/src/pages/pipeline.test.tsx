@@ -36,6 +36,24 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it("expands navigation explicitly, exposes labels, and preserves queue data", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
+  view();
+  await screen.findByTestId("pipeline-row-first");
+  const nav = screen.getByRole("navigation", { name: "Main navigation" });
+  fireEvent.mouseEnter(nav);
+  expect(screen.getByRole("button", { name: "Expand navigation" })).toHaveAttribute("aria-expanded", "false");
+  fireEvent.click(screen.getByRole("button", { name: "Expand navigation" }));
+  expect(within(nav).getByText("ROADS")).toBeInTheDocument();
+  expect(within(nav).getByText("Dashboard")).toBeInTheDocument();
+  expect(within(nav).getByText("Saved items")).toBeInTheDocument();
+  expect(within(nav).getByText("Reports")).toBeInTheDocument();
+  expect(within(nav).getByRole("button", { name: /Dashboard — unavailable/ })).toBeDisabled();
+  expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(2);
+  fireEvent.click(screen.getByRole("button", { name: "Collapse navigation" }));
+  expect(screen.getByRole("button", { name: "Expand navigation" })).toHaveAttribute("aria-expanded", "false");
+  expect(within(nav).getByRole("img", { name: "Rural 1st" })).toBeInTheDocument();
+});
 
 it.each(PIPELINE_QUEUES)("aligns every %s header with its own cell renderer", queue => {
   // Render rows in isolation for restricted queues; this must not enable assignments.

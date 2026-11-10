@@ -9,8 +9,9 @@ Playwright intercepts `/api/loans` with one synthetic Sales Support loan and
 rejects every other API request. Operations must remain empty. GitHub sync has
 an inert context, rather than a live provider that polls external services.
 
-The six Chromium cases cover All Loans, Sales Support, and Operations at
-1440px and 390px:
+The Chromium cases cover All Loans, Sales Support, and Operations at
+1440px and 390px, plus expanded navigation at 1440px, 800px, and 390px
+and footer layout with zero, one, and twenty synthetic records:
 
 - Exact header labels, readable font size, and content staying within its cell,
   including active sort arrows.
@@ -19,6 +20,10 @@ The six Chromium cases cover All Loans, Sales Support, and Operations at
 - A locally scrollable table and fully reachable Actions header/view link.
 - Search fields, custom filters, pagination, New Loan source choices/cancel,
   and the prototype admin menu remain available without creating anything.
+- Explicit hover-revealed expansion and keyboard collapse, ROADS branding,
+  and content displacement without sidebar overlap.
+- Footer after content and bottom-aligned on tall viewports with short lists;
+  decorative filler does not change actual row counts.
 
 This is geometry-based regression coverage, not pixel snapshot comparison.
 Each case writes header and right-scrolled screenshots under the ignored

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FiSearch, FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { LOAN_STAGES, type LoanStage } from "@shared/loan-stages";
 import { MoreOptionsMenu } from "@/components/AppHeader";
-import { MainNavigation } from "@/components/MainNavigation";
+import { MainNavigation, MainNavigationLayout } from "@/components/MainNavigation";
 import { PipelineFooter } from "@/components/PipelineFooter";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { NewLoanDialog } from "@/components/NewLoanDialog";
@@ -34,7 +34,7 @@ export default function PipelinePage() {
   const pagination = pipelinePage(rows, page, pageSize);
   const filtered = !!search.trim() || !!tableSearch.trim() || stages.length > 0;
   function clearFilters() { setSearch(""); setTableSearch(""); setStages([]); setPage(1); }
-  return <div className="pipeline-page" data-testid="pipeline-page">
+  return <MainNavigationLayout><div className="pipeline-page" data-testid="pipeline-page">
     <MainNavigation />
     <div className="pipeline-shell">
       <header className="pipeline-welcome">
@@ -99,7 +99,6 @@ export default function PipelinePage() {
                   </tr>;
                 })}</tbody>
               </table>
-            </div>
             {!query.isLoading && !rows.length && <section className="pipeline-state" data-testid="pipeline-empty">
               <h3 className="headline-300">{queue !== "All Loans" ? `No loans assigned to ${queue}` : filtered ? "No loans match" : "No loans yet — create the first one"}</h3>
               <p className="body-200">{filtered ? "Try another borrower, loan number, CIF, or stage." : queue === "Sales Support" ? "New SF Opportunities appear here after creation." : queue !== "All Loans" ? "Department queue assignment has not been configured. View All Loans for saved applications." : "Start with a New SF Opportunity or a Blend import."}</p>
@@ -107,6 +106,8 @@ export default function PipelinePage() {
                 : filtered ? <button className="pipeline-button pipeline-secondary body-200-strong" data-testid="clear-pipeline-filters" onClick={clearFilters}>Clear filters</button>
                 : <button className="pipeline-button body-200-strong" data-testid="create-first-loan" disabled={creating} onClick={() => setDialogOpen(true)}>New Loan</button>}
             </section>}
+              <div className="pipeline-table-filler" data-testid="pipeline-table-filler" aria-hidden="true" />
+            </div>
             <div className="pipeline-pagination caption-100">
               <label>Items per page: <select aria-label="Items per page" value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setPage(1); }}>{[10, 20, 50].map(size => <option key={size}>{size}</option>)}</select></label>
               <span role="status">{query.isLoading ? "Loading loans…" : `${rows.length} ${rows.length === 1 ? "loan" : "loans"} · Page ${pagination.page} of ${pagination.pageCount}`}</span>
@@ -120,5 +121,5 @@ export default function PipelinePage() {
       </main>
       <PipelineFooter />
     </div>
-  </div>;
+  </div></MainNavigationLayout>;
 }

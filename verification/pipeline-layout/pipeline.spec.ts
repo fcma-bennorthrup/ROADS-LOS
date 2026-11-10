@@ -16,6 +16,51 @@ const queues = [
   { id: "operations", headers: [...common, "Stage", "LO", "Closing Date", "Contract Exp Date", "TRID", "Decision", "Appraisal", "Title Work", "Actions"] },
 ];
 
+for (const viewport of [{ width: 1440, height: 1200 }, { width: 800, height: 700 }, { width: 390, height: 900 }]) {
+  test(`navigation pushes content at ${viewport.width}px`, async ({ page }, info) => {
+    await page.setViewportSize(viewport);
+    await page.route("**/api/**", route => route.fulfill({ json: [fixture] }));
+    await page.goto("/");
+    await expect(page.getByTestId("pipeline-row-layout-fixture")).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "Main navigation" });
+    const shell = page.locator(".pipeline-shell");
+    const compact = (await shell.boundingBox())!.x;
+    await nav.hover();
+    await expect(page.getByRole("button", { name: "Expand navigation" })).toHaveAttribute("aria-expanded", "false");
+    await page.getByRole("button", { name: "Expand navigation" }).click();
+    await expect(page.getByRole("button", { name: "Collapse navigation" })).toHaveAttribute("aria-expanded", "true");
+    await expect.poll(async () => (await shell.boundingBox())!.x).toBeGreaterThan(compact);
+    const navBox = (await nav.boundingBox())!;
+    const shellBox = (await shell.boundingBox())!;
+    expect(shellBox.x).toBeGreaterThanOrEqual(navBox.x + navBox.width - 1);
+    expect(shellBox.x + shellBox.width).toBeLessThanOrEqual(viewport.width + 1);
+    await expect(nav.getByText("ROADS")).toBeVisible();
+    await page.screenshot({ path: info.outputPath("expanded.png"), fullPage: true });
+    const toggle = page.getByRole("button", { name: "Collapse navigation" });
+    await toggle.focus();
+    await page.keyboard.press("Enter");
+    await expect.poll(async () => (await shell.boundingBox())!.x).toBe(compact);
+    await expect(page.getByTestId("pipeline-row-layout-fixture")).toHaveCount(1);
+  });
+}
+for (const count of [0, 1, 20]) {
+  test(`footer follows content with ${count} records`, async ({ page }, info) => {
+    await page.setViewportSize({ width: 1920, height: 1400 });
+    await page.route("**/api/**", route => route.fulfill({ json: Array.from({ length: count }, (_, i) => ({
+      ...fixture, id: `footer-${i}`, loanNumber: String(100000001 + i),
+    })) }));
+    await page.goto("/");
+    await expect(page.getByRole("status")).toContainText(`${count} ${count === 1 ? "loan" : "loans"}`);
+    const footer = (await page.locator(".pipeline-footer").boundingBox())!;
+    const content = (await page.locator(".pipeline-content").boundingBox())!;
+    expect(footer.y).toBeGreaterThanOrEqual(content.y + content.height - 1);
+    expect(footer.y + footer.height).toBeGreaterThanOrEqual(1399);
+    if (count < 2) expect(footer.y + footer.height).toBeLessThanOrEqual(1401);
+    await expect(page.locator("tr[data-loan]")).toHaveCount(count);
+    await page.screenshot({ path: info.outputPath("footer.png"), fullPage: true });
+  });
+}
+
 async function readableHeaders(headers: Locator) {
   const problems = await headers.evaluateAll(cells => cells.flatMap(cell => {
     const bounds = cell.getBoundingClientRect();
