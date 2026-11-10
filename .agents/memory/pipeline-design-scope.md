@@ -7,8 +7,8 @@ Use the ROADS-Pipeline All Loans Figma frame as the visual reference. Preserve +
 
 **Why:** The user explicitly requested these design elements and preservation rules.
 
-Leave Sales Support, Operations, Credit, and Quality Control empty for now; All Loans shows actual saved prototype loans. Do not derive department assignments from loan stages without approval.
+New SF Opportunities are now approved to appear in both All Loans and Sales Support. Existing loans are not retroactively assigned; Operations, Credit, and Quality Control remain empty. Do not derive department assignments from loan stages.
 
-**Why:** The user selected “Leave departments empty for now” when asked about assignment behavior.
+**Why:** The user initially selected “Leave departments empty for now,” then explicitly requested Sales Support membership for newly created SF opportunities.
 
-**How to apply:** Keep department counts honest and avoid copying sample loan values from the visual reference. Missing data columns can show an explicit empty value.
+**How to apply:** Keep department counts honest and avoid copying sample loan values from the visual reference. The user authorizes synthetic values for new SF opportunities: unique six-digit CIF, region 500/502/504, random borrower name, Purchase, requested amount below $444,100, Customer Application stage, LO Sarah Williams/Rylee Alcorn/Connor Welch, creation date as App Start Date, and blank Decision. Preserve older loans' unavailable values.
