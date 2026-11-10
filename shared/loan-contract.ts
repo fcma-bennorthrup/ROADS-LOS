@@ -60,7 +60,7 @@ export const loanApplicationSchema = z.object({
     source: z.enum(["seed", "blank", "blend", "sf"]),
     opportunity: z.object({
       region: z.string(), loanOfficer: z.string(), applicationDate: z.string(),
-      queue: z.string(), decision: z.string(), contractExpiryDate: z.string().optional(),
+      queue: z.literal("Sales Support"), decision: z.string(), contractExpiryDate: z.string().optional(),
     }).passthrough().optional(),
     creationAttempt: z.object({ key: z.string(), source: z.string() }).passthrough().optional(),
   }).passthrough().optional(),
