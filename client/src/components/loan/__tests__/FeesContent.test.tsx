@@ -34,6 +34,125 @@ beforeEach(() => {
 });
 
 describe("FeesContent", () => {
+  const existingFee: FeeRow = {
+    id: "edit-target", fee: "Appraisal Fee", methodOfPayment: "Financed", paidBy: "Seller",
+    paidTo: "Harbor Valuations", leAmount: "427.15", cdAmount: "438.90", shoppedForProvider: true,
+  };
+
+  async function openEditor() {
+    const user = userEvent.setup();
+    render(<FeesContent />);
+    await user.click(screen.getByTestId("button-edit-fee-edit-target"));
+    return { user, dialog: within(screen.getByRole("dialog", { name: "Edit Fee" })) };
+  }
+
+  it("opens a populated editor after the delete column and leaves table cells read-only", async () => {
+    mocks.rows = [existingFee];
+    const { dialog } = await openEditor();
+    expect(dialog.getByLabelText("Fee")).toHaveValue("Appraisal Fee");
+    expect(dialog.getByLabelText("Method of Payment")).toHaveTextContent("Financed");
+    expect(dialog.getByLabelText("Paid By")).toHaveTextContent("Seller");
+    expect(dialog.getByLabelText("Paid To")).toHaveValue("Harbor Valuations");
+    expect(dialog.getByLabelText("LE Amount")).toHaveValue("427.15");
+    expect(dialog.getByLabelText("CD Amount")).toHaveValue("438.90");
+    expect(dialog.getByRole("checkbox")).toBeChecked();
+    expect(dialog.getAllByRole("button", { name: "Close" })).toHaveLength(1);
+    expect(screen.getAllByRole("columnheader", { hidden: true }).slice(-2).map(cell => cell.getAttribute("aria-label")))
+      .toEqual(["Delete fee", "Edit fee"]);
+    expect(within(screen.getByTestId("fee-row-edit-target")).queryByRole("textbox", { hidden: true })).toBeNull();
+    expect(mocks.editing).toHaveBeenCalledWith("fee-edit-edit-target", false);
+  });
+
+  it("saves all fields as text, preserves row identity and unknown fields, and changes only the selected row", async () => {
+    const unknownFields = { importedCode: "V-178", metadata: { origin: "legacy" } };
+    const other: FeeRow = { ...existingFee, id: "untouched", fee: "Credit Report Fee" };
+    mocks.rows = [{ ...existingFee, ...unknownFields }, other];
+    const { user, dialog } = await openEditor();
+    for (const [label, value] of [
+      ["Fee", "Independent Valuation"], ["Paid To", "Pacific Appraisers"],
+      ["LE Amount", "00187.250"], ["CD Amount", "196.40"],
+    ]) {
+      await user.clear(dialog.getByLabelText(label));
+      await user.type(dialog.getByLabelText(label), value);
+    }
+    await user.click(dialog.getByLabelText("Method of Payment"));
+    await user.click(dialog.getByTestId("select-edit-method-of-payment-option-cash"));
+    await user.click(dialog.getByLabelText("Paid By"));
+    await user.click(dialog.getByTestId("select-edit-paid-by-option-buyer"));
+    await user.click(dialog.getByRole("checkbox"));
+    expect(mocks.editing).toHaveBeenCalledWith("fee-edit-edit-target", true);
+    expect(mocks.stored).toEqual([]);
+    await user.click(dialog.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.flush).toHaveBeenCalledOnce();
+    expect(mocks.stored[0]).toEqual({
+      id: existingFee.id, ...unknownFields, fee: "Independent Valuation", methodOfPayment: "Cash",
+      paidBy: "Buyer", paidTo: "Pacific Appraisers", leAmount: "00187.250", cdAmount: "196.40",
+      shoppedForProvider: false,
+    });
+    expect(mocks.stored[1]).toBe(other);
+  });
+
+  it.each(["Cancel", "Close", "Escape"])("discards edits on %s without writing or flushing", async dismissal => {
+    mocks.rows = [existingFee];
+    const { user, dialog } = await openEditor();
+    await user.type(dialog.getByLabelText("Paid To"), " discarded");
+    if (dismissal === "Escape") await user.keyboard("{Escape}");
+    else await user.click(dialog.getByRole("button", { name: dismissal }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mocks.stored).toEqual([]);
+    expect(mocks.flush).not.toHaveBeenCalled();
+    await user.click(screen.getByTestId("button-edit-fee-edit-target"));
+    expect(within(screen.getByRole("dialog")).getByLabelText("Paid To")).toHaveValue(existingFee.paidTo);
+  });
+
+  it("keeps the editor open and prevents duplicate save and dismissal until persistence completes", async () => {
+    let resolveFlush!: () => void;
+    mocks.flush.mockImplementation(() => new Promise<void>(resolve => { resolveFlush = resolve; }));
+    mocks.rows = [existingFee];
+    const { user, dialog } = await openEditor();
+    await user.click(dialog.getByRole("button", { name: "Save" }));
+    expect(dialog.getByRole("button", { name: "Saving…" })).toBeDisabled();
+    expect(dialog.getByRole("button", { name: "Cancel" })).toBeDisabled();
+    expect(dialog.getByRole("button", { name: "Close" })).toBeDisabled();
+    expect(dialog.getByLabelText("Fee")).toBeDisabled();
+    await user.click(dialog.getByRole("button", { name: "Saving…" }));
+    await user.click(dialog.getByRole("button", { name: "Cancel" }));
+    await user.click(dialog.getByRole("button", { name: "Close" }));
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(mocks.flush).toHaveBeenCalledOnce();
+    resolveFlush();
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("retains the draft on flush failure and allows an explicit retry", async () => {
+    mocks.rows = [existingFee];
+    mocks.flush.mockRejectedValueOnce(new Error("Connection unavailable")).mockResolvedValue(undefined);
+    const { user, dialog } = await openEditor();
+    await user.clear(dialog.getByLabelText("Paid To"));
+    await user.type(dialog.getByLabelText("Paid To"), "Retry recipient");
+    await user.click(dialog.getByRole("button", { name: "Save" }));
+    expect(await dialog.findByRole("alert")).toHaveTextContent("Fee not saved. Connection unavailable");
+    expect(dialog.getByLabelText("Paid To")).toHaveValue("Retry recipient");
+    expect(dialog.getByRole("button", { name: "Save" })).not.toBeDisabled();
+    await user.click(dialog.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.flush).toHaveBeenCalledTimes(2);
+    expect(mocks.stored[0].paidTo).toBe("Retry recipient");
+  });
+
+  it("opens and saves a legacy fee with missing optional fields without losing other data", async () => {
+    const { paidTo: _paidTo, shoppedForProvider: _shopped, ...legacy } = existingFee;
+    mocks.rows = [legacy];
+    const { user, dialog } = await openEditor();
+    expect(dialog.getByLabelText("Paid To")).toHaveValue("");
+    expect(dialog.getByRole("checkbox")).not.toBeChecked();
+    await user.click(dialog.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.stored).toEqual([{ ...legacy, paidTo: "", shoppedForProvider: false }]);
+  });
+
   it("starts empty with compatible defaults and ordered fields and actions", () => {
     render(<FeesContent />);
     expect(screen.queryByTestId(/^fee-row-/)).not.toBeInTheDocument();

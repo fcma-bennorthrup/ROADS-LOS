@@ -1,9 +1,10 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
-import { Check, Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2 } from "lucide-react";
 import type { FeeRow } from "@shared/fees";
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { FeeEditDialog } from "./FeeEditDialog";
 
 const FEE_OPTIONS = [
   "Appraisal Fee",
@@ -95,6 +96,7 @@ function CurrencyInput({
 
 export function FeesContent() {
   const [fees, setFees] = useLoanState<FeeRow[]>("fees", []);
+  const [editingFee, setEditingFee] = useState<FeeRow | null>(null);
   const [feeType, setFeeType] = useState("");
   const [methodOfPayment, setMethodOfPayment] = useState("Cash");
   const [paidBy, setPaidBy] = useState("Buyer");
@@ -176,8 +178,8 @@ export function FeesContent() {
         }
         .roads-fees-table-row {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 80px;
-          min-width: 1100px;
+           grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 80px 80px;
+           min-width: 1180px;
         }
         @media (max-width: 1200px) {
           .roads-fees-fields > div { flex-basis: calc((100% - 2 * var(--roads-spacing-component-3xl)) / 3); }
@@ -257,6 +259,7 @@ export function FeesContent() {
           {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
             style={{ ...cellStyle, textAlign: key === "shopped" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
           <div role="columnheader" aria-label="Delete fee" />
+          <div role="columnheader" aria-label="Edit fee" />
         </div>
         {fees.map((fee) => (
           <div key={fee.id} className="roads-fees-table-row" role="row"
@@ -281,13 +284,26 @@ export function FeesContent() {
                 <Trash2 style={{ width: 16, height: 16 }} />
               </button>
             </div>
+            <div role="cell" className="flex items-center justify-center">
+              <button type="button" onClick={() => setEditingFee(fee)} aria-label={`Edit ${fee.fee}`}
+                data-testid={`button-edit-fee-${fee.id}`}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--roads-icon-dark)",
+                  display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--roads-spacing-component-2xs)" }}>
+                <Pencil aria-hidden="true" style={{ width: 16, height: 16 }} />
+              </button>
+            </div>
           </div>
         ))}
         <div style={{
-          backgroundColor: "var(--roads-bg-light)", minWidth: 1100,
+          backgroundColor: "var(--roads-bg-light)", minWidth: 1180,
           height: 56, flexShrink: 0, borderTop: "1px solid var(--roads-border-subtle)", marginTop: "auto",
         }} data-testid="fees-table-footer" />
       </div>
+      {editingFee && <FeeEditDialog key={editingFee.id} fee={editingFee} onClose={() => setEditingFee(null)}
+        onSave={async draft => {
+          setFees(previous => previous.map(row => row.id === editingFee.id ? { ...row, ...draft } : row));
+          await applicationStore.flush();
+        }} />}
     </div>
   );
 }
