@@ -31,6 +31,12 @@ Operations uses Figma frame 1320:53127 in the same ROADS-Pipeline file, but must
 
 **How to apply:** Treat its Figma rows, dates, badges, and counts as reference-only; column styling does not authorize assignments or new business rules.
 
+The main sidebar should reveal an expand/collapse button on hover, display full page names and ROADS when expanded, and push content instead of overlaying it. Pipeline may use decorative blank rows to fill viewport space and keep the footer at the bottom.
+
+**Why:** The user explicitly requested these layout and navigation behaviors.
+
+**How to apply:** Do not auto-expand on hover; hover reveals the action. Keep filler separate from actual loan counts and saved data.
+
 Additive initialization of older opportunity metadata must participate in loan revision checks while preserving the original updated-at timestamp.
 
 **Why:** Revision checks prevent a simultaneous full-document demo action from erasing newly initialized values; retaining updated-at avoids presenting a metadata backfill as recent user activity.
