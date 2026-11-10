@@ -24,3 +24,9 @@ Sales Support uses Figma frame 1320:51595 in the same ROADS-Pipeline file. Contr
 **Why:** The user requested these Sales Support-specific columns and explicitly clarified “Random date within 90 days,” rather than exactly 90 days later.
 
 **How to apply:** Preserve a chosen date across refreshes and queue changes, and keep All Loans columns unchanged.
+
+Additive initialization of older opportunity metadata must participate in loan revision checks while preserving the original updated-at timestamp.
+
+**Why:** Revision checks prevent a simultaneous full-document demo action from erasing newly initialized values; retaining updated-at avoids presenting a metadata backfill as recent user activity.
+
+**How to apply:** Patch only missing fields against the current saved document and retry against the latest revision when another writer wins.

@@ -24,7 +24,7 @@ function view() {
 }
 it("shows saved opportunity fields and includes the same loan in Sales Support", async () => {
   const opportunity = { ...loans[0], region: "502", loanOfficer: "Sarah Williams",
-    applicationDate: "2026-10-14", decision: "", departmentQueue: "Sales Support" };
+    applicationDate: "2026-10-14", contractExpiryDate: "2026-11-15", decision: "", departmentQueue: "Sales Support" };
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([opportunity, loans[1]]))));
   view();
   await screen.findByTestId("pipeline-row-first");
@@ -32,11 +32,20 @@ it("shows saved opportunity fields and includes the same loan in Sales Support",
   const cells = within(screen.getByTestId("pipeline-row-first")).getAllByRole("cell");
   expect(cells[2]).toHaveTextContent("502");
   expect(cells[7]).toHaveTextContent("Sarah Williams");
-  expect(cells[8]).toHaveTextContent("10/14/2026");
-  expect(cells[9]).toBeEmptyDOMElement();
+  expect(screen.getAllByRole("columnheader").map(cell => cell.textContent)).toEqual([
+    "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Req Amount", "Stage", "LO",
+    "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
+  ]);
+  expect(cells).toHaveLength(13);
+  expect(cells[8]).toHaveTextContent("—");
+  expect(cells[9]).toHaveTextContent("11/15/2026");
+  expect(cells[10]).toBeEmptyDOMElement();
+  expect(cells[11]).toBeEmptyDOMElement();
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
   expect(screen.getByTestId("queue-sales-support")).toHaveTextContent("1 Loans");
   fireEvent.click(screen.getByTestId("queue-all-loans"));
+  expect(screen.queryByRole("columnheader", { name: "Contract Exp Date" })).toBeNull();
+  expect(within(screen.getByTestId("pipeline-row-first")).getAllByRole("cell")[8]).toHaveTextContent("10/14/2026");
   expect(screen.getByTestId("pipeline-row-second")).toBeInTheDocument();
 });
 it("uses only the index projection, filters with counts, sorts, and links to loans", async () => {

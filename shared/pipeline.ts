@@ -9,6 +9,7 @@ export interface PipelineLoan {
   region?: string;
   loanOfficer?: string;
   applicationDate?: string;
+  contractExpiryDate?: string;
   departmentQueue?: "Sales Support";
   decision?: string;
   primaryBorrowerName: string;
@@ -31,6 +32,7 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     region: document.meta.opportunity?.region,
     loanOfficer: document.meta.opportunity?.loanOfficer,
     applicationDate: document.meta.opportunity?.applicationDate,
+    contractExpiryDate: document.meta.opportunity?.contractExpiryDate,
     departmentQueue: document.meta.opportunity?.queue,
     decision: document.meta.opportunity?.decision,
     primaryBorrowerName: view.primaryBorrowerName,

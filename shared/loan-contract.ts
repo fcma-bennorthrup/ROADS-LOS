@@ -55,6 +55,7 @@ export const loanApplicationSchema = z.object({
       region: z.enum(["500", "502", "504"]),
       loanOfficer: z.enum(["Sarah Williams", "Rylee Alcorn", "Connor Welch"]),
       applicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      contractExpiryDate: z.string().date().optional(),
       queue: z.literal("Sales Support"),
       decision: z.literal(""),
     }).optional(),

@@ -1,6 +1,7 @@
 import { randomInt } from "node:crypto";
 import { newLoanApplication } from "../shared/loan-factory";
 import { evaluateLoanRules } from "../shared/business-rules";
+import { contractExpiry } from "./opportunity-expiry";
 
 /** Called while holding the creation transaction lock. Wrap rather than reuse a CIF. */
 export function allocateCif(used: Set<string>, start = randomInt(100000, 1000000)): string {
@@ -36,6 +37,7 @@ export function newSfOpportunity(id: string, loanNumber: string, cif: string, no
     applicationDate: new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York",
       year: "numeric", month: "2-digit", day: "2-digit" }).format(now),
     queue: "Sales Support", decision: "",
+    contractExpiryDate: contractExpiry(now.toISOString()),
   };
   document.businessRules = evaluateLoanRules(document);
   return document;

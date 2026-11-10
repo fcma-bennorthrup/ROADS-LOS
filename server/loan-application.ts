@@ -12,6 +12,7 @@ import { resetChecklistData } from "../shared/reset-checklist-data";
 import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
+import { ensureOpportunityExpiry } from "./opportunity-expiry";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { assertLoanDocument, LoanContractError, LOAN_DOCUMENT_VERSION, sectionSchemas } from "../shared/loan-contract";
@@ -25,8 +26,9 @@ function loanFailure(res: Response, error: unknown, fallback: string) {
 async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
-    const document: LoanApplication = existing.rows[0].document;
+    let document: LoanApplication = existing.rows[0].document;
     assertLoanDocument(document, id);
+    document = await ensureOpportunityExpiry(pool, document);
     if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
