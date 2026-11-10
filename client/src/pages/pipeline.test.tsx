@@ -36,6 +36,28 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it("shows a newly created SF row on Pipeline even from a filtered empty department", async () => {
+  let saved = [...loans];
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, options?: RequestInit) => {
+    if (options?.method === "POST") {
+      saved = [{ ...loans[0], id: "new-sf", primaryBorrowerName: "New Borrower",
+        updatedAt: "2099-01-01T00:00:00Z", stage: "Customer Application" }, ...saved];
+      return new Response(JSON.stringify({ id: "new-sf", loanNumber: "123456790" }), { status: 201 });
+    }
+    return new Response(JSON.stringify(saved));
+  }));
+  const { history } = view();
+  await screen.findByTestId("pipeline-row-first");
+  fireEvent.click(screen.getByTestId("queue-operations"));
+  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "no match" } });
+  fireEvent.click(screen.getByTestId("button-new-loan"));
+  fireEvent.click(screen.getByTestId("confirm-new-loan"));
+  expect(await screen.findByTestId("pipeline-row-new-sf")).toBeVisible();
+  expect(screen.getByTestId("queue-all-loans")).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByTestId("input-pipeline-search")).toHaveValue("");
+  expect(history).toEqual(["/pipeline"]);
+  expect(screen.queryByTestId("new-loan-dialog")).not.toBeInTheDocument();
+});
 it("expands navigation explicitly, exposes labels, and preserves queue data", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
   view();

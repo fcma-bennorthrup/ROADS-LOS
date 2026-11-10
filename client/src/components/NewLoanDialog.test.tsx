@@ -43,13 +43,19 @@ it("retains a failed Blend blank and retries the import without another creation
   expect(install).not.toHaveBeenCalled();
   expect(busy).toHaveBeenLastCalledWith(false);
 });
-it("creates an SF opportunity and navigates directly to borrower editing", async () => {
+it("creates an SF opportunity and stays on Pipeline ready for another creation", async () => {
   const { hook, history } = memoryLocation({ path: "/pipeline", record: true });
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ id: "blank", loanNumber: "123456791" }), { status: 201 })));
-  render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={() => {}} /></Router>);
+  const created = vi.fn();
+  render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={() => {}} onSfCreated={created} /></Router>);
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  await waitFor(() => expect(history.at(-1)).toBe("/loans/blank/origination?section=Borrower%20Information"));
+  await waitFor(() => expect(created).toHaveBeenCalledWith({ id: "blank", loanNumber: "123456791" }));
+  expect(history).toEqual(["/pipeline"]);
   expect(fetch).toHaveBeenCalledTimes(1);
+  const firstKey = JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string).idempotencyKey;
+  fireEvent.click(screen.getByTestId("confirm-new-loan"));
+  await waitFor(() => expect(created).toHaveBeenCalledTimes(2));
+  expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]!.body as string).idempotencyKey).not.toBe(firstKey);
   expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)).toEqual({
     source: "sf", idempotencyKey: expect.any(String),
   });
@@ -67,7 +73,8 @@ it("reuses the attempt after a lost response and locks the original source", asy
   expect(await screen.findByRole("alert")).toHaveTextContent("Response lost");
   expect(screen.getByTestId("source-blend")).toBeDisabled();
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  await waitFor(() => expect(history.at(-1)).toContain("/loans/original/"));
+  await waitFor(() => expect(screen.getByTestId("source-sf")).toBeEnabled());
+  expect(history).toEqual(["/pipeline"]);
   expect(bodies).toHaveLength(2);
   expect(bodies[1]).toEqual(bodies[0]);
   expect(bodies[0].idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);

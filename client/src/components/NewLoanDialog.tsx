@@ -5,8 +5,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { applicationRequest } from "@/lib/loan-application-store";
 
 interface CreatedLoan { id: string; loanNumber: string }
-export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
+export function NewLoanDialog({ open, onOpenChange, onBusyChange, onSfCreated }: {
   open: boolean; onOpenChange: (open: boolean) => void; onBusyChange: (busy: boolean) => void;
+  onSfCreated?: (loan: CreatedLoan) => void;
 }) {
   const [, navigate] = useLocation();
   const [source, setSource] = useState<"sf" | "blend">("sf");
@@ -45,7 +46,13 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
       }
       await queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
       onOpenChange(false);
-      navigate(`~/loans/${encodeURIComponent(loan.id)}${source === "sf" ? "/origination?section=Borrower%20Information" : ""}`);
+      if (source === "sf") {
+        onSfCreated?.(loan);
+        retained.current = null; attemptKey.current = null;
+        setCreated(null); setAttempted(false);
+      } else {
+        navigate(`~/loans/${encodeURIComponent(loan.id)}`);
+      }
     } catch (error) {
       setError((error as Error).message);
       void queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });

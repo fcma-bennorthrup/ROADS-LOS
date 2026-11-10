@@ -116,7 +116,11 @@ export default function PipelinePage() {
             </div>
           </>}
         </section>
-        <NewLoanDialog open={dialogOpen} onOpenChange={setDialogOpen} onBusyChange={setCreating} />
+        <NewLoanDialog open={dialogOpen} onOpenChange={setDialogOpen} onBusyChange={setCreating}
+          onSfCreated={() => {
+            if (queue !== "Sales Support") setQueue("All Loans");
+            clearFilters(); setSort("updatedAt"); setDirection("desc");
+          }} />
         <GitHubSyncPanel open={syncOpen} onOpenChange={setSyncOpen} loanActive={false} />
       </main>
       <PipelineFooter />
