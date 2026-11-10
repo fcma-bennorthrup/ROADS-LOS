@@ -46,7 +46,7 @@ describe("FeesContent", () => {
     return { user, dialog: within(screen.getByRole("dialog", { name: "Edit Fee" })) };
   }
 
-  it("opens a populated editor after the delete column and leaves table cells read-only", async () => {
+  it("groups delete and edit in one action column and leaves table cells read-only", async () => {
     mocks.rows = [existingFee];
     const { dialog } = await openEditor();
     expect(dialog.getByLabelText("Fee")).toHaveValue("Appraisal Fee");
@@ -57,8 +57,13 @@ describe("FeesContent", () => {
     expect(dialog.getByLabelText("CD Amount")).toHaveValue("438.90");
     expect(dialog.getByRole("checkbox")).toBeChecked();
     expect(dialog.getAllByRole("button", { name: "Close" })).toHaveLength(1);
-    expect(screen.getAllByRole("columnheader", { hidden: true }).slice(-2).map(cell => cell.getAttribute("aria-label")))
-      .toEqual(["Delete fee", "Edit fee"]);
+    expect(screen.getAllByRole("columnheader", { hidden: true }).slice(-1).map(cell => cell.getAttribute("aria-label")))
+      .toEqual(["Actions"]);
+    const editButton = screen.getAllByTestId(/^button-edit-fee-/)[0];
+    const actions = editButton.parentElement!;
+    expect(within(actions).getAllByRole("button", { hidden: true })).toHaveLength(2);
+    expect(actions.style.gap).toBe("var(--roads-spacing-component-m)");
+    expect(actions.style.padding).toBe("var(--roads-spacing-component-xs) var(--roads-spacing-component-l)");
     expect(within(screen.getByTestId("fee-row-edit-target")).queryByRole("textbox", { hidden: true })).toBeNull();
     expect(mocks.editing).toHaveBeenCalledWith("fee-edit-edit-target", false);
   });

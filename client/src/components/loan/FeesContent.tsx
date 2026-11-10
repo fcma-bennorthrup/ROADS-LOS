@@ -178,8 +178,8 @@ export function FeesContent() {
         }
         .roads-fees-table-row {
           display: grid;
-           grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 80px 80px;
-           min-width: 1180px;
+          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 76px;
+          min-width: 1096px;
         }
         @media (max-width: 1200px) {
           .roads-fees-fields > div { flex-basis: calc((100% - 2 * var(--roads-spacing-component-3xl)) / 3); }
@@ -258,8 +258,7 @@ export function FeesContent() {
         <div className="roads-fees-table-row" role="row" style={{ backgroundColor: "var(--roads-bg-light)" }}>
           {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
             style={{ ...cellStyle, textAlign: key === "shopped" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
-          <div role="columnheader" aria-label="Delete fee" />
-          <div role="columnheader" aria-label="Edit fee" />
+          <div role="columnheader" aria-label="Actions" />
         </div>
         {fees.map((fee) => (
           <div key={fee.id} className="roads-fees-table-row" role="row"
@@ -273,29 +272,29 @@ export function FeesContent() {
             <div role="cell" className="flex items-center justify-center" aria-label={fee.shoppedForProvider ? "Shopped for Provider" : "Not shopped for Provider"}>
               {fee.shoppedForProvider && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-shopped-${fee.id}`} />}
             </div>
-            <div role="cell" className="flex items-center justify-center">
+            <div role="cell" className="flex items-center justify-center"
+              data-testid={`fee-actions-${fee.id}`}
+              style={{ gap: "var(--roads-spacing-component-m)", padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)" }}>
               <button type="button" onClick={() => updateFees(fees.filter((row) => row.id !== fee.id))}
                 aria-label={`Delete ${fee.fee}`}
                 style={{
                   background: "none", border: "none", cursor: "pointer", color: "var(--roads-text-error)",
-                  display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--roads-spacing-component-2xs)",
+                  display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
                 }}
                 data-testid={`button-delete-fee-${fee.id}`}>
                 <Trash2 style={{ width: 16, height: 16 }} />
               </button>
-            </div>
-            <div role="cell" className="flex items-center justify-center">
               <button type="button" onClick={() => setEditingFee(fee)} aria-label={`Edit ${fee.fee}`}
                 data-testid={`button-edit-fee-${fee.id}`}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "var(--roads-icon-dark)",
-                  display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--roads-spacing-component-2xs)" }}>
+                  display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
                 <Pencil aria-hidden="true" style={{ width: 16, height: 16 }} />
               </button>
             </div>
           </div>
         ))}
         <div style={{
-          backgroundColor: "var(--roads-bg-light)", minWidth: 1180,
+          backgroundColor: "var(--roads-bg-light)", minWidth: 1096,
           height: 56, flexShrink: 0, borderTop: "1px solid var(--roads-border-subtle)", marginTop: "auto",
         }} data-testid="fees-table-footer" />
       </div>
