@@ -22,6 +22,23 @@ function view() {
   const rendered = render(<QueryClientProvider client={queryClient}><Router hook={location.hook}><PipelinePage /></Router></QueryClientProvider>);
   return { ...location, ...rendered };
 }
+it("shows saved opportunity fields and includes the same loan in Sales Support", async () => {
+  const opportunity = { ...loans[0], region: "502", loanOfficer: "Sarah Williams",
+    applicationDate: "2026-10-14", decision: "", departmentQueue: "Sales Support" };
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([opportunity, loans[1]]))));
+  view();
+  await screen.findByTestId("pipeline-row-first");
+  fireEvent.click(screen.getByTestId("queue-sales-support"));
+  const cells = within(screen.getByTestId("pipeline-row-first")).getAllByRole("cell");
+  expect(cells[2]).toHaveTextContent("502");
+  expect(cells[7]).toHaveTextContent("Sarah Williams");
+  expect(cells[8]).toHaveTextContent("10/14/2026");
+  expect(cells[9]).toBeEmptyDOMElement();
+  expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
+  expect(screen.getByTestId("queue-sales-support")).toHaveTextContent("1 Loans");
+  fireEvent.click(screen.getByTestId("queue-all-loans"));
+  expect(screen.getByTestId("pipeline-row-second")).toBeInTheDocument();
+});
 it("uses only the index projection, filters with counts, sorts, and links to loans", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
   const install = vi.spyOn(applicationStore, "install");
@@ -60,7 +77,7 @@ it("renders the exact Figma columns and real queue counts without fabricating as
   for (const department of ["sales-support", "operations", "credit", "quality-control"]) {
     expect(screen.getByTestId(`queue-${department}`)).toHaveTextContent("0 Loans");
     fireEvent.click(screen.getByTestId(`queue-${department}`));
-    expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("Department queue assignment has not been configured");
+    expect(screen.getByTestId("pipeline-empty")).toHaveTextContent(department === "sales-support" ? "New SF Opportunities appear here" : "Department queue assignment has not been configured");
     expect(screen.queryByTestId("pipeline-row-first")).toBeNull();
   }
   fireEvent.click(screen.getByRole("button", { name: "View All Loans" }));
@@ -85,7 +102,7 @@ it("preserves new loan and prototype admin entry points on Pipeline", async () =
   view();
   await screen.findByTestId("pipeline-row-first");
   fireEvent.click(screen.getByTestId("button-new-loan"));
-  expect(screen.getByTestId("source-blank")).toBeChecked();
+  expect(screen.getByTestId("source-sf")).toBeChecked();
   expect(screen.getByTestId("source-blend")).toBeInTheDocument();
   fireEvent.click(screen.getByTestId("cancel-new-loan"));
   fireEvent.click(screen.getByTestId("button-more-options"));

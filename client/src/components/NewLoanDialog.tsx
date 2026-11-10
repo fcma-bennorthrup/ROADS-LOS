@@ -9,7 +9,7 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
   open: boolean; onOpenChange: (open: boolean) => void; onBusyChange: (busy: boolean) => void;
 }) {
   const [, navigate] = useLocation();
-  const [source, setSource] = useState<"blank" | "blend">("blank");
+  const [source, setSource] = useState<"sf" | "blend">("sf");
   const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -22,7 +22,7 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
     try {
       let loan = retained.current;
       if (!loan) {
-        const response = await apiRequest("POST", "/api/loans", { source: "blank" });
+        const response = await apiRequest("POST", "/api/loans", { source: source === "sf" ? "sf" : "blank" });
         loan = await response.json() as CreatedLoan;
         retained.current = loan; setCreated(loan);
         // Even a failed import must expose the retained blank in the index.
@@ -39,7 +39,7 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
       }
       await queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
       onOpenChange(false);
-      navigate(`~/loans/${encodeURIComponent(loan.id)}${source === "blank" ? "/origination?section=Borrower%20Information" : ""}`);
+      navigate(`~/loans/${encodeURIComponent(loan.id)}${source === "sf" ? "/origination?section=Borrower%20Information" : ""}`);
     } catch (error) {
       setError((error as Error).message);
       void queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
@@ -49,12 +49,12 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
     <DialogContent style={{ background: "var(--roads-bg-primary)", color: "var(--roads-text-primary)" }} data-testid="new-loan-dialog">
       <DialogHeader>
         <DialogTitle className="headline-200">New loan</DialogTitle>
-        <DialogDescription className="body-200" style={{ color: "var(--roads-text-secondary)" }}>Start a blank application or import synthetic Blend data.</DialogDescription>
+        <DialogDescription className="body-200" style={{ color: "var(--roads-text-secondary)" }}>Create a simulated SF opportunity or import synthetic Blend data.</DialogDescription>
       </DialogHeader>
       <form className="pipeline-form body-100" onSubmit={event => { event.preventDefault(); void create(); }}>
         <fieldset disabled={busy || !!created}>
           <legend className="body-200-strong">Application source</legend>
-          <label><input data-testid="source-blank" type="radio" name="new-loan-source" checked={source === "blank"} onChange={() => setSource("blank")} />Blank application</label>
+          <label><input data-testid="source-sf" type="radio" name="new-loan-source" checked={source === "sf"} onChange={() => setSource("sf")} />New SF Opportunity</label>
           <label><input data-testid="source-blend" type="radio" name="new-loan-source" checked={source === "blend"} onChange={() => setSource("blend")} />Blend import</label>
         </fieldset>
         {source === "blend" && <fieldset disabled={busy || !!created}>

@@ -16,11 +16,11 @@ const columns: { key: string; sort?: PipelineSort; label: string; width: number 
   { key: "loanNumber", sort: "loanNumber", label: "Loan Number", width: 125 },
   { key: "cifNumber", sort: "cifNumber", label: "CIF", width: 80 },
   { key: "region", label: "Region", width: 80 },
-  { key: "primaryBorrowerName", sort: "primaryBorrowerName", label: "Borrower Name", width: 386 },
+  { key: "primaryBorrowerName", sort: "primaryBorrowerName", label: "Borrower Name", width: 278 },
   { key: "loanType", sort: "loanType", label: "Loan Purpose", width: 230 },
   { key: "amountRequested", sort: "amountRequested", label: "Req Amount", width: 242 },
   { key: "stage", sort: "stage", label: "Stage", width: 230 },
-  { key: "officer", label: "LO", width: 52 },
+  { key: "officer", label: "LO", width: 160 },
   { key: "applicationDate", label: "App Start Date", width: 151 },
   { key: "decision", label: "Decision", width: 112 },
   { key: "actions", label: "Actions", width: 104 },
@@ -113,14 +113,14 @@ export default function PipelinePage() {
                   return <tr key={loan.id} data-loan={loan.id} data-testid={`pipeline-row-${loan.id}`}>
                     <td><Link className="body-200-strong" data-testid={`open-loan-${loan.id}`} href={`~/loans/${encodeURIComponent(loan.id)}`}>{loan.loanNumber}</Link></td>
                     <td>{loan.cifNumber || <Unavailable field="CIF" />}</td>
-                    <td><Unavailable field="Region" /></td>
+                    <td>{loan.region ?? <Unavailable field="Region" />}</td>
                     <td>{loan.primaryBorrowerName || <Unavailable field="Borrower name" />}{!!loan.additionalBorrowerCount && <span className="pipeline-additional caption-100" aria-label={`${loan.additionalBorrowerCount} additional borrowers`}>+{loan.additionalBorrowerCount}</span>}</td>
                     <td>{loan.loanType || <Unavailable field="Loan purpose" />}</td>
                     <td>{loan.amountRequested === null ? <Unavailable field="Requested amount" /> : formatCurrency(String(loan.amountRequested))}</td>
                     <td>{loan.stage}</td>
-                    <td><Unavailable field="Loan officer" /></td>
-                    <td><Unavailable field="Application start date" /></td>
-                    <td><Unavailable field="Decision" /></td>
+                    <td>{loan.loanOfficer ?? <Unavailable field="Loan officer" />}</td>
+                    <td>{loan.applicationDate ? loan.applicationDate.split("-").slice(1).concat(loan.applicationDate.slice(0, 4)).join("/") : <Unavailable field="Application start date" />}</td>
+                    <td>{loan.decision ?? <Unavailable field="Decision" />}</td>
                     <td><div className="pipeline-row-actions">
                       <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>
                       <Link href={`~/loans/${encodeURIComponent(loan.id)}`} aria-label={`View loan ${loan.loanNumber}`} title="View loan"><FiEye aria-hidden /></Link>
@@ -132,7 +132,7 @@ export default function PipelinePage() {
             </div>
             {!query.isLoading && !rows.length && <section className="pipeline-state" data-testid="pipeline-empty">
               <h3 className="headline-300">{queue !== "All Loans" ? `No loans assigned to ${queue}` : filtered ? "No loans match" : "No loans yet — create the first one"}</h3>
-              <p className="body-200">{queue !== "All Loans" ? "Department queue assignment has not been configured. View All Loans for saved applications." : filtered ? "Try another borrower, loan number, CIF, or stage." : "Start with a blank application or a Blend import."}</p>
+              <p className="body-200">{filtered ? "Try another borrower, loan number, CIF, or stage." : queue === "Sales Support" ? "New SF Opportunities appear here after creation." : queue !== "All Loans" ? "Department queue assignment has not been configured. View All Loans for saved applications." : "Start with a New SF Opportunity or a Blend import."}</p>
               {queue !== "All Loans" ? <button className="pipeline-button pipeline-secondary body-200-strong" onClick={() => { setQueue("All Loans"); clearFilters(); }}>View All Loans</button>
                 : filtered ? <button className="pipeline-button pipeline-secondary body-200-strong" data-testid="clear-pipeline-filters" onClick={clearFilters}>Clear filters</button>
                 : <button className="pipeline-button body-200-strong" data-testid="create-first-loan" disabled={creating} onClick={() => setDialogOpen(true)}>New Loan</button>}

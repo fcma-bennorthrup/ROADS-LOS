@@ -6,6 +6,11 @@ export interface PipelineLoan {
   loanNumber: string;
   cifNumber?: string;
   additionalBorrowerCount?: number;
+  region?: string;
+  loanOfficer?: string;
+  applicationDate?: string;
+  departmentQueue?: "Sales Support";
+  decision?: string;
   primaryBorrowerName: string;
   loanType: string;
   stage: LoanStage;
@@ -23,6 +28,11 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
   return {
     id: view.id, loanNumber: view.loanNumber, cifNumber: view.cifNumber,
     additionalBorrowerCount: Math.max(0, view.borrowers.length - 1),
+    region: document.meta.opportunity?.region,
+    loanOfficer: document.meta.opportunity?.loanOfficer,
+    applicationDate: document.meta.opportunity?.applicationDate,
+    departmentQueue: document.meta.opportunity?.queue,
+    decision: document.meta.opportunity?.decision,
     primaryBorrowerName: view.primaryBorrowerName,
     loanType: view.loanType, stage: view.stage as LoanStage,
     amountRequested: view.summary.amountRequested, product: view.summary.product,

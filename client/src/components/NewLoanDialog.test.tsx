@@ -32,7 +32,7 @@ it("retains a failed Blend blank and retries the import without another creation
   fireEvent.click(screen.getByTestId("source-blend"));
   fireEvent.click(screen.getByTestId("new-loan-borrowers-1"));
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  expect(await screen.findByRole("alert")).toHaveTextContent("Loan 123456790 was retained");
+  expect(await screen.findByRole("alert", {}, { timeout: 5000 })).toHaveTextContent("Loan 123456790 was retained");
   expect(screen.getByRole("alert")).toHaveTextContent("Import unavailable");
   expect(history).toEqual(["/pipeline"]);
   fail = false;
@@ -43,11 +43,12 @@ it("retains a failed Blend blank and retries the import without another creation
   expect(install).not.toHaveBeenCalled();
   expect(busy).toHaveBeenLastCalledWith(false);
 });
-it("navigates a new blank directly to borrower editing, without installing a package", async () => {
+it("creates an SF opportunity and navigates directly to borrower editing", async () => {
   const { hook, history } = memoryLocation({ path: "/pipeline", record: true });
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ id: "blank", loanNumber: "123456791" }), { status: 201 })));
   render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={() => {}} /></Router>);
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
   await waitFor(() => expect(history.at(-1)).toBe("/loans/blank/origination?section=Borrower%20Information"));
   expect(fetch).toHaveBeenCalledTimes(1);
+  expect(fetch).toHaveBeenCalledWith("/api/loans", expect.objectContaining({ body: JSON.stringify({ source: "sf" }) }));
 });

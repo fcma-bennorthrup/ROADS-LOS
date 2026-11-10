@@ -11,6 +11,7 @@ import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
 import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
+import { allocateCif, newSfOpportunity } from "./sf-opportunity";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { assertLoanDocument, LoanContractError, LOAN_DOCUMENT_VERSION, sectionSchemas } from "../shared/loan-contract";
@@ -84,8 +85,8 @@ export function registerLoanApplicationRoutes(app: Express) {
     } catch (error) { loanFailure(res, error, "The pipeline could not be loaded from the database."); }
   });
   app.post("/api/loans", async (req, res) => {
-    if (!z.object({ source: z.literal("blank") }).strict().safeParse(req.body).success)
-      return void res.status(400).json({ error: "Choose a blank application to create a loan." });
+    if (!z.object({ source: z.enum(["blank", "sf"]) }).strict().safeParse(req.body).success)
+      return void res.status(400).json({ error: "Choose a supported application source to create a loan." });
     let client: pg.PoolClient | undefined;
     try {
       await load("1");
@@ -100,7 +101,14 @@ export function registerLoanApplicationRoutes(app: Express) {
       const loanNumber = String(allocation.rows[0].number);
       if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
       const id = randomUUID();
-      const document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      let document: LoanApplication;
+      if (req.body.source === "sf") {
+        const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
+        const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
+        document = newSfOpportunity(id, loanNumber, cif);
+      } else {
+        document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      }
       assertLoanDocument(document, id);
       const inserted = await client.query(
         "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",

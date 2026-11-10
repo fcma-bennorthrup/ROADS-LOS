@@ -30,6 +30,55 @@ beforeEach(() => {
   db.connect.mockResolvedValue({ query: db.query, release: db.release });
 });
 describe("pipeline API", () => {
+  it("serializes simultaneous opportunity allocations and preserves both inserts", async () => {
+    const saved: any[] = [document()];
+    let tail = Promise.resolve();
+    db.query.mockImplementation(async () => ({ rows: [{ document: saved[0] }] }));
+    db.connect.mockImplementation(async () => {
+      let unlock: () => void = () => {};
+      return {
+        release: vi.fn(),
+        query: async (sql: string, args?: any[]) => {
+          if (sql.includes("pg_advisory_xact_lock")) {
+            const previous = tail;
+            tail = new Promise<void>(resolve => { unlock = resolve; });
+            await previous;
+          } else if (sql.includes("GREATEST")) {
+            return { rows: [{ number: String(123456789 + saved.length) }] };
+          } else if (sql.includes(" AS cif")) {
+            return { rows: saved.map(document => ({ cif: document.loan.cifNumber })) };
+          } else if (sql.startsWith("INSERT")) {
+            saved.push(JSON.parse(args![1]));
+            return { rowCount: 1, rows: [] };
+          } else if (sql === "COMMIT" || sql === "ROLLBACK") unlock();
+          return { rows: [] };
+        },
+      };
+    });
+    const results = await Promise.all([request("POST /api/loans", { source: "sf" }), request("POST /api/loans", { source: "sf" })]);
+    expect(results.map(result => result.statusCode)).toEqual([201, 201]);
+    expect(saved).toHaveLength(3);
+    expect(new Set(saved.slice(1).map(app => app.loan.cifNumber)).size).toBe(2);
+    expect(new Set(saved.slice(1).map(app => app.loan.loanNumber)).size).toBe(2);
+  });
+  it("allocates SF CIFs only after locking and commits the generated document", async () => {
+    db.query.mockResolvedValueOnce({ rows: [{ document: document() }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ number: "123456790" }] })
+      .mockResolvedValueOnce({ rows: [{ cif: "100000" }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    const result = await request("POST /api/loans", { source: "sf" });
+    expect(result.statusCode).toBe(201);
+    expect(db.query.mock.calls[2][0]).toContain("pg_advisory_xact_lock");
+    expect(db.query.mock.calls[4][0]).toContain("cifNumber");
+    const saved = JSON.parse(db.query.mock.calls[5][1][1]);
+    expect(saved.loan.cifNumber).toMatch(/^[1-9]\d{5}$/);
+    expect(saved.loan.cifNumber).not.toBe("100000");
+    expect(saved.meta.opportunity.queue).toBe("Sales Support");
+    expect(db.query.mock.calls[6][0]).toBe("COMMIT");
+  });
   it("rejects malformed sections before a database write", async () => {
     const result = await request("PUT /api/loans/:id/application", {
       generation: 0, revision: 0, section: "current-liabilities", value: "invalid",

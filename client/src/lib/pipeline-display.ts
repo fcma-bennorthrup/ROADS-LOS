@@ -5,10 +5,9 @@ export type PipelineSort = "loanNumber" | "cifNumber" | "primaryBorrowerName" | 
 export const PIPELINE_QUEUES = ["All Loans", "Sales Support", "Operations", "Credit", "Quality Control"] as const;
 export type PipelineQueue = typeof PIPELINE_QUEUES[number];
 export type DepartmentQueue = Exclude<PipelineQueue, "All Loans">;
-// Department membership is intentionally unassigned until a queue rule is approved.
-// Plug the approved assignment resolver in here; never derive departments from stages.
+// Only explicitly saved assignments determine department membership, never stages.
 export function queueLoans(rows: PipelineLoan[], queue: PipelineQueue,
-  assignment: (loan: PipelineLoan) => DepartmentQueue | undefined = () => undefined) {
+  assignment: (loan: PipelineLoan) => DepartmentQueue | undefined = loan => loan.departmentQueue) {
   return queue === "All Loans" ? rows : rows.filter(loan => assignment(loan) === queue);
 }
 export function pipelinePage<T>(rows: T[], requestedPage: number, pageSize: number) {

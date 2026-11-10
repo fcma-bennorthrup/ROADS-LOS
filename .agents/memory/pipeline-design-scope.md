@@ -12,3 +12,9 @@ New SF Opportunities are now approved to appear in both All Loans and Sales Supp
 **Why:** The user initially selected “Leave departments empty for now,” then explicitly requested Sales Support membership for newly created SF opportunities.
 
 **How to apply:** Keep department counts honest and avoid copying sample loan values from the visual reference. The user authorizes synthetic values for new SF opportunities: unique six-digit CIF, region 500/502/504, random borrower name, Purchase, requested amount below $444,100, Customer Application stage, LO Sarah Williams/Rylee Alcorn/Connor Welch, creation date as App Start Date, and blank Decision. Preserve older loans' unavailable values.
+
+Use the Eastern calendar day for the new opportunity's application date and preserve it as a date-only value.
+
+**Why:** A creation instant near UTC midnight should not display a different application date from the prototype user's America/New_York day.
+
+**How to apply:** Do not recompute the date on rendering or convert the saved day through a browser-local midnight timestamp.
