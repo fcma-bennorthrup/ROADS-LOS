@@ -22,6 +22,45 @@ function view() {
   const rendered = render(<QueryClientProvider client={queryClient}><Router hook={location.hook}><PipelinePage /></Router></QueryClientProvider>);
   return { ...location, ...rendered };
 }
+const operationsHeaders = [
+  "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Stage", "LO",
+  "Closing Date", "Contract Exp Date", "TRID", "Decision", "Appraisal", "Title Work", "Actions",
+];
+it("keeps Operations empty with its own exact columns when saved loans exist", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
+    { ...loans[0], departmentQueue: "Sales Support" }, loans[1],
+  ]))));
+  view();
+  await screen.findByTestId("pipeline-row-first");
+  fireEvent.click(screen.getByTestId("queue-operations"));
+  expect(screen.getAllByRole("columnheader").map(cell => cell.textContent)).toEqual(operationsHeaders);
+  expect(screen.queryAllByTestId(/^pipeline-row-/)).toHaveLength(0);
+  expect(screen.getByTestId("queue-operations")).toHaveTextContent("0 Loans");
+  expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans assigned to Operations");
+  expect(screen.queryByRole("button", { name: "Closing Date" })).toBeNull();
+  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "Avery" } });
+  fireEvent.click(screen.getByRole("button", { name: "Custom Filter" }));
+  fireEvent.click(screen.getByTestId("filter-stage-closing"));
+  expect(screen.queryAllByTestId(/^pipeline-row-/)).toHaveLength(0);
+  fireEvent.click(screen.getByRole("button", { name: "View All Loans" }));
+  expect(screen.getAllByRole("columnheader")).toHaveLength(11);
+  expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(2);
+  fireEvent.click(screen.getByTestId("queue-sales-support"));
+  expect(screen.getAllByRole("columnheader")).toHaveLength(13);
+  expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
+});
+it("uses Operations skeleton columns and reports load failures instead of an empty success", async () => {
+  let finish!: (response: Response) => void;
+  vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(resolve => { finish = resolve; })));
+  view();
+  fireEvent.click(screen.getByTestId("queue-operations"));
+  expect(screen.getAllByRole("columnheader").map(cell => cell.textContent)).toEqual(operationsHeaders);
+  expect(within(screen.getByTestId("pipeline-skeleton-0")).getAllByRole("cell")).toHaveLength(14);
+  expect(screen.queryByTestId("pipeline-empty")).toBeNull();
+  await act(async () => { finish(new Response("Unavailable", { status: 503 })); });
+  expect(await screen.findByRole("alert")).toHaveTextContent("Could not load");
+  expect(screen.queryByTestId("pipeline-empty")).toBeNull();
+});
 it("shows saved opportunity fields and includes the same loan in Sales Support", async () => {
   const opportunity = { ...loans[0], region: "502", loanOfficer: "Sarah Williams",
     applicationDate: "2026-10-14", contractExpiryDate: "2026-11-15", decision: "", departmentQueue: "Sales Support" };

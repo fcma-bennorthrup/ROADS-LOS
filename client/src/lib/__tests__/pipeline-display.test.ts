@@ -15,6 +15,9 @@ const loans = [
   row("10", { primaryBorrowerName: "Alex Burns", loanType: "Construction", stage: "Loan Setup", amountRequested: 145500, product: "Fixed" }),
 ];
 describe("pipeline projection controls", () => {
+  it("keeps Operations unavailable even if a resolver supplies an assignment", () => {
+    expect(queueLoans(loans, "Operations", () => "Operations")).toEqual([]);
+  });
   it("keeps department queues empty until an explicit assignment resolver is supplied", () => {
     expect(queueLoans(loans, "All Loans")).toEqual(loans);
     expect(queueLoans(loans, "Credit")).toEqual([]);

@@ -35,6 +35,20 @@ const salesColumns = [
   { key: "appraisal", label: "Appraisal", width: 100 },
   allColumns[10],
 ];
+const operationsColumns: typeof allColumns = [
+  ...allColumns.slice(0, 5).map(column => ({
+    ...column, width: column.key === "loanType" ? 150 : column.width,
+  })),
+  { ...allColumns[6], width: 180 },
+  allColumns[7],
+  { key: "closingDate", label: "Closing Date", width: 130 },
+  { key: "contractExpiryDate", label: "Contract Exp Date", width: 151 },
+  { key: "trid", label: "TRID", width: 85 },
+  allColumns[9],
+  { key: "appraisal", label: "Appraisal", width: 100 },
+  { key: "titleWork", label: "Title Work", width: 100 },
+  allColumns[10],
+];
 function displayDate(value: string) {
   const [year, month, day] = value.split("-");
   return `${month}/${day}/${year}`;
@@ -50,7 +64,8 @@ export default function PipelinePage() {
   const [tableSearch, setTableSearch] = useState("");
   const [queue, setQueue] = useState<PipelineQueue>("All Loans");
   const salesSupport = queue === "Sales Support";
-  const columns: typeof allColumns = salesSupport ? salesColumns : allColumns;
+  const operations = queue === "Operations";
+  const columns: typeof allColumns = operations ? operationsColumns : salesSupport ? salesColumns : allColumns;
   const columnWidth = columns.reduce((sum, column) => sum + column.width, 0);
   const [stages, setStages] = useState<LoanStage[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
@@ -115,7 +130,7 @@ export default function PipelinePage() {
             <button className="pipeline-button body-200-strong" data-testid="button-retry-pipeline" onClick={() => query.refetch()}>Retry</button>
           </section> : <>
             <div className="pipeline-table-wrap">
-              <table className="pipeline-table body-200" data-testid="pipeline-table" aria-busy={query.isLoading}>
+              <table className={`pipeline-table body-200${operations ? " pipeline-table-operations" : ""}`} data-testid="pipeline-table" aria-busy={query.isLoading}>
                 <caption className="sr-only">{queue} — saved loan records. Unavailable fields are shown as an em dash.</caption>
                 <colgroup>{columns.map(column => <col key={column.key} style={{ width: `${column.width / columnWidth * 100}%` }} />)}</colgroup>
                 <thead><tr>{columns.map(column => <th key={column.key} scope="col" className="caption-100-strong" aria-sort={column.sort ? sort === column.sort ? direction === "asc" ? "ascending" : "descending" : "none" : undefined}>

@@ -53,6 +53,7 @@
 .pipeline-table tbody tr[data-loan]:hover { background: var(--roads-bg-light); }
 .pipeline-table a { color: var(--roads-text-link); }
 .pipeline-table td:nth-child(6), .pipeline-table th:nth-child(6) { text-align: right; }
+.pipeline-table-operations th:nth-child(6) { text-align: left; }
 .pipeline-table .pipeline-additional { margin-left: var(--roads-spacing-component-xs); color: var(--roads-text-link); white-space: nowrap; }
 .pipeline-table .pipeline-row-actions { display: flex; align-items: center; gap: var(--roads-spacing-component-xs); overflow-wrap: normal; }
 .pipeline-row-actions button:disabled { color: var(--roads-text-tertiary); cursor: not-allowed; }

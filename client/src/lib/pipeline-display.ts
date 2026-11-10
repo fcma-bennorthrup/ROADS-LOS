@@ -8,6 +8,8 @@ export type DepartmentQueue = Exclude<PipelineQueue, "All Loans">;
 // Only explicitly saved assignments determine department membership, never stages.
 export function queueLoans(rows: PipelineLoan[], queue: PipelineQueue,
   assignment: (loan: PipelineLoan) => DepartmentQueue | undefined = loan => loan.departmentQueue) {
+  // Operations columns are presentation-only until assignment rules are approved.
+  if (queue === "Operations") return [];
   return queue === "All Loans" ? rows : rows.filter(loan => assignment(loan) === queue);
 }
 export function pipelinePage<T>(rows: T[], requestedPage: number, pageSize: number) {
