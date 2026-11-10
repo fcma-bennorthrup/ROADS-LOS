@@ -35,7 +35,7 @@ The main sidebar should reveal an expand/collapse button on hover, display full 
 
 **Why:** The user explicitly requested these layout and navigation behaviors.
 
-**How to apply:** Do not auto-expand on hover; hover reveals the action. Keep filler separate from actual loan counts and saved data.
+**How to apply:** Do not auto-expand on hover; hover reveals the action. Keep filler separate from actual loan counts and saved data. The user wants the toggle on the sidebar edge at the viewport's vertical center, below the nav icons, not near the top.
 
 Additive initialization of older opportunity metadata must participate in loan revision checks while preserving the original updated-at timestamp.
 
