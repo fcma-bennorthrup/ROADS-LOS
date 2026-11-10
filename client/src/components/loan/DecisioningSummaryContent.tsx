@@ -6,6 +6,7 @@ import { formatActivityTimestamp } from "@/lib/loan-activity";
 import { useToast } from "@/hooks/use-toast";
 import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
 import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
+import { simulateLoanDecision, type DecisionOutcome } from "@shared/business-rules/decision-simulation";
 
 interface DecisioningSummaryContentProps {
   loanNumber?: string;
@@ -22,6 +23,7 @@ export function DecisioningSummaryContent({
   const [isDecisioned, setIsDecisioned] = useState(() => getActionStatus("Loan Decision", 0) === "complete");
   const [letterGenerated, setLetterGenerated] = useState(() => getActionStatus("Decision Letter", 0) === "complete");
   const [creditPulled, setCreditPulled] = useLoanState("credit-pulled", false, false, false);
+  const [decisionOutcome, setDecisionOutcome] = useLoanState<DecisionOutcome | null>("decision-outcome", null, null, false);
   const app = useApplicationStatus().document;
   const hasCreditResults = creditPulled && (!app || !!app.sections["credit-scores"]);
   const observedResetVersion = useRef(demoResetVersion);
@@ -73,6 +75,18 @@ export function DecisioningSummaryContent({
   const handleDecisionLoan = () => {
     if (getActionStatus("Loan Decision", 0) === "complete") return;
 
+    const outcome = simulateLoanDecision(applicationStore.document);
+    if (!outcome) {
+      toast({ variant: "information", title: "EDE rules not configured",
+        description: "Choose Force approval or Force denial in Prototype Controls until EDE rules are added." });
+      return;
+    }
+    try {
+      setDecisionOutcome(outcome);
+    } catch (error) {
+      toast({ variant: "destructive", title: "Decision failed", description: (error as Error).message });
+      return;
+    }
     const decisionedAt = new Date();
     setIsDecisioned(true);
     setActionStatus("Loan Decision", 0, "complete");
@@ -80,14 +94,14 @@ export function DecisioningSummaryContent({
     addActivity({
       id: "loan-decision",
       title: "Loan Decision",
-      description: "Loan is approved",
+      description: `Loan is ${outcome}`,
       timestamp: formatActivityTimestamp(decisionedAt),
       date: decisionedAt,
     });
     toast({
       variant: "information",
       title: "Loan Decision",
-      description: `Loan ${loanNumber} | ${borrowerName} is approved.`,
+      description: `Loan ${loanNumber} | ${borrowerName} is ${outcome}.`,
       duration: 6000,
     });
   };
@@ -153,7 +167,7 @@ export function DecisioningSummaryContent({
           }}
         >
           <span data-testid="text-loan-decision-label">Loan Decision:</span>
-          <span data-testid="text-loan-decision-value">{isDecisioned ? "Loan Approved" : "--"}</span>
+          <span data-testid="text-loan-decision-value">{isDecisioned ? (decisionOutcome === "denied" ? "Loan Denied" : "Loan Approved") : "--"}</span>
         </div>
         <div
           className="flex items-center"

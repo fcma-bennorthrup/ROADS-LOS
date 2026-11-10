@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
 import { applicationRequest } from "@/lib/loan-application-store";
 import { Switch } from "@/components/ui/switch";
+import { decisionMode, type DecisionMode } from "@shared/business-rules/decision-simulation";
 
 type DemoAction = "reset" | "blend" | "trid" | "checklist" | "trid-reset" | "trid-manual";
 
@@ -12,6 +13,15 @@ export function LoanDemoControls() {
   const [busy, setBusy] = useState(false);
   const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
   const [error, setError] = useState("");
+  async function changeDecisionMode(value: DecisionMode) {
+    if (!store.document || busy) return;
+    setBusy(true); setError("");
+    try {
+      store.write("decision-mode", value);
+      await store.flush();
+    } catch (error) { setError((error as Error).message); }
+    finally { setBusy(false); }
+  }
   async function toggleCreditFrozen(value: boolean) {
     if (!store.document || busy) return;
     setBusy(true); setError("");
@@ -57,6 +67,23 @@ export function LoanDemoControls() {
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
+      <h3 className="font-semibold">Loan decision</h3>
+      <p className="text-sm text-muted-foreground">Choose how the next decision is made. EDE rules will be added later.</p>
+      <fieldset className="mt-auto flex flex-col gap-3 text-sm"
+        disabled={busy || !store.document || store.pending > 0 || !!store.error}>
+        <legend className="sr-only">Loan decision simulation</legend>
+        {([
+          ["force-approval", "Force approval"],
+          ["force-denial", "Force denial"],
+          ["real-ede", "Real EDE Simulation"],
+        ] as const).map(([value, label]) => <label key={value} className="flex items-center gap-2">
+          <input type="radio" name="loan-decision-mode" value={value}
+            checked={decisionMode(store.document) === value} onChange={() => void changeDecisionMode(value)} />
+          {label}
+        </label>)}
+      </fieldset>
+    </div>
     <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-credit-freeze-card">
       <h3 className="font-semibold">Credit freeze</h3>
       <p className="text-sm text-muted-foreground">Block credit pulls for this loan until the freeze is lifted.</p>

@@ -77,3 +77,12 @@ Loan Decision starts from a saved successful credit pull, with no additional pre
 **Why:** The user approved centralizing this existing trigger without changing behavior.
 
 **How to apply:** Keep it in shared business rules and have the checklist consume it; do not add TRID or disclosure prerequisites or reopen completed decisions.
+
+Demo decision controls offer Force approval, Force denial, and Real EDE Simulation.
+EDE outcome criteria have not been specified; do not invent them or silently approve
+in real-simulation mode. Existing loans default to forced approval for compatibility.
+
+**Why:** The user will supply the real EDE business rules later.
+
+**How to apply:** Apply the selected mode when running the next decision, retain its
+outcome for display, and clear the outcome (not the mode) with checklist reset.

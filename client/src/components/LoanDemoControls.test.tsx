@@ -22,6 +22,21 @@ beforeEach(() => {
 });
 
 describe("Trigger TRID button", () => {
+  it.each([
+    ["Force denial", "force-denial"],
+    ["Real EDE Simulation", "real-ede"],
+  ])("persists %s for the current loan", async (label, mode) => {
+    const view = render(<LoanDemoControls />);
+    expect(screen.getByRole("radio", { name: "Force approval" })).toBeChecked();
+    fireEvent.click(screen.getByRole("radio", { name: label }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("decision-mode", mode));
+    expect(mocks.store.flush).toHaveBeenCalled();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+    mocks.store.document.sections["decision-mode"] = mode;
+    view.unmount();
+    render(<LoanDemoControls />);
+    expect(screen.getByRole("radio", { name: label })).toBeChecked();
+  });
   it("saves the loan's frozen-credit toggle without replacing its data", async () => {
     const view = render(<LoanDemoControls />);
     fireEvent.click(screen.getByRole("switch", { name: "Credit frozen" }));
