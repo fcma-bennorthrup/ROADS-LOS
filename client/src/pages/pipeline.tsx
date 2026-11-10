@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { FiSearch, FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiEye, FiUserPlus, FiMoreVertical, FiX } from "react-icons/fi";
+import { FiSearch, FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { LOAN_STAGES, type LoanStage } from "@shared/loan-stages";
 import { MoreOptionsMenu } from "@/components/AppHeader";
 import { MainNavigation } from "@/components/MainNavigation";
@@ -8,64 +7,17 @@ import { PipelineFooter } from "@/components/PipelineFooter";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { NewLoanDialog } from "@/components/NewLoanDialog";
 import { usePipelineQuery } from "@/hooks/use-pipeline-query";
-import { formatCurrency } from "@/lib/loan-display";
+import { getPipelineColumns, PipelineRowCells } from "@/components/pipeline-columns";
 import { pipelineRows, pipelinePage, queueLoans, PIPELINE_QUEUES, type PipelineQueue, type PipelineSort } from "@/lib/pipeline-display";
 import "@/styles/pipeline.css";
-
-const allColumns: { key: string; sort?: PipelineSort; label: string; width: number }[] = [
-  { key: "loanNumber", sort: "loanNumber", label: "Loan Number", width: 125 },
-  { key: "cifNumber", sort: "cifNumber", label: "CIF", width: 80 },
-  { key: "region", label: "Region", width: 80 },
-  { key: "primaryBorrowerName", sort: "primaryBorrowerName", label: "Borrower Name", width: 278 },
-  { key: "loanType", sort: "loanType", label: "Loan Purpose", width: 230 },
-  { key: "amountRequested", sort: "amountRequested", label: "Req Amount", width: 242 },
-  { key: "stage", sort: "stage", label: "Stage", width: 230 },
-  { key: "officer", label: "LO", width: 160 },
-  { key: "applicationDate", label: "App Start Date", width: 151 },
-  { key: "decision", label: "Decision", width: 112 },
-  { key: "actions", label: "Actions", width: 104 },
-];
-const salesColumns = [
-  ...allColumns.slice(0, 8).map(column => ({
-    ...column, width: column.key === "loanType" ? 150 : column.key === "amountRequested" ? 130 : column.key === "stage" ? 180 : column.width,
-  })),
-  { key: "submitDate", label: "App Submit Date", width: 151 },
-  { key: "contractExpiryDate", label: "Contract Exp Date", width: 151 },
-  allColumns[9],
-  { key: "appraisal", label: "Appraisal", width: 100 },
-  allColumns[10],
-];
-const operationsColumns: typeof allColumns = [
-  ...allColumns.slice(0, 5).map(column => ({
-    ...column, width: column.key === "loanType" ? 150 : column.width,
-  })),
-  { ...allColumns[6], width: 180 },
-  allColumns[7],
-  { key: "closingDate", label: "Closing Date", width: 130 },
-  { key: "contractExpiryDate", label: "Contract Exp Date", width: 151 },
-  { key: "trid", label: "TRID", width: 85 },
-  allColumns[9],
-  { key: "appraisal", label: "Appraisal", width: 100 },
-  { key: "titleWork", label: "Title Work", width: 100 },
-  allColumns[10],
-];
-function displayDate(value: string) {
-  const [year, month, day] = value.split("-");
-  return `${month}/${day}/${year}`;
-}
-function Unavailable({ field }: { field: string }) {
-  const explanation = `${field} is not available in the saved pipeline data.`;
-  return <span title={explanation} aria-label={explanation}>—</span>;
-}
 
 export default function PipelinePage() {
   const query = usePipelineQuery();
   const [search, setSearch] = useState("");
   const [tableSearch, setTableSearch] = useState("");
   const [queue, setQueue] = useState<PipelineQueue>("All Loans");
-  const salesSupport = queue === "Sales Support";
   const operations = queue === "Operations";
-  const columns: typeof allColumns = operations ? operationsColumns : salesSupport ? salesColumns : allColumns;
+  const columns = getPipelineColumns(queue);
   const columnWidth = columns.reduce((sum, column) => sum + column.width, 0);
   const [stages, setStages] = useState<LoanStage[]>([]);
   const [customOpen, setCustomOpen] = useState(false);
@@ -143,23 +95,7 @@ export default function PipelinePage() {
                   {columns.map(column => <td key={column.key}><div className="pipeline-skeleton" /></td>)}
                 </tr>) : pagination.rows.map(loan => {
                   return <tr key={loan.id} data-loan={loan.id} data-testid={`pipeline-row-${loan.id}`}>
-                    <td><Link className="body-200-strong" data-testid={`open-loan-${loan.id}`} href={`~/loans/${encodeURIComponent(loan.id)}`}>{loan.loanNumber}</Link></td>
-                    <td>{loan.cifNumber || <Unavailable field="CIF" />}</td>
-                    <td>{loan.region ?? <Unavailable field="Region" />}</td>
-                    <td>{loan.primaryBorrowerName || <Unavailable field="Borrower name" />}{!!loan.additionalBorrowerCount && <span className="pipeline-additional caption-100" aria-label={`${loan.additionalBorrowerCount} additional borrowers`}>+{loan.additionalBorrowerCount}</span>}</td>
-                    <td>{loan.loanType || <Unavailable field="Loan purpose" />}</td>
-                    <td>{loan.amountRequested === null ? <Unavailable field="Requested amount" /> : formatCurrency(String(loan.amountRequested))}</td>
-                    <td>{loan.stage}</td>
-                    <td>{loan.loanOfficer ?? <Unavailable field="Loan officer" />}</td>
-                    <td>{salesSupport ? <Unavailable field="Application submit date" /> : loan.applicationDate ? displayDate(loan.applicationDate) : <Unavailable field="Application start date" />}</td>
-                    {salesSupport && <td>{loan.contractExpiryDate ? displayDate(loan.contractExpiryDate) : <Unavailable field="Contract expiry date" />}</td>}
-                    <td>{loan.decision ?? <Unavailable field="Decision" />}</td>
-                    {salesSupport && <td />}
-                    <td><div className="pipeline-row-actions">
-                      <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>
-                      <Link href={`~/loans/${encodeURIComponent(loan.id)}`} aria-label={`View loan ${loan.loanNumber}`} title="View loan"><FiEye aria-hidden /></Link>
-                      <button disabled aria-label={`More actions for loan ${loan.loanNumber} — unavailable`} title="No additional loan actions available"><FiMoreVertical aria-hidden /></button>
-                    </div></td>
+                    <PipelineRowCells columns={columns} loan={loan} />
                   </tr>;
                 })}</tbody>
               </table>

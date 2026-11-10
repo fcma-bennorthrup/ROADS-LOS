@@ -10,6 +10,8 @@ import type { PipelineLoan } from "@shared/pipeline";
 import { AppHeader } from "@/components/AppHeader";
 import { MainNavigation } from "@/components/MainNavigation";
 import { newLoanApplication } from "@shared/loan-factory";
+import { getPipelineColumns, PipelineRowCells } from "@/components/pipeline-columns";
+import { PIPELINE_QUEUES } from "@/lib/pipeline-display";
 
 vi.mock("@/components/GitHubSyncPanel", () => ({ GitHubSyncPanel: ({ loanActive }: { loanActive: boolean }) => <span data-testid="sync-scope">{String(loanActive)}</span> }));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); queryClient.clear(); });
@@ -26,6 +28,57 @@ const operationsHeaders = [
   "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Stage", "LO",
   "Closing Date", "Contract Exp Date", "TRID", "Decision", "Appraisal", "Title Work", "Actions",
 ];
+const allHeaders = [
+  "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Req Amount",
+  "Stage", "LO", "App Start Date", "Decision", "Actions",
+];
+const salesHeaders = [
+  ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
+];
+const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+
+it.each(PIPELINE_QUEUES)("aligns every %s header with its own cell renderer", queue => {
+  // Render rows in isolation for restricted queues; this must not enable assignments.
+  const loan: PipelineLoan = {
+    ...loans[0], cifNumber: "654321", region: "502", additionalBorrowerCount: 2,
+    loanOfficer: "Sarah Williams", applicationDate: "2026-10-14",
+    contractExpiryDate: "2026-11-15", decision: "",
+  };
+  const columns = getPipelineColumns(queue);
+  const values: Record<string, string> = {
+    "Loan Number": "123456790", CIF: "654321", Region: "502",
+    "Borrower Name": "Avery Wright+2", "Loan Purpose": "Purchase",
+    "Req Amount": "$145,000.00", Stage: "Closing", LO: "Sarah Williams",
+    "App Start Date": "10/14/2026", "App Submit Date": "—",
+    "Contract Exp Date": "11/15/2026", Decision: "", Appraisal: "",
+    "Closing Date": "", TRID: "", "Title Work": "", Actions: "",
+  };
+  render(<Router hook={memoryLocation().hook}><table>
+    <thead><tr>{columns.map(column => <th key={column.key}>{column.label}</th>)}</tr></thead>
+    <tbody><tr><PipelineRowCells columns={columns} loan={loan} /></tr></tbody>
+  </table></Router>);
+  const headers = screen.getAllByRole("columnheader").map(cell => cell.textContent);
+  expect(headers).toEqual(expectedHeaders(queue));
+  expect(new Set(columns.map(column => column.key)).size).toBe(columns.length);
+  const cells = screen.getAllByRole("cell");
+  expect(cells.map(cell => cell.textContent)).toEqual(expectedHeaders(queue).map(header => values[header]));
+  const actions = within(cells.at(-1)!);
+  expect(actions.getByRole("link", { name: "View loan 123456790" })).toHaveAttribute("href", "/loans/first");
+  expect(actions.getAllByRole("button")).toHaveLength(2);
+  actions.getAllByRole("button").forEach(button => expect(button).toBeDisabled());
+});
+
+it.each(PIPELINE_QUEUES)("aligns %s loading cells and colgroup with its headers", queue => {
+  vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => {})));
+  view();
+  fireEvent.click(screen.getByTestId(`queue-${queue.toLowerCase().replaceAll(" ", "-")}`));
+  expect(screen.getAllByRole("columnheader").map(cell => cell.textContent)).toEqual(expectedHeaders(queue));
+  expect(screen.getByTestId("pipeline-table").querySelectorAll("col")).toHaveLength(expectedHeaders(queue).length);
+  for (const row of screen.getAllByTestId(/^pipeline-skeleton-/)) {
+    expect(within(row).getAllByRole("cell")).toHaveLength(expectedHeaders(queue).length);
+  }
+});
+
 it("keeps Operations empty with its own exact columns when saved loans exist", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
     { ...loans[0], departmentQueue: "Sales Support" }, loans[1],
