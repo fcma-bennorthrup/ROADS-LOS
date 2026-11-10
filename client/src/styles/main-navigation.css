@@ -22,7 +22,14 @@
 .roads-main-nav-expanded a, .roads-main-nav-expanded button:not(.roads-main-nav-toggle) { justify-content: flex-start; gap: var(--roads-spacing-component-m); }
 .roads-main-nav-expanded .roads-main-nav-brand { justify-content: flex-start; padding-left: var(--roads-spacing-component-xs); }
 .roads-main-nav-label { white-space: nowrap; }
-.roads-main-nav .roads-main-nav-toggle { position: absolute; right: 0; top: 76px; width: 28px; height: 28px; background: var(--roads-bg-light); color: var(--roads-icon-brand); border: 1px solid var(--roads-border-subtle); opacity: 0; pointer-events: none; }
+.roads-main-nav .roads-main-nav-toggle { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 28px; height: 28px; background: var(--roads-bg-light); color: var(--roads-icon-brand); border: 1px solid var(--roads-border-subtle); opacity: 0; pointer-events: none; }
+/* When the midpoint would overlap destinations, place the toggle after them.
+   The rail can scroll independently on exceptionally short viewports. */
+@media (max-height: 680px) {
+  .roads-main-nav { overflow-y: auto; }
+  .roads-main-nav > * { flex-shrink: 0; }
+  .roads-main-nav .roads-main-nav-toggle { position: relative; top: auto; transform: none; order: 1; align-self: flex-end; margin-right: calc(-1 * var(--roads-spacing-component-xs)); }
+}
 .roads-main-nav:hover .roads-main-nav-toggle,
 .roads-main-nav:focus-within .roads-main-nav-toggle { opacity: 1; pointer-events: auto; }
 @media (hover: none), (pointer: coarse) {

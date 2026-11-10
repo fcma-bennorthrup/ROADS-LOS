@@ -25,6 +25,12 @@ for (const viewport of [{ width: 1440, height: 1200 }, { width: 800, height: 700
     const nav = page.getByRole("navigation", { name: "Main navigation" });
     const shell = page.locator(".pipeline-shell");
     const compact = (await shell.boundingBox())!.x;
+    const togglePosition = page.getByTestId("button-toggle-navigation");
+    const assertCentered = async () => {
+      const box = (await togglePosition.boundingBox())!;
+      expect(Math.abs(box.y + box.height / 2 - viewport.height / 2)).toBeLessThan(1);
+    };
+    await assertCentered();
     await nav.hover();
     await expect(page.getByRole("button", { name: "Expand navigation" })).toHaveAttribute("aria-expanded", "false");
     await page.getByRole("button", { name: "Expand navigation" }).click();
@@ -35,6 +41,9 @@ for (const viewport of [{ width: 1440, height: 1200 }, { width: 800, height: 700
     expect(shellBox.x).toBeGreaterThanOrEqual(navBox.x + navBox.width - 1);
     expect(shellBox.x + shellBox.width).toBeLessThanOrEqual(viewport.width + 1);
     await expect(nav.getByText("ROADS")).toBeVisible();
+    await assertCentered();
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await assertCentered();
     await page.screenshot({ path: info.outputPath("expanded.png"), fullPage: true });
     const toggle = page.getByRole("button", { name: "Collapse navigation" });
     await toggle.focus();
@@ -43,6 +52,21 @@ for (const viewport of [{ width: 1440, height: 1200 }, { width: 800, height: 700
     await expect(page.getByTestId("pipeline-row-layout-fixture")).toHaveCount(1);
   });
 }
+test("short viewport keeps the toggle below icons and reachable", async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 300 });
+  await page.route("**/api/**", route => route.fulfill({ json: [fixture] }));
+  await page.goto("/");
+  const toggle = page.getByTestId("button-toggle-navigation");
+  for (const expanded of [false, true]) {
+    await toggle.focus();
+    await expect(toggle).toBeInViewport();
+    const buttonBox = (await toggle.boundingBox())!;
+    const reportsBox = (await page.getByTestId("main-nav-reports").boundingBox())!;
+    expect(buttonBox.y).toBeGreaterThanOrEqual(reportsBox.y + reportsBox.height);
+    await expect(toggle).toHaveAttribute("aria-expanded", String(expanded));
+    await page.keyboard.press("Enter");
+  }
+});
 for (const count of [0, 1, 20]) {
   test(`footer follows content with ${count} records`, async ({ page }, info) => {
     await page.setViewportSize({ width: 1920, height: 1400 });
