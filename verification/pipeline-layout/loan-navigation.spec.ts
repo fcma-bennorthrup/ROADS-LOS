@@ -34,6 +34,7 @@ for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 700 
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
     await trigger.click();
+    await expect(dialog).toBeVisible();
     await page.mouse.click(viewport.width - 10, viewport.height / 2);
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();

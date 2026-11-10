@@ -34,8 +34,30 @@ Replit's system Chromium is selected when available (downloaded Chromium needs
 shared libraries not provided by the normal Nix shell). Elsewhere run
 `npx playwright install chromium` once, with the OS dependencies required by
 Playwright. An explicit `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` overrides selection.
-No application workflow or production code changes are required.
+No application workflow is needed to run the fixture.
 
+## Complete loan workspace navigation
+
+`workspace-navigation.spec.ts` mounts the real `LoanScope`, `LoanWorkspace`,
+providers, and all six page components using the same nested route shapes as
+the application. Pipeline links, header tabs, the drawer's Pipeline action,
+and the Pipeline breadcrumb drive navigation through the fixture's memory router.
+Direct `/loans/:id/history` loads and reloads also work. This is not browser
+Back/Forward coverage: in-app route changes do not update browser history.
+
+At desktop and phone widths, checks cover every tab, both Pipeline exits,
+workspace unmount/remount, and fresh document loads. Geometry assertions require
+the shell, header, and fixed toolbar to remain at the left edge after navigation,
+including entry from an expanded Pipeline sidebar. The drawer must stay closed
+until explicitly reopened. This caught focus-driven scrolling of the outer loan
+shell on phones; that shell clips overflow without becoming a scroll container.
+The tab strip and page content retain their own scrolling.
+
+These cases intercept loan-list, loan-detail, and application reads using a blank
+synthetic application. Page initialization writes are acknowledged in a
+test-local in-memory document with generation/revision assertions. No request
+is forwarded: unexpected API requests are aborted and fail the test. Each case
+uses a new browser context and checks for uncaught page errors.
 ## Loan navigation and panel coexistence
 
 Run `npm run test:pipeline-layout -- loan-panel-overlays.spec.ts` for focused

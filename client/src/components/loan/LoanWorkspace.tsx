@@ -29,8 +29,10 @@ export function LoanWorkspace({ children }: { children: ReactNode }) {
   </div>;
   const page = location === "/" ? "summary" : location.slice(1);
   const amount = loan.summary.amountRequested;
+  // Unlike overflow-hidden, clip cannot scroll the whole shell when focus
+  // reveals a later tab on phones. The tab strip owns horizontal scrolling.
   return <WorkspaceLoan.Provider value={loan}>
-    <div className="roads-loan-shell h-screen min-h-[100dvh] flex flex-row overflow-hidden" style={{ backgroundColor: "var(--roads-bg-page)" }} data-testid={`loan-${page}-page`}>
+    <div className="roads-loan-shell h-screen min-h-[100dvh] flex flex-row overflow-clip" style={{ backgroundColor: "var(--roads-bg-page)" }} data-testid={`loan-${page}-page`}>
       <div className="flex-1 flex flex-col min-w-0">
         <LoanHeader loanNumber={loan.loanNumber} cifNumber={loan.cifNumber} loanType={loan.loanType}
           borrowerName={loan.primaryBorrowerName}
