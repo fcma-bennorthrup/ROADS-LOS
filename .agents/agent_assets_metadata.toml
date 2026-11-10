@@ -14,3 +14,17 @@ mtime_ms = 1794233139209
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:fe33a2ad-8515-4e59-b2c4-2d8455ceb970/738cdbdc-2144-48a4-873f-6b0771d70125/d0042389-519d-469c-973b-312377247203"
 storage_version_token = "1794233157376728"
 content_type = "application/pdf"
+
+[[outputs]]
+id = "Q97FvZGtnPkAWxZrSxCMI"
+uri = "file://generated-artifacts/shared-history-typecheck.txt"
+type = "text"
+title = "Complete TypeScript check output"
+description = "Full output from npm run check after pulling shared main; exit code 2."
+logical_id = "a014515c-10ad-4107-8f81-05690afe592f"
+content_hash = "sha256:6123c6ad1b7099cadc42a0f515f2f19be458c4816b8399d2be8dea06194f1e76"
+size = 23087
+mtime_ms = 1794341649179
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:2f3783a8-421b-4591-872e-4e7105082df4/a014515c-10ad-4107-8f81-05690afe592f/81913da7-6d8f-4190-ae6c-262202f4b04e"
+storage_version_token = "1794341655860710"
+content_type = "text/plain"
