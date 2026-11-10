@@ -1,5 +1,3 @@
-import { Button } from "@/components/ui/button";
-
 export function CustomerDocumentsContent() {
   return (
     <div
@@ -16,9 +14,21 @@ export function CustomerDocumentsContent() {
         <h2 id="minimum-required-documents-heading" className="headline-300">
           Minimum Required Documents
         </h2>
-        <Button type="button" variant="secondary" data-testid="button-completed-mindocs">
+        <button
+          type="button"
+          className="body-200-strong whitespace-nowrap"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            color: "var(--roads-text-primary)",
+            cursor: "pointer",
+          }}
+          data-testid="button-completed-mindocs"
+        >
           Completed MinDocs.
-        </Button>
+        </button>
       </section>
     </div>
   );
