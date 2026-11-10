@@ -206,6 +206,6 @@ function ClosingDocumentsContent({ loanId = "prototype", borrowers = [] }: Closi
   return <ClosingDocumentsLoan key={loanId} loanId={loanId} borrowers={borrowers} />;
 }
 
-const DOCUMENTS_NAV_ITEMS = ["Disclosures", "Closing Documents"];
+const DOCUMENTS_NAV_ITEMS = ["Disclosures", "Closing Documents", "Customer Documents"];
 
 export { DOCUMENTS_NAV_ITEMS, ClosingDocumentsContent, DocumentsContent };
