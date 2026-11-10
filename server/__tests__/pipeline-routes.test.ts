@@ -86,6 +86,114 @@ describe("pipeline API", () => {
     const reloaded = await request("GET /api/loans/:id/application", {}, "parcel-loan");
     expect(reloaded.body.sections["subject-property"].parcel).toBe(parcel);
   });
+  it.each(["sf", "blank"])("recovers a lost %s response and serializes retries without regenerating values", async source => {
+    const saved: any[] = [document()];
+    const key = "76a7c45c-9998-465c-afed-67b8f3588618";
+    let tail = Promise.resolve();
+    let allocations = 0;
+    db.query.mockImplementation(async () => ({ rows: [{ document: saved[0] }] }));
+    db.connect.mockImplementation(async () => {
+      let unlock: () => void = () => {};
+      return { release: db.release, query: async (sql: string, args?: any[]) => {
+        if (sql.includes("pg_advisory_xact_lock")) {
+          const previous = tail;
+          tail = new Promise<void>(resolve => { unlock = resolve; });
+          await previous;
+        } else if (sql.includes("creationAttempt")) {
+          return { rows: saved.filter(doc => doc.meta?.creationAttempt?.key === args![0]).map(document => ({ document })) };
+        } else if (sql.includes("GREATEST")) {
+          allocations++;
+          return { rows: [{ number: String(123456789 + saved.length) }] };
+        } else if (sql.includes(" AS cif")) {
+          return { rows: saved.map(doc => ({ cif: doc.loan.cifNumber })) };
+        } else if (sql.startsWith("INSERT")) {
+          saved.push(JSON.parse(args![1]));
+          return { rowCount: 1, rows: [] };
+        } else if (sql === "COMMIT" || sql === "ROLLBACK") unlock();
+        return { rows: [] };
+      } };
+    });
+    // The database commits, then the transport loses the first response.
+    const lostResponse: any = { status: () => lostResponse,
+      json: () => { throw new Error("Connection lost after commit"); } };
+    await expect(routes["POST /api/loans"]({
+      body: { source, idempotencyKey: key },
+    }, lostResponse)).rejects.toThrow("Connection lost after commit");
+    const original = structuredClone(saved[1]);
+    const retries = await Promise.all(Array.from({ length: 3 }, () =>
+      request("POST /api/loans", { source, idempotencyKey: key })));
+    for (const result of retries) {
+      expect(result.statusCode).toBe(201);
+      expect(result.body).toEqual({ id: original.loan.id, loanNumber: original.loan.loanNumber });
+    }
+    expect(saved).toEqual([document(), original]);
+    expect(allocations).toBe(1);
+    expect((await request("POST /api/loans", {
+      source: source === "sf" ? "blank" : "sf", idempotencyKey: key,
+    })).statusCode).toBe(409);
+    expect(saved).toHaveLength(2);
+    const next = await request("POST /api/loans", {
+      source, idempotencyKey: "56a7c45c-9998-465c-afed-67b8f3588618",
+    });
+    expect(next.statusCode).toBe(201);
+    expect(next.body.id).not.toBe(original.loan.id);
+    expect(saved).toHaveLength(3);
+  });
+  it("rejects malformed retry keys before accessing the database", async () => {
+    for (const idempotencyKey of ["", "invalid", 123, null]) {
+      expect((await request("POST /api/loans", { source: "sf", idempotencyKey })).statusCode).toBe(400);
+    }
+    expect(db.query).not.toHaveBeenCalled();
+  });
+  it("serializes simultaneous opportunity allocations and preserves both inserts", async () => {
+    const saved: any[] = [document()];
+    let tail = Promise.resolve();
+    db.query.mockImplementation(async () => ({ rows: [{ document: saved[0] }] }));
+    db.connect.mockImplementation(async () => {
+      let unlock: () => void = () => {};
+      return {
+        release: vi.fn(),
+        query: async (sql: string, args?: any[]) => {
+          if (sql.includes("pg_advisory_xact_lock")) {
+            const previous = tail;
+            tail = new Promise<void>(resolve => { unlock = resolve; });
+            await previous;
+          } else if (sql.includes("GREATEST")) {
+            return { rows: [{ number: String(123456789 + saved.length) }] };
+          } else if (sql.includes(" AS cif")) {
+            return { rows: saved.map(document => ({ cif: document.loan.cifNumber })) };
+          } else if (sql.startsWith("INSERT")) {
+            saved.push(JSON.parse(args![1]));
+            return { rowCount: 1, rows: [] };
+          } else if (sql === "COMMIT" || sql === "ROLLBACK") unlock();
+          return { rows: [] };
+        },
+      };
+    });
+    const results = await Promise.all([request("POST /api/loans", { source: "sf" }), request("POST /api/loans", { source: "sf" })]);
+    expect(results.map(result => result.statusCode)).toEqual([201, 201]);
+    expect(saved).toHaveLength(3);
+    expect(new Set(saved.slice(1).map(app => app.loan.cifNumber)).size).toBe(2);
+    expect(new Set(saved.slice(1).map(app => app.loan.loanNumber)).size).toBe(2);
+  });
+  it("allocates SF CIFs only after locking and commits the generated document", async () => {
+    db.query.mockResolvedValueOnce({ rows: [{ document: document() }] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ number: "123456790" }] })
+      .mockResolvedValueOnce({ rows: [{ cif: "100000" }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [] })
+      .mockResolvedValueOnce({ rows: [] });
+    const result = await request("POST /api/loans", { source: "sf" });
+    expect(result.statusCode).toBe(201);
+    expect(db.query.mock.calls[2][0]).toContain("pg_advisory_xact_lock");
+    expect(db.query.mock.calls[4][0]).toContain("cifNumber");
+    const saved = JSON.parse(db.query.mock.calls[5][1][1]);
+    expect(saved.loan.cifNumber).toMatch(/^[1-9]\d{5}$/);
+    expect(saved.loan.cifNumber).not.toBe("100000");
+    expect(saved.meta.opportunity.queue).toBe("Sales Support");
+    expect(db.query.mock.calls[6][0]).toBe("COMMIT");
+  });
   it("rejects malformed sections before a database write", async () => {
     const result = await request("PUT /api/loans/:id/application", {
       generation: 0, revision: 0, section: "current-liabilities", value: "invalid",
@@ -175,6 +283,7 @@ describe("pipeline API", () => {
   });
   it("retains creation time and resets only the target loan on Blend replacement", async () => {
     const current = document("other");
+    current.meta!.creationAttempt = { key: "76a7c45c-9998-465c-afed-67b8f3588618", source: "blank" };
     db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
       .mockImplementationOnce(async (_sql, args) => ({ rowCount: 1, rows: [{ document: JSON.parse(args[1]) }] }));
     const result = await request("POST /api/loans/:id/application/demo", {
@@ -183,6 +292,7 @@ describe("pipeline API", () => {
     }, "other");
     expect(result.body.loan.id).toBe("other");
     expect(result.body.meta.createdAt).toBe(current.meta!.createdAt);
+    expect(result.body.meta.creationAttempt).toEqual(current.meta!.creationAttempt);
     expect(result.body.meta.source).toBe("blend");
     expect(result.body.borrowers).toHaveLength(1);
     expect(result.body.generation).toBe(1);

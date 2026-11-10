@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PipelineLoan } from "@shared/pipeline";
-import { pipelineRows, relativeUpdated, type PipelineSort } from "../pipeline-display";
+import { pipelineRows, relativeUpdated, queueLoans, pipelinePage, type PipelineSort } from "../pipeline-display";
 import { applicationStore } from "../loan-application-store";
 import { blendDemoSections } from "../blend-demo-fixture";
 import type { LoanApplication } from "@shared/loan-application";
@@ -15,6 +15,18 @@ const loans = [
   row("10", { primaryBorrowerName: "Alex Burns", loanType: "Construction", stage: "Loan Setup", amountRequested: 145500, product: "Fixed" }),
 ];
 describe("pipeline projection controls", () => {
+  it("keeps Operations unavailable even if a resolver supplies an assignment", () => {
+    expect(queueLoans(loans, "Operations", () => "Operations")).toEqual([]);
+  });
+  it("keeps department queues empty until an explicit assignment resolver is supplied", () => {
+    expect(queueLoans(loans, "All Loans")).toEqual(loans);
+    expect(queueLoans(loans, "Credit")).toEqual([]);
+    expect(queueLoans(loans, "Credit", loan => loan.id === "2" ? "Credit" : "Operations")).toEqual([loans[0]]);
+  });
+  it("clamps pagination after data changes and handles zero records", () => {
+    expect(pipelinePage(loans, 8, 1)).toEqual({ page: 2, pageCount: 2, rows: [loans[1]] });
+    expect(pipelinePage([], 8, 20)).toEqual({ page: 1, pageCount: 1, rows: [] });
+  });
   it("searches only borrower/loan number and combines multiselect stages", () => {
     expect(pipelineRows(loans, "MILES", ["Closing", "Booking"], "updatedAt", "desc").map(row => row.id)).toEqual(["2"]);
     expect(pipelineRows(loans, "Purchase", [], "updatedAt", "desc")).toEqual([]);

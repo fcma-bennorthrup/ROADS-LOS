@@ -28,3 +28,12 @@
 - [Pipeline scope](pipeline-scope.md) — Prompts 0–4 approved, deletion excluded; preserve loan UI and distinguish inherited verification failures.
 - [Prototype PDF retirement](prototype-pdf-policy.md) — Remove demo PDFs and prevent re-import; keep document controls, simulated workflows, and business rules unchanged.
 - [Fee provider shopping](fee-provider-shopping.md) — All fee types allow provider shopping for now, overriding the Figma eligibility annotation.
+- [Asset import drift after task merges](asset-import-drift.md) — merged work may import @assets files with timestamps that don't exist here; repoint to the real filename in attached_assets.
+- [Vite HMR behind Replit proxy](vite-hmr-replit-proxy.md) — keep middleware-mode HMR disabled; disconnected proxy websockets can retain incompatible React contexts.
+- [Closing document scope](closing-document-scope.md) — manual borrower editing is approved; toolbar behavior is protected and clock/history remains deferred.
+- [Cross-tab reset safety](cross-tab-reset-safety.md) — persist reset identity so delayed storage notifications cannot resurrect work started before a reset.
+- [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.
+- [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
+- [Pipeline design scope](pipeline-design-scope.md) — preserve New Loan/admin; Feather navigation; department queues stay empty until assignment rules are approved.
+- [Creation retry scope](creation-retry-scope.md) — preserve creation receipts across demo replacement without broad migrations or changing Blend import behavior.
+- [Isolated browser layout checks](browser-layout-harness.md) — real components with intercepted fixtures avoid touching saved loans and bypass legacy artifact limitations.

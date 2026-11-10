@@ -11,6 +11,8 @@ import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
 import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
+import { allocateCif, newSfOpportunity } from "./sf-opportunity";
+import { ensureOpportunityExpiry } from "./opportunity-expiry";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
@@ -25,8 +27,9 @@ function loanFailure(res: Response, error: unknown, fallback: string) {
 async function load(id: string): Promise<LoanApplication | null> {
   const existing = await pool.query("SELECT document FROM prototype_loan_applications WHERE loan_id=$1", [id]);
   if (existing.rows[0]) {
-    const document: LoanApplication = existing.rows[0].document;
+    let document: LoanApplication = existing.rows[0].document;
     assertLoanDocument(document, id);
+    document = await ensureOpportunityExpiry(pool, document);
     if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
@@ -85,8 +88,11 @@ export function registerLoanApplicationRoutes(app: Express) {
     } catch (error) { loanFailure(res, error, "The pipeline could not be loaded from the database."); }
   });
   app.post("/api/loans", async (req, res) => {
-    if (!z.object({ source: z.literal("blank") }).strict().safeParse(req.body).success)
-      return void res.status(400).json({ error: "Choose a blank application to create a loan." });
+    const parsed = z.object({ source: z.enum(["blank", "sf"]),
+      idempotencyKey: z.string().uuid().optional() }).strict().safeParse(req.body);
+    if (!parsed.success)
+      return void res.status(400).json({ error: "Choose a supported application source to create a loan." });
+    const { source, idempotencyKey } = parsed.data;
     let client: pg.PoolClient | undefined;
     try {
       await load("1");
@@ -94,6 +100,23 @@ export function registerLoanApplicationRoutes(app: Express) {
       await client.query("BEGIN");
       // Serialize number allocation across app processes without adding a table.
       await client.query("SELECT pg_advisory_xact_lock(784219)");
+      // Look up the durable receipt inside the same lock as allocation/insertion.
+      // Legacy callers may omit the key; existing documents need no migration.
+      if (idempotencyKey) {
+        const previous = await client.query(
+          "SELECT document FROM prototype_loan_applications WHERE document->'meta'->'creationAttempt'->>'key'=$1",
+          [idempotencyKey]);
+        if (previous.rows[0]) {
+          const saved: LoanApplication = previous.rows[0].document;
+          assertLoanDocument(saved, saved.loan.id);
+          if (saved.meta?.creationAttempt?.source !== source) {
+            await client.query("ROLLBACK");
+            return void res.status(409).json({ error: "This creation attempt belongs to a different application source." });
+          }
+          await client.query("COMMIT");
+          return void res.status(201).json({ id: saved.loan.id, loanNumber: saved.loan.loanNumber });
+        }
+      }
       const allocation = await client.query(`SELECT GREATEST(COALESCE(MAX(
         CASE WHEN document->'loan'->>'loanNumber' ~ '^[0-9]{1,9}$'
         THEN (document->'loan'->>'loanNumber')::bigint END), 123456789), 123456789) + 1 AS number
@@ -101,7 +124,15 @@ export function registerLoanApplicationRoutes(app: Express) {
       const loanNumber = String(allocation.rows[0].number);
       if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
       const id = randomUUID();
-      const document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      let document: LoanApplication;
+      if (source === "sf") {
+        const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
+        const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
+        document = newSfOpportunity(id, loanNumber, cif);
+      } else {
+        document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
+      }
+      if (idempotencyKey) document.meta!.creationAttempt = { key: idempotencyKey, source };
       assertLoanDocument(document, id);
       const inserted = await client.query(
         "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",
@@ -245,6 +276,7 @@ export function registerLoanApplicationRoutes(app: Express) {
       const checklistKey = `storage:loan-checklist-statuses:${current.loan.id}`;
       // A demo replacement is not a new loan: retain its original creation time.
       if (current.meta) next.meta!.createdAt = current.meta.createdAt;
+      if (current.meta?.creationAttempt) next.meta!.creationAttempt = current.meta.creationAttempt;
       const previousChecklist = current.sections[checklistKey];
       if (typeof previousChecklist === "string") {
         const statuses = JSON.parse(previousChecklist);
