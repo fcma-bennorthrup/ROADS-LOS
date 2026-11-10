@@ -7,7 +7,6 @@ import { LoanActivityPanel } from "../LoanActivityPanel";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";
 import { Toaster } from "@/components/ui/toaster";
-import * as decisionSimulation from "@shared/business-rules/decision-simulation";
 
 function OpenActivityPanel() {
   const { toggleActivityPanel } = useActivityPanel();
@@ -37,14 +36,6 @@ afterEach(() => {
 });
 
 describe("DecisioningSummaryContent checklist and activity wiring", () => {
-  it("uses a denied outcome in the display and activity", () => {
-    vi.spyOn(decisionSimulation, "simulateLoanDecision").mockReturnValue("denied");
-    renderDecisioningFlow();
-    fireEvent.click(screen.getByRole("button", { name: "Pull Credit" }));
-    fireEvent.click(screen.getByRole("button", { name: "Decision Loan" }));
-    expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("Loan Denied");
-    expect(screen.getByText("Loan is denied")).toBeInTheDocument();
-  });
   it("enables the matching Deliver Decision Letter button after generation", () => {
     renderDecisioningFlow();
 

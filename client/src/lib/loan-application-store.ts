@@ -103,7 +103,7 @@ export async function applicationRequest(id: string, suffix = "", options: Reque
     ...options, credentials: "include", headers: { "Content-Type": "application/json", ...options.headers },
   });
   const result = await response.json();
-  if (!response.ok) throw Object.assign(new Error(result.error || "Loan data request failed."), { code: result.code });
+  if (!response.ok) throw new Error(result.error || "Loan data request failed.");
   return result;
 }
 

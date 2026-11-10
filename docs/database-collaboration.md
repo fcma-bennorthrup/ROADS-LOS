@@ -86,10 +86,6 @@ primary key. It does not claim to audit every PostgreSQL object or other tables.
    a calculation. Do not create a migration for an unrelated calculation change.
 3. Update the shared schema and add an **append-only**, uniquely ordered upgrade
    entry. Never edit or rename an already-shared/applied upgrade file.
-   A backward-compatible optional JSON field needs no data transformation when
-   missing values remain valid and are displayed as blank. For example, Subject
-   Property `parcel` is optional text, saved in the existing per-loan JSON document.
-   Do not backfill every loan or add a SQL column solely for that optional field.
 4. Preserve existing values and unknown optional fields. For JSON changes, define
    the source and target versions and an explicit transformation. For new SQL
    steps, extend the runner's reviewed allowlist; it intentionally refuses

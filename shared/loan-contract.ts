@@ -31,9 +31,6 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   fees: z.array(feeRecordSchema),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),
   "credit-frozen": z.boolean(),
-  // Accept the retired value in existing documents; decisionMode maps it to approval.
-  "decision-mode": z.enum(["force-approval", "force-denial", "real-ede"]),
-  "decision-outcome": z.enum(["approved", "denied"]).nullable(),
   "pricing-type": z.string(), "pricing-product": z.string(),
   "pricing-term": z.union([z.string(), z.number(), z.null()]),
   "credit-scores": z.record(z.number().int().min(300).max(850)),

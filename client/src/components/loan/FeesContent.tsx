@@ -1,11 +1,7 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
-import { Check, Pencil, Trash2 } from "lucide-react";
-import type { FeeRow } from "@shared/fees";
+import { useState } from "react";
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
-import { applicationStore } from "@/lib/loan-application-store";
-import { toast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
-import { FeeEditDialog } from "./FeeEditDialog";
 
 const FEE_OPTIONS = [
   "Appraisal Fee",
@@ -18,294 +14,251 @@ const FEE_OPTIONS = [
   "Title Insurance Fee",
   "Title Search Fee",
   "Underwriting Fee",
-].map((fee) => ({ value: fee, label: fee }));
-const METHOD_OPTIONS = ["Financed", "Cash"].map((value) => ({ value, label: value }));
-const PAID_BY_OPTIONS = ["Buyer", "Seller"].map((value) => ({ value, label: value }));
+];
 
-const inputStyle: CSSProperties = {
-  width: "100%",
-  minWidth: 0,
-  height: 40,
-  padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
-  background: "var(--roads-bg-primary)",
-  border: "1px solid var(--roads-border-dark)",
-  borderRadius: "var(--roads-radius-2xs)",
-  color: "var(--roads-text-primary)",
-  lineHeight: "20px",
-  fontWeight: 600,
-};
-const buttonStyle: CSSProperties = {
-  height: 32,
-  borderRadius: "var(--roads-radius-2xs)",
-  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-  cursor: "pointer",
-  whiteSpace: "nowrap",
-  lineHeight: "16px",
-};
-const cellStyle: CSSProperties = {
-  minWidth: 0,
-  padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
-  color: "var(--roads-text-primary)",
-  lineHeight: "24px",
-  overflowWrap: "anywhere",
-};
-const columns = [
-  ["fee", "Fee"],
-  ["method", "Method of Payment"],
-  ["paid-by", "Paid By"],
-  ["paid-to", "Paid To"],
-  ["le-amount", "LE Amount"],
-  ["cd-amount", "CD Amount"],
-  ["shopped", "Shopped"],
-] as const;
+const FEE_DROPDOWN_OPTIONS = FEE_OPTIONS.map((f) => ({ value: f, label: f }));
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col" style={{ minWidth: 0, gap: "var(--roads-spacing-component-xs)" }}>
-      <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}>
-        {label}
-      </span>
-      {children}
-    </div>
-  );
+interface FeeRow {
+  id: string;
+  fee: string;
+  leAmount: string;
+  cdAmount: string;
+  methodOfPayment: string;
+  paidBy: string;
 }
 
 function CurrencyInput({
-  label, value, onChange, testId,
-}: { label: string; value: string; onChange: (value: string) => void; testId: string }) {
+  label,
+  value,
+  onChange,
+  testId,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  testId: string;
+}) {
   return (
-    <Field label={label}>
-      <div className="flex items-center" style={{ ...inputStyle, gap: "var(--roads-spacing-component-xs)" }}>
-        <span className="body-100" style={{ width: 16, flexShrink: 0, textAlign: "center", color: "var(--roads-icon-dark)" }}>$</span>
+    <div className="flex flex-col" style={{ width: 294, gap: "var(--roads-spacing-component-xs)" }}>
+      <span
+        className="label-strong"
+        style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}
+      >
+        {label}
+      </span>
+      <div
+        className="flex items-center"
+        style={{
+          backgroundColor: "var(--roads-bg-primary)",
+          border: "1px solid var(--roads-border-dark)",
+          borderRadius: "var(--roads-radius-2xs)",
+          padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+          gap: "var(--roads-spacing-component-2xs)",
+          height: 44,
+        }}
+      >
+        <span className="body-100" style={{ color: "var(--roads-text-secondary)" }}>$</span>
         <input
           type="text"
-          aria-label={label}
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          onChange={(e) => onChange(e.target.value)}
           className="body-100"
           style={{
-            flex: 1, width: 0, minWidth: 0, border: "none", outline: "none",
-            background: "transparent", color: "var(--roads-text-primary)", padding: 0, lineHeight: "20px", fontWeight: 600,
+            flex: 1,
+            border: "none",
+            outline: "none",
+            background: "transparent",
+            color: "var(--roads-text-primary)",
+            padding: 0,
+            lineHeight: "20px",
           }}
           placeholder="0.00"
           data-testid={testId}
         />
       </div>
-    </Field>
+    </div>
   );
 }
 
 export function FeesContent() {
   const [fees, setFees] = useLoanState<FeeRow[]>("fees", []);
-  const [editingFee, setEditingFee] = useState<FeeRow | null>(null);
   const [feeType, setFeeType] = useState("");
-  const [methodOfPayment, setMethodOfPayment] = useState("Cash");
-  const [paidBy, setPaidBy] = useState("Buyer");
-  const [paidTo, setPaidTo] = useState("");
   const [leAmount, setLeAmount] = useState("");
   const [cdAmount, setCdAmount] = useState("");
-  const [shoppedForProvider, setShoppedForProvider] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
-  const editing = !!(feeType || leAmount || cdAmount || paidTo || shoppedForProvider ||
-    methodOfPayment !== "Cash" || paidBy !== "Buyer");
-  useLoanEditing("fee-editor", editing);
+  useLoanEditing("fee-editor", !!(feeType || leAmount || cdAmount));
 
   function handleAddFee() {
     if (!feeType) return;
-    try {
-      setFees((previous) => [...previous, {
-        id: crypto.randomUUID(), fee: feeType, methodOfPayment, paidBy, paidTo,
-        leAmount: leAmount || "0.00", cdAmount: cdAmount || "0.00", shoppedForProvider,
-      }]);
-      setFeeType("");
-      setMethodOfPayment("Cash");
-      setPaidBy("Buyer");
-      setPaidTo("");
-      setLeAmount("");
-      setCdAmount("");
-      setShoppedForProvider(false);
-      setFeedback(null);
-    } catch (error) {
-      setFeedback({ error: true, message: error instanceof Error ? error.message : "Unable to add fee." });
-    }
+    const newFee: FeeRow = {
+      id: String(Date.now()),
+      fee: feeType,
+      leAmount: leAmount || "0.00",
+      cdAmount: cdAmount || "0.00",
+      methodOfPayment: "Cash",
+      paidBy: "Buyer",
+    };
+    setFees((prev) => [...prev, newFee]);
+    setFeeType("");
+    setLeAmount("");
+    setCdAmount("");
   }
 
-  function updateFees(next: FeeRow[]) {
-    try {
-      setFees(next);
-      setFeedback(null);
-    } catch (error) {
-      setFeedback({ error: true, message: error instanceof Error ? error.message : "Unable to delete fees." });
-    }
+  function handleDeleteFee(id: string) {
+    setFees((prev) => prev.filter((f) => f.id !== id));
   }
 
-  async function handleSaveFeeTable() {
-    setSaving(true);
-    setFeedback(null);
-    try {
-      await applicationStore.flush();
-      toast({
-        variant: "success",
-        title: "Fee table saved.",
-        description: editing ? "Add the current fee to include it in the table." : "Your fee changes have been saved.",
-        duration: 5000,
-      });
-    } catch (error) {
-      setFeedback({
-        error: true,
-        message: `Fee table not saved. ${error instanceof Error ? error.message : "Please try again."}`,
-      });
-    } finally {
-      setSaving(false);
-    }
+  function handleDeleteAll() {
+    setFees([]);
   }
 
   return (
     <div
       className="flex flex-col"
-      style={{ padding: "var(--roads-spacing-component-xl)", flex: 1, minHeight: 0, minWidth: 0 }}
+      style={{ padding: "var(--roads-spacing-component-xl)", gap: "var(--roads-spacing-component-xl)", flex: 1, minHeight: 0 }}
       data-testid="fees-content"
     >
-      <style>{`
-        .roads-fees-fields {
-          display: flex;
-          flex-wrap: wrap;
-          gap: var(--roads-spacing-component-3xl);
-          align-items: center;
-        }
-        .roads-fees-fields > div { flex: 1 0 0; }
-        .roads-fees-fields > label { flex: 0 0 167px; }
-        .roads-fees-fields button[aria-expanded] {
-          padding: var(--roads-spacing-component-s) var(--roads-spacing-component-m) !important;
-        }
-        .roads-fees-table-row {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 76px;
-          min-width: 1096px;
-        }
-        @media (max-width: 1200px) {
-          .roads-fees-fields > div { flex-basis: calc((100% - 2 * var(--roads-spacing-component-3xl)) / 3); }
-        }
-        @media (max-width: 767px) {
-          .roads-fees-fields { gap: var(--roads-spacing-component-l); }
-          .roads-fees-fields > div { flex-basis: 100%; }
-        }
-      `}</style>
       <h2
         className="headline-300"
-        style={{ color: "var(--roads-text-primary)", lineHeight: "32px", marginBottom: "var(--roads-spacing-component-l)" }}
+        style={{ color: "var(--roads-text-primary)" }}
         data-testid="text-fees-title"
       >
         Fees
       </h2>
 
-      <div className="roads-fees-fields" data-testid="fees-field-row">
-        <Field label="Fee">
-          <RoadsDropdown value={feeType} onChange={setFeeType} options={FEE_OPTIONS}
-            placeholder="Select fee" variant="field" ariaLabel="Fee" testId="select-fee-type" />
-        </Field>
-        <Field label="Method of Payment">
-          <RoadsDropdown value={methodOfPayment} onChange={setMethodOfPayment} options={METHOD_OPTIONS}
-            variant="field" ariaLabel="Method of Payment" testId="select-method-of-payment" />
-        </Field>
-        <Field label="Paid By">
-          <RoadsDropdown value={paidBy} onChange={setPaidBy} options={PAID_BY_OPTIONS}
-            variant="field" ariaLabel="Paid By" testId="select-paid-by" />
-        </Field>
-        <Field label="Paid To">
-          <input type="text" aria-label="Paid To" value={paidTo} onChange={(event) => setPaidTo(event.target.value)}
-            className="body-100" style={inputStyle} placeholder="Text field" data-testid="input-paid-to" />
-        </Field>
+      <div
+        className="flex flex-wrap items-end"
+        style={{ gap: "var(--roads-spacing-component-3xl)" }}
+      >
+        <div className="flex flex-col" style={{ width: 294, gap: "var(--roads-spacing-component-xs)" }}>
+          <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "16px" }}>Fee</span>
+          <RoadsDropdown
+            value={feeType}
+            onChange={setFeeType}
+            options={FEE_DROPDOWN_OPTIONS}
+            placeholder="Select fee"
+            testId="select-fee-type"
+          />
+        </div>
         <CurrencyInput label="LE Amount" value={leAmount} onChange={setLeAmount} testId="input-le-amount" />
         <CurrencyInput label="CD Amount" value={cdAmount} onChange={setCdAmount} testId="input-cd-amount" />
-        <label className="flex items-end body-100"
-          style={{ height: 40, gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)", cursor: "pointer", lineHeight: "16px", whiteSpace: "nowrap" }}>
-          <input type="checkbox" checked={shoppedForProvider}
-            onChange={(event) => setShoppedForProvider(event.target.checked)}
-            data-testid="checkbox-shopped-for-provider"
-            style={{
-              width: "var(--roads-spacing-component-l)", height: "var(--roads-spacing-component-l)",
-              border: "1px solid var(--roads-border-dark)", borderRadius: "var(--roads-radius-2xs)",
-              accentColor: "var(--roads-bg-action)", cursor: "pointer", flexShrink: 0,
-            }} />
-          Shopped for Provider
-        </label>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end"
-        style={{ gap: "var(--roads-spacing-component-l)", marginTop: "var(--roads-spacing-component-l)" }}
-        data-testid="fees-actions">
-        {feedback && <span role="alert" className="body-100"
-          style={{ marginRight: "auto", color: "var(--roads-text-error)" }}>
-          {feedback.message}
-        </span>}
-        <button type="button" onClick={() => updateFees([])} className="label-strong"
-          style={{ ...buttonStyle, background: "var(--roads-bg-error)", color: "var(--roads-text-reverse)", border: "none" }}
-          data-testid="button-delete-all-fees">Delete All Fees</button>
-        <button type="button" onClick={handleSaveFeeTable} disabled={saving} className="label-strong"
-          style={{ ...buttonStyle, background: "var(--roads-bg-primary)", color: "var(--roads-text-primary)", border: "1px solid var(--roads-border-dark)" }}
-          data-testid="button-save-fee-table">{saving ? "Saving fee table…" : "Save Fee Table"}</button>
-        <button type="button" onClick={handleAddFee} className="label-strong"
-          style={{ ...buttonStyle, background: "var(--roads-bg-action)", color: "var(--roads-text-reverse)", border: "none" }}
-          data-testid="button-add-fee">Add Fee</button>
+      <div className="flex items-center justify-end" style={{ gap: "var(--roads-spacing-component-l)" }}>
+        <button
+          onClick={handleAddFee}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-action)",
+            color: "var(--roads-text-reverse)",
+            border: "none",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+          data-testid="button-add-fee"
+        >
+          Add Fee
+        </button>
+        <button
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-primary)",
+            color: "var(--roads-text-primary)",
+            border: "1px solid var(--roads-border-dark)",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+          data-testid="button-save-fee-table"
+        >
+          Save Fee Table
+        </button>
+        <button
+          onClick={handleDeleteAll}
+          className="label-strong"
+          style={{
+            backgroundColor: "var(--roads-bg-error)",
+            color: "var(--roads-text-reverse)",
+            border: "none",
+            borderRadius: "var(--roads-radius-2xs)",
+            padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+          data-testid="button-delete-all-fees"
+        >
+          Delete All Fees
+        </button>
       </div>
 
-      <div className="flex flex-col"
+      <div
+        className="flex flex-col"
         style={{
-          backgroundColor: "var(--roads-bg-primary)", border: "1px solid var(--roads-border-subtle)",
-          borderRadius: "var(--roads-radius-xs)", overflow: "auto", flex: 1,
-          marginTop: "var(--roads-spacing-component-xl)",
+          backgroundColor: "var(--roads-bg-primary)",
+          border: "1px solid var(--roads-border-subtle)",
+          borderRadius: "var(--roads-radius-xs)",
+          overflow: "hidden",
+          flex: 1,
         }}
-        role="table" aria-label="Fees" data-testid="fees-table">
-        <div className="roads-fees-table-row" role="row" style={{ backgroundColor: "var(--roads-bg-light)" }}>
-          {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
-            style={{ ...cellStyle, textAlign: key === "shopped" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
-          <div role="columnheader" aria-label="Actions" />
+        data-testid="fees-table"
+      >
+        <div
+          className="flex"
+          style={{ backgroundColor: "var(--roads-bg-light)" }}
+        >
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-fee">Fee</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-le-amount">LE Amount</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-cd-amount">CD Amount</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-method">Method of Payment</div>
+          <div className="label-strong" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid="th-paid-by">Paid By</div>
+          <div style={{ width: 80 }} />
         </div>
+
         {fees.map((fee) => (
-          <div key={fee.id} className="roads-fees-table-row" role="row"
-            style={{ borderTop: "1px solid var(--roads-border-subtle)" }} data-testid={`fee-row-${fee.id}`}>
-            <div role="cell" className="body-100" style={cellStyle}>{fee.fee}</div>
-            <div role="cell" className="body-100" style={cellStyle}>{fee.methodOfPayment}</div>
-            <div role="cell" className="body-100" style={cellStyle}>{fee.paidBy}</div>
-            <div role="cell" className="body-100" style={cellStyle}>{fee.paidTo ?? ""}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.leAmount}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.cdAmount}</div>
-            <div role="cell" className="flex items-center justify-center" aria-label={fee.shoppedForProvider ? "Shopped for Provider" : "Not shopped for Provider"}>
-              {fee.shoppedForProvider && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-shopped-${fee.id}`} />}
-            </div>
-            <div role="cell" className="flex items-center justify-center"
-              data-testid={`fee-actions-${fee.id}`}
-              style={{ gap: "var(--roads-spacing-component-m)", padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)" }}>
-              <button type="button" onClick={() => updateFees(fees.filter((row) => row.id !== fee.id))}
-                aria-label={`Delete ${fee.fee}`}
+          <div
+            key={fee.id}
+            className="flex"
+            style={{ borderTop: "1px solid var(--roads-border-subtle)" }}
+            data-testid={`fee-row-${fee.id}`}
+          >
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.fee}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.leAmount}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>${fee.cdAmount}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.methodOfPayment}</div>
+            <div className="body-100" style={{ flex: 1, padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)", color: "var(--roads-text-primary)", lineHeight: "24px" }}>{fee.paidBy}</div>
+            <div className="flex items-center justify-center" style={{ width: 80 }}>
+              <button
+                onClick={() => handleDeleteFee(fee.id)}
                 style={{
-                  background: "none", border: "none", cursor: "pointer", color: "var(--roads-text-error)",
-                  display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--roads-text-error)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "var(--roads-spacing-component-2xs)",
                 }}
-                data-testid={`button-delete-fee-${fee.id}`}>
+                data-testid={`button-delete-fee-${fee.id}`}
+              >
                 <Trash2 style={{ width: 16, height: 16 }} />
-              </button>
-              <button type="button" onClick={() => setEditingFee(fee)} aria-label={`Edit ${fee.fee}`}
-                data-testid={`button-edit-fee-${fee.id}`}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--roads-icon-dark)",
-                  display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                <Pencil aria-hidden="true" style={{ width: 16, height: 16 }} />
               </button>
             </div>
           </div>
         ))}
-        <div style={{
-          backgroundColor: "var(--roads-bg-light)", minWidth: 1096,
-          height: 56, flexShrink: 0, borderTop: "1px solid var(--roads-border-subtle)", marginTop: "auto",
-        }} data-testid="fees-table-footer" />
+
+        <div
+          style={{
+            backgroundColor: "var(--roads-bg-light)",
+            padding: "var(--roads-spacing-component-l)",
+            borderTop: "1px solid var(--roads-border-subtle)",
+            marginTop: "auto",
+          }}
+          data-testid="fees-table-footer"
+        />
       </div>
-      {editingFee && <FeeEditDialog key={editingFee.id} fee={editingFee} onClose={() => setEditingFee(null)}
-        onSave={async draft => {
-          setFees(previous => previous.map(row => row.id === editingFee.id ? { ...row, ...draft } : row));
-          await applicationStore.flush();
-        }} />}
     </div>
   );
 }

@@ -2,7 +2,6 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
-import { createPortal } from "react-dom"
 
 import { cn } from "@/lib/utils"
 
@@ -11,16 +10,15 @@ const ToastProvider = ToastPrimitives.Provider
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
->(({ className, ...props }, ref) => createPortal(
+>(({ className, ...props }, ref) => (
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      "fixed top-0 z-[1100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[432px]",
+      "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[432px]",
       className
     )}
     {...props}
-  />,
-  document.body
+  />
 ))
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
@@ -30,12 +28,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border bg-background text-foreground",
-        success:
-          "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border-0 border-l-4 border-[var(--roads-text-success)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
         information:
           "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border border-l-4 border-[var(--roads-text-information)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
-        error:
-          "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border-0 border-l-4 border-[var(--roads-text-error)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
       },
@@ -49,16 +43,13 @@ const toastVariants = cva(
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
-    VariantProps<typeof toastVariants> & { persistent?: boolean }
->(({ className, variant, persistent, ...props }, ref) => {
+    VariantProps<typeof toastVariants>
+>(({ className, variant, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
       {...props}
-      {...(persistent ? { duration: Infinity,
-        onEscapeKeyDown: (event: KeyboardEvent) => event.preventDefault(),
-        onSwipeEnd: (event: Event) => event.preventDefault() } : {})}
     />
   )
 })
