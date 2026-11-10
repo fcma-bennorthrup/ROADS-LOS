@@ -27,7 +27,7 @@ export function CustomerDocumentsContent() {
           }}
           data-testid="button-completed-mindocs"
         >
-          Completed MinDocs.
+          Completed MinDocs
         </button>
       </section>
     </div>
