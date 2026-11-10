@@ -248,7 +248,7 @@ export function FeesContent() {
 
       <div className="flex flex-col"
         style={{
-          backgroundColor: "var(--roads-bg-primary)", boxShadow: "inset 0 0 0 1px var(--roads-border-subtle)",
+          backgroundColor: "var(--roads-bg-primary)", border: "1px solid var(--roads-border-subtle)",
           borderRadius: "var(--roads-radius-xs)", overflow: "auto", flex: 1,
           marginTop: "var(--roads-spacing-component-xl)",
         }}
