@@ -8,8 +8,6 @@
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
-    "test:pipeline-layout": "playwright test --config verification/pipeline-layout/playwright.config.ts",
-    "test:postgres": "vitest run --config vitest.postgres.config.ts",
     "db:push": "drizzle-kit push",
     "db:check": "tsx script/database.ts check",
     "db:upgrade:dev": "NODE_ENV=development tsx script/database.ts apply --development"
@@ -83,7 +81,6 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.65.0",
     "@replit/vite-plugin-cartographer": "^0.4.4",
     "@replit/vite-plugin-dev-banner": "^0.1.1",
     "@replit/vite-plugin-runtime-error-modal": "^0.0.3",

@@ -1,11 +1,10 @@
-import { configDefaults, defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
   plugins: [react()],
   test: {
-    exclude: [...configDefaults.exclude, "verification/pipeline-layout/**"],
     environment: "jsdom",
     globals: true,
     setupFiles: ["./client/src/test/setup.ts"],
