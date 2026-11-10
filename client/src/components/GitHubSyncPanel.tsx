@@ -1,10 +1,4 @@
-import { useState, useEffect } from "react";
-import { DatabaseCompatibilityStatus } from "./DatabaseCompatibilityStatus";
-import { useQuery } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { useGitHubSyncContext } from "@/contexts/github-sync-context";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,33 +7,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { LoanDemoControls } from "@/components/LoanDemoControls";
-import {
-  GitBranch,
-  ArrowDown,
-  ArrowUp,
-  AlertTriangle,
-  Loader2,
-  RefreshCw,
-} from "lucide-react";
-
-interface SyncStatus {
-  lastSyncedCommitSha: string | null;
-  remoteHeadSha: string;
-  inSync: boolean;
-  remoteHasChanges: boolean;
-  hasLocalChanges: boolean;
-  localChangedCount: number;
-  localDeletedCount: number;
-  localCheckFailed: boolean;
-  recovery?: {
-    message: string;
-    operation: string;
-    outcomes: { path: string; action: string; state: string }[];
-  };
-}
 
 export function GitHubSyncPanel({
   open,
@@ -50,201 +18,16 @@ export function GitHubSyncPanel({
   onOpenChange: (open: boolean) => void;
   loanActive?: boolean;
 }) {
-  const { pullMutation, pushMutation, openConflictDialog, hasPendingConflicts } =
-    useGitHubSyncContext();
-  const [commitMessage, setCommitMessage] = useState("Update from Replit");
-  const [activeTab, setActiveTab] = useState("github");
-
-  useEffect(() => {
-    if (open) {
-      setActiveTab("github");
-      queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/github/conflicts"] });
-    }
-  }, [open]);
-
-  const refreshStatus = () => {
-    queryClient.invalidateQueries({ queryKey: ["/api/github/sync-status"] });
-  };
-
-  const { data: syncStatus, isLoading: statusLoading, isFetching: statusFetching } = useQuery<SyncStatus>({
-    queryKey: ["/api/github/sync-status"],
-    enabled: open,
-  });
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={activeTab === "demo" ? "max-w-6xl w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto" : undefined}>
+      <DialogContent className={loanActive ? "max-w-6xl w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto" : undefined}>
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <GitBranch className="w-5 h-5" />
-            Prototype Admin Controls
-          </DialogTitle>
-          <DialogDescription>
-            {loanActive ? "Manage project sync or simulate the current loan’s application journey." : "Manage project sync."}
+          <DialogTitle>Prototype Admin Controls</DialogTitle>
+          <DialogDescription className={loanActive ? undefined : "sr-only"}>
+            {loanActive ? "Simulate the current loan’s application journey." : "Prototype administration controls."}
           </DialogDescription>
         </DialogHeader>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList><TabsTrigger value="github">GitHub Sync</TabsTrigger>{loanActive && <TabsTrigger value="demo">Demo Controls</TabsTrigger>}</TabsList>
-          {loanActive && <TabsContent value="demo"><LoanDemoControls /></TabsContent>}
-          <TabsContent value="github">
-        <DatabaseCompatibilityStatus open={open && activeTab === "github"} />
-        <div className="flex flex-col gap-4">
-          {statusLoading ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Checking sync status...
-            </div>
-          ) : syncStatus ? (
-            <div className="flex items-center justify-between gap-2" data-testid="text-sync-status">
-            <div className="flex flex-col gap-1 text-sm">
-              {syncStatus.inSync ? (
-                <div className="flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">In sync with remote</span>
-                </div>
-              ) : (
-                <>
-                  {syncStatus.remoteHasChanges && (
-                    <div className="flex items-center gap-2">
-                      <ArrowDown className="w-4 h-4 text-muted-foreground" />
-                      <span>Remote has newer changes</span>
-                    </div>
-                  )}
-                  {syncStatus.hasLocalChanges && (
-                    <div className="flex items-center gap-2">
-                      <ArrowUp className="w-4 h-4 text-muted-foreground" />
-                      <span>
-                        You have local changes to push
-                        {syncStatus.localChangedCount >= 0 && (
-                          <> ({syncStatus.localChangedCount} modified{syncStatus.localDeletedCount > 0 ? `, ${syncStatus.localDeletedCount} deleted` : ""})</>
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  {syncStatus.localCheckFailed && (
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-amber-500" />
-                      <span className="text-muted-foreground">Unable to check local changes</span>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-            <button
-              onClick={refreshStatus}
-              disabled={statusFetching}
-              className="p-1 rounded hover:bg-muted transition-colors"
-              title="Refresh sync status"
-              data-testid="button-refresh-sync-status"
-            >
-              <RefreshCw className={`w-4 h-4 text-muted-foreground ${statusFetching ? "animate-spin" : ""}`} />
-            </button>
-            </div>
-          ) : null}
-
-          {syncStatus?.recovery && (
-            <div role="alert" className="p-3 border rounded-md bg-destructive/5 text-sm">
-              <p>{syncStatus.recovery.message}</p>
-              <details className="mt-2">
-                <summary>Review sync result</summary>
-                <p>Retry the original {syncStatus.recovery.operation} action after reviewing these results.</p>
-                <ul className="max-h-48 overflow-auto">
-                  {syncStatus.recovery.outcomes.map((item, index) => (
-                    <li key={index}>{item.path}: {item.action} — {item.state}</li>
-                  ))}
-                </ul>
-              </details>
-            </div>
-          )}
-
-          {hasPendingConflicts && (
-            <div className="flex items-center justify-between gap-2 p-3 border rounded-md bg-destructive/5">
-              <div className="flex items-center gap-2 text-sm">
-                <AlertTriangle className="w-4 h-4 text-amber-500" />
-                <span>Unresolved conflicts pending</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => {
-                  openConflictDialog();
-                  onOpenChange(false);
-                }}
-                data-testid="button-open-conflict-resolver"
-              >
-                Resolve
-              </Button>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={() => pullMutation.mutate({})}
-                disabled={pullMutation.isPending || pushMutation.isPending}
-                data-testid="button-pull"
-              >
-                {pullMutation.isPending ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <ArrowDown className="w-4 h-4 mr-2" />
-                )}
-                Pull
-              </Button>
-              <Button
-                className="flex-1"
-                variant="outline"
-                onClick={() => pullMutation.mutate({ force: true })}
-                disabled={pullMutation.isPending || pushMutation.isPending}
-                data-testid="button-force-pull"
-              >
-                Force Pull
-              </Button>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Input
-                placeholder="Commit message"
-                value={commitMessage}
-                onChange={(e) => setCommitMessage(e.target.value)}
-                data-testid="input-commit-message"
-              />
-              <div className="flex items-center gap-2">
-                <Button
-                  className="flex-1"
-                  onClick={() => pushMutation.mutate({ message: commitMessage })}
-                  disabled={pullMutation.isPending || pushMutation.isPending}
-                  data-testid="button-push"
-                >
-                  {pushMutation.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <ArrowUp className="w-4 h-4 mr-2" />
-                  )}
-                  Push
-                </Button>
-                <Button
-                  className="flex-1"
-                  variant="outline"
-                  onClick={() =>
-                    pushMutation.mutate({ message: commitMessage, force: true })
-                  }
-                  disabled={pullMutation.isPending || pushMutation.isPending}
-                  data-testid="button-force-push"
-                >
-                  Force Push
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-          </TabsContent>
-        </Tabs>
+        {loanActive ? <LoanDemoControls /> : <div className="min-h-24" data-testid="admin-controls-shell" />}
         <DialogFooter>
           <Button
             variant="outline"
