@@ -3,9 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoanDemoControls } from "./LoanDemoControls";
 
 const mocks = vi.hoisted(() => ({
-  store: { document: { loan: { id: "demo", loanNumber: "Demo" }, generation: 1, revision: 2,
+  store: { document: { loan: { id: "demo", loanNumber: "Demo" }, generation: 1, revision: 2, sections: {} as Record<string, unknown>,
     businessRules: { trid: { status: "not-triggered" } } },
-    dirty: false, pending: 0, error: "", flush: vi.fn(), install: vi.fn() },
+    dirty: false, pending: 0, error: "", flush: vi.fn(), install: vi.fn(), write: vi.fn() },
   request: vi.fn(),
 }));
 vi.mock("@/contexts/loan-application-context", () => ({ useApplicationStatus: () => mocks.store }));
@@ -18,9 +18,38 @@ beforeEach(() => {
   cleanup(); vi.clearAllMocks();
   mocks.store.document.businessRules.trid.status = "not-triggered";
   mocks.store.dirty = false;
+  mocks.store.document.sections = {};
 });
 
 describe("Trigger TRID button", () => {
+  it.each([
+    ["Force denial", "force-denial"],
+  ])("persists %s for the current loan", async (label, mode) => {
+    const view = render(<LoanDemoControls />);
+    expect(screen.getByRole("radio", { name: "Force approval" })).toBeChecked();
+    expect(screen.queryByRole("radio", { name: "Real EDE Simulation" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: label }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("decision-mode", mode));
+    expect(mocks.store.flush).toHaveBeenCalled();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+    mocks.store.document.sections["decision-mode"] = mode;
+    view.unmount();
+    render(<LoanDemoControls />);
+    expect(screen.getByRole("radio", { name: label })).toBeChecked();
+  });
+  it("saves the loan's frozen-credit toggle without replacing its data", async () => {
+    const view = render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("switch", { name: "Credit frozen" }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("credit-frozen", true));
+    expect(mocks.store.flush).toHaveBeenCalled();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+    mocks.store.document.sections["credit-frozen"] = true;
+    view.unmount();
+    render(<LoanDemoControls />);
+    expect(screen.getByRole("switch", { name: "Credit frozen" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(screen.getByRole("switch", { name: "Credit frozen" }));
+    await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("credit-frozen", false));
+  });
   it.each([
     ["Reset TRID Data", "Confirm reset", "trid-reset"],
     ["Manually Trigger TRID", "Confirm trigger", "trid-manual"],
@@ -59,8 +88,8 @@ describe("Trigger TRID button", () => {
     for (const button of screen.getAllByRole("button")) {
       expect(button.className).toContain("bg-secondary");
     }
-    for (const kind of ["reset", "blend", "trid"]) {
-      expect(screen.getByTestId(`demo-${kind}-card`).className).toContain("h-80");
+    for (const kind of ["reset", "blend", "trid", "decision", "credit-freeze", "checklist"]) {
+      expect(screen.getByTestId(`demo-${kind}-card`).className).toContain("h-64");
     }
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "New Blend Import" })).toBeTruthy();

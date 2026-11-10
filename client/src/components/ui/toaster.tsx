@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast"
-import { CircleCheck } from "lucide-react"
+import { CircleCheck, CircleCheckBig, OctagonAlert } from "lucide-react"
 import {
   Toast,
   ToastClose,
@@ -15,13 +15,15 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
-        const isInformation = variant === "information"
+        const isSuccess = variant === "success"
+        const isInformation = variant === "information" || variant === "error" || isSuccess
+        const StatusIcon = variant === "error" ? OctagonAlert : isSuccess ? CircleCheckBig : CircleCheck
         return (
           <Toast
             key={id}
             variant={variant}
-            data-testid={isInformation ? "toast-information" : undefined}
-            role={isInformation ? "status" : undefined}
+            data-testid={isSuccess ? "toast-success" : variant === "error" ? "toast-error" : isInformation ? "toast-information" : undefined}
+            role={variant === "error" ? "alert" : isInformation ? "status" : undefined}
             {...props}
           >
             {isInformation && (
@@ -32,14 +34,14 @@ export function Toaster() {
                   padding: "var(--roads-spacing-component-l) 0 var(--roads-spacing-component-l) var(--roads-spacing-component-l)",
                 }}
               >
-                <CircleCheck
+                <StatusIcon
                   aria-hidden="true"
                   className="shrink-0"
-                  data-testid="icon-toast-information"
+                  data-testid={isSuccess ? "icon-toast-success" : "icon-toast-information"}
                   style={{
                     width: "20px",
                     height: "20px",
-                    color: "var(--roads-text-information)",
+                    color: isSuccess ? "var(--roads-text-success)" : variant === "error" ? "var(--roads-text-error)" : "var(--roads-text-information)",
                   }}
                 />
                 <div
@@ -85,14 +87,25 @@ export function Toaster() {
               </div>
             )}
             {action}
-            <ToastClose
+            {variant === "error" || isSuccess ? (
+              <div
+                className="shrink-0"
+                data-testid={isSuccess ? "toast-success-close-slot" : "toast-error-close-slot"}
+                style={{ padding: "var(--roads-spacing-component-l)" }}
+              >
+                <ToastClose
+                  aria-label="Dismiss notification"
+                  className="relative right-auto top-auto flex h-5 w-5 shrink-0 items-center justify-center p-0 text-[var(--roads-text-primary)] opacity-100"
+                />
+              </div>
+            ) : <ToastClose
               aria-label="Dismiss notification"
               className={
                 isInformation
                   ? "relative right-auto top-auto m-4 h-5 w-5 shrink-0 p-0 text-[var(--roads-text-primary)] opacity-100"
                   : undefined
               }
-            />
+            />}
           </Toast>
         )
       })}
