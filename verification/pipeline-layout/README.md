@@ -35,3 +35,21 @@ shared libraries not provided by the normal Nix shell). Elsewhere run
 `npx playwright install chromium` once, with the OS dependencies required by
 Playwright. An explicit `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` overrides selection.
 No application workflow or production code changes are required.
+
+## Loan navigation and panel coexistence
+
+Run `npm run test:pipeline-layout -- loan-panel-overlays.spec.ts` for focused
+coverage of Checklist, Loan Activity, and both panels open together. The
+`?loanPanels` fixture uses the real LoanHeader, BottomToolbar, ChecklistPanel,
+LoanActivityPanel, navigation, and state providers without loading a saved loan.
+It runs in a fresh browser context; every API request is blocked and the tests
+assert that no API request was attempted.
+
+The checks cover backdrop hit testing above panel controls and loan tabs,
+background accessibility hiding, forward/reverse keyboard focus trapping,
+programmatic background-focus blocking, close/Escape/outside-click dismissal,
+and focus restoration to the navigation trigger. Expanded checklist contents,
+activity search/sort/results, unsaved input, panel visibility, and shell geometry
+must survive each dismissal. Clicking over a panel's close button must dismiss
+only navigation, and panel controls must work again afterward.
+Screenshots for all three combinations are saved with the test output.

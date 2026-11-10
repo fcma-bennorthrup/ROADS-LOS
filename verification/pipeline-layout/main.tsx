@@ -7,6 +7,7 @@ import { queryClient } from "@/lib/queryClient";
 import "@/index.css";
 import { GitHubSyncContext } from "@/contexts/github-sync-context";
 import { BreadcrumbBar } from "@/components/AppHeader";
+import { LoanPanelsFixture } from "./LoanPanelsFixture";
 
 function LoanNavigationFixture() {
   return <div className="roads-loan-shell" data-testid="loan-layout-fixture">
@@ -26,7 +27,7 @@ function FixturePage() {
   return <GitHubSyncContext.Provider value={{
     pullMutation: mutation, pushMutation: mutation,
     hasPendingConflicts: false, openConflictDialog: () => {},
-  }}>{new URLSearchParams(window.location.search).has("loanNav") ? <LoanNavigationFixture /> : <PipelinePage />}</GitHubSyncContext.Provider>;
+  }}>{new URLSearchParams(window.location.search).has("loanPanels") ? <LoanPanelsFixture /> : new URLSearchParams(window.location.search).has("loanNav") ? <LoanNavigationFixture /> : <PipelinePage />}</GitHubSyncContext.Provider>;
 }
 
 // The real page, providers and CSS; requests are isolated by Playwright.
