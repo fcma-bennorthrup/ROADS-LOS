@@ -25,6 +25,12 @@ Sales Support uses Figma frame 1320:51595 in the same ROADS-Pipeline file. Contr
 
 **How to apply:** Preserve a chosen date across refreshes and queue changes, and keep All Loans columns unchanged.
 
+Operations uses Figma frame 1320:53127 in the same ROADS-Pipeline file, but must not show any loans yet.
+
+**Why:** The user explicitly requested matching Operations columns while keeping the queue empty.
+
+**How to apply:** Treat its Figma rows, dates, badges, and counts as reference-only; column styling does not authorize assignments or new business rules.
+
 Additive initialization of older opportunity metadata must participate in loan revision checks while preserving the original updated-at timestamp.
 
 **Why:** Revision checks prevent a simultaneous full-document demo action from erasing newly initialized values; retaining updated-at avoids presenting a metadata backfill as recent user activity.
