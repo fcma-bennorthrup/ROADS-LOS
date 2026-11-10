@@ -55,7 +55,7 @@ export function LoanDemoControls() {
     finally { setBusy(false); }
   }
   function actionControl(kind: DemoAction, label: string) {
-    return <div className="mt-auto h-28 shrink-0 flex flex-col justify-end">{action === kind ? <div role="alert" aria-label={`Confirm ${label}`} className="rounded-md border border-red-300 bg-red-50 p-2 dark:border-red-800 dark:bg-red-950">
+    return <div className="mt-auto shrink-0 flex flex-col justify-end">{action === kind ? <div role="alert" aria-label={`Confirm ${label}`} className="rounded-md border border-red-300 bg-red-50 p-2 dark:border-red-800 dark:bg-red-950">
       <div className="flex flex-col gap-2">
         <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : kind === "trid-manual" ? "Confirm trigger" : kind === "checklist" || kind === "trid-reset" ? "Confirm reset" : "Confirm replacement"}</Button>
         <Button variant="secondary" disabled={busy} onClick={() => { setAction(null); setError(""); }}>Cancel</Button>
@@ -67,7 +67,7 @@ export function LoanDemoControls() {
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
       <h3 className="font-semibold">Loan decision</h3>
       <p className="text-sm text-muted-foreground">Choose how the next decision is made. EDE rules will be added later.</p>
       <fieldset className="mt-auto flex flex-col gap-3 text-sm"
@@ -84,22 +84,22 @@ export function LoanDemoControls() {
         </label>)}
       </fieldset>
     </div>
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-credit-freeze-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-credit-freeze-card">
       <h3 className="font-semibold">Credit freeze</h3>
       <p className="text-sm text-muted-foreground">Block credit pulls for this loan until the freeze is lifted.</p>
-      <div className="mt-auto h-28 shrink-0 flex items-end justify-between gap-2">
+      <div className="mt-auto shrink-0 flex items-end justify-between gap-2">
         <label htmlFor="demo-credit-frozen">Credit frozen</label>
         <Switch id="demo-credit-frozen" checked={store.document?.sections?.["credit-frozen"] === true}
           disabled={busy || !store.document || store.pending > 0 || !!store.error}
           onCheckedChange={toggleCreditFrozen} />
       </div>
     </div>
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-reset-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-reset-card">
       <h3 className="font-semibold">Blank application</h3>
       <p className="text-sm text-muted-foreground">Clear all application data and progress for manual entry.</p>
       {actionControl("reset", "Reset All Application Data")}
     </div>
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-blend-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-blend-card">
       <h3 className="font-semibold">Blend import</h3>
       <p className="text-sm text-muted-foreground">Replace the application with mock borrower and loan data.</p>
       <fieldset disabled={busy} className="flex flex-wrap gap-x-3 gap-y-2 text-sm">
@@ -111,7 +111,7 @@ export function LoanDemoControls() {
       </fieldset>
       {actionControl("blend", "New Blend Import")}
     </div>
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-trid-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-trid-card">
       <h3 className="font-semibold">TRID application</h3>
       <p className="text-sm text-muted-foreground">{store.document?.businessRules?.trid.status === "satisfied"
         ? "Clear TRID inputs, or start another Loan Estimate without changing them."
@@ -119,13 +119,13 @@ export function LoanDemoControls() {
       {store.document?.businessRules?.trid.status === "satisfied"
         ? action === "trid-reset" || action === "trid-manual"
           ? actionControl(action, action === "trid-reset" ? "Reset TRID Data" : "Manually Trigger TRID")
-          : <div className="mt-auto h-28 shrink-0 flex flex-col justify-end gap-2">
+          : <div className="mt-auto shrink-0 flex flex-col justify-end gap-2">
             <Button variant="secondary" disabled={busy || !!store.error} onClick={() => { setAction("trid-reset"); setError(""); }}>Reset TRID Data</Button>
             <Button variant="secondary" disabled={busy || !!store.error} onClick={() => { setAction("trid-manual"); setError(""); }}>Manually Trigger TRID</Button>
           </div>
         : actionControl("trid", "Trigger TRID")}
     </div>
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-checklist-card">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-checklist-card">
       <h3 className="font-semibold">Checklist data</h3>
       <p className="text-sm text-muted-foreground">Clear task progress, generated documents, credit results, rate locks, and activity. Keep application data.</p>
       {actionControl("checklist", "Reset Checklist Data")}

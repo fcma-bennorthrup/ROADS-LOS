@@ -88,8 +88,8 @@ describe("Trigger TRID button", () => {
     for (const button of screen.getAllByRole("button")) {
       expect(button.className).toContain("bg-secondary");
     }
-    for (const kind of ["reset", "blend", "trid"]) {
-      expect(screen.getByTestId(`demo-${kind}-card`).className).toContain("h-80");
+    for (const kind of ["reset", "blend", "trid", "decision", "credit-freeze", "checklist"]) {
+      expect(screen.getByTestId(`demo-${kind}-card`).className).toContain("h-64");
     }
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(screen.getByRole("button", { name: "New Blend Import" })).toBeTruthy();
