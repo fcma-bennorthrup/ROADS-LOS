@@ -1,5 +1,5 @@
 import { useToast } from "@/hooks/use-toast"
-import { CircleCheck, OctagonAlert } from "lucide-react"
+import { CircleCheck, CircleCheckBig, OctagonAlert } from "lucide-react"
 import {
   Toast,
   ToastClose,
@@ -17,7 +17,7 @@ export function Toaster() {
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
         const isSuccess = variant === "success"
         const isInformation = variant === "information" || variant === "error" || isSuccess
-        const StatusIcon = variant === "error" ? OctagonAlert : CircleCheck
+        const StatusIcon = variant === "error" ? OctagonAlert : isSuccess ? CircleCheckBig : CircleCheck
         return (
           <Toast
             key={id}

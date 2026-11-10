@@ -148,7 +148,7 @@ export function FeesContent() {
       toast({
         variant: "success",
         title: "Fee table saved.",
-        description: editing ? "Add the current fee to include it in the table." : undefined,
+        description: editing ? "Add the current fee to include it in the table." : "Your fee changes have been saved.",
         duration: 5000,
       });
     } catch (error) {
