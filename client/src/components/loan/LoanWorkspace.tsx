@@ -6,7 +6,7 @@ import { LoanHeader, BottomToolbar } from "./LoanHeader";
 import { LoanActivityPanel } from "./LoanActivityPanel";
 import { formatCurrency, type LoanWithBorrowers } from "@/lib/loan-display";
 import { Button } from "@/components/ui/button";
-import { MainNavigation, MainNavigationLayout } from "@/components/MainNavigation";
+import "@/styles/main-navigation.css";
 
 const WorkspaceLoan = createContext<LoanWithBorrowers | null>(null);
 export function useWorkspaceLoan() {
@@ -29,8 +29,7 @@ export function LoanWorkspace({ children }: { children: ReactNode }) {
   </div>;
   const page = location === "/" ? "summary" : location.slice(1);
   const amount = loan.summary.amountRequested;
-  return <WorkspaceLoan.Provider value={loan}><MainNavigationLayout>
-    <MainNavigation loanActive />
+  return <WorkspaceLoan.Provider value={loan}>
     <div className="roads-loan-shell h-screen min-h-[100dvh] flex flex-row overflow-hidden" style={{ backgroundColor: "var(--roads-bg-page)" }} data-testid={`loan-${page}-page`}>
       <div className="flex-1 flex flex-col min-w-0">
         <LoanHeader loanNumber={loan.loanNumber} cifNumber={loan.cifNumber} loanType={loan.loanType}
@@ -43,5 +42,5 @@ export function LoanWorkspace({ children }: { children: ReactNode }) {
       </div>
       <LoanActivityPanel />
     </div>
-  </MainNavigationLayout></WorkspaceLoan.Provider>;
+  </WorkspaceLoan.Provider>;
 }

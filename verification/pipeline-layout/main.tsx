@@ -6,6 +6,15 @@ import PipelinePage from "@/pages/pipeline";
 import { queryClient } from "@/lib/queryClient";
 import "@/index.css";
 import { GitHubSyncContext } from "@/contexts/github-sync-context";
+import { BreadcrumbBar } from "@/components/AppHeader";
+
+function LoanNavigationFixture() {
+  return <div className="roads-loan-shell" data-testid="loan-layout-fixture">
+    <BreadcrumbBar loanNumber="100000001" />
+    <main><h1>Synthetic loan</h1><input aria-label="Unsaved example" defaultValue="Keep this text" /></main>
+    <div className="roads-loan-bottom-toolbar">Loan toolbar</div>
+  </div>;
+}
 
 function FixturePage() {
   // Keep the real closed panel mounted without enabling external sync activity.
@@ -17,7 +26,7 @@ function FixturePage() {
   return <GitHubSyncContext.Provider value={{
     pullMutation: mutation, pushMutation: mutation,
     hasPendingConflicts: false, openConflictDialog: () => {},
-  }}><PipelinePage /></GitHubSyncContext.Provider>;
+  }}>{new URLSearchParams(window.location.search).has("loanNav") ? <LoanNavigationFixture /> : <PipelinePage />}</GitHubSyncContext.Provider>;
 }
 
 // The real page, providers and CSS; requests are isolated by Playwright.

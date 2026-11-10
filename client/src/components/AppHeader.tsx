@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { SummaryDebugDialog } from "@/components/loan/SummaryDebugDialog";
 import { useLeaveLoan } from "@/hooks/use-leave-loan";
+import { LoanNavigationMenu } from "@/components/LoanNavigationMenu";
 
 interface BreadcrumbBarProps {
   loanNumber?: string;
@@ -18,7 +19,7 @@ export function BreadcrumbBar({ loanNumber, activityPanelOpen, toggleActivityPan
   const { leave, leaving, error } = useLeaveLoan();
   return <div className="flex items-center justify-between flex-wrap gap-2" style={{ padding: "0 24px" }} data-testid="breadcrumb-bar">
     <div className="flex items-center body-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }}>
-      <button data-testid="button-menu" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}><Menu className="w-5 h-5" /></button>
+      {loanActive ? <LoanNavigationMenu /> : <button data-testid="button-menu" aria-label="Menu" className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }}><Menu className="w-5 h-5" /></button>}
       <Link href="~/pipeline" data-testid="breadcrumb-pipeline" aria-disabled={leaving}
         style={{ marginLeft: "var(--roads-spacing-component-xs)" }}
         onClick={loanActive ? event => { event.preventDefault(); void leave(); } : undefined}>Pipeline</Link>

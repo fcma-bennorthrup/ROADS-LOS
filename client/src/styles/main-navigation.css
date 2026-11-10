@@ -39,8 +39,8 @@
 .roads-main-nav button:disabled { color: var(--roads-text-tertiary); cursor: not-allowed; }
 .roads-main-nav a:focus-visible, .roads-main-nav button:focus-visible { outline: 2px solid var(--roads-border-brand); outline-offset: var(--roads-spacing-component-2xs); }
 .roads-main-nav-error { position: fixed; left: var(--roads-nav-width, 80px); top: 0; z-index: 50; padding: var(--roads-spacing-component-l); background: var(--roads-bg-error-subtle); color: var(--roads-text-error); }
-.roads-loan-shell { margin-left: var(--roads-nav-width, 80px); }
-.roads-loan-bottom-toolbar { position: fixed; bottom: 0; left: var(--roads-nav-width, 80px); right: 0; z-index: 10; }
+.roads-loan-shell { margin-left: 0; }
+.roads-loan-bottom-toolbar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10; }
 /* Loan forms already have their own navigation. Keep their full existing
    phone width and use the guarded Pipeline breadcrumb at this breakpoint. */
 @media (max-width: 767px) {
