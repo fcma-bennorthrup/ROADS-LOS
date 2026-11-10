@@ -15,6 +15,8 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
   const [error, setError] = useState("");
   const [created, setCreated] = useState<CreatedLoan | null>(null);
   const retained = useRef<CreatedLoan | null>(null);
+  const attemptKey = useRef<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
   const inFlight = useRef(false);
   async function create() {
     if (inFlight.current) return;
@@ -22,7 +24,11 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
     try {
       let loan = retained.current;
       if (!loan) {
-        const response = await apiRequest("POST", "/api/loans", { source: source === "sf" ? "sf" : "blank" });
+        attemptKey.current ??= crypto.randomUUID();
+        setAttempted(true);
+        const response = await apiRequest("POST", "/api/loans", {
+          source: source === "sf" ? "sf" : "blank", idempotencyKey: attemptKey.current,
+        });
         loan = await response.json() as CreatedLoan;
         retained.current = loan; setCreated(loan);
         // Even a failed import must expose the retained blank in the index.
@@ -52,12 +58,12 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
         <DialogDescription className="body-200" style={{ color: "var(--roads-text-secondary)" }}>Create a simulated SF opportunity or import synthetic Blend data.</DialogDescription>
       </DialogHeader>
       <form className="pipeline-form body-100" onSubmit={event => { event.preventDefault(); void create(); }}>
-        <fieldset disabled={busy || !!created}>
+        <fieldset disabled={busy || attempted}>
           <legend className="body-200-strong">Application source</legend>
           <label><input data-testid="source-sf" type="radio" name="new-loan-source" checked={source === "sf"} onChange={() => setSource("sf")} />New SF Opportunity</label>
           <label><input data-testid="source-blend" type="radio" name="new-loan-source" checked={source === "blend"} onChange={() => setSource("blend")} />Blend import</label>
         </fieldset>
-        {source === "blend" && <fieldset disabled={busy || !!created}>
+        {source === "blend" && <fieldset disabled={busy || attempted}>
           <legend className="body-200-strong">Borrowers to import</legend>
           {([1, 2] as const).map(count => <label key={count}>
             <input data-testid={`new-loan-borrowers-${count}`} type="radio" name="new-loan-borrowers" checked={borrowerCount === count} onChange={() => setBorrowerCount(count)} />
@@ -66,6 +72,7 @@ export function NewLoanDialog({ open, onOpenChange, onBusyChange }: {
         </fieldset>}
         {error && <div role="alert" data-testid="new-loan-error" className="body-200 pipeline-error">
           <p>{error}</p>
+          {!created && attempted && <p>Creation was not confirmed. Retry will recover the same loan if it was saved.</p>}
           {created && <p>Loan {created.loanNumber} was retained in Pipeline as a blank application. Retry uses this same loan and will not create a duplicate, or open it to continue manually.</p>}
         </div>}
         <DialogFooter>

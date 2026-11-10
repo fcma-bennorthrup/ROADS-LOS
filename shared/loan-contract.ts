@@ -47,6 +47,10 @@ export const loanApplicationSchema = z.object({
   meta: z.object({
     createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
     source: z.enum(["seed", "blank", "blend", "sf"]),
+    creationAttempt: z.object({
+      key: z.string().uuid(),
+      source: z.enum(["blank", "sf"]),
+    }).optional(),
     opportunity: z.object({
       region: z.enum(["500", "502", "504"]),
       loanOfficer: z.enum(["Sarah Williams", "Rylee Alcorn", "Connor Welch"]),

@@ -6,3 +6,4 @@
 - [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
 - [Prototype-only scope](prototype-scope.md) — simulation only, never production data or PII; keep recommendations proportionate to prototype needs.
 - [Pipeline design scope](pipeline-design-scope.md) — preserve New Loan/admin; Feather navigation; department queues stay empty until assignment rules are approved.
+- [Creation retry scope](creation-retry-scope.md) — preserve creation receipts across demo replacement without broad migrations or changing Blend import behavior.

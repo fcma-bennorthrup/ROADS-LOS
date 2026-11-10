@@ -15,7 +15,7 @@ it("retains a failed Blend blank and retries the import without another creation
     requests.push(url);
     const body = JSON.parse(String(options.body));
     if (url === "/api/loans") {
-      expect(body).toEqual({ source: "blank" });
+      expect(body).toEqual({ source: "blank", idempotencyKey: expect.any(String) });
       return new Response(JSON.stringify({ id: "retained", loanNumber: "123456790" }), { status: 201 });
     }
     expect(body).toMatchObject({ action: "blend", borrowerCount: 1, generation: 0, revision: 0, confirmed: true });
@@ -50,5 +50,25 @@ it("creates an SF opportunity and navigates directly to borrower editing", async
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
   await waitFor(() => expect(history.at(-1)).toBe("/loans/blank/origination?section=Borrower%20Information"));
   expect(fetch).toHaveBeenCalledTimes(1);
-  expect(fetch).toHaveBeenCalledWith("/api/loans", expect.objectContaining({ body: JSON.stringify({ source: "sf" }) }));
+  expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)).toEqual({
+    source: "sf", idempotencyKey: expect.any(String),
+  });
+});
+it("reuses the attempt after a lost response and locks the original source", async () => {
+  const { hook, history } = memoryLocation({ path: "/pipeline", record: true });
+  const bodies: any[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
+    bodies.push(JSON.parse(String(options.body)));
+    if (bodies.length === 1) throw new TypeError("Response lost");
+    return new Response(JSON.stringify({ id: "original", loanNumber: "123456790" }), { status: 201 });
+  }));
+  render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={() => {}} /></Router>);
+  fireEvent.click(screen.getByTestId("confirm-new-loan"));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Response lost");
+  expect(screen.getByTestId("source-blend")).toBeDisabled();
+  fireEvent.click(screen.getByTestId("confirm-new-loan"));
+  await waitFor(() => expect(history.at(-1)).toContain("/loans/original/"));
+  expect(bodies).toHaveLength(2);
+  expect(bodies[1]).toEqual(bodies[0]);
+  expect(bodies[0].idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
 });
