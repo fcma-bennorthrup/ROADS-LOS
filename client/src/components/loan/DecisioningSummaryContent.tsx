@@ -61,9 +61,7 @@ export function DecisioningSummaryContent({
           loanDecisionActionStatus(true, getActionStatus("Loan Decision", 0)) as "complete" | "in-progress");
       }
     } catch (error) {
-      const frozen = (error as Error & { code?: string }).code === "CREDIT_FROZEN";
-      toast({ variant: frozen ? "error" : "destructive", title: frozen ? "Credit is frozen" : "Credit pull failed",
-        description: (error as Error).message, ...(frozen ? { persistent: true } : {}) });
+      toast({ variant: "destructive", title: "Credit pull failed", description: (error as Error).message });
     } finally {
       creditRequestInFlight.current = false;
       setPullingCredit(false);

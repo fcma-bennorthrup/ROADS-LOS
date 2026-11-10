@@ -30,8 +30,6 @@ const toastVariants = cva(
         default: "border bg-background text-foreground",
         information:
           "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border border-l-4 border-[var(--roads-text-information)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
-        error:
-          "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border-0 border-l-4 border-[var(--roads-text-error)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
         destructive:
           "destructive group border-destructive bg-destructive text-destructive-foreground",
       },
@@ -45,16 +43,13 @@ const toastVariants = cva(
 const Toast = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
-    VariantProps<typeof toastVariants> & { persistent?: boolean }
->(({ className, variant, persistent, ...props }, ref) => {
+    VariantProps<typeof toastVariants>
+>(({ className, variant, ...props }, ref) => {
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
       {...props}
-      {...(persistent ? { duration: Infinity,
-        onEscapeKeyDown: (event: KeyboardEvent) => event.preventDefault(),
-        onSwipeEnd: (event: Event) => event.preventDefault() } : {})}
     />
   )
 })

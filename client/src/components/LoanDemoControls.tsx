@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
 import { applicationRequest } from "@/lib/loan-application-store";
-import { Switch } from "@/components/ui/switch";
 
 type DemoAction = "reset" | "blend" | "trid" | "checklist" | "trid-reset" | "trid-manual";
 
@@ -12,15 +11,6 @@ export function LoanDemoControls() {
   const [busy, setBusy] = useState(false);
   const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
   const [error, setError] = useState("");
-  async function toggleCreditFrozen(value: boolean) {
-    if (!store.document || busy) return;
-    setBusy(true); setError("");
-    try {
-      store.write("credit-frozen", value);
-      await store.flush();
-    } catch (error) { setError((error as Error).message); }
-    finally { setBusy(false); }
-  }
   async function run() {
     if (!action || !store.document || busy) return;
     setBusy(true); setError("");
@@ -57,16 +47,6 @@ export function LoanDemoControls() {
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
-    <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-credit-freeze-card">
-      <h3 className="font-semibold">Credit freeze</h3>
-      <p className="text-sm text-muted-foreground">Block credit pulls for this loan until the freeze is lifted.</p>
-      <div className="mt-auto h-28 shrink-0 flex items-end justify-between gap-2">
-        <label htmlFor="demo-credit-frozen">Credit frozen</label>
-        <Switch id="demo-credit-frozen" checked={store.document?.sections?.["credit-frozen"] === true}
-          disabled={busy || !store.document || store.pending > 0 || !!store.error}
-          onCheckedChange={toggleCreditFrozen} />
-      </div>
-    </div>
     <div className="min-w-0 h-80 flex flex-col gap-3 rounded border p-4 overflow-y-auto" data-testid="demo-reset-card">
       <h3 className="font-semibold">Blank application</h3>
       <p className="text-sm text-muted-foreground">Clear all application data and progress for manual entry.</p>
