@@ -73,8 +73,6 @@ const queueColumns: Record<PipelineQueue, readonly PipelineColumn[]> = {
   "All Loans": allColumns,
   "Sales Support": salesColumns,
   Operations: operationsColumns,
-  Credit: allColumns,
-  "Quality Control": allColumns,
 };
 
 export function getPipelineColumns(queue: PipelineQueue) {

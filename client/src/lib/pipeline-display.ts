@@ -2,7 +2,7 @@ import type { PipelineLoan } from "@shared/pipeline";
 import { LOAN_STAGES, type LoanStage } from "@shared/loan-stages";
 
 export type PipelineSort = "loanNumber" | "cifNumber" | "primaryBorrowerName" | "loanType" | "stage" | "amountRequested" | "product" | "updatedAt";
-export const PIPELINE_QUEUES = ["All Loans", "Sales Support", "Operations", "Credit", "Quality Control"] as const;
+export const PIPELINE_QUEUES = ["All Loans", "Sales Support", "Operations"] as const;
 export type PipelineQueue = typeof PIPELINE_QUEUES[number];
 export type DepartmentQueue = Exclude<PipelineQueue, "All Loans">;
 // Only explicitly saved assignments determine department membership, never stages.

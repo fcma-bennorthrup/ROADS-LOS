@@ -215,7 +215,9 @@ it("renders the exact Figma columns and real queue counts without fabricating as
     "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Req Amount", "Stage", "LO", "App Start Date", "Decision", "Actions",
   ]);
   expect(screen.getByTestId("queue-all-loans")).toHaveTextContent("2 Loans");
-  for (const department of ["sales-support", "operations", "credit", "quality-control"]) {
+  expect(screen.queryByTestId("queue-credit")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("queue-quality-control")).not.toBeInTheDocument();
+  for (const department of ["sales-support", "operations"]) {
     expect(screen.getByTestId(`queue-${department}`)).toHaveTextContent("0 Loans");
     fireEvent.click(screen.getByTestId(`queue-${department}`));
     expect(screen.getByTestId("pipeline-empty")).toHaveTextContent(department === "sales-support" ? "New SF Opportunities appear here" : "Department queue assignment has not been configured");

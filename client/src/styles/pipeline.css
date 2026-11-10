@@ -16,7 +16,7 @@
 .pipeline-welcome-copy { display: flex; flex-direction: column; gap: var(--roads-spacing-component-xs); flex: 1; min-width: 0; }
 .pipeline-welcome-copy .pipeline-search { margin-top: var(--roads-spacing-component-l); max-width: 400px; border-radius: var(--roads-radius-round); border: 0; }
 .pipeline-welcome-actions { display: flex; align-items: center; gap: var(--roads-spacing-component-l); flex-wrap: wrap; }
-.pipeline-queues { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--roads-spacing-component-l); flex: 1.4; }
+.pipeline-queues { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--roads-spacing-component-l); flex: 1.4; }
 .pipeline-queue {
   min-height: 112px;
   display: flex;
