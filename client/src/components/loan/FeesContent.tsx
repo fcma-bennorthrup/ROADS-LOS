@@ -3,6 +3,7 @@ import { Check, Pencil, Trash2 } from "lucide-react";
 import type { FeeRow } from "@shared/fees";
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 import { applicationStore } from "@/lib/loan-application-store";
+import { toast } from "@/hooks/use-toast";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { FeeEditDialog } from "./FeeEditDialog";
 
@@ -144,9 +145,11 @@ export function FeesContent() {
     setFeedback(null);
     try {
       await applicationStore.flush();
-      setFeedback({
-        error: false,
-        message: editing ? "Fee table saved. Add the current fee to include it in the table." : "Fee table saved.",
+      toast({
+        variant: "success",
+        title: "Fee table saved.",
+        description: editing ? "Add the current fee to include it in the table." : undefined,
+        duration: 5000,
       });
     } catch (error) {
       setFeedback({
@@ -233,8 +236,8 @@ export function FeesContent() {
       <div className="flex flex-wrap items-center justify-end"
         style={{ gap: "var(--roads-spacing-component-l)", marginTop: "var(--roads-spacing-component-l)" }}
         data-testid="fees-actions">
-        {feedback && <span role={feedback.error ? "alert" : "status"} className="body-100"
-          style={{ marginRight: "auto", color: feedback.error ? "var(--roads-text-error)" : "var(--roads-text-primary)" }}>
+        {feedback && <span role="alert" className="body-100"
+          style={{ marginRight: "auto", color: "var(--roads-text-error)" }}>
           {feedback.message}
         </span>}
         <button type="button" onClick={() => updateFees([])} className="label-strong"

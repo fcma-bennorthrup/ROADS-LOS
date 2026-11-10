@@ -28,6 +28,8 @@ const toastVariants = cva(
     variants: {
       variant: {
         default: "border bg-background text-foreground",
+        success:
+          "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border-0 border-l-4 border-[var(--roads-text-success)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
         information:
           "items-start space-x-0 rounded-[var(--roads-radius-2xs)] border border-l-4 border-[var(--roads-text-information)] bg-[var(--roads-bg-primary)] p-0 pr-0 text-[var(--roads-text-primary)] shadow-[0_8px_16px_rgba(39,51,51,0.24)]",
         error:

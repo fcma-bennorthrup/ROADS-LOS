@@ -1,9 +1,23 @@
 import { useState, type SetStateAction } from "react";
-import { render, screen, within, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FeeRow } from "@shared/fees";
 import { FeesContent } from "../FeesContent";
+import { Toaster } from "@/components/ui/toaster";
+import { dismissToasts } from "@/hooks/use-toast";
+
+function renderFeesWithToaster() {
+  return render(<><FeesContent /><Toaster /></>);
+}
+
+afterEach(() => {
+  cleanup();
+  vi.useFakeTimers();
+  dismissToasts();
+  vi.advanceTimersByTime(300);
+  vi.useRealTimers();
+});
 
 const mocks = vi.hoisted(() => ({
   rows: [] as FeeRow[],
@@ -236,20 +250,77 @@ describe("FeesContent", () => {
 
   it("flushes persisted rows, reports success, and does not imply an unadded editor was saved", async () => {
     const user = userEvent.setup();
-    render(<FeesContent />);
+    renderFeesWithToaster();
     await user.type(screen.getByLabelText("Paid To"), "Not added");
     await user.click(screen.getByTestId("button-save-fee-table"));
     await waitFor(() => expect(mocks.flush).toHaveBeenCalledOnce());
-    expect(screen.getByRole("status")).toHaveTextContent("Fee table saved. Add the current fee to include it in the table.");
+    expect(screen.getByTestId("toast-success")).toHaveTextContent("Fee table saved.Add the current fee to include it in the table.");
+    expect(screen.getByLabelText("Paid To")).toHaveValue("Not added");
+    expect(within(screen.getByTestId("fees-actions")).queryByRole("status")).toBeNull();
     expect(mocks.stored).toEqual([]);
+  });
+
+  it("waits for flush, preserves focus, and replaces the toast on repeated successful saves", async () => {
+    let resolveFlush!: () => void;
+    mocks.flush.mockImplementationOnce(() => new Promise<void>(resolve => { resolveFlush = resolve; }));
+    const user = userEvent.setup();
+    renderFeesWithToaster();
+    const save = screen.getByTestId("button-save-fee-table");
+    await user.click(save);
+    expect(save).toBeDisabled();
+    expect(screen.queryByTestId("toast-success")).toBeNull();
+    await user.click(save);
+    expect(mocks.flush).toHaveBeenCalledOnce();
+    await act(async () => resolveFlush());
+    const first = screen.getByTestId("toast-success");
+    expect(first).toHaveTextContent("Fee table saved.");
+    expect(first).not.toHaveTextContent("Add the current fee");
+    expect(save).toHaveFocus();
+    expect(within(screen.getByTestId("fees-actions")).queryByText("Fee table saved.")).toBeNull();
+    await user.click(save);
+    expect(mocks.flush).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByTestId("toast-success")).toHaveLength(1);
+    expect(screen.getByTestId("toast-success")).not.toBe(first);
+    fireEvent.click(within(screen.getByTestId("toast-success")).getByRole("button", { name: "Dismiss notification" }));
+    expect(screen.queryByTestId("toast-success")).toBeNull();
+  });
+
+  it("auto-dismisses five seconds after success", async () => {
+    vi.useFakeTimers();
+    renderFeesWithToaster();
+    await act(async () => fireEvent.click(screen.getByTestId("button-save-fee-table")));
+    act(() => vi.advanceTimersByTime(4999));
+    expect(screen.getByTestId("toast-success")).toHaveAttribute("data-state", "open");
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId("toast-success")).toBeNull();
+  });
+
+  it.each(["hover", "focus"])("pauses dismissal during %s and resumes afterward", async (interaction) => {
+    vi.useFakeTimers();
+    renderFeesWithToaster();
+    await act(async () => fireEvent.click(screen.getByTestId("button-save-fee-table")));
+    act(() => vi.advanceTimersByTime(2000));
+    const viewport = screen.getByTestId("toast-viewport");
+    const close = within(screen.getByTestId("toast-success")).getByRole("button", { name: "Dismiss notification" });
+    if (interaction === "hover") fireEvent.pointerMove(viewport);
+    else act(() => close.focus());
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByTestId("toast-success")).toHaveAttribute("data-state", "open");
+    if (interaction === "hover") fireEvent.pointerLeave(viewport.parentElement!);
+    else act(() => screen.getByTestId("button-save-fee-table").focus());
+    act(() => vi.advanceTimersByTime(2999));
+    expect(screen.getByTestId("toast-success")).toHaveAttribute("data-state", "open");
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.queryByTestId("toast-success")).toBeNull();
   });
 
   it("reports persistence errors honestly", async () => {
     mocks.flush.mockRejectedValue(new Error("Connection unavailable"));
     const user = userEvent.setup();
-    render(<FeesContent />);
+    renderFeesWithToaster();
     await user.click(screen.getByTestId("button-save-fee-table"));
     expect(await screen.findByRole("alert")).toHaveTextContent("Fee table not saved. Connection unavailable");
     expect(screen.getByTestId("button-save-fee-table")).not.toBeDisabled();
+    expect(screen.queryByTestId("toast-success")).toBeNull();
   });
 });

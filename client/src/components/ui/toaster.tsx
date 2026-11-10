@@ -15,13 +15,14 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, variant, ...props }) {
-        const isInformation = variant === "information" || variant === "error"
+        const isSuccess = variant === "success"
+        const isInformation = variant === "information" || variant === "error" || isSuccess
         const StatusIcon = variant === "error" ? OctagonAlert : CircleCheck
         return (
           <Toast
             key={id}
             variant={variant}
-            data-testid={variant === "error" ? "toast-error" : isInformation ? "toast-information" : undefined}
+            data-testid={isSuccess ? "toast-success" : variant === "error" ? "toast-error" : isInformation ? "toast-information" : undefined}
             role={variant === "error" ? "alert" : isInformation ? "status" : undefined}
             {...props}
           >
@@ -36,11 +37,11 @@ export function Toaster() {
                 <StatusIcon
                   aria-hidden="true"
                   className="shrink-0"
-                  data-testid="icon-toast-information"
+                  data-testid={isSuccess ? "icon-toast-success" : "icon-toast-information"}
                   style={{
                     width: "20px",
                     height: "20px",
-                    color: variant === "error" ? "var(--roads-text-error)" : "var(--roads-text-information)",
+                    color: isSuccess ? "var(--roads-text-success)" : variant === "error" ? "var(--roads-text-error)" : "var(--roads-text-information)",
                   }}
                 />
                 <div
@@ -86,10 +87,10 @@ export function Toaster() {
               </div>
             )}
             {action}
-            {variant === "error" ? (
+            {variant === "error" || isSuccess ? (
               <div
                 className="shrink-0"
-                data-testid="toast-error-close-slot"
+                data-testid={isSuccess ? "toast-success-close-slot" : "toast-error-close-slot"}
                 style={{ padding: "var(--roads-spacing-component-l)" }}
               >
                 <ToastClose
