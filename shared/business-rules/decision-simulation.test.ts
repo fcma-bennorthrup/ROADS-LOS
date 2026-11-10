@@ -13,8 +13,10 @@ describe("decision simulation", () => {
     expect(simulateLoanDecision(app("force-approval"))).toBe("approved");
     expect(simulateLoanDecision(app("force-denial"))).toBe("denied");
   });
-  it("does not invent EDE rules or silently approve", () => {
-    expect(simulateLoanDecision(app("real-ede"))).toBeNull();
+  it("maps the retired EDE selection to forced approval without invalidating saved loans", () => {
+    expect(decisionMode(app("real-ede"))).toBe("force-approval");
+    expect(simulateLoanDecision(app("real-ede"))).toBe("approved");
+    expect(sectionSchemas["decision-mode"].safeParse("real-ede").success).toBe(true);
   });
   it("validates persisted modes and outcomes", () => {
     expect(sectionSchemas["decision-mode"].safeParse("force-denial").success).toBe(true);

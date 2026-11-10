@@ -76,11 +76,6 @@ export function DecisioningSummaryContent({
     if (getActionStatus("Loan Decision", 0) === "complete") return;
 
     const outcome = simulateLoanDecision(applicationStore.document);
-    if (!outcome) {
-      toast({ variant: "information", title: "EDE rules not configured",
-        description: "Choose Force approval or Force denial in Prototype Controls until EDE rules are added." });
-      return;
-    }
     try {
       setDecisionOutcome(outcome);
     } catch (error) {

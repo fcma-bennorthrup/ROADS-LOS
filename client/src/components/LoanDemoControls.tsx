@@ -69,14 +69,13 @@ export function LoanDemoControls() {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
       <h3 className="font-semibold">Loan decision</h3>
-      <p className="text-sm text-muted-foreground">Choose how the next decision is made. EDE rules will be added later.</p>
+      <p className="text-sm text-muted-foreground">Choose the outcome of the next loan decision.</p>
       <fieldset className="mt-auto flex flex-col gap-3 text-sm"
         disabled={busy || !store.document || store.pending > 0 || !!store.error}>
         <legend className="sr-only">Loan decision simulation</legend>
         {([
           ["force-approval", "Force approval"],
           ["force-denial", "Force denial"],
-          ["real-ede", "Real EDE Simulation"],
         ] as const).map(([value, label]) => <label key={value} className="flex items-center gap-2">
           <input type="radio" name="loan-decision-mode" value={value}
             checked={decisionMode(store.document) === value} onChange={() => void changeDecisionMode(value)} />

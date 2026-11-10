@@ -45,14 +45,6 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("Loan Denied");
     expect(screen.getByText("Loan is denied")).toBeInTheDocument();
   });
-  it("leaves the decision incomplete when EDE rules are not configured", () => {
-    vi.spyOn(decisionSimulation, "simulateLoanDecision").mockReturnValue(null);
-    renderDecisioningFlow();
-    fireEvent.click(screen.getByRole("button", { name: "Pull Credit" }));
-    fireEvent.click(screen.getByRole("button", { name: "Decision Loan" }));
-    expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("--");
-    expect(screen.getByText("EDE rules not configured")).toBeInTheDocument();
-  });
   it("enables the matching Deliver Decision Letter button after generation", () => {
     renderDecisioningFlow();
 

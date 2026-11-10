@@ -24,10 +24,10 @@ beforeEach(() => {
 describe("Trigger TRID button", () => {
   it.each([
     ["Force denial", "force-denial"],
-    ["Real EDE Simulation", "real-ede"],
   ])("persists %s for the current loan", async (label, mode) => {
     const view = render(<LoanDemoControls />);
     expect(screen.getByRole("radio", { name: "Force approval" })).toBeChecked();
+    expect(screen.queryByRole("radio", { name: "Real EDE Simulation" })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("radio", { name: label }));
     await waitFor(() => expect(mocks.store.write).toHaveBeenCalledWith("decision-mode", mode));
     expect(mocks.store.flush).toHaveBeenCalled();
