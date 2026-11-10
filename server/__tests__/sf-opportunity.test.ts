@@ -24,5 +24,18 @@ it("persists valid synthetic fields and matching detail projections", () => {
     expect(applicationView(saved).primaryBorrowerName).toBe(row.primaryBorrowerName);
     expect(Number(applicationView(saved).amountRequested)).toBe(row.amountRequested);
     expect(pipelineView(saved)).toEqual(pipelineView(app));
+    const borrower = saved.sections["borrower-primary"];
+    expect(`${borrower.firstName} ${borrower.lastName}`).toBe(row.primaryBorrowerName);
+    expect(borrower.ssn).toMatch(/^000-\d{2}-\d{4}$/);
+    expect(borrower.dob).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(new Date(borrower.dob).toISOString().slice(0, 10)).toBe(borrower.dob);
+    expect(borrower.phone).toMatch(/^\(\d{3}\) 555-01\d{2}$/);
+    expect(borrower.email).toBe(`${borrower.firstName.toLowerCase()}.${borrower.lastName.toLowerCase()}.${row.cifNumber}@example.com`);
+    expect(borrower.address).toMatch(/^\d{3} Example Lane$/);
+    expect(["Louisville|KY|40202", "Indianapolis|IN|46204", "Columbus|OH|43215"])
+      .toContain(`${borrower.city}|${borrower.state}|${borrower.zip}`);
+    expect(applicationView(saved).borrowers[0]).toMatchObject({ name: row.primaryBorrowerName, phone: borrower.phone, email: borrower.email });
+    expect(saved.sections["borrower-primary"]).toEqual(app.sections["borrower-primary"]);
+    expect(app.businessRules?.trid.status).toBe("not-triggered");
   }
 });
