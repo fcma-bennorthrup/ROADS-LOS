@@ -8,6 +8,7 @@
     "build": "tsx script/build.ts",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
+    "test:postgres": "vitest run --config vitest.postgres.config.ts",
     "db:push": "drizzle-kit push",
     "db:check": "tsx script/database.ts check",
     "db:upgrade:dev": "NODE_ENV=development tsx script/database.ts apply --development"
