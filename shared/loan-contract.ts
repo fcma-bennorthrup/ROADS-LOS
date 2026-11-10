@@ -57,7 +57,12 @@ export const loanApplicationSchema = z.object({
     value !== null && typeof value === "object" && !Array.isArray(value)).optional(),
   meta: z.object({
     createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
-    source: z.enum(["seed", "blank", "blend"]),
+    source: z.enum(["seed", "blank", "blend", "sf"]),
+    opportunity: z.object({
+      region: z.string(), loanOfficer: z.string(), applicationDate: z.string(),
+      queue: z.string(), decision: z.string(), contractExpiryDate: z.string().optional(),
+    }).passthrough().optional(),
+    creationAttempt: z.object({ key: z.string(), source: z.string() }).passthrough().optional(),
   }).passthrough().optional(),
 }).passthrough().superRefine((app, ctx) => {
   const seen = new Set<string>();

@@ -184,7 +184,7 @@ export function GitHubSyncPanel({
               <Button
                 className="flex-1"
                 variant="outline"
-                onClick={() => pullMutation.mutate()}
+                onClick={() => pullMutation.mutate({})}
                 disabled={pullMutation.isPending || pushMutation.isPending}
                 data-testid="button-pull"
               >
