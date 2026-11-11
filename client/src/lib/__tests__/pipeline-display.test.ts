@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { PipelineLoan } from "@shared/pipeline";
 import { pipelineRows, relativeUpdated, queueLoans, pipelinePage, type PipelineSort } from "../pipeline-display";
 import { applicationStore } from "../loan-application-store";
-import { blendDemoSections } from "../blend-demo-fixture";
+import { blendDemoSections } from "@shared/loan-events/test-fixtures";
 import type { LoanApplication } from "@shared/loan-application";
 
 const row = (id: string, extra: Partial<PipelineLoan>): PipelineLoan => ({

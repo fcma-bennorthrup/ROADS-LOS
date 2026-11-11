@@ -2,17 +2,17 @@
 name: Loan demo data ownership
 description: Loan-scoped persistent demo data and future pipeline expectations
 ---
-Demo application data belongs to the loan, not the tester. The prototype currently has one loan; the user intends to add multiple loans and a pipeline later.
+Demo application data belongs to the loan, not the tester.
 
 **Why:** The user explicitly rejected separate tester-owned demo loans in favor of loan-owned data.
 
-**How to apply:** Key persisted application data, reset actions, and mock Blend imports by loan identity. Reset/import affects the selected loan for collaborators, not every loan. Do not build the future pipeline as part of these initial demo controls.
+**How to apply:** Key persisted application data, reset actions, and mock Blend imports by loan identity. Reset/import affects the selected loan for collaborators, not every loan. The later approved pipeline and Salesforce-baseline series supersede the initial single-loan scope.
 
-Shared reset/import must invalidate older clients' writes, not just clear the initiating browser.
+Shared writes must reject older clients' saves, not just refresh the initiating browser.
 
 **Why:** A collaborator can have an unsaved form open while another person replaces the application; accepting that older save would restore data the reset was intended to remove.
 
-**How to apply:** Keep replacement and its concurrency marker atomic. Reject stale saves visibly and never re-import old browser-local state after a shared reset or import.
+**How to apply:** Reset restores the Salesforce baseline and advances generation/revision atomically. Blend fills blanks without replacing the loan or advancing generation; it advances revision only when changed and preserves credit, workflow and history. Reject stale saves visibly and never revive browser-local data over newer shared state.
 
 Blend imports must not populate liabilities; those come from the simulated credit pull. Borrower Financials tabs must switch both income and balance-sheet records.
 

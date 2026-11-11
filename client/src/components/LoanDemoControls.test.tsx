@@ -10,10 +10,6 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/contexts/loan-application-context", () => ({ useApplicationStatus: () => mocks.store }));
 vi.mock("@/lib/loan-application-store", () => ({ applicationRequest: mocks.request }));
-vi.mock("@/lib/blend-demo-fixture", () => ({
-  tridDemoSections: () => ({ "evaluation-1": { estimatedValue: "195000" } }),
-  blendDemoSections: (_id: string, count: number) => ({ income: Array(count).fill({}) }),
-}));
 beforeEach(() => {
   cleanup(); vi.clearAllMocks();
   mocks.store.document.businessRules.trid.status = "not-triggered";
@@ -22,6 +18,35 @@ beforeEach(() => {
 });
 
 describe("Trigger TRID button", () => {
+  it("keeps the panel data installed unchanged for a no-op Blend import", async () => {
+    mocks.request.mockResolvedValueOnce({ ...mocks.store.document });
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
+    expect(await screen.findByText("Nothing to fill. This loan's application is already complete. Reset to import a different one.")).toBeInTheDocument();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+  });
+  it("refuses Blend while edits are unsaved", async () => {
+    mocks.store.dirty = true;
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
+    expect(await screen.findByText("Save or discard your open edits before continuing.")).toBeInTheDocument();
+    expect(mocks.request).not.toHaveBeenCalled();
+  });
+  it("describes and confirms a Salesforce baseline reset", async () => {
+    mocks.request.mockResolvedValueOnce({ loan: { id: "demo" }, generation: 2, revision: 3 });
+    render(<LoanDemoControls />);
+    const card = within(screen.getByTestId("demo-reset-card"));
+    expect(card.getByText("Salesforce opportunity")).toBeInTheDocument();
+    expect(card.getByText("Return this loan to its original Salesforce opportunity data. Everything added since is removed.")).toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: "Reset All Application Data" }));
+    fireEvent.click(card.getByRole("button", { name: "Confirm reset" }));
+    await waitFor(() => expect(mocks.request).toHaveBeenCalled());
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toMatchObject({
+      action: "reset", confirmed: true, generation: 1, revision: 2,
+    });
+  });
   it.each([
     ["Force denial", "force-denial"],
   ])("persists %s for the current loan", async (label, mode) => {
@@ -113,12 +138,13 @@ describe("Trigger TRID button", () => {
     fireEvent.click(screen.getByRole("radio", { name: count === 1 ? "1 borrower" : "2 borrowers" }));
     fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
     expect(mocks.request).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Confirm replacement" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
     await waitFor(() => expect(mocks.request).toHaveBeenCalled());
     expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toMatchObject({
       action: "blend", borrowerCount: count, confirmed: true,
-      sections: { income: Array(count).fill({}) },
+      generation: 1, revision: 2,
     });
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).not.toHaveProperty("sections");
   });
   it("requires confirmation, then submits the current loan revision and demo fields", async () => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });
@@ -129,8 +155,7 @@ describe("Trigger TRID button", () => {
     await waitFor(() => expect(mocks.store.install).toHaveBeenCalled());
     expect(mocks.request).toHaveBeenCalledWith("demo", "/demo", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ action: "trid", generation: 1, revision: 2, confirmed: true,
-        sections: { "evaluation-1": { estimatedValue: "195000" } } }),
+      body: JSON.stringify({ action: "trid", generation: 1, revision: 2, confirmed: true }),
     }));
   });
 });

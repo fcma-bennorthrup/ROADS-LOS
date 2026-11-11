@@ -1,11 +1,17 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import type { FeeRow } from "@shared/fees";
+import { currencyAmount } from "@shared/loan-collateral-value";
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { toast } from "@/hooks/use-toast";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { FeeEditDialog } from "./FeeEditDialog";
+import { ChangeCircumstanceDialog } from "./ChangeCircumstanceDialog";
+import {
+  EMPTY_CIRCUMSTANCES, FEE_CIRCUMSTANCES_KEY, pendingAppraisalChanges, trackAppraisalEdits,
+  type FeeCircumstances, type CircumstanceReason,
+} from "@shared/fee-circumstances";
 
 const FEE_OPTIONS = [
   "Appraisal Fee",
@@ -49,6 +55,25 @@ const cellStyle: CSSProperties = {
   lineHeight: "24px",
   overflowWrap: "anywhere",
 };
+const currencyCellStyle: CSSProperties = {
+  ...cellStyle,
+  fontFamily: "var(--font-mono)",
+  fontSize: 14,
+  lineHeight: "16px",
+  fontVariantNumeric: "tabular-nums",
+  textAlign: "right",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  whiteSpace: "nowrap",
+};
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+function displayCurrency(value: string) {
+  const amount = currencyAmount(value);
+  return amount === null ? value : currencyFormatter.format(amount);
+}
 const columns = [
   ["fee", "Fee"],
   ["method", "Method of Payment"],
@@ -57,6 +82,7 @@ const columns = [
   ["le-amount", "LE Amount"],
   ["cd-amount", "CD Amount"],
   ["shopped", "Shopped"],
+  ["waived", "Waived"],
 ] as const;
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -97,6 +123,8 @@ function CurrencyInput({
 
 export function FeesContent() {
   const [fees, setFees] = useLoanState<FeeRow[]>("fees", []);
+  const [circumstances, setCircumstances] = useLoanState<FeeCircumstances>(FEE_CIRCUMSTANCES_KEY, EMPTY_CIRCUMSTANCES);
+  const [reasonOpen, setReasonOpen] = useState(false);
   const [editingFee, setEditingFee] = useState<FeeRow | null>(null);
   const [feeType, setFeeType] = useState("");
   const [methodOfPayment, setMethodOfPayment] = useState("Cash");
@@ -133,6 +161,7 @@ export function FeesContent() {
 
   function updateFees(next: FeeRow[]) {
     try {
+      setCircumstances(previous => trackAppraisalEdits(previous, fees, next));
       setFees(next);
       setFeedback(null);
     } catch (error) {
@@ -140,11 +169,30 @@ export function FeesContent() {
     }
   }
 
-  async function handleSaveFeeTable() {
+  async function saveFeeTable(reason?: CircumstanceReason, context?: string) {
     setSaving(true);
     setFeedback(null);
     try {
       await applicationStore.flush();
+      const changes = pendingAppraisalChanges(circumstances, fees);
+      if (changes.length && !reason) {
+        setReasonOpen(true);
+        return;
+      }
+      if (reason && changes.length) {
+        setCircumstances(previous => ({
+          pending: [],
+          records: [...previous.records, {
+            id: crypto.randomUUID(), savedAt: new Date().toISOString(), reason,
+            context: context!.trim(), changes,
+          }],
+        }));
+        await applicationStore.flush();
+      } else if (circumstances.pending.length) {
+        setCircumstances(previous => ({ ...previous, pending: [] }));
+        await applicationStore.flush();
+      }
+      setReasonOpen(false);
       toast({
         variant: "success",
         title: "Fee table saved.",
@@ -156,9 +204,14 @@ export function FeesContent() {
         error: true,
         message: `Fee table not saved. ${error instanceof Error ? error.message : "Please try again."}`,
       });
+      if (reason) throw error;
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSaveFeeTable() {
+    await saveFeeTable();
   }
 
   return (
@@ -181,8 +234,8 @@ export function FeesContent() {
         }
         .roads-fees-table-row {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 76px;
-          min-width: 1096px;
+          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 94px 76px;
+          min-width: 1190px;
         }
         @media (max-width: 1200px) {
           .roads-fees-fields > div { flex-basis: calc((100% - 2 * var(--roads-spacing-component-3xl)) / 3); }
@@ -260,7 +313,7 @@ export function FeesContent() {
         role="table" aria-label="Fees" data-testid="fees-table">
         <div className="roads-fees-table-row" role="row" style={{ backgroundColor: "var(--roads-bg-light)" }}>
           {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
-            style={{ ...cellStyle, textAlign: key === "shopped" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
+            style={{ ...cellStyle, textAlign: key === "le-amount" || key === "cd-amount" ? "right" : key === "shopped" || key === "waived" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
           <div role="columnheader" aria-label="Actions" />
         </div>
         {fees.map((fee) => (
@@ -270,10 +323,13 @@ export function FeesContent() {
             <div role="cell" className="body-100" style={cellStyle}>{fee.methodOfPayment}</div>
             <div role="cell" className="body-100" style={cellStyle}>{fee.paidBy}</div>
             <div role="cell" className="body-100" style={cellStyle}>{fee.paidTo ?? ""}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.leAmount}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.cdAmount}</div>
+            <div role="cell" style={currencyCellStyle}>{displayCurrency(fee.leAmount)}</div>
+            <div role="cell" style={currencyCellStyle}>{displayCurrency(fee.cdAmount)}</div>
             <div role="cell" className="flex items-center justify-center" aria-label={fee.shoppedForProvider ? "Shopped for Provider" : "Not shopped for Provider"}>
               {fee.shoppedForProvider && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-shopped-${fee.id}`} />}
+            </div>
+            <div role="cell" className="flex items-center justify-center" aria-label={fee.waived ? "Waived" : "Not waived"}>
+              {fee.waived && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-waived-${fee.id}`} />}
             </div>
             <div role="cell" className="flex items-center justify-center"
               data-testid={`fee-actions-${fee.id}`}
@@ -297,15 +353,18 @@ export function FeesContent() {
           </div>
         ))}
         <div style={{
-          backgroundColor: "var(--roads-bg-light)", minWidth: 1096,
+          backgroundColor: "var(--roads-bg-light)", minWidth: 1190,
           height: 56, flexShrink: 0, borderTop: "1px solid var(--roads-border-subtle)", marginTop: "auto",
         }} data-testid="fees-table-footer" />
       </div>
       {editingFee && <FeeEditDialog key={editingFee.id} fee={editingFee} onClose={() => setEditingFee(null)}
         onSave={async draft => {
-          setFees(previous => previous.map(row => row.id === editingFee.id ? { ...row, ...draft } : row));
+          const next = fees.map(row => row.id === editingFee.id ? { ...row, ...draft } : row);
+          setCircumstances(previous => trackAppraisalEdits(previous, fees, next));
+          setFees(next);
           await applicationStore.flush();
         }} />}
+      {reasonOpen && <ChangeCircumstanceDialog onClose={() => setReasonOpen(false)} onSave={saveFeeTable} />}
     </div>
   );
 }

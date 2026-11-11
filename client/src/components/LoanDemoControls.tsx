@@ -1,3 +1,4 @@
+import { feeCircumstancesSchema, FEE_CIRCUMSTANCES_KEY } from "@shared/fee-circumstances";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
@@ -7,11 +8,12 @@ import { decisionMode, type DecisionMode } from "@shared/business-rules/decision
 
 type DemoAction = "reset" | "blend" | "trid" | "checklist" | "trid-reset" | "trid-manual";
 
-export function LoanDemoControls() {
+export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?: () => void } = {}) {
   const store = useApplicationStatus();
   const [action, setAction] = useState<DemoAction | null>(null);
   const [busy, setBusy] = useState(false);
-  const [borrowerCount, setBorrowerCount] = useState<1 | 2>(2);
+  const [borrowerCount, setBorrowerCount] = useState<1 | 2>(() => store.document?.borrowers?.length === 1 ? 1 : 2);
+  const [blendMessage, setBlendMessage] = useState("");
   const [error, setError] = useState("");
   async function changeDecisionMode(value: DecisionMode) {
     if (!store.document || busy) return;
@@ -36,18 +38,21 @@ export function LoanDemoControls() {
     setBusy(true); setError("");
     try {
       await store.flush();
-      if (action !== "reset" && action !== "blend" && store.dirty) throw new Error("Save or discard your open edits before continuing.");
+      if (action !== "reset" && store.dirty) throw new Error("Save or discard your open edits before continuing.");
       const current = store.document!;
-      const fixtures = action === "blend" || action === "trid" ? await import("@/lib/blend-demo-fixture") : null;
-      const sections = action === "trid" ? fixtures!.tridDemoSections(current.loan.id)
-        : action === "blend" ? fixtures!.blendDemoSections(current.loan.id, borrowerCount) : undefined;
       const next = await applicationRequest(current.loan.id, "/demo", {
         method: "POST", body: JSON.stringify({
-          action, generation: current.generation, revision: current.revision, confirmed: true, sections,
+          action, generation: current.generation, revision: current.revision, confirmed: true,
           ...(action === "blend" ? { borrowerCount } : {}),
         }),
       });
       if (store.document?.loan.id !== current.loan.id || store.document.generation !== current.generation) return;
+      if (action === "blend" && next.revision === current.revision) {
+        setBlendMessage("Nothing to fill. This loan's application is already complete. Reset to import a different one.");
+        setAction(null);
+        return;
+      }
+      setBlendMessage("");
       store.install(next);
       setAction(null);
       window.dispatchEvent(new Event("loan-application-replaced"));
@@ -57,7 +62,7 @@ export function LoanDemoControls() {
   function actionControl(kind: DemoAction, label: string) {
     return <div className="mt-auto shrink-0 flex flex-col justify-end">{action === kind ? <div role="alert" aria-label={`Confirm ${label}`} className="rounded-md border border-red-300 bg-red-50 p-2 dark:border-red-800 dark:bg-red-950">
       <div className="flex flex-col gap-2">
-        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : kind === "trid-manual" ? "Confirm trigger" : kind === "checklist" || kind === "trid-reset" ? "Confirm reset" : "Confirm replacement"}</Button>
+        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "blend" ? "Confirm import" : kind === "trid" ? "Save and trigger TRID" : kind === "trid-manual" ? "Confirm trigger" : "Confirm reset"}</Button>
         <Button variant="secondary" disabled={busy} onClick={() => { setAction(null); setError(""); }}>Cancel</Button>
       </div>
     </div> : <Button className="w-full h-auto whitespace-normal py-2" variant="secondary" disabled={busy || !!store.error || (kind === "trid" && store.document?.businessRules?.trid.status === "satisfied")} onClick={() => { setAction(kind); setError(""); }}>{label}</Button>}</div>;
@@ -67,6 +72,14 @@ export function LoanDemoControls() {
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    {onViewCircumstances && <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-circumstance-card">
+      <h3 className="font-semibold">Change of circumstance</h3>
+      <p className="text-sm text-muted-foreground">Review the latest saved appraisal fee change reason.</p>
+      <Button className="mt-auto w-full h-auto whitespace-normal py-2" variant="secondary"
+        disabled={busy || !store.document || store.pending > 0 || !!store.error ||
+          !(feeCircumstancesSchema.safeParse(store.document?.sections[FEE_CIRCUMSTANCES_KEY]).data?.records.length)}
+        onClick={onViewCircumstances}>View change of circumstance</Button>
+    </div>}
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
       <h3 className="font-semibold">Loan decision</h3>
       <p className="text-sm text-muted-foreground">Choose the outcome of the next loan decision.</p>
@@ -94,13 +107,14 @@ export function LoanDemoControls() {
       </div>
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-reset-card">
-      <h3 className="font-semibold">Blank application</h3>
-      <p className="text-sm text-muted-foreground">Clear all application data and progress for manual entry.</p>
+      <h3 className="font-semibold">Salesforce opportunity</h3>
+      <p className="text-sm text-muted-foreground">Return this loan to its original Salesforce opportunity data. Everything added since is removed.</p>
       {actionControl("reset", "Reset All Application Data")}
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-blend-card">
       <h3 className="font-semibold">Blend import</h3>
-      <p className="text-sm text-muted-foreground">Replace the application with mock borrower and loan data.</p>
+      <p className="text-sm text-muted-foreground">Fill in the application with random borrower and loan data. Existing data is kept.</p>
+      {blendMessage && <p className="text-sm text-muted-foreground">{blendMessage}</p>}
       <fieldset disabled={busy} className="flex flex-wrap gap-x-3 gap-y-2 text-sm">
         <legend className="sr-only">Borrowers to import</legend>
         {([1, 2] as const).map(count => <label key={count} className="flex items-center gap-2">

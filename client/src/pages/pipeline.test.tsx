@@ -330,8 +330,9 @@ it("preserves new loan and prototype admin entry points on Pipeline", async () =
   view();
   await screen.findByTestId("pipeline-row-first");
   fireEvent.click(screen.getByTestId("button-new-loan"));
-  expect(screen.getByTestId("source-sf")).toBeChecked();
-  expect(screen.getByTestId("source-blend")).toBeInTheDocument();
+  expect(screen.getByTestId("new-loan-borrowers-1")).toBeChecked();
+  expect(screen.getByTestId("new-loan-borrowers-2")).toBeInTheDocument();
+  expect(screen.queryByTestId("source-blend")).toBeNull();
   fireEvent.click(screen.getByTestId("cancel-new-loan"));
   fireEvent.click(screen.getByTestId("button-more-options"));
   expect(screen.getByTestId("menu-item-prototype-admin")).toBeInTheDocument();

@@ -9,10 +9,13 @@ import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
 import { applyTridDemoAction } from "../shared/business-rules/trid-demo-actions";
 import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
-import { newLoanApplication } from "../shared/loan-factory";
-import { randomUUID } from "node:crypto";
+import { tridDemoSections } from "../shared/loan-events/trid-templates";
+import { randomUUID, randomInt } from "node:crypto";
+import { applyBlendApplication } from "../shared/loan-events/blend-application";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
 import { ensureOpportunityExpiry } from "./opportunity-expiry";
+import { withOriginationFee } from "../shared/business-rules/origination-fee";
+import { resetLoan } from "./reset-loan";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
@@ -30,17 +33,18 @@ async function load(id: string): Promise<LoanApplication | null> {
     let document: LoanApplication = existing.rows[0].document;
     assertLoanDocument(document, id);
     document = await ensureOpportunityExpiry(pool, document);
-    if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
+    const withFee = withOriginationFee(document);
+    if (withFee === document && document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
-    const initialized = { ...document,
+    const initialized = { ...withFee,
       // Revision zero is the existing browser-data adoption marker.
       revision: document.revision === 0 ? 0 : document.revision + 1,
       meta: document.meta ?? {
         createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
         source: id === "1" ? "seed" as const : document.mode === "blend" ? "blend" as const : "blank" as const,
       },
-      businessRules: evaluateLoanRules(document) };
+      businessRules: evaluateLoanRules(withFee) };
     const result = await pool.query(
       `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
        WHERE loan_id=$1 AND (document->>'revision')::int=$3 RETURNING document`,
@@ -72,7 +76,6 @@ const actionSchema = z.object({
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
   confirmed: z.literal(true),
-  sections: z.record(z.unknown()).optional(),
 });
 
 export function registerLoanApplicationRoutes(app: Express) {
@@ -88,11 +91,12 @@ export function registerLoanApplicationRoutes(app: Express) {
     } catch (error) { loanFailure(res, error, "The pipeline could not be loaded from the database."); }
   });
   app.post("/api/loans", async (req, res) => {
-    const parsed = z.object({ source: z.enum(["blank", "sf"]),
+    const parsed = z.object({ source: z.literal("sf"),
+      borrowerCount: z.union([z.literal(1), z.literal(2)]).default(1),
       idempotencyKey: z.string().uuid().optional() }).strict().safeParse(req.body);
     if (!parsed.success)
       return void res.status(400).json({ error: "Choose a supported application source to create a loan." });
-    const { source, idempotencyKey } = parsed.data;
+    const { source, borrowerCount, idempotencyKey } = parsed.data;
     let client: pg.PoolClient | undefined;
     try {
       await load("1");
@@ -113,6 +117,11 @@ export function registerLoanApplicationRoutes(app: Express) {
             await client.query("ROLLBACK");
             return void res.status(409).json({ error: "This creation attempt belongs to a different application source." });
           }
+          // Older SF receipts predate this choice and always created one borrower.
+          if ((saved.meta?.creationAttempt?.borrowerCount ?? 1) !== borrowerCount) {
+            await client.query("ROLLBACK");
+            return void res.status(409).json({ error: "This creation attempt belongs to a different borrower count." });
+          }
           await client.query("COMMIT");
           return void res.status(201).json({ id: saved.loan.id, loanNumber: saved.loan.loanNumber });
         }
@@ -124,15 +133,10 @@ export function registerLoanApplicationRoutes(app: Express) {
       const loanNumber = String(allocation.rows[0].number);
       if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
       const id = randomUUID();
-      let document: LoanApplication;
-      if (source === "sf") {
-        const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
-        const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
-        document = newSfOpportunity(id, loanNumber, cif);
-      } else {
-        document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
-      }
-      if (idempotencyKey) document.meta!.creationAttempt = { key: idempotencyKey, source };
+      const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
+      const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
+      const document = newSfOpportunity(id, loanNumber, cif, new Date(), borrowerCount);
+      if (idempotencyKey) document.meta!.creationAttempt = { key: idempotencyKey, source, borrowerCount };
       assertLoanDocument(document, id);
       const inserted = await client.query(
         "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",
@@ -241,6 +245,13 @@ export function registerLoanApplicationRoutes(app: Express) {
       const current = await load(String(req.params.id));
       if (!current) return void res.status(404).json({ error: "Loan not found" });
       const { action, generation, revision } = parsed.data;
+      if (action === "reset") {
+        if (current.generation !== generation || current.revision !== revision)
+          return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });
+        const next = await resetLoan(pool, current);
+        if (!next) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });
+        return void res.json(next);
+      }
       if (action === "checklist" || action === "trid-reset" || action === "trid-manual") {
         if (current.generation !== generation || current.revision !== revision)
           return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });
@@ -258,7 +269,7 @@ export function registerLoanApplicationRoutes(app: Express) {
           return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
         if (current.businessRules?.trid.status === "satisfied")
           return void res.status(409).json({ error: "TRID is already satisfied. Reset the demo loan to start a new journey." });
-        const next = triggerTridDemo(current, parsed.data.sections ?? {});
+        const next = triggerTridDemo(current, tridDemoSections(current.loan.id));
         assertLoanDocument(next, current.loan.id);
         const result = await pool.query(
           `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
@@ -267,28 +278,13 @@ export function registerLoanApplicationRoutes(app: Express) {
         if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
         return void res.json(result.rows[0].document);
       }
-      const next = newLoanApplication({
-        id: current.loan.id, loanNumber: current.loan.loanNumber,
-        source: action === "blend" ? "blend" : "blank",
-        borrowerCount: parsed.data.borrowerCount, sections: parsed.data.sections,
-        generation: generation + 1, revision: revision + 1,
-      });
-      const checklistKey = `storage:loan-checklist-statuses:${current.loan.id}`;
-      // A demo replacement is not a new loan: retain its original creation time.
-      if (current.meta) next.meta!.createdAt = current.meta.createdAt;
-      if (current.meta?.creationAttempt) next.meta!.creationAttempt = current.meta.creationAttempt;
-      const previousChecklist = current.sections[checklistKey];
-      if (typeof previousChecklist === "string") {
-        const statuses = JSON.parse(previousChecklist);
-        next.sections[checklistKey] = JSON.stringify(Object.fromEntries(
-          Object.entries(statuses).filter(([, value]) => Array.isArray(value))
-            .map(([key, value]) => [key, (value as unknown[]).map(() => "not-started")]),
-        ));
-      }
-      next.businessRules = evaluateLoanRules(next);
+      if (current.generation !== generation || current.revision !== revision)
+        return void res.status(409).json({ error: "The loan changed. Reload it before importing." });
+      const next = applyBlendApplication(current, { borrowerCount: parsed.data.borrowerCount, random: randomInt, now: new Date() });
+      if (next === current) return void res.json(current);
       assertLoanDocument(next, current.loan.id);
       const result = await pool.query(
-        `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+        `UPDATE prototype_loan_applications SET document=$2::jsonb
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { evaluateLoanRules } from "./index";
-import { blendDemoSections } from "../../client/src/lib/blend-demo-fixture";
+import { blendDemoSections } from "../loan-events/test-fixtures";
 import { applicationView, type LoanApplication } from "../loan-application";
 
 describe("Blend borrower count and joint credit", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { triggerTridDemo } from "./trigger-trid-demo";
-import { tridDemoSections } from "../../client/src/lib/blend-demo-fixture";
+import { tridDemoSections } from "../loan-events/trid-templates";
 import type { LoanApplication } from "../loan-application";
 
 function empty(): LoanApplication {

@@ -18,4 +18,4 @@ The user now approved a working loan change log: do not record initial values; r
 
 **Why:** Demo history should reflect edits to the current application, not seed data or previous demo runs.
 
-**How to apply:** Log committed edits, not drafts or initial population. Keep history loan-owned and clear it atomically with demo replacement.
+**How to apply:** Log committed edits, not drafts or initial population. Keep history loan-owned and clear it atomically with Reset to the Salesforce baseline. Fill-only Blend imports retain existing history.

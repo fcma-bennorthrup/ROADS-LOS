@@ -3,6 +3,7 @@ import { createSelectSchema } from "drizzle-zod";
 import { loans, borrowers } from "./schema";
 import { LOAN_STAGES } from "./loan-stages";
 import { feeRecordSchema } from "./fees";
+import { feeCircumstancesSchema } from "./fee-circumstances";
 import type { LoanBusinessRules } from "./business-rules";
 
 export const LOAN_DOCUMENT_VERSION = 1;
@@ -30,6 +31,8 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "current-assets": z.array(ownedRow), "noncurrent-assets": z.array(ownedRow),
   "current-liabilities": z.array(ownedRow), "noncurrent-liabilities": z.array(ownedRow),
   fees: z.array(feeRecordSchema),
+  "fee-circumstances": feeCircumstancesSchema,
+  "origination-fee-initialized": z.boolean(),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),
   "credit-frozen": z.boolean(),
   // Accept the retired value in existing documents; decisionMode maps it to approval.
@@ -40,15 +43,46 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "credit-scores": z.record(z.number().int().min(300).max(850)),
 };
 
+const loanSchema = createSelectSchema(loans).passthrough().refine(
+  loan => LOAN_STAGES.some(stage => stage === loan.stage), "Unknown loan stage.");
+const borrowersSchema = z.array(createSelectSchema(borrowers).passthrough());
+const opportunitySchema = z.object({
+  region: z.string(), loanOfficer: z.string(), applicationDate: z.string(),
+  queue: z.literal("Sales Support"), decision: z.string(), contractExpiryDate: z.string().optional(),
+}).passthrough();
+const sectionsSchema = z.record(z.unknown()).superRefine((sections, ctx) => {
+  for (const [key, value] of Object.entries(sections)) {
+    if (Object.hasOwn(sectionSchemas, key) && !sectionSchemas[key].safeParse(value).success)
+      ctx.addIssue({ code: "custom", path: [key], message: "Section structure mismatch." });
+  }
+});
+function checkBorrowers(
+  snapshot: { loan: z.infer<typeof loanSchema>; borrowers: z.infer<typeof borrowersSchema> },
+  ctx: z.RefinementCtx,
+) {
+  const seen = new Set<string>();
+  for (const borrower of snapshot.borrowers) {
+    if (borrower.loanId !== snapshot.loan.id || seen.has(borrower.id))
+      ctx.addIssue({ code: "custom", path: ["borrowers"], message: "Borrower identity mismatch." });
+    seen.add(borrower.id);
+  }
+}
+const baselineSchema = z.object({
+  capturedAt: z.string().datetime(),
+  loan: loanSchema,
+  borrowers: borrowersSchema,
+  sections: sectionsSchema,
+  opportunity: opportunitySchema,
+}).passthrough().superRefine(checkBorrowers);
+
 export const loanApplicationSchema = z.object({
   schemaVersion: z.number().int().min(0).max(LOAN_DOCUMENT_VERSION).optional(),
-  loan: createSelectSchema(loans).passthrough().refine(
-    loan => LOAN_STAGES.some(stage => stage === loan.stage), "Unknown loan stage."),
-  borrowers: z.array(createSelectSchema(borrowers).passthrough()),
+  loan: loanSchema,
+  borrowers: borrowersSchema,
   mode: z.enum(["existing", "empty", "blend"]),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
-  sections: z.record(z.unknown()),
+  sections: sectionsSchema,
   changeLog: z.array(z.object({
     id: z.number(), field: z.string(), previousValue: z.string(), newValue: z.string(),
     changedBy: z.string(), position: z.string(), timestamp: z.string(),
@@ -59,22 +93,14 @@ export const loanApplicationSchema = z.object({
   meta: z.object({
     createdAt: z.string().datetime(), updatedAt: z.string().datetime(),
     source: z.enum(["seed", "blank", "blend", "sf"]),
-    opportunity: z.object({
-      region: z.string(), loanOfficer: z.string(), applicationDate: z.string(),
-      queue: z.literal("Sales Support"), decision: z.string(), contractExpiryDate: z.string().optional(),
-    }).passthrough().optional(),
+    opportunity: opportunitySchema.optional(),
+    baseline: baselineSchema.optional(),
     creationAttempt: z.object({ key: z.string(), source: z.string() }).passthrough().optional(),
   }).passthrough().optional(),
 }).passthrough().superRefine((app, ctx) => {
-  const seen = new Set<string>();
-  for (const borrower of app.borrowers) {
-    if (borrower.loanId !== app.loan.id || seen.has(borrower.id))
-      ctx.addIssue({ code: "custom", path: ["borrowers"], message: "Borrower identity mismatch." });
-    seen.add(borrower.id);
-  }
-  for (const [key, value] of Object.entries(app.sections)) {
-    if (Object.hasOwn(sectionSchemas, key) && !sectionSchemas[key].safeParse(value).success)
-      ctx.addIssue({ code: "custom", path: ["sections", key], message: "Section structure mismatch." });
+  checkBorrowers(app, ctx);
+  if (app.meta?.baseline && app.meta.baseline.loan.id !== app.loan.id) {
+    ctx.addIssue({ code: "custom", path: ["meta", "baseline", "loan", "id"], message: "Baseline loan identity mismatch." });
   }
 });
 

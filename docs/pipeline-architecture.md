@@ -1,3 +1,4 @@
+Current creation and simulated-data flow: see [Loan data events](loan-data-events.md); this document remains the historical architecture record.
 # ROADS Prototype: Pipeline & Multi-Loan Architecture
 
 Nov 9, 2026 · @Ben

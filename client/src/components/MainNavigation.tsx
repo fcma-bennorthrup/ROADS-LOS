@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { FiGrid, FiDollarSign, FiBookmark, FiTrendingUp, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { useLeaveLoan } from "@/hooks/use-leave-loan";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import logo from "@assets/r1-icon-color_1794259898751.png";
+import logo from "@/assets/rural-1st-logo.png";
 import "@/styles/main-navigation.css";
 
 const NavigationLayoutContext = createContext<{ expanded: boolean; toggle: () => void } | null>(null);

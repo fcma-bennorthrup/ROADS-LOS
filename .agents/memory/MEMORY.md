@@ -1,3 +1,5 @@
+- [Simulated loan event series](simulated-loan-events.md) — staged SF baseline/fill-only Blend plan supersedes replacement/reset-to-empty decisions; implement only the requested phase.
+- [Origination fee policy](origination-fee-policy.md) — seed once at 1% capped at $1,000; preserve manual edits and avoid circular financed-fee calculations.
 - [Admin operations policy](admin-operations-policy.md) — database and Git operations use prompts/shell; prototype admin is reserved for demo controls.
 - [Architecture audit constraints](audit-constraints.md) — Audit current local code; preserve all user-facing visuals and behavior, with per-change approval.
 - [Setup documentation policy](setup-documentation-policy.md) — Document both observed runtime configurations without certifying compatibility or aligning toolchains.
@@ -37,5 +39,5 @@
 - [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.
 - [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
 - [Pipeline design scope](pipeline-design-scope.md) — preserve New Loan/admin; Feather navigation; department queues stay empty until assignment rules are approved.
-- [Creation retry scope](creation-retry-scope.md) — preserve creation receipts across demo replacement without broad migrations or changing Blend import behavior.
+- [Creation retry scope](creation-retry-scope.md) — preserve SF creation receipts across resets/imports and reject retry borrower-count changes without a new ledger.
 - [Isolated browser layout checks](browser-layout-harness.md) — real components with intercepted fixtures avoid touching saved loans and bypass legacy artifact limitations.

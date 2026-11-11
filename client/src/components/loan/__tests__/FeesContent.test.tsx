@@ -6,6 +6,7 @@ import type { FeeRow } from "@shared/fees";
 import { FeesContent } from "../FeesContent";
 import { Toaster } from "@/components/ui/toaster";
 import { dismissToasts } from "@/hooks/use-toast";
+import { EMPTY_CIRCUMSTANCES, type FeeCircumstances } from "@shared/fee-circumstances";
 
 function renderFeesWithToaster() {
   return render(<><FeesContent /><Toaster /></>);
@@ -24,10 +25,17 @@ const mocks = vi.hoisted(() => ({
   stored: [] as FeeRow[],
   editing: vi.fn(),
   flush: vi.fn(),
+  circumstances: { pending: [], records: [] } as FeeCircumstances,
 }));
 vi.mock("@/contexts/loan-application-context", () => ({
-  useLoanState: () => {
+  useLoanState: (key: string) => {
+    const [circumstances, setCircumstances] = useState(mocks.circumstances);
     const [rows, setRows] = useState(mocks.rows);
+    if (key === "fee-circumstances") return [circumstances, (next: SetStateAction<FeeCircumstances>) => setCircumstances(previous => {
+      const value = typeof next === "function" ? next(previous) : next;
+      mocks.circumstances = value;
+      return value;
+    })];
     return [rows, (next: SetStateAction<FeeRow[]>) => setRows((previous) => {
       const value = typeof next === "function" ? next(previous) : next;
       mocks.stored = value;
@@ -42,12 +50,54 @@ vi.mock("@/lib/loan-application-store", () => ({
 
 beforeEach(() => {
   mocks.rows = [];
+  mocks.circumstances = { ...EMPTY_CIRCUMSTANCES };
   mocks.stored = [];
   mocks.editing.mockClear();
   mocks.flush.mockReset().mockResolvedValue(undefined);
 });
 
 describe("FeesContent", () => {
+  it("saves waived status, shows its checkmark, and supports unwaiving", async () => {
+    mocks.rows = [{ id: "waiver", fee: "Credit Report Fee", leAmount: "50", cdAmount: "50", methodOfPayment: "Cash", paidBy: "Buyer" }];
+    const user = userEvent.setup();
+    render(<FeesContent />);
+    expect(screen.getByRole("columnheader", { name: "Waived" })).toBeInTheDocument();
+    expect(screen.queryByTestId("fee-waived-waiver")).not.toBeInTheDocument();
+    await user.click(screen.getByTestId("button-edit-fee-waiver"));
+    await user.click(screen.getByRole("checkbox", { name: "Waive fee" }));
+    await user.click(screen.getByTestId("button-save-edit-fee"));
+    await waitFor(() => expect(screen.getByTestId("fee-waived-waiver")).toBeInTheDocument());
+    expect(mocks.stored[0].waived).toBe(true);
+    await user.click(screen.getByTestId("button-edit-fee-waiver"));
+    expect(screen.getByRole("checkbox", { name: "Waive fee" })).toBeChecked();
+    await user.click(screen.getByRole("checkbox", { name: "Waive fee" }));
+    await user.click(screen.getByTestId("button-save-edit-fee"));
+    await waitFor(() => expect(screen.queryByTestId("fee-waived-waiver")).not.toBeInTheDocument());
+    expect(mocks.stored[0]).toMatchObject({ waived: false, leAmount: "50", cdAmount: "50" });
+  });
+  it("requests a reason on table save after appraisal edits, persists it, and does not repeat unchanged", async () => {
+    mocks.rows = [{ id: "appraisal", fee: "Appraisal Fee", leAmount: "500", cdAmount: "500", methodOfPayment: "Cash", paidBy: "Buyer" }];
+    const user = userEvent.setup();
+    render(<FeesContent />);
+    await user.click(screen.getByTestId("button-edit-fee-appraisal"));
+    const editor = within(screen.getByRole("dialog", { name: "Edit Fee" }));
+    await user.clear(editor.getByLabelText("LE Amount"));
+    await user.type(editor.getByLabelText("LE Amount"), "650");
+    await user.click(editor.getByRole("button", { name: /^Save$/ }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(screen.getByTestId("button-save-fee-table"));
+    const dialog = within(await screen.findByRole("dialog", { name: "Change of circumstance reason" }));
+    await user.click(dialog.getByTestId("select-circumstance-reason"));
+    await user.click(screen.getByRole("button", { name: /^Not a valid change of circumstance$/ }));
+    await user.type(dialog.getByLabelText("Context"), "Corrected an internal estimate.");
+    await user.click(dialog.getByTestId("button-save-change-circumstance"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.circumstances.records).toHaveLength(1);
+    expect(mocks.circumstances.records[0]).toMatchObject({ reason: "not-valid", context: "Corrected an internal estimate." });
+    expect(mocks.circumstances.pending).toEqual([]);
+    await user.click(screen.getByTestId("button-save-fee-table"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
   const existingFee: FeeRow = {
     id: "edit-target", fee: "Appraisal Fee", methodOfPayment: "Financed", paidBy: "Seller",
     paidTo: "Harbor Valuations", leAmount: "427.15", cdAmount: "438.90", shoppedForProvider: true,
@@ -69,7 +119,7 @@ describe("FeesContent", () => {
     expect(dialog.getByLabelText("Paid To")).toHaveValue("Harbor Valuations");
     expect(dialog.getByLabelText("LE Amount")).toHaveValue("427.15");
     expect(dialog.getByLabelText("CD Amount")).toHaveValue("438.90");
-    expect(dialog.getByRole("checkbox")).toBeChecked();
+    expect(dialog.getByRole("checkbox", { name: "Shopped for Provider" })).toBeChecked();
     expect(dialog.getAllByRole("button", { name: "Close" })).toHaveLength(1);
     expect(screen.getAllByRole("columnheader", { hidden: true }).slice(-1).map(cell => cell.getAttribute("aria-label")))
       .toEqual(["Actions"]);
@@ -98,7 +148,7 @@ describe("FeesContent", () => {
     await user.click(dialog.getByTestId("select-edit-method-of-payment-option-cash"));
     await user.click(dialog.getByLabelText("Paid By"));
     await user.click(dialog.getByTestId("select-edit-paid-by-option-buyer"));
-    await user.click(dialog.getByRole("checkbox"));
+    await user.click(dialog.getByRole("checkbox", { name: "Shopped for Provider" }));
     expect(mocks.editing).toHaveBeenCalledWith("fee-edit-edit-target", true);
     expect(mocks.stored).toEqual([]);
     await user.click(dialog.getByRole("button", { name: "Save" }));
@@ -107,7 +157,7 @@ describe("FeesContent", () => {
     expect(mocks.stored[0]).toEqual({
       id: existingFee.id, ...unknownFields, fee: "Independent Valuation", methodOfPayment: "Cash",
       paidBy: "Buyer", paidTo: "Pacific Appraisers", leAmount: "00187.250", cdAmount: "196.40",
-      shoppedForProvider: false,
+      shoppedForProvider: false, waived: false,
     });
     expect(mocks.stored[1]).toBe(other);
   });
@@ -166,10 +216,10 @@ describe("FeesContent", () => {
     mocks.rows = [legacy];
     const { user, dialog } = await openEditor();
     expect(dialog.getByLabelText("Paid To")).toHaveValue("");
-    expect(dialog.getByRole("checkbox")).not.toBeChecked();
+    expect(dialog.getByRole("checkbox", { name: "Shopped for Provider" })).not.toBeChecked();
     await user.click(dialog.getByRole("button", { name: "Save" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    expect(mocks.stored).toEqual([{ ...legacy, paidTo: "", shoppedForProvider: false }]);
+    expect(mocks.stored).toEqual([{ ...legacy, paidTo: "", shoppedForProvider: false, waived: false }]);
   });
 
   it("starts empty with compatible defaults and ordered fields and actions", () => {

@@ -4,43 +4,30 @@ import { memoryLocation } from "wouter/memory-location";
 import { afterEach, expect, it, vi } from "vitest";
 import { NewLoanDialog } from "./NewLoanDialog";
 import { queryClient } from "@/lib/queryClient";
-import { applicationStore } from "@/lib/loan-application-store";
 
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); queryClient.clear(); });
-it("retains a failed Blend blank and retries the import without another creation", async () => {
+it("creates a two-borrower SF loan without any Blend call or navigation", async () => {
   const { hook, history } = memoryLocation({ path: "/pipeline", record: true });
-  let fail = true;
   const requests: string[] = [];
   const fetchMock = vi.fn(async (url: string, options: RequestInit) => {
     requests.push(url);
     const body = JSON.parse(String(options.body));
-    if (url === "/api/loans") {
-      expect(body).toEqual({ source: "blank", idempotencyKey: expect.any(String) });
-      return new Response(JSON.stringify({ id: "retained", loanNumber: "123456790" }), { status: 201 });
-    }
-    expect(body).toMatchObject({ action: "blend", borrowerCount: 1, generation: 0, revision: 0, confirmed: true });
-    expect(body.sections["current-liabilities"]).toEqual([]);
-    expect(body.sections["noncurrent-liabilities"]).toEqual([]);
-    expect(body.sections["subject-property"].collateralOwnerId).toBe("retained-primary");
-    if (fail) return new Response(JSON.stringify({ error: "Import unavailable" }), { status: 503 });
-    return new Response("{}");
+    expect(body).toEqual({ source: "sf", borrowerCount: 2, idempotencyKey: expect.any(String) });
+    return new Response(JSON.stringify({ id: "two", loanNumber: "123456790" }), { status: 201 });
   });
   vi.stubGlobal("fetch", fetchMock);
-  const install = vi.spyOn(applicationStore, "install");
   const busy = vi.fn();
-  render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={busy} /></Router>);
-  fireEvent.click(screen.getByTestId("source-blend"));
-  fireEvent.click(screen.getByTestId("new-loan-borrowers-1"));
+  const created = vi.fn();
+  render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={busy} onSfCreated={created} /></Router>);
+  expect(screen.getByTestId("new-loan-borrowers-1")).toBeChecked();
+  expect(screen.queryByText("Application source")).toBeNull();
+  expect(screen.queryByTestId("source-blend")).toBeNull();
+  fireEvent.click(screen.getByTestId("new-loan-borrowers-2"));
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  expect(await screen.findByRole("alert", {}, { timeout: 5000 })).toHaveTextContent("Loan 123456790 was retained");
-  expect(screen.getByRole("alert")).toHaveTextContent("Import unavailable");
+  await waitFor(() => expect(created).toHaveBeenCalledWith({ id: "two", loanNumber: "123456790" }));
   expect(history).toEqual(["/pipeline"]);
-  fail = false;
-  fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  await waitFor(() => expect(history.at(-1)).toBe("/loans/retained"));
-  expect(requests.filter(url => url === "/api/loans")).toHaveLength(1);
-  expect(requests.filter(url => url.endsWith("/demo"))).toHaveLength(2);
-  expect(install).not.toHaveBeenCalled();
+  expect(requests).toEqual(["/api/loans"]);
+  expect(screen.getByTestId("new-loan-borrowers-1")).toBeChecked();
   expect(busy).toHaveBeenLastCalledWith(false);
 });
 it("creates an SF opportunity and stays on Pipeline ready for another creation", async () => {
@@ -57,10 +44,10 @@ it("creates an SF opportunity and stays on Pipeline ready for another creation",
   await waitFor(() => expect(created).toHaveBeenCalledTimes(2));
   expect(JSON.parse(vi.mocked(fetch).mock.calls[1][1]!.body as string).idempotencyKey).not.toBe(firstKey);
   expect(JSON.parse(vi.mocked(fetch).mock.calls[0][1]!.body as string)).toEqual({
-    source: "sf", idempotencyKey: expect.any(String),
+    source: "sf", borrowerCount: 1, idempotencyKey: expect.any(String),
   });
 });
-it("reuses the attempt after a lost response and locks the original source", async () => {
+it("reuses the attempt after a lost response and locks the borrower count", async () => {
   const { hook, history } = memoryLocation({ path: "/pipeline", record: true });
   const bodies: any[] = [];
   vi.stubGlobal("fetch", vi.fn(async (_url: string, options: RequestInit) => {
@@ -69,13 +56,16 @@ it("reuses the attempt after a lost response and locks the original source", asy
     return new Response(JSON.stringify({ id: "original", loanNumber: "123456790" }), { status: 201 });
   }));
   render(<Router hook={hook}><NewLoanDialog open onOpenChange={() => {}} onBusyChange={() => {}} /></Router>);
+  fireEvent.click(screen.getByTestId("new-loan-borrowers-2"));
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
   expect(await screen.findByRole("alert")).toHaveTextContent("Response lost");
-  expect(screen.getByTestId("source-blend")).toBeDisabled();
+  expect(screen.getByTestId("new-loan-borrowers-1")).toBeDisabled();
+  expect(screen.getByTestId("new-loan-borrowers-2")).toBeDisabled();
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
-  await waitFor(() => expect(screen.getByTestId("source-sf")).toBeEnabled());
+  await waitFor(() => expect(screen.getByTestId("new-loan-borrowers-1")).toBeEnabled());
   expect(history).toEqual(["/pipeline"]);
   expect(bodies).toHaveLength(2);
   expect(bodies[1]).toEqual(bodies[0]);
+  expect(bodies[0].borrowerCount).toBe(2);
   expect(bodies[0].idempotencyKey).toMatch(/^[0-9a-f-]{36}$/);
 });
