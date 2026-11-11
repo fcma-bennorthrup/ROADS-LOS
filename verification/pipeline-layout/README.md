@@ -36,6 +36,17 @@ shared libraries not provided by the normal Nix shell). Elsewhere run
 Playwright. An explicit `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` overrides selection.
 No application workflow is needed to run the fixture.
 
+## Loan teams during refresh
+
+Run `npm run test:pipeline-layout -- loan-team.spec.ts` for desktop and phone
+dialog coverage. A fixture-only event refetches the real `/api/loans` query while
+the modal is open; responses remain synthetic and unexpected API calls are blocked.
+Checks change both officers, reorder rows using the active sort, and remove the
+selected row with either another loan remaining or an empty list. They verify
+all read-only team fields, loan identity, safe dismissal, and focus restoration
+to the same trigger or Pipeline search when that trigger disappears. Removal is
+only a replacement fixture response, not a delete request or saved-loan change.
+
 ## Complete loan workspace navigation
 
 `workspace-navigation.spec.ts` mounts the real `LoanScope`, `LoanWorkspace`,

@@ -1,4 +1,5 @@
 import { FiUserPlus, FiX } from "react-icons/fi";
+import { useRef } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dialog, DialogClose, DialogPortal, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import "@/styles/loan-team.css";
@@ -11,6 +12,7 @@ const supportByOfficer: Record<string, string> = {
 };
 
 export function LoanTeamDialog({ loanNumber, loanOfficer }: { loanNumber: string; loanOfficer?: string }) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const officer = loanOfficer?.trim() || "Not Assigned";
   const roles = [
     { name: "Originator", primary: officer },
@@ -19,11 +21,22 @@ export function LoanTeamDialog({ loanNumber, loanOfficer }: { loanNumber: string
   ];
   return <Dialog>
     <DialogTrigger asChild>
-      <button type="button" aria-label={`View loan team for loan ${loanNumber}`} title="View loan team"><FiUserPlus aria-hidden /></button>
+      <button ref={triggerRef} type="button" aria-label={`View loan team for loan ${loanNumber}`} title="View loan team"><FiUserPlus aria-hidden /></button>
     </DialogTrigger>
     <DialogPortal>
       <DialogPrimitive.Overlay className="loan-team-overlay" onClick={event => event.stopPropagation()} />
-      <DialogPrimitive.Content className="loan-team-dialog" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
+      <DialogPrimitive.Content className="loan-team-dialog" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}
+        onCloseAutoFocus={event => {
+          // A refreshed list can unmount this row and its trigger together.
+          // Preserve Radix's normal restoration when the trigger still exists.
+          if (!triggerRef.current?.isConnected) {
+            const fallback = document.querySelector<HTMLInputElement>('[data-testid="pipeline-page"] input[type="search"]');
+            if (fallback) {
+              event.preventDefault();
+              fallback.focus({ preventScroll: true });
+            }
+          }
+        }}>
         <header className="loan-team-header">
           <DialogTitle className="headline-300">Loan Team</DialogTitle>
           <DialogDescription className="sr-only">Team assignments for loan {loanNumber}. Read only.</DialogDescription>

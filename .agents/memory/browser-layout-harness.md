@@ -30,3 +30,12 @@ browser focus can move the entire shell sideways despite a zero CSS margin.
 
 **How to apply:** Assert header and toolbar coordinates after tab clicks, and
 keep intended scrolling local to the tab strip and page content.
+
+For background row-order assertions while a modal is open, inspect DOM attributes
+rather than accessible names.
+
+**Why:** Radix intentionally hides the background from accessibility APIs; even
+including hidden roles does not restore their computed accessible names.
+
+**How to apply:** Keep dialog assertions role-based, but use stable DOM selectors
+and explicit attributes for background identity/order assertions.
