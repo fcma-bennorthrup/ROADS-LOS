@@ -102,7 +102,7 @@ export default function PipelinePage() {
                         navigate(`~/loans/${encodeURIComponent(loan.id)}`);
                       }
                     }}>
-                    <PipelineRowCells columns={columns} loan={loan} />
+                    <PipelineRowCells columns={columns} loan={loan} showTeam={queue === "All Loans"} />
                   </tr>;
                 })}</tbody>
               </table>

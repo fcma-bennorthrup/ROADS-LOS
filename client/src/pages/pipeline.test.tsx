@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -36,6 +36,52 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it.each([
+  ["Sarah Williams", "Tyler Coke"],
+  ["Rylee Alcorn", "Matthew Lewis"],
+  ["Connor Welch", "Nikki Wheat"],
+  ["Conner Welch", "Nikki Wheat"],
+  ["Unknown Officer", "Not Assigned"],
+  ["", "Not Assigned"],
+  [undefined, "Not Assigned"],
+])("shows read-only team assignments for %s without navigating", async (officer, support) => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], loanOfficer: officer }]))));
+  const { history } = view();
+  const trigger = await screen.findByRole("button", { name: "View loan team for loan 123456790" });
+  trigger.focus();
+  fireEvent.click(trigger);
+  const dialog = screen.getByRole("dialog", { name: "Loan Team" });
+  expect(within(dialog).getByLabelText("Originator Primary")).toHaveValue(officer || "Not Assigned");
+  expect(within(dialog).getByLabelText("Sales Support Primary")).toHaveValue(support);
+  expect(within(dialog).getByLabelText("Operations Primary")).toHaveValue("Not Assigned");
+  for (const role of ["Originator", "Sales Support", "Operations"]) {
+    expect(within(dialog).getByLabelText(`${role} Secondary`)).toHaveValue("Not Assigned");
+  }
+  within(dialog).getAllByRole("textbox").forEach(input => expect(input).toHaveAttribute("readonly"));
+  fireEvent.click(within(dialog).getByText("Loan Team"));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  await waitFor(() => expect(trigger).toHaveFocus());
+  expect(history).toEqual(["/pipeline"]);
+});
+it("isolates loan teams and leaves other queues disabled", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
+    { ...loans[0], loanOfficer: "Sarah Williams", departmentQueue: "Sales Support" },
+    { ...loans[1], loanOfficer: "Rylee Alcorn" },
+  ]))));
+  const { history } = view();
+  const first = await screen.findByRole("button", { name: "View loan team for loan 123456790" });
+  fireEvent.click(first);
+  fireEvent.click(screen.getByRole("button", { name: "Close loan team" }));
+  fireEvent.click(screen.getByRole("button", { name: "View loan team for loan 123456791" }));
+  expect(screen.getByLabelText("Sales Support Primary")).toHaveValue("Matthew Lewis");
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(history).toEqual(["/pipeline"]);
+  fireEvent.click(screen.getByTestId("queue-sales-support"));
+  expect(screen.queryByRole("button", { name: /View loan team/ })).toBeNull();
+  expect(screen.getByRole("button", { name: /Assign loan/ })).toBeDisabled();
+});
 it.each([
   ["dashboard", "Dashboard"],
   ["pipeline", "Pipeline"],

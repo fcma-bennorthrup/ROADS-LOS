@@ -3,13 +3,14 @@ import { FiEye, FiMoreVertical, FiUserPlus } from "react-icons/fi";
 import type { PipelineLoan } from "@shared/pipeline";
 import type { PipelineQueue, PipelineSort } from "@/lib/pipeline-display";
 import { formatCurrency } from "@/lib/loan-display";
+import { LoanTeamDialog } from "@/components/LoanTeamDialog";
 
 type PipelineColumn = {
   key: string;
   sort?: PipelineSort;
   label: string;
   width: number;
-  render: (loan: PipelineLoan) => ReactNode;
+  render: (loan: PipelineLoan, showTeam?: boolean) => ReactNode;
 };
 
 function displayDate(value: string) {
@@ -42,9 +43,9 @@ const columns = {
   trid: { key: "trid", label: "TRID", width: 85, render: () => null },
   appraisal: { key: "appraisal", label: "Appraisal", width: 100, render: () => null },
   titleWork: { key: "titleWork", label: "Title Work", width: 100, render: () => null },
-  actions: { key: "actions", label: "Actions", width: 104, render: loan =>
+  actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam) =>
     <div className="pipeline-row-actions">
-      <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>
+      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
       <button disabled aria-label={`Preview loan ${loan.loanNumber} — unavailable`} title="Loan preview is not available yet"><FiEye aria-hidden /></button>
       <button disabled aria-label={`More actions for loan ${loan.loanNumber} — unavailable`} title="No additional loan actions available"><FiMoreVertical aria-hidden /></button>
     </div> },
@@ -78,6 +79,6 @@ export function getPipelineColumns(queue: PipelineQueue) {
   return queueColumns[queue];
 }
 
-export function PipelineRowCells({ columns, loan }: { columns: readonly PipelineColumn[]; loan: PipelineLoan }) {
-  return <>{columns.map(column => <td key={column.key}>{column.render(loan)}</td>)}</>;
+export function PipelineRowCells({ columns, loan, showTeam = false }: { columns: readonly PipelineColumn[]; loan: PipelineLoan; showTeam?: boolean }) {
+  return <>{columns.map(column => <td key={column.key}>{column.render(loan, showTeam)}</td>)}</>;
 }
