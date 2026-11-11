@@ -46,7 +46,7 @@ function comparable(row: FeeRow) {
     row.paidTo ?? "", row.leAmount, row.cdAmount, row.shoppedForProvider ?? false];
 }
 export function appraisalChanged(before: FeeRow, after: FeeRow | undefined) {
-  return !after || JSON.stringify(comparable(before)) !== JSON.stringify(comparable(after));
+  return !!after && JSON.stringify(comparable(before)) !== JSON.stringify(comparable(after));
 }
 export function trackAppraisalEdits(state: FeeCircumstances, before: FeeRow[], after: FeeRow[]): FeeCircumstances {
   const pending = [...state.pending];

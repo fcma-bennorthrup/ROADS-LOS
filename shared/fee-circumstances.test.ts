@@ -15,9 +15,12 @@ describe("Appraisal change tracking", () => {
     expect(pendingAppraisalChanges(twice, [appraisal])).toEqual([]);
     expect(pendingAppraisalChanges(twice, [changed])).toHaveLength(1);
   });
-  it("tracks deletion and renaming of an existing appraisal", () => {
+  it("ignores deletion, including a previously edited appraisal", () => {
     const state = trackAppraisalEdits(EMPTY_CIRCUMSTANCES, [appraisal], []);
-    expect(pendingAppraisalChanges(state, [])[0].after).toBeNull();
+    expect(state.pending).toEqual([]);
+    expect(pendingAppraisalChanges({ pending: [appraisal], records: [] }, [])).toEqual([]);
+  });
+  it("continues tracking edits to an existing row", () => {
     expect(trackAppraisalEdits(EMPTY_CIRCUMSTANCES, [appraisal], [{ ...appraisal, fee: "Other" }]).pending).toEqual([appraisal]);
   });
   it("validates saved reasons and requires context", () => {
