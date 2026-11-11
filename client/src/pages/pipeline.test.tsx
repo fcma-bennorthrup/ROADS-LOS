@@ -70,12 +70,13 @@ it("shows a newly created SF row on Pipeline even from a filtered empty departme
   const { history } = view();
   await screen.findByTestId("pipeline-row-first");
   fireEvent.click(screen.getByTestId("queue-operations"));
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "no match" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "no match" } });
   fireEvent.click(screen.getByTestId("button-new-loan"));
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
   expect(await screen.findByTestId("pipeline-row-new-sf")).toBeVisible();
   expect(screen.getByTestId("queue-all-loans")).toHaveAttribute("aria-pressed", "true");
-  expect(screen.getByTestId("input-pipeline-search")).toHaveValue("");
+  expect(screen.getByPlaceholderText("Type to filter results")).toHaveValue("");
+  expect(screen.queryByPlaceholderText("Search for a customer")).toBeNull();
   expect(history).toEqual(["/pipeline"]);
   expect(screen.queryByTestId("new-loan-dialog")).not.toBeInTheDocument();
 });
@@ -153,7 +154,7 @@ it("keeps Operations empty with its own exact columns when saved loans exist", a
   expect(screen.getByTestId("queue-operations")).toHaveTextContent("0 Loans");
   expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans assigned to Operations");
   expect(screen.queryByRole("button", { name: "Closing Date" })).toBeNull();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "Avery" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "Avery" } });
   fireEvent.click(screen.getByRole("button", { name: "Custom Filter" }));
   fireEvent.click(screen.getByTestId("filter-stage-closing"));
   expect(screen.queryAllByTestId(/^pipeline-row-/)).toHaveLength(0);
@@ -215,9 +216,9 @@ it("uses only the index projection, filters with counts, sorts, and links to loa
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
   fireEvent.click(screen.getByTestId("filter-stage-customer-application"));
   expect(screen.getByTestId("pipeline-row-second")).toBeInTheDocument();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "WRIGHT" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "WRIGHT" } });
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "missing" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "missing" } });
   expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans match");
   fireEvent.click(screen.getByTestId("clear-pipeline-filters"));
   fireEvent.click(screen.getByTestId("sort-loanNumber"));
@@ -280,7 +281,7 @@ it("shows only saved CIF and additional borrower fields", async () => {
   const row = await screen.findByTestId("pipeline-row-first");
   expect(within(row).getByText("654123")).toBeInTheDocument();
   expect(within(row).getByLabelText("2 additional borrowers")).toHaveTextContent("+2");
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "654123" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "654123" } });
   expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
 });
 it("guards the loan workspace rail against leaving with unsaved edits", async () => {

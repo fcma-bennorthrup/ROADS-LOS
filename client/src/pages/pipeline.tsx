@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { FiSearch, FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
+import { FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { LOAN_STAGES, type LoanStage } from "@shared/loan-stages";
 import { MoreOptionsMenu } from "@/components/AppHeader";
 import { MainNavigation, MainNavigationLayout } from "@/components/MainNavigation";
@@ -15,7 +15,6 @@ import "@/styles/pipeline.css";
 export default function PipelinePage() {
   const [, navigate] = useLocation();
   const query = usePipelineQuery();
-  const [search, setSearch] = useState("");
   const [tableSearch, setTableSearch] = useState("");
   const [queue, setQueue] = useState<PipelineQueue>("All Loans");
   const operations = queue === "Operations";
@@ -32,10 +31,10 @@ export default function PipelinePage() {
   const [syncOpen, setSyncOpen] = useState(false);
   const loans = query.data ?? [];
   const selectedLoans = queueLoans(loans, queue);
-  const rows = pipelineRows(pipelineRows(selectedLoans, search, stages, sort, direction), tableSearch, [], sort, direction);
+  const rows = pipelineRows(selectedLoans, tableSearch, stages, sort, direction);
   const pagination = pipelinePage(rows, page, pageSize);
-  const filtered = !!search.trim() || !!tableSearch.trim() || stages.length > 0;
-  function clearFilters() { setSearch(""); setTableSearch(""); setStages([]); setPage(1); }
+  const filtered = !!tableSearch.trim() || stages.length > 0;
+  function clearFilters() { setTableSearch(""); setStages([]); setPage(1); }
   return <MainNavigationLayout><div className="pipeline-page" data-testid="pipeline-page">
     <MainNavigation />
     <div className="pipeline-shell">
@@ -47,12 +46,6 @@ export default function PipelinePage() {
             <button data-testid="button-new-loan" className="pipeline-button body-200-strong" disabled={creating} onClick={() => setDialogOpen(true)}><FiPlus aria-hidden />New Loan</button>
             <MoreOptionsMenu onGitHubSync={() => setSyncOpen(true)} loanActive={false} />
           </div>
-          <label className="pipeline-search body-200">
-            <FiSearch aria-hidden />
-            <span className="sr-only">Search borrower, loan number, or CIF</span>
-            <input data-testid="input-pipeline-search" type="search" placeholder="Search for a customer" value={search} onChange={event => { setSearch(event.target.value); setPage(1); }} />
-            {search && <button aria-label="Clear customer search" onClick={() => { setSearch(""); setPage(1); }}><FiX aria-hidden /></button>}
-          </label>
         </div>
         <div className="pipeline-queues" role="group" aria-label="Loan queues">
           {PIPELINE_QUEUES.map(name => <button key={name} data-testid={`queue-${name.toLowerCase().replaceAll(" ", "-")}`} className="pipeline-queue" aria-pressed={queue === name}
