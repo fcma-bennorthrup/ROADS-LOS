@@ -293,7 +293,7 @@ export function FeesContent() {
         role="table" aria-label="Fees" data-testid="fees-table">
         <div className="roads-fees-table-row" role="row" style={{ backgroundColor: "var(--roads-bg-light)" }}>
           {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
-            style={{ ...cellStyle, textAlign: key === "shopped" || key === "waived" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
+            style={{ ...cellStyle, textAlign: key === "le-amount" || key === "cd-amount" ? "right" : key === "shopped" || key === "waived" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
           <div role="columnheader" aria-label="Actions" />
         </div>
         {fees.map((fee) => (
