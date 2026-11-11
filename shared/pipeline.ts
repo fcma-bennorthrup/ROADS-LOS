@@ -15,6 +15,7 @@ export interface PipelineLoan {
   primaryBorrowerName: string;
   loanType: string;
   stage: LoanStage;
+  withdrawn?: boolean;
   amountRequested: number | null;
   product: string | null;
   mode: LoanApplication["mode"];
@@ -37,6 +38,7 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     decision: document.meta.opportunity?.decision,
     primaryBorrowerName: view.primaryBorrowerName,
     loanType: view.loanType, stage: view.stage as LoanStage,
+    withdrawn: (document.sections.withdrawal as { acknowledged?: boolean } | undefined)?.acknowledged === true,
     amountRequested: view.summary.amountRequested, product: view.summary.product,
     mode: document.mode, revision: document.revision,
     createdAt: document.meta.createdAt, updatedAt: document.meta.updatedAt,

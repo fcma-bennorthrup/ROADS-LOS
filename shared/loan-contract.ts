@@ -22,6 +22,7 @@ const income = z.array(z.object({
 /** Shared runtime contract. Unknown section keys remain forward-extensible;
  * recognized section structures are checked without stripping saved fields. */
 export const sectionSchemas: Record<string, z.ZodTypeAny> = {
+  withdrawal: z.object({ acknowledged: z.literal(true) }).strict(),
   "borrower-primary": fields, "borrower-secondary": fields,
   "loan-details": fields, "subject-property": subjectPropertySchema,
   "evaluation-1": fields, "evaluation-2": fields,
