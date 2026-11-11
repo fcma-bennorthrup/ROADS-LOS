@@ -1,3 +1,4 @@
+import { feeCircumstancesSchema, FEE_CIRCUMSTANCES_KEY } from "@shared/fee-circumstances";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useApplicationStatus } from "@/contexts/loan-application-context";
@@ -7,7 +8,7 @@ import { decisionMode, type DecisionMode } from "@shared/business-rules/decision
 
 type DemoAction = "reset" | "blend" | "trid" | "checklist" | "trid-reset" | "trid-manual";
 
-export function LoanDemoControls() {
+export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?: () => void } = {}) {
   const store = useApplicationStatus();
   const [action, setAction] = useState<DemoAction | null>(null);
   const [busy, setBusy] = useState(false);
@@ -67,6 +68,14 @@ export function LoanDemoControls() {
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    {onViewCircumstances && <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-circumstance-card">
+      <h3 className="font-semibold">Change of circumstance</h3>
+      <p className="text-sm text-muted-foreground">Review the latest saved appraisal fee change reason.</p>
+      <Button className="mt-auto w-full h-auto whitespace-normal py-2" variant="secondary"
+        disabled={busy || !store.document || store.pending > 0 || !!store.error ||
+          !(feeCircumstancesSchema.safeParse(store.document?.sections[FEE_CIRCUMSTANCES_KEY]).data?.records.length)}
+        onClick={onViewCircumstances}>View change of circumstance</Button>
+    </div>}
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-decision-card">
       <h3 className="font-semibold">Loan decision</h3>
       <p className="text-sm text-muted-foreground">Choose the outcome of the next loan decision.</p>

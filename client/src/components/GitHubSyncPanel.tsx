@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { LoanCircumstanceViewer } from "@/components/loan/LoanCircumstanceViewer";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +20,11 @@ export function GitHubSyncPanel({
   onOpenChange: (open: boolean) => void;
   loanActive?: boolean;
 }) {
+  const [viewingCircumstances, setViewingCircumstances] = useState(false);
+  useEffect(() => { if (!open) setViewingCircumstances(false); }, [open]);
+  if (open && loanActive && viewingCircumstances) {
+    return <LoanCircumstanceViewer onClose={() => setViewingCircumstances(false)} />;
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={loanActive ? "max-w-6xl w-[calc(100%-2rem)] max-h-[90dvh] overflow-y-auto" : undefined}>
@@ -27,7 +34,7 @@ export function GitHubSyncPanel({
             {loanActive ? "Simulate the current loan’s application journey." : "Prototype administration controls."}
           </DialogDescription>
         </DialogHeader>
-        {loanActive ? <LoanDemoControls /> : <div className="min-h-24" data-testid="admin-controls-shell" />}
+        {loanActive ? <LoanDemoControls onViewCircumstances={() => setViewingCircumstances(true)} /> : <div className="min-h-24" data-testid="admin-controls-shell" />}
         <DialogFooter>
           <Button
             variant="outline"

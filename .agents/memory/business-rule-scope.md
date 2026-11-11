@@ -4,6 +4,12 @@ description: User-approved lightweight rule logic and TRID requirements
 ---
 Keep prototype business rules centralized in code; do not build a business-rule engine.
 
+Appraisal fee change explanations are documentary records, not automatic compliance decisions.
+
+**Why:** The requested change-of-circumstance flow collects a reason and context; it does not authorize new tolerance-reset, timing, or TRID-trigger rules.
+
+**How to apply:** Use Regulation Z's revision-reason categories without treating selection as proof of eligibility. Preserve existing TRID rules unless the user separately changes them.
+
 PWE is the borrower with the highest saved income; Summary PWE CB Score uses that
 borrower's hard-pull score. The income-page chip must move when saved incomes change.
 

@@ -6,6 +6,7 @@ import type { FeeRow } from "@shared/fees";
 import { FeesContent } from "../FeesContent";
 import { Toaster } from "@/components/ui/toaster";
 import { dismissToasts } from "@/hooks/use-toast";
+import { EMPTY_CIRCUMSTANCES, type FeeCircumstances } from "@shared/fee-circumstances";
 
 function renderFeesWithToaster() {
   return render(<><FeesContent /><Toaster /></>);
@@ -24,10 +25,17 @@ const mocks = vi.hoisted(() => ({
   stored: [] as FeeRow[],
   editing: vi.fn(),
   flush: vi.fn(),
+  circumstances: { pending: [], records: [] } as FeeCircumstances,
 }));
 vi.mock("@/contexts/loan-application-context", () => ({
-  useLoanState: () => {
+  useLoanState: (key: string) => {
+    const [circumstances, setCircumstances] = useState(mocks.circumstances);
     const [rows, setRows] = useState(mocks.rows);
+    if (key === "fee-circumstances") return [circumstances, (next: SetStateAction<FeeCircumstances>) => setCircumstances(previous => {
+      const value = typeof next === "function" ? next(previous) : next;
+      mocks.circumstances = value;
+      return value;
+    })];
     return [rows, (next: SetStateAction<FeeRow[]>) => setRows((previous) => {
       const value = typeof next === "function" ? next(previous) : next;
       mocks.stored = value;
@@ -42,12 +50,36 @@ vi.mock("@/lib/loan-application-store", () => ({
 
 beforeEach(() => {
   mocks.rows = [];
+  mocks.circumstances = { ...EMPTY_CIRCUMSTANCES };
   mocks.stored = [];
   mocks.editing.mockClear();
   mocks.flush.mockReset().mockResolvedValue(undefined);
 });
 
 describe("FeesContent", () => {
+  it("requests a reason on table save after appraisal edits, persists it, and does not repeat unchanged", async () => {
+    mocks.rows = [{ id: "appraisal", fee: "Appraisal Fee", leAmount: "500", cdAmount: "500", methodOfPayment: "Cash", paidBy: "Buyer" }];
+    const user = userEvent.setup();
+    render(<FeesContent />);
+    await user.click(screen.getByTestId("button-edit-fee-appraisal"));
+    const editor = within(screen.getByRole("dialog", { name: "Edit Fee" }));
+    await user.clear(editor.getByLabelText("LE Amount"));
+    await user.type(editor.getByLabelText("LE Amount"), "650");
+    await user.click(editor.getByRole("button", { name: /^Save$/ }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(screen.getByTestId("button-save-fee-table"));
+    const dialog = within(await screen.findByRole("dialog", { name: "Change of circumstance reason" }));
+    await user.click(dialog.getByTestId("select-circumstance-reason"));
+    await user.click(screen.getByRole("button", { name: /^Not a valid change of circumstance$/ }));
+    await user.type(dialog.getByLabelText("Context"), "Corrected an internal estimate.");
+    await user.click(dialog.getByTestId("button-save-change-circumstance"));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(mocks.circumstances.records).toHaveLength(1);
+    expect(mocks.circumstances.records[0]).toMatchObject({ reason: "not-valid", context: "Corrected an internal estimate." });
+    expect(mocks.circumstances.pending).toEqual([]);
+    await user.click(screen.getByTestId("button-save-fee-table"));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
   const existingFee: FeeRow = {
     id: "edit-target", fee: "Appraisal Fee", methodOfPayment: "Financed", paidBy: "Seller",
     paidTo: "Harbor Valuations", leAmount: "427.15", cdAmount: "438.90", shoppedForProvider: true,

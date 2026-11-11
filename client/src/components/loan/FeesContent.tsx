@@ -6,6 +6,11 @@ import { applicationStore } from "@/lib/loan-application-store";
 import { toast } from "@/hooks/use-toast";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { FeeEditDialog } from "./FeeEditDialog";
+import { ChangeCircumstanceDialog } from "./ChangeCircumstanceDialog";
+import {
+  EMPTY_CIRCUMSTANCES, FEE_CIRCUMSTANCES_KEY, pendingAppraisalChanges, trackAppraisalEdits,
+  type FeeCircumstances, type CircumstanceReason,
+} from "@shared/fee-circumstances";
 
 const FEE_OPTIONS = [
   "Appraisal Fee",
@@ -97,6 +102,8 @@ function CurrencyInput({
 
 export function FeesContent() {
   const [fees, setFees] = useLoanState<FeeRow[]>("fees", []);
+  const [circumstances, setCircumstances] = useLoanState<FeeCircumstances>(FEE_CIRCUMSTANCES_KEY, EMPTY_CIRCUMSTANCES);
+  const [reasonOpen, setReasonOpen] = useState(false);
   const [editingFee, setEditingFee] = useState<FeeRow | null>(null);
   const [feeType, setFeeType] = useState("");
   const [methodOfPayment, setMethodOfPayment] = useState("Cash");
@@ -133,6 +140,7 @@ export function FeesContent() {
 
   function updateFees(next: FeeRow[]) {
     try {
+      setCircumstances(previous => trackAppraisalEdits(previous, fees, next));
       setFees(next);
       setFeedback(null);
     } catch (error) {
@@ -140,11 +148,30 @@ export function FeesContent() {
     }
   }
 
-  async function handleSaveFeeTable() {
+  async function saveFeeTable(reason?: CircumstanceReason, context?: string) {
     setSaving(true);
     setFeedback(null);
     try {
       await applicationStore.flush();
+      const changes = pendingAppraisalChanges(circumstances, fees);
+      if (changes.length && !reason) {
+        setReasonOpen(true);
+        return;
+      }
+      if (reason && changes.length) {
+        setCircumstances(previous => ({
+          pending: [],
+          records: [...previous.records, {
+            id: crypto.randomUUID(), savedAt: new Date().toISOString(), reason,
+            context: context!.trim(), changes,
+          }],
+        }));
+        await applicationStore.flush();
+      } else if (circumstances.pending.length) {
+        setCircumstances(previous => ({ ...previous, pending: [] }));
+        await applicationStore.flush();
+      }
+      setReasonOpen(false);
       toast({
         variant: "success",
         title: "Fee table saved.",
@@ -156,9 +183,14 @@ export function FeesContent() {
         error: true,
         message: `Fee table not saved. ${error instanceof Error ? error.message : "Please try again."}`,
       });
+      if (reason) throw error;
     } finally {
       setSaving(false);
     }
+  }
+
+  async function handleSaveFeeTable() {
+    await saveFeeTable();
   }
 
   return (
@@ -303,9 +335,12 @@ export function FeesContent() {
       </div>
       {editingFee && <FeeEditDialog key={editingFee.id} fee={editingFee} onClose={() => setEditingFee(null)}
         onSave={async draft => {
-          setFees(previous => previous.map(row => row.id === editingFee.id ? { ...row, ...draft } : row));
+          const next = fees.map(row => row.id === editingFee.id ? { ...row, ...draft } : row);
+          setCircumstances(previous => trackAppraisalEdits(previous, fees, next));
+          setFees(next);
           await applicationStore.flush();
         }} />}
+      {reasonOpen && <ChangeCircumstanceDialog onClose={() => setReasonOpen(false)} onSave={saveFeeTable} />}
     </div>
   );
 }
