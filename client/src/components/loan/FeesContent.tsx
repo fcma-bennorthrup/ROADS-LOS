@@ -62,6 +62,7 @@ const columns = [
   ["le-amount", "LE Amount"],
   ["cd-amount", "CD Amount"],
   ["shopped", "Shopped"],
+  ["waived", "Waived"],
 ] as const;
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
@@ -213,8 +214,8 @@ export function FeesContent() {
         }
         .roads-fees-table-row {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 76px;
-          min-width: 1096px;
+          grid-template-columns: repeat(4, minmax(0, 1fr)) 180px 180px 94px 94px 76px;
+          min-width: 1190px;
         }
         @media (max-width: 1200px) {
           .roads-fees-fields > div { flex-basis: calc((100% - 2 * var(--roads-spacing-component-3xl)) / 3); }
@@ -292,7 +293,7 @@ export function FeesContent() {
         role="table" aria-label="Fees" data-testid="fees-table">
         <div className="roads-fees-table-row" role="row" style={{ backgroundColor: "var(--roads-bg-light)" }}>
           {columns.map(([key, label]) => <div key={key} role="columnheader" className="label-strong"
-            style={{ ...cellStyle, textAlign: key === "shopped" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
+            style={{ ...cellStyle, textAlign: key === "shopped" || key === "waived" ? "center" : undefined }} data-testid={`th-${key}`}>{label}</div>)}
           <div role="columnheader" aria-label="Actions" />
         </div>
         {fees.map((fee) => (
@@ -306,6 +307,9 @@ export function FeesContent() {
             <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.cdAmount}</div>
             <div role="cell" className="flex items-center justify-center" aria-label={fee.shoppedForProvider ? "Shopped for Provider" : "Not shopped for Provider"}>
               {fee.shoppedForProvider && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-shopped-${fee.id}`} />}
+            </div>
+            <div role="cell" className="flex items-center justify-center" aria-label={fee.waived ? "Waived" : "Not waived"}>
+              {fee.waived && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-waived-${fee.id}`} />}
             </div>
             <div role="cell" className="flex items-center justify-center"
               data-testid={`fee-actions-${fee.id}`}
@@ -329,7 +333,7 @@ export function FeesContent() {
           </div>
         ))}
         <div style={{
-          backgroundColor: "var(--roads-bg-light)", minWidth: 1096,
+          backgroundColor: "var(--roads-bg-light)", minWidth: 1190,
           height: 56, flexShrink: 0, borderTop: "1px solid var(--roads-border-subtle)", marginTop: "auto",
         }} data-testid="fees-table-footer" />
       </div>

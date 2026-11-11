@@ -6,7 +6,7 @@ import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/u
 import { useLoanEditing } from "@/contexts/loan-application-context";
 import { RoadsDropdown } from "./RoadsDropdown";
 
-type FeeDraft = Pick<FeeRow, "fee" | "methodOfPayment" | "paidBy" | "paidTo" | "leAmount" | "cdAmount" | "shoppedForProvider">;
+type FeeDraft = Pick<FeeRow, "fee" | "methodOfPayment" | "paidBy" | "paidTo" | "leAmount" | "cdAmount" | "shoppedForProvider" | "waived">;
 
 const inputStyle: CSSProperties = {
   width: "100%", minWidth: 0, height: 40,
@@ -28,6 +28,7 @@ function draftFrom(row: FeeRow): FeeDraft {
     fee: row.fee, methodOfPayment: row.methodOfPayment, paidBy: row.paidBy,
     paidTo: row.paidTo ?? "", leAmount: row.leAmount, cdAmount: row.cdAmount,
     shoppedForProvider: row.shoppedForProvider ?? false,
+    waived: row.waived ?? false,
   };
 }
 
@@ -133,6 +134,12 @@ export function FeeEditDialog({ fee, onSave, onClose }: {
                 onChange={event => change("shoppedForProvider", event.target.checked)} data-testid="checkbox-edit-shopped-for-provider"
                 style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }} />
               Shopped for Provider
+            </label>
+            <label className="body-100" style={{ display: "flex", alignItems: "center", gap: "var(--roads-spacing-component-xs)" }}>
+              <input type="checkbox" checked={draft.waived} disabled={saving}
+                onChange={event => change("waived", event.target.checked)} data-testid="checkbox-edit-waived"
+                style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }} />
+              Waive fee
             </label>
             {error && <p role="alert" className="body-100" data-testid="text-edit-fee-error" style={{ color: "var(--roads-text-error)" }}>{error}</p>}
           </div>

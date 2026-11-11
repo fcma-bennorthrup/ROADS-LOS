@@ -9,6 +9,7 @@ const feeSnapshotSchema = z.object({
   cdAmount: z.union([z.string(), z.number().finite()]).transform(String),
   methodOfPayment: z.string().default("Cash"), paidBy: z.string().default("Buyer"),
   paidTo: z.string().optional(), shoppedForProvider: z.boolean().optional(),
+  waived: z.boolean().optional(),
 });
 
 // Regulation Z, 12 CFR 1026.19(e)(3)(iv)(A)–(F).
@@ -44,7 +45,7 @@ export const FEE_CIRCUMSTANCES_KEY = "fee-circumstances";
 
 function comparable(row: FeeRow) {
   return [row.fee, row.methodOfPayment ?? "Cash", row.paidBy ?? "Buyer",
-    row.paidTo ?? "", row.leAmount, row.cdAmount, row.shoppedForProvider ?? false];
+    row.paidTo ?? "", row.leAmount, row.cdAmount, row.shoppedForProvider ?? false, row.waived ?? false];
 }
 export function appraisalChanged(before: FeeRow, after: FeeRow | undefined) {
   return !!after && JSON.stringify(comparable(before)) !== JSON.stringify(comparable(after));
