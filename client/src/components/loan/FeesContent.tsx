@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import type { FeeRow } from "@shared/fees";
+import { currencyAmount } from "@shared/loan-collateral-value";
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { toast } from "@/hooks/use-toast";
@@ -54,6 +55,25 @@ const cellStyle: CSSProperties = {
   lineHeight: "24px",
   overflowWrap: "anywhere",
 };
+const currencyCellStyle: CSSProperties = {
+  ...cellStyle,
+  fontFamily: "var(--font-mono)",
+  fontSize: 14,
+  lineHeight: "16px",
+  fontVariantNumeric: "tabular-nums",
+  textAlign: "right",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  whiteSpace: "nowrap",
+};
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+function displayCurrency(value: string) {
+  const amount = currencyAmount(value);
+  return amount === null ? value : currencyFormatter.format(amount);
+}
 const columns = [
   ["fee", "Fee"],
   ["method", "Method of Payment"],
@@ -303,8 +323,8 @@ export function FeesContent() {
             <div role="cell" className="body-100" style={cellStyle}>{fee.methodOfPayment}</div>
             <div role="cell" className="body-100" style={cellStyle}>{fee.paidBy}</div>
             <div role="cell" className="body-100" style={cellStyle}>{fee.paidTo ?? ""}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.leAmount}</div>
-            <div role="cell" className="body-100" style={{ ...cellStyle, textAlign: "right" }}>${fee.cdAmount}</div>
+            <div role="cell" style={currencyCellStyle}>{displayCurrency(fee.leAmount)}</div>
+            <div role="cell" style={currencyCellStyle}>{displayCurrency(fee.cdAmount)}</div>
             <div role="cell" className="flex items-center justify-center" aria-label={fee.shoppedForProvider ? "Shopped for Provider" : "Not shopped for Provider"}>
               {fee.shoppedForProvider && <Check aria-hidden="true" style={{ width: 16, height: 16, color: "var(--roads-icon-dark)" }} data-testid={`fee-shopped-${fee.id}`} />}
             </div>
