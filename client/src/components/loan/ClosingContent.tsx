@@ -5,12 +5,14 @@ import { useLoanDraft } from "@/contexts/loan-application-context";
 
 interface ClosingDetailsState {
   closingDate: string;
+  disbursementDate: string;
   preClosingReviewComplete: boolean;
 }
 
 export function ClosingContent() {
   const defaultState: ClosingDetailsState = {
     closingDate: "",
+    disbursementDate: "",
     preClosingReviewComplete: false,
   };
 
@@ -75,7 +77,21 @@ export function ClosingContent() {
                 testId="input-closing-date"
               />
             </div>
-            <div style={{ flex: "1 1 0" }} />
+            <div
+              className="flex flex-col"
+              style={{ flex: "1 1 0", gap: "var(--roads-spacing-component-xs)" }}
+              data-testid="closing-detail-field-disbursement-date"
+            >
+              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+                Disbursement Date
+              </span>
+              <RoadsDatePicker
+                value={fields.disbursementDate ?? ""}
+                onChange={setField("disbursementDate")}
+                disabled={!isEditing}
+                testId="input-disbursement-date"
+              />
+            </div>
             <div style={{ flex: "1 1 0" }} />
             <div style={{ flex: "1 1 0" }} />
             <div style={{ flex: "1 1 0" }} />
