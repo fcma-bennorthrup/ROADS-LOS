@@ -1,6 +1,15 @@
 import { expect, it } from "vitest";
 import { syntheticBorrower } from "./synthetic-borrower";
 import { deterministicRandom } from "./random";
+import { vi } from "vitest";
+
+it("does not generate replacement values when the full identity is known", () => {
+  const now = new Date("2026-11-11T00:00:00Z");
+  const known = syntheticBorrower({ cif: "123456", now, random: deterministicRandom(42) });
+  const random = vi.fn(() => { throw new Error("Unexpected random draw"); });
+  expect(syntheticBorrower({ cif: "123456", now, random, known })).toEqual(known);
+  expect(random).not.toHaveBeenCalled();
+});
 
 it("generates reproducible synthetic identities without consulting a clock", () => {
   const now = new Date("2026-11-11T00:00:00Z");

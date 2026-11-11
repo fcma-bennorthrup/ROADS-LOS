@@ -58,7 +58,7 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
   function actionControl(kind: DemoAction, label: string) {
     return <div className="mt-auto shrink-0 flex flex-col justify-end">{action === kind ? <div role="alert" aria-label={`Confirm ${label}`} className="rounded-md border border-red-300 bg-red-50 p-2 dark:border-red-800 dark:bg-red-950">
       <div className="flex flex-col gap-2">
-        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : kind === "trid-manual" ? "Confirm trigger" : kind === "checklist" || kind === "trid-reset" ? "Confirm reset" : "Confirm replacement"}</Button>
+        <Button autoFocus className="h-auto whitespace-normal py-2" variant="secondary" disabled={busy || store.pending > 0 || !!store.error} onClick={run}>{busy ? "Applying…" : kind === "trid" ? "Save and trigger TRID" : kind === "trid-manual" ? "Confirm trigger" : kind === "checklist" || kind === "trid-reset" || kind === "reset" ? "Confirm reset" : "Confirm replacement"}</Button>
         <Button variant="secondary" disabled={busy} onClick={() => { setAction(null); setError(""); }}>Cancel</Button>
       </div>
     </div> : <Button className="w-full h-auto whitespace-normal py-2" variant="secondary" disabled={busy || !!store.error || (kind === "trid" && store.document?.businessRules?.trid.status === "satisfied")} onClick={() => { setAction(kind); setError(""); }}>{label}</Button>}</div>;
@@ -103,8 +103,8 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
       </div>
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-reset-card">
-      <h3 className="font-semibold">Blank application</h3>
-      <p className="text-sm text-muted-foreground">Clear all application data and progress for manual entry.</p>
+      <h3 className="font-semibold">Salesforce opportunity</h3>
+      <p className="text-sm text-muted-foreground">Return this loan to its original Salesforce opportunity data. Everything added since is removed.</p>
       {actionControl("reset", "Reset All Application Data")}
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-blend-card">

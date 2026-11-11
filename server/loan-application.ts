@@ -14,6 +14,7 @@ import { randomUUID } from "node:crypto";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
 import { ensureOpportunityExpiry } from "./opportunity-expiry";
 import { withOriginationFee } from "../shared/business-rules/origination-fee";
+import { resetLoan } from "./reset-loan";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
@@ -244,6 +245,13 @@ export function registerLoanApplicationRoutes(app: Express) {
       const current = await load(String(req.params.id));
       if (!current) return void res.status(404).json({ error: "Loan not found" });
       const { action, generation, revision } = parsed.data;
+      if (action === "reset") {
+        if (current.generation !== generation || current.revision !== revision)
+          return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });
+        const next = await resetLoan(pool, current);
+        if (!next) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });
+        return void res.json(next);
+      }
       if (action === "checklist" || action === "trid-reset" || action === "trid-manual") {
         if (current.generation !== generation || current.revision !== revision)
           return void res.status(409).json({ error: "The loan changed. Reload before resetting checklist data." });

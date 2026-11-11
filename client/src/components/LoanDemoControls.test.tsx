@@ -22,6 +22,19 @@ beforeEach(() => {
 });
 
 describe("Trigger TRID button", () => {
+  it("describes and confirms a Salesforce baseline reset", async () => {
+    mocks.request.mockResolvedValueOnce({ loan: { id: "demo" }, generation: 2, revision: 3 });
+    render(<LoanDemoControls />);
+    const card = within(screen.getByTestId("demo-reset-card"));
+    expect(card.getByText("Salesforce opportunity")).toBeInTheDocument();
+    expect(card.getByText("Return this loan to its original Salesforce opportunity data. Everything added since is removed.")).toBeInTheDocument();
+    fireEvent.click(card.getByRole("button", { name: "Reset All Application Data" }));
+    fireEvent.click(card.getByRole("button", { name: "Confirm reset" }));
+    await waitFor(() => expect(mocks.request).toHaveBeenCalled());
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toMatchObject({
+      action: "reset", confirmed: true, generation: 1, revision: 2,
+    });
+  });
   it.each([
     ["Force denial", "force-denial"],
   ])("persists %s for the current loan", async (label, mode) => {

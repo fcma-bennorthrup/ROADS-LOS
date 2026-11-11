@@ -68,3 +68,29 @@ it.each([1, 2] as const)("captures an independent baseline and income records fo
   app.meta!.opportunity!.region = "Edited";
   expect(app.meta!.baseline).toEqual(baseline);
 });
+it("keeps known legacy fields and opportunity details while filling blanks", () => {
+  const now = new Date("2026-11-11T15:00:00Z");
+  const primary = { firstName: "Avery", lastName: "Legacy", ssn: "000-34-5678", phone: "(502) 555-0198",
+    email: "avery.legacy@example.com", dob: "1980-01-02", address: "234 Example Lane", city: "Louisville", state: "KY", zip: "40202" };
+  const opportunity = { region: "504", loanOfficer: "Demo Officer", applicationDate: "2026-01-01",
+    queue: "Sales Support" as const, decision: "", contractExpiryDate: "2026-04-01" };
+  const app = newSfOpportunity("known-reset-test", "123456790", "654321", now, 2, {
+    primary, secondary: { firstName: "Jordan", lastName: "Legacy", ssn: "", phone: " " },
+    loanDetails: { loanType: "refinance", requestedLoanAmount: "87000", loanPurpose: "must not retain" },
+    opportunity,
+  });
+  assertLoanDocument(app);
+  expect(app.sections["borrower-primary"]).toMatchObject(primary);
+  expect(app.sections["borrower-secondary"]).toMatchObject({ firstName: "Jordan", lastName: "Legacy" });
+  expect(app.sections["loan-details"]).toMatchObject({ loanType: "refinance", requestedLoanAmount: "87000", loanPurpose: "" });
+  expect(app.loan).toMatchObject({ cifNumber: "654321", loanType: "Refinance", amountRequested: "87000" });
+  expect(app.meta!.opportunity).toEqual(opportunity);
+});
+it("does not loop when legacy applicants share names and need email addresses", () => {
+  const identity = { firstName: "Avery", lastName: "Legacy" };
+  const app = newSfOpportunity("same-name-reset-test", "123456790", "654321", new Date(), 2,
+    { primary: identity, secondary: identity });
+  expect(app.borrowers[0].name).toBe(app.borrowers[1].name);
+  expect(app.borrowers[0].email).not.toBe(app.borrowers[1].email);
+  assertLoanDocument(app);
+});

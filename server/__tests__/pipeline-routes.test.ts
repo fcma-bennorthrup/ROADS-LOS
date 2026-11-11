@@ -341,9 +341,73 @@ describe("pipeline API", () => {
     expect(result.body.meta.createdAt).toBe(current.meta!.createdAt);
     expect(result.body.meta.creationAttempt).toEqual(current.meta!.creationAttempt);
     expect(result.body.meta.baseline).toEqual(current.meta!.baseline);
-    expect(result.body.meta.source).toBe(action === "blend" ? "blend" : "blank");
-    expect(result.body.borrowers).toHaveLength(action === "blend" ? 1 : 2);
+    expect(result.body.meta.source).toBe(action === "blend" ? "blend" : "sf");
+    expect(result.body.borrowers).toHaveLength(1);
     expect(result.body.generation).toBe(1);
+  });
+  it("rejects stale baseline resets before saving", async () => {
+    const current = document("reset-stale-test");
+    current.meta!.baseline = newSfOpportunity(current.loan.id, current.loan.loanNumber, "123456").meta!.baseline;
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] });
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "reset", borrowerCount: 1, confirmed: true, generation: 0, revision: 9,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(409);
+    expect(db.query).toHaveBeenCalledTimes(1);
+    expect(db.connect).not.toHaveBeenCalled();
+  });
+  it.each([true, false])("captures a legacy baseline only during reset (existing CIF: %s)", async hasCif => {
+    const current = document("legacy-reset-test");
+    current.loan.cifNumber = hasCif ? "123456" : "";
+    current.borrowers[0].name = "Avery Legacy";
+    current.borrowers[1].name = "Jordan Legacy";
+    current.sections["borrower-primary"] = { firstName: "Avery", lastName: "Legacy", ssn: "000-12-3456", address: "101 Example Lane" };
+    current.sections["borrower-secondary"] = { firstName: "Jordan", lastName: "Legacy", phone: "(502) 555-0199" };
+    let saved: any;
+    db.query.mockImplementation(async (sql: string, args: any[]) => {
+      if (sql.startsWith("SELECT document FROM")) return { rows: [{ document: structuredClone(current) }] };
+      if (sql.includes(" AS cif")) return { rows: [{ cif: "999999" }] };
+      if (sql.startsWith("UPDATE")) {
+        saved = JSON.parse(args[1]);
+        expect(args[0]).toBe("legacy-reset-test");
+        expect(args.slice(2)).toEqual([0, 0]);
+        expect(sql).toContain("(document->>'generation')::int=$3");
+        expect(sql).toContain("(document->>'revision')::int=$4");
+        return { rowCount: 1, rows: [{ document: saved }] };
+      }
+      return { rows: [] };
+    });
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "reset", borrowerCount: 1, confirmed: true, generation: 0, revision: 0,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(saved.meta.baseline).toBeDefined();
+    expect(saved.meta.createdAt).toBe(current.meta!.createdAt);
+    expect(saved.sections["borrower-primary"]).toMatchObject(current.sections["borrower-primary"]);
+    expect(saved.sections["borrower-secondary"]).toMatchObject(current.sections["borrower-secondary"]);
+    expect(saved.sections["borrower-primary"].dob).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(saved.borrowers).toHaveLength(2);
+    expect(saved.loan.cifNumber).toMatch(/^\d{6}$/);
+    if (hasCif) expect(saved.loan.cifNumber).toBe("123456");
+    expect(db.query.mock.calls.some(([sql]) => sql.includes(" AS cif"))).toBe(!hasCif);
+    expect(db.query.mock.calls.some(([sql]) => sql.includes("pg_advisory_xact_lock(784219)"))).toBe(true);
+    expect(db.query.mock.calls.some(([sql]) => sql === "COMMIT")).toBe(true);
+    expect(db.query.mock.calls.filter(([sql]) => sql.startsWith("UPDATE"))).toHaveLength(1);
+    expect(db.release).toHaveBeenCalled();
+  });
+  it("rolls back a legacy reset if a newer version wins before the lock", async () => {
+    const current = document("legacy-stale-test");
+    db.query.mockImplementation(async (sql: string) => {
+      if (sql.includes("FOR UPDATE")) return { rows: [{ document: { ...current, revision: 2 } }] };
+      if (sql.startsWith("SELECT document FROM")) return { rows: [{ document: current }] };
+      return { rows: [] };
+    });
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "reset", borrowerCount: 1, confirmed: true, generation: 0, revision: 0,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(409);
+    expect(db.query.mock.calls.some(([sql]) => sql === "ROLLBACK")).toBe(true);
+    expect(db.query.mock.calls.some(([sql]) => sql.startsWith("UPDATE"))).toBe(false);
   });
   it("returns a clear database error rather than an empty successful list", async () => {
     db.query.mockRejectedValueOnce(new Error("offline"));
