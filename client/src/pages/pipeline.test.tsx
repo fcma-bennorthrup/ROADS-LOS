@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
@@ -36,6 +36,89 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it.each([
+  ["Sarah Williams", "Tyler Coke"],
+  ["Rylee Alcorn", "Matthew Lewis"],
+  ["Connor Welch", "Nikki Wheat"],
+  ["Conner Welch", "Nikki Wheat"],
+  ["Unknown Officer", "Not Assigned"],
+  ["", "Not Assigned"],
+  [undefined, "Not Assigned"],
+])("shows read-only team assignments for %s without navigating", async (officer, support) => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], loanOfficer: officer }]))));
+  const { history } = view();
+  const trigger = await screen.findByRole("button", { name: "View loan team for loan 123456790" });
+  trigger.focus();
+  fireEvent.click(trigger);
+  const dialog = screen.getByRole("dialog", { name: "Loan Team" });
+  expect(within(dialog).getByLabelText("Originator Primary")).toHaveValue(officer || "Not Assigned");
+  expect(within(dialog).getByLabelText("Sales Support Primary")).toHaveValue(support);
+  expect(within(dialog).getByLabelText("Operations Primary")).toHaveValue("Not Assigned");
+  for (const role of ["Originator", "Sales Support", "Operations"]) {
+    expect(within(dialog).getByLabelText(`${role} Secondary`)).toHaveValue("Not Assigned");
+  }
+  within(dialog).getAllByRole("textbox").forEach(input => expect(input).toHaveAttribute("readonly"));
+  fireEvent.click(within(dialog).getByText("Loan Team"));
+  fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  await waitFor(() => expect(trigger).toHaveFocus());
+  expect(history).toEqual(["/pipeline"]);
+});
+it("isolates loan teams and leaves other queues disabled", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
+    { ...loans[0], loanOfficer: "Sarah Williams", departmentQueue: "Sales Support" },
+    { ...loans[1], loanOfficer: "Rylee Alcorn" },
+  ]))));
+  const { history } = view();
+  const first = await screen.findByRole("button", { name: "View loan team for loan 123456790" });
+  fireEvent.click(first);
+  fireEvent.click(screen.getByRole("button", { name: "Close loan team" }));
+  fireEvent.click(screen.getByRole("button", { name: "View loan team for loan 123456791" }));
+  expect(screen.getByLabelText("Sales Support Primary")).toHaveValue("Matthew Lewis");
+  fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(history).toEqual(["/pipeline"]);
+  fireEvent.click(screen.getByTestId("queue-sales-support"));
+  expect(screen.queryByRole("button", { name: /View loan team/ })).toBeNull();
+  expect(screen.getByRole("button", { name: /Assign loan/ })).toBeDisabled();
+});
+it.each([
+  ["dashboard", "Dashboard"],
+  ["pipeline", "Pipeline"],
+  ["saved-items", "My Pipeline"],
+  ["reports", "Reports"],
+])("labels the collapsed %s navigation icon with a tooltip", async (id, label) => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
+  view();
+  const trigger = screen.getByTestId(`main-nav-${id}`).parentElement!;
+  fireEvent.focus(trigger);
+  expect(await screen.findByRole("tooltip")).toHaveTextContent(label);
+  fireEvent.click(screen.getByTestId("button-toggle-navigation"));
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  expect(within(screen.getByTestId("main-navigation")).getByText("My Pipeline")).toBeInTheDocument();
+  expect(screen.queryByText("Saved items")).toBeNull();
+});
+it.each(["All Loans", "Sales Support"])("opens %s rows without making action icons navigate", async queue => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], departmentQueue: "Sales Support" }]))));
+  const { history } = view();
+  await screen.findByTestId("pipeline-row-first");
+  fireEvent.click(screen.getByTestId(`queue-${queue.toLowerCase().replaceAll(" ", "-")}`));
+  const row = screen.getByTestId("pipeline-row-first");
+  expect(within(row).queryByRole("link")).toBeNull();
+  fireEvent.click(within(row).getByRole("button", { name: /Preview loan/ }));
+  fireEvent.click(row.querySelector(".pipeline-row-actions")!);
+  expect(history.at(-1)).toBe("/pipeline");
+  fireEvent.click(within(row).getAllByRole("cell")[3]);
+  expect(history.at(-1)).toBe("/loans/first");
+});
+it.each(["Enter", " "])("opens a focused loan row using %s", async key => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
+  const { history } = view();
+  const row = await screen.findByTestId("pipeline-row-first");
+  expect(row).toHaveAttribute("tabindex", "0");
+  fireEvent.keyDown(row, { key });
+  expect(history.at(-1)).toBe("/loans/first");
+});
 it("shows a newly created SF row on Pipeline even from a filtered empty department", async () => {
   let saved = [...loans];
   vi.stubGlobal("fetch", vi.fn(async (_url: string, options?: RequestInit) => {
@@ -49,12 +132,13 @@ it("shows a newly created SF row on Pipeline even from a filtered empty departme
   const { history } = view();
   await screen.findByTestId("pipeline-row-first");
   fireEvent.click(screen.getByTestId("queue-operations"));
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "no match" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "no match" } });
   fireEvent.click(screen.getByTestId("button-new-loan"));
   fireEvent.click(screen.getByTestId("confirm-new-loan"));
   expect(await screen.findByTestId("pipeline-row-new-sf")).toBeVisible();
   expect(screen.getByTestId("queue-all-loans")).toHaveAttribute("aria-pressed", "true");
-  expect(screen.getByTestId("input-pipeline-search")).toHaveValue("");
+  expect(screen.getByPlaceholderText("Type to filter results")).toHaveValue("");
+  expect(screen.queryByPlaceholderText("Search for a customer")).toBeNull();
   expect(history).toEqual(["/pipeline"]);
   expect(screen.queryByTestId("new-loan-dialog")).not.toBeInTheDocument();
 });
@@ -68,7 +152,7 @@ it("expands navigation explicitly, exposes labels, and preserves queue data", as
   fireEvent.click(screen.getByRole("button", { name: "Expand navigation" }));
   expect(within(nav).getByText("ROADS")).toBeInTheDocument();
   expect(within(nav).getByText("Dashboard")).toBeInTheDocument();
-  expect(within(nav).getByText("Saved items")).toBeInTheDocument();
+  expect(within(nav).getByText("My Pipeline")).toBeInTheDocument();
   expect(within(nav).getByText("Reports")).toBeInTheDocument();
   expect(within(nav).getByRole("button", { name: /Dashboard — unavailable/ })).toBeDisabled();
   expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(2);
@@ -103,8 +187,9 @@ it.each(PIPELINE_QUEUES)("aligns every %s header with its own cell renderer", qu
   const cells = screen.getAllByRole("cell");
   expect(cells.map(cell => cell.textContent)).toEqual(expectedHeaders(queue).map(header => values[header]));
   const actions = within(cells.at(-1)!);
-  expect(actions.getByRole("link", { name: "View loan 123456790" })).toHaveAttribute("href", "/loans/first");
-  expect(actions.getAllByRole("button")).toHaveLength(2);
+  expect(actions.queryByRole("link")).toBeNull();
+  expect(actions.getByRole("button", { name: "Preview loan 123456790 — unavailable" })).toBeDisabled();
+  expect(actions.getAllByRole("button")).toHaveLength(3);
   actions.getAllByRole("button").forEach(button => expect(button).toBeDisabled());
 });
 
@@ -131,7 +216,7 @@ it("keeps Operations empty with its own exact columns when saved loans exist", a
   expect(screen.getByTestId("queue-operations")).toHaveTextContent("0 Loans");
   expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans assigned to Operations");
   expect(screen.queryByRole("button", { name: "Closing Date" })).toBeNull();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "Avery" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "Avery" } });
   fireEvent.click(screen.getByRole("button", { name: "Custom Filter" }));
   fireEvent.click(screen.getByTestId("filter-stage-closing"));
   expect(screen.queryAllByTestId(/^pipeline-row-/)).toHaveLength(0);
@@ -193,9 +278,9 @@ it("uses only the index projection, filters with counts, sorts, and links to loa
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
   fireEvent.click(screen.getByTestId("filter-stage-customer-application"));
   expect(screen.getByTestId("pipeline-row-second")).toBeInTheDocument();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "WRIGHT" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "WRIGHT" } });
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "missing" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "missing" } });
   expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans match");
   fireEvent.click(screen.getByTestId("clear-pipeline-filters"));
   fireEvent.click(screen.getByTestId("sort-loanNumber"));
@@ -204,7 +289,7 @@ it("uses only the index projection, filters with counts, sorts, and links to loa
   const cells = within(screen.getByTestId("pipeline-row-first")).getAllByRole("cell");
   expect(cells[8]).toHaveTextContent("—");
   expect(cells[8].firstChild).toHaveAttribute("aria-label", "Application start date is not available in the saved pipeline data.");
-  fireEvent.click(screen.getByTestId("open-loan-first"));
+  fireEvent.click(screen.getByTestId("pipeline-row-first"));
   expect(history.at(-1)).toBe("/loans/first");
 });
 it("renders the exact Figma columns and real queue counts without fabricating assignments", async () => {
@@ -215,7 +300,9 @@ it("renders the exact Figma columns and real queue counts without fabricating as
     "Loan Number", "CIF", "Region", "Borrower Name", "Loan Purpose", "Req Amount", "Stage", "LO", "App Start Date", "Decision", "Actions",
   ]);
   expect(screen.getByTestId("queue-all-loans")).toHaveTextContent("2 Loans");
-  for (const department of ["sales-support", "operations", "credit", "quality-control"]) {
+  expect(screen.queryByTestId("queue-credit")).not.toBeInTheDocument();
+  expect(screen.queryByTestId("queue-quality-control")).not.toBeInTheDocument();
+  for (const department of ["sales-support", "operations"]) {
     expect(screen.getByTestId(`queue-${department}`)).toHaveTextContent("0 Loans");
     fireEvent.click(screen.getByTestId(`queue-${department}`));
     expect(screen.getByTestId("pipeline-empty")).toHaveTextContent(department === "sales-support" ? "New SF Opportunities appear here" : "Department queue assignment has not been configured");
@@ -256,7 +343,7 @@ it("shows only saved CIF and additional borrower fields", async () => {
   const row = await screen.findByTestId("pipeline-row-first");
   expect(within(row).getByText("654123")).toBeInTheDocument();
   expect(within(row).getByLabelText("2 additional borrowers")).toHaveTextContent("+2");
-  fireEvent.change(screen.getByTestId("input-pipeline-search"), { target: { value: "654123" } });
+  fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "654123" } });
   expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
 });
 it("guards the loan workspace rail against leaving with unsaved edits", async () => {

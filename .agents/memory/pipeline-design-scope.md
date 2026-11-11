@@ -5,6 +5,12 @@ description: Approved Figma reference, preserved controls, and department queue 
 
 Use the ROADS-Pipeline All Loans Figma frame as the visual reference. Preserve +New Loan and prototype admin controls. Use the supplied Rural 1st icon and Feather navigation icons.
 
+The search under Welcome back is intended as a future global search across active loans, not a table filter. Keep it hidden for now; use “Type to filter results” for the selected queue.
+
+**Why:** The user deferred global search and the definition of active loans.
+
+**How to apply:** Do not restore the welcome search as a table filter or invent active-loan eligibility rules.
+
 **Why:** The user explicitly requested these design elements and preservation rules.
 
 New SF Opportunities are now approved to appear in both All Loans and Sales Support. Existing loans are not retroactively assigned; Operations, Credit, and Quality Control remain empty. Do not derive department assignments from loan stages.

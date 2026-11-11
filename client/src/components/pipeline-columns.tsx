@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
-import { Link } from "wouter";
 import { FiEye, FiMoreVertical, FiUserPlus } from "react-icons/fi";
 import type { PipelineLoan } from "@shared/pipeline";
 import type { PipelineQueue, PipelineSort } from "@/lib/pipeline-display";
 import { formatCurrency } from "@/lib/loan-display";
+import { LoanTeamDialog } from "@/components/LoanTeamDialog";
 
 type PipelineColumn = {
   key: string;
   sort?: PipelineSort;
   label: string;
   width: number;
-  render: (loan: PipelineLoan) => ReactNode;
+  render: (loan: PipelineLoan, showTeam?: boolean) => ReactNode;
 };
 
 function displayDate(value: string) {
@@ -25,7 +25,7 @@ function Unavailable({ field }: { field: string }) {
 
 const columns = {
   loanNumber: { key: "loanNumber", sort: "loanNumber", label: "Loan Number", width: 125, render: loan =>
-    <Link className="body-200-strong" data-testid={`open-loan-${loan.id}`} href={`~/loans/${encodeURIComponent(loan.id)}`}>{loan.loanNumber}</Link> },
+    <span className="body-200-strong">{loan.loanNumber}</span> },
   cifNumber: { key: "cifNumber", sort: "cifNumber", label: "CIF", width: 80, render: loan => loan.cifNumber || <Unavailable field="CIF" /> },
   region: { key: "region", label: "Region", width: 80, render: loan => loan.region ?? <Unavailable field="Region" /> },
   primaryBorrowerName: { key: "primaryBorrowerName", sort: "primaryBorrowerName", label: "Borrower Name", width: 278, render: loan =>
@@ -43,10 +43,10 @@ const columns = {
   trid: { key: "trid", label: "TRID", width: 85, render: () => null },
   appraisal: { key: "appraisal", label: "Appraisal", width: 100, render: () => null },
   titleWork: { key: "titleWork", label: "Title Work", width: 100, render: () => null },
-  actions: { key: "actions", label: "Actions", width: 104, render: loan =>
+  actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam) =>
     <div className="pipeline-row-actions">
-      <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>
-      <Link href={`~/loans/${encodeURIComponent(loan.id)}`} aria-label={`View loan ${loan.loanNumber}`} title="View loan"><FiEye aria-hidden /></Link>
+      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
+      <button disabled aria-label={`Preview loan ${loan.loanNumber} — unavailable`} title="Loan preview is not available yet"><FiEye aria-hidden /></button>
       <button disabled aria-label={`More actions for loan ${loan.loanNumber} — unavailable`} title="No additional loan actions available"><FiMoreVertical aria-hidden /></button>
     </div> },
 } satisfies Record<string, PipelineColumn>;
@@ -73,14 +73,12 @@ const queueColumns: Record<PipelineQueue, readonly PipelineColumn[]> = {
   "All Loans": allColumns,
   "Sales Support": salesColumns,
   Operations: operationsColumns,
-  Credit: allColumns,
-  "Quality Control": allColumns,
 };
 
 export function getPipelineColumns(queue: PipelineQueue) {
   return queueColumns[queue];
 }
 
-export function PipelineRowCells({ columns, loan }: { columns: readonly PipelineColumn[]; loan: PipelineLoan }) {
-  return <>{columns.map(column => <td key={column.key}>{column.render(loan)}</td>)}</>;
+export function PipelineRowCells({ columns, loan, showTeam = false }: { columns: readonly PipelineColumn[]; loan: PipelineLoan; showTeam?: boolean }) {
+  return <>{columns.map(column => <td key={column.key}>{column.render(loan, showTeam)}</td>)}</>;
 }
