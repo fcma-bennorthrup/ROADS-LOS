@@ -89,6 +89,7 @@ interface BorrowerInfo {
   dependents: string;
   dependentsAges: string;
   farmInvolvement: string;
+  mla: boolean;
 }
 
 export const RICHARD_DATA: BorrowerInfo = {
@@ -106,6 +107,7 @@ export const RICHARD_DATA: BorrowerInfo = {
   dependents: "2",
   dependentsAges: "12, 9",
   farmInvolvement: "part_time",
+  mla: false,
 };
 
 export const JANE_DATA: BorrowerInfo = {
@@ -123,6 +125,7 @@ export const JANE_DATA: BorrowerInfo = {
   dependents: "2",
   dependentsAges: "12, 9",
   farmInvolvement: "none",
+  mla: false,
 };
 
 const BORROWERS = [
@@ -583,6 +586,7 @@ function PersonalInfoSection({
           />
           <TextField label="Dependents" value={data.dependents} isEditing={isEditing} onChange={setField("dependents")} testId="dependents" />
           <TextField label="Dependent's Ages" value={data.dependentsAges} isEditing={isEditing} onChange={setField("dependentsAges")} testId="dependents-ages" />
+          <div className="flex items-end" style={{ gap: "var(--roads-spacing-component-l)" }}>
           <DropdownField
             label="Farm Involvement"
             value={data.farmInvolvement}
@@ -591,6 +595,21 @@ function PersonalInfoSection({
             onChange={setField("farmInvolvement")}
             testId="farm-involvement"
           />
+          <label
+            className="label-strong flex items-center"
+            style={{ height: "44px", gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}
+          >
+            <input
+              type="checkbox"
+              checked={data.mla ?? false}
+              disabled={!isEditing}
+              onChange={(event) => setField("mla")(event.target.checked)}
+              style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }}
+              data-testid="checkbox-mla"
+            />
+            MLA
+          </label>
+          </div>
         </div>
       </div>
 
