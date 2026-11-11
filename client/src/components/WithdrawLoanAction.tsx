@@ -3,12 +3,17 @@ import { FiMoreVertical, FiX } from "react-icons/fi";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dialog, DialogPortal, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { applicationRequest } from "@/lib/loan-application-store";
+import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
 import { queryClient } from "@/lib/queryClient";
 import type { PipelineLoan } from "@shared/pipeline";
 import "@/styles/loan-team.css";
 
-export function WithdrawLoanAction({ loan }: { loan: PipelineLoan }) {
+export function WithdrawLoanAction({ loan, detailMenu, onOpen, onRestoreFocus }: {
+  loan: Pick<PipelineLoan, "id" | "loanNumber" | "withdrawn">;
+  detailMenu?: boolean;
+  onOpen?: () => void;
+  onRestoreFocus?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [acknowledged, setAcknowledged] = useState(false);
   const [pending, setPending] = useState(false);
@@ -20,6 +25,7 @@ export function WithdrawLoanAction({ loan }: { loan: PipelineLoan }) {
     setOpen(value);
     setAcknowledged(false);
     setError("");
+    if (value) onOpen?.();
   }
   async function withdraw() {
     if (!acknowledged || submitting.current) return;
@@ -27,12 +33,17 @@ export function WithdrawLoanAction({ loan }: { loan: PipelineLoan }) {
     setPending(true);
     setError("");
     try {
+      if (detailMenu) {
+        if (applicationStore.document?.loan.id !== loan.id) throw new Error("The active loan changed. Please reopen the menu.");
+        await applicationStore.withdraw();
+      } else {
       const current = await applicationRequest(loan.id);
       // Preserve other fields and use the existing version-checked section save.
       await applicationRequest(loan.id, "", { method: "PUT", body: JSON.stringify({
         section: "withdrawal", value: { acknowledged: true },
         generation: current.generation, revision: current.revision,
       }) });
+      }
       queryClient.setQueryData<PipelineLoan[]>(["/api/loans"], rows =>
         rows?.map(row => row.id === loan.id ? { ...row, withdrawn: true } : row));
       void queryClient.invalidateQueries({ queryKey: ["/api/loans"] });
@@ -46,7 +57,10 @@ export function WithdrawLoanAction({ loan }: { loan: PipelineLoan }) {
     }
   }
   return <>
-    <DropdownMenu>
+    {detailMenu ? <button ref={trigger} type="button" data-testid="menu-item-withdraw-loan"
+      disabled={loan.withdrawn} className="body-100 w-full text-left rounded hover:bg-muted disabled:opacity-50"
+      style={{ height: 40, padding: "0 12px", color: "var(--roads-text-primary)", whiteSpace: "nowrap" }}
+      onClick={() => changeOpen(true)}>Withdraw Loan</button> : <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button ref={trigger} type="button" aria-label={`More actions for loan ${loan.loanNumber}`} title="More actions"><FiMoreVertical aria-hidden /></button>
       </DropdownMenuTrigger>
@@ -54,12 +68,12 @@ export function WithdrawLoanAction({ loan }: { loan: PipelineLoan }) {
         onCloseAutoFocus={event => { if (open) event.preventDefault(); }}>
         <DropdownMenuItem disabled={loan.withdrawn} onSelect={() => changeOpen(true)}>Withdraw Loan</DropdownMenuItem>
       </DropdownMenuContent>
-    </DropdownMenu>
+    </DropdownMenu>}
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogPortal>
         <DialogPrimitive.Overlay className="loan-team-overlay" onClick={event => event.stopPropagation()} />
         <DialogPrimitive.Content className="loan-team-dialog" onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}
-          onCloseAutoFocus={event => { event.preventDefault(); trigger.current?.focus(); }}>
+          onCloseAutoFocus={event => { event.preventDefault(); if (onRestoreFocus) onRestoreFocus(); else trigger.current?.focus(); }}>
           <header className="loan-team-header">
             <DialogTitle className="headline-300">Withdraw Loan</DialogTitle>
             <button type="button" className="loan-team-x" disabled={pending} aria-label="Close withdraw loan" onClick={() => changeOpen(false)}><FiX aria-hidden /></button>
