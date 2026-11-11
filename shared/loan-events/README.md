@@ -19,6 +19,27 @@ object. False and zero are real values, not blanks. Arrays are atomic: a
 non-empty array is kept whole, while an empty or missing array takes incoming.
 Other existing values win.
 
-This preparation step does not wire the merge into any event and does not
-capture or write a loan baseline. Creation, Reset and Blend behavior stay
-unchanged until their respective follow-up phases.
+## Lifecycle
+
+Salesforce-only creation supports one or two borrowers and captures an independent
+baseline. Reset restores that baseline and clears later task/application output.
+Legacy loans capture missing baselines during their first Reset, preserving known
+values. Blend generates random data and fills blanks, retaining metadata,
+history, credit and task progress. Only Reset restarts the overall TRID/ECOA
+lifecycle. Repeated imports with nothing to fill do not save a new revision.
+
+## Adding an event
+
+1. Add a pure function beside `blend-application.ts`, injecting randomness/time.
+2. Merge generated data with `fillMissing`; preserve existing rows and values.
+   For borrower-owned arrays, append only where that borrower has no rows.
+3. Add an action to the `/demo` route with generation/revision checks and the
+   shared document validation. Accept options, never browser-generated sections.
+4. Add a card to `LoanDemoControls.tsx` using the existing control patterns.
+5. Test with a fixed random source: preservation, repeat no-op, stale requests,
+   borrower ownership and document validity.
+
+Credit pull (`shared/demo-credit.ts`) and Trigger TRID
+(`shared/business-rules/trigger-trid-demo.ts`) are earlier fill-only events.
+They stay where they are. Trigger TRID uses frozen server-side templates; its
+values and rule implementation are unchanged.

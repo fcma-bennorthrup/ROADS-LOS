@@ -29,7 +29,10 @@ Do not add a DSL, rules editor, external engine, or fields to support a rule.
 - Existing Loan Estimate re-fire resets delivery and makes triggered TRID
   required again until re-delivery.
 - Re-fired estimates must be generated again before delivery is enabled.
-- Demo reset/import starts a new lifecycle. Prior triggers aren't carried over.
+- Reset All Application Data restores the Salesforce baseline and starts a new
+  lifecycle. Blend import preserves prior triggers and workflow progress.
+- Trigger TRID's unchanged fixed templates are built on the server in
+  `shared/loan-events/trid-templates.ts`; clients send no template sections.
 
 The chip displays hard-coded “TRID day 0” while required; it is not a calculated day count or compliance deadline. Business-day
 calendars, holidays, jurisdiction, legal applicability, actual delivery evidence,
@@ -52,12 +55,15 @@ Blend import stands in for a complete application and starts ECOA. The header
 shows the fixed label “30 ECOA days remaining”; no elapsed-day calculation.
 All three saved checklist actions must be complete to satisfy it: Loan Decision,
 Generate Decision Letter, and Deliver Decision Letter. A decision or generation
-alone does not hide the chip. Reset clears the lifecycle; re-import starts a
-new one. Existing saved Blend imports are adopted when loaded.
+alone does not hide the chip. Reset clears the lifecycle. The first subsequent
+import starts ECOA; additional imports preserve the current lifecycle and saved
+results. Existing saved Blend imports are adopted when loaded.
 
 ## Joint credit
 
-Blend demo controls support one or two borrowers (default two). A single-borrower
-import has no secondary personal-information section or secondary income record.
+Salesforce-only creation supports one or two borrowers and saves a baseline.
+Blend controls default to the loan's current count. A one-borrower import fills
+only the first borrower and never removes an existing second borrower. Importing
+two can add a co-borrower. Reset returns to the original baseline borrower count.
 The joint-credit rule shows “Joint Credit Application” for two or more named
-borrowers, and no chip for one borrower or blank reset slots.
+borrowers, and no chip for one borrower or unnamed slots.

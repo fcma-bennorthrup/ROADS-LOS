@@ -66,8 +66,11 @@ application chip for the two-borrower application and omit it for one borrower.
 
 **Why:** The user needs both application scenarios for demos.
 
-**How to apply:** Keep this chip decision in business rules and ensure a
-single-borrower import does not retain the prior secondary borrower's data.
+**How to apply:** Keep this chip decision in business rules. The simulated-data
+series supersedes the old single-borrower replacement behavior: importing one
+covers only the first borrower, never removes a second borrower, and retains
+the joint chip when two named borrowers remain. Salesforce creation supports
+one or two borrowers; Reset restores its saved baseline count.
 
 The first and last tracker chevrons are temporary, visually unchanged demo
 controls that move one stage backward or forward without persisting the stage.

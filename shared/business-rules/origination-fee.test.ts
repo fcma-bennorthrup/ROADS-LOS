@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { newLoanApplication } from "../loan-factory";
 import { withOriginationFee } from "./origination-fee";
 import type { FeeRow } from "../fees";
+import { applyBlendApplication } from "../loan-events/blend-application";
+import { deterministicRandom } from "../loan-events/random";
 
 function loan(amount: unknown) {
   const app = newLoanApplication({ id: "test", loanNumber: "test", source: "blank", borrowerCount: 1 });
@@ -38,8 +40,7 @@ describe("Automatic origination fee", () => {
     expect(withOriginationFee(app).sections.fees).toEqual([]);
   });
   it("initializes Blend imports", () => {
-    const app = newLoanApplication({ id: "blend", loanNumber: "test", source: "blend", borrowerCount: 1,
-      sections: { "loan-details": { requestedLoanAmount: "45000" } } });
+    const app = applyBlendApplication(loan("45000"), { borrowerCount: 1, random: deterministicRandom(42), now: new Date() });
     expect(app.sections.fees).toEqual([expect.objectContaining({ leAmount: "450.00", cdAmount: "450.00" })]);
   });
 });

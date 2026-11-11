@@ -9,7 +9,7 @@ import { triggerTridDemo } from "../shared/business-rules/trigger-trid-demo";
 import { applyTridDemoAction } from "../shared/business-rules/trid-demo-actions";
 import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
-import { newLoanApplication } from "../shared/loan-factory";
+import { tridDemoSections } from "../shared/loan-events/trid-templates";
 import { randomUUID, randomInt } from "node:crypto";
 import { applyBlendApplication } from "../shared/loan-events/blend-application";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
@@ -76,7 +76,6 @@ const actionSchema = z.object({
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
   confirmed: z.literal(true),
-  sections: z.record(z.unknown()).optional(),
 });
 
 export function registerLoanApplicationRoutes(app: Express) {
@@ -270,7 +269,7 @@ export function registerLoanApplicationRoutes(app: Express) {
           return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
         if (current.businessRules?.trid.status === "satisfied")
           return void res.status(409).json({ error: "TRID is already satisfied. Reset the demo loan to start a new journey." });
-        const next = triggerTridDemo(current, parsed.data.sections ?? {});
+        const next = triggerTridDemo(current, tridDemoSections(current.loan.id));
         assertLoanDocument(next, current.loan.id);
         const result = await pool.query(
           `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))

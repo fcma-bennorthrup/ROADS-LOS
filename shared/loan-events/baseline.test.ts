@@ -8,9 +8,10 @@ it("restores an edited, imported, credit-pulled loan and clears task outputs", (
   const original = newSfOpportunity("baseline-reset-test", "123456790", "123456", new Date("2026-11-11T12:00:00Z"), 2);
   original.meta!.creationAttempt = { key: "test-receipt", source: "sf", borrowerCount: 2 };
   const current = newLoanApplication({
-    id: original.loan.id, loanNumber: original.loan.loanNumber, source: "blend", borrowerCount: 1,
+    id: original.loan.id, loanNumber: original.loan.loanNumber, source: "blank", borrowerCount: 1,
     generation: 5, revision: 12,
   });
+  current.mode = "blend";
   current.meta = structuredClone(original.meta);
   current.sections["borrower-primary"] = { firstName: "Edited" };
   current.sections["credit-pulled"] = true;

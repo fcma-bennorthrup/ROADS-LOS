@@ -3,7 +3,8 @@ import { applicationStore } from "../loan-application-store";
 import { applicationView, emptyFields, type LoanApplication } from "@shared/loan-application";
 import { act, renderHook } from "@testing-library/react";
 import { useLoanDraft } from "@/contexts/loan-application-context";
-import { blendDemoSections, tridDemoSections } from "../blend-demo-fixture";
+import { blendDemoSections } from "@shared/loan-events/test-fixtures";
+import { tridDemoSections } from "@shared/loan-events/trid-templates";
 
 function fixture(mode: LoanApplication["mode"] = "existing"): LoanApplication {
   return { mode, generation: 1, revision: 0, sections: {},

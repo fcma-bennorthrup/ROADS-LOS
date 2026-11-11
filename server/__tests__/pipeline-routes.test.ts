@@ -358,6 +358,19 @@ describe("pipeline API", () => {
     expect(db.query).toHaveBeenCalledTimes(1);
     expect(db.connect).not.toHaveBeenCalled();
   });
+  it("builds Trigger TRID templates on the server, ignoring client sections", async () => {
+    const current = document("server-trid-test");
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockImplementationOnce(async (_sql, args) => ({ rowCount: 1, rows: [{ document: JSON.parse(args[1]) }] }));
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "trid", confirmed: true, generation: 0, revision: 0,
+      sections: { "evaluation-1": { estimatedValue: "1" } },
+    }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body.sections["evaluation-1"].estimatedValue).toBe("195000.00");
+    expect(result.body.sections["loan-details"].requestedLoanAmount).toBe("145000.00");
+    expect(result.body.businessRules.trid.status).toBe("required");
+  });
   it("does not write on a complete Blend import and rejects stale requests", async () => {
     const current = applyBlendApplication(newSfOpportunity("blend-api-test", "123456790", "123456"), {
       borrowerCount: 1, random: deterministicRandom(1), now: new Date(),

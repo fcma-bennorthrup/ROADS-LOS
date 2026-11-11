@@ -40,11 +40,9 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
       await store.flush();
       if (action !== "reset" && store.dirty) throw new Error("Save or discard your open edits before continuing.");
       const current = store.document!;
-      const fixtures = action === "trid" ? await import("@/lib/blend-demo-fixture") : null;
-      const sections = action === "trid" ? fixtures!.tridDemoSections(current.loan.id) : undefined;
       const next = await applicationRequest(current.loan.id, "/demo", {
         method: "POST", body: JSON.stringify({
-          action, generation: current.generation, revision: current.revision, confirmed: true, sections,
+          action, generation: current.generation, revision: current.revision, confirmed: true,
           ...(action === "blend" ? { borrowerCount } : {}),
         }),
       });

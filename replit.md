@@ -40,7 +40,7 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 **Token approval rule (strict):** Before adding, removing, or modifying ANY entry in `client/src/styles/design-tokens.css` or `client/src/lib/design-tokens.ts`, the agent MUST explicitly ask the user for approval and wait for a clear confirmation — even when the user has already supplied the exact specs in the same message. Providing specs is NOT the same as approving the write. Always pause, restate the proposed change (token name + properties + file), and ask "OK to add?" before editing.
 
 ## Pages
-- **Pipeline** (`/pipeline`, also the `/` redirect): App-level loan index with search, multi-select stage filters, sortable columns, and blank or Blend creation. No deletion, board view, or team assignment.
+- **Pipeline** (`/pipeline`, also the `/` redirect): App-level loan index with search, multi-select stage filters, sortable columns, and Salesforce-only creation for one or two borrowers. No deletion, board view, or team assignment.
 - App-level providers wrap both levels. `LoanScope` mounts loan-only providers under `/loans/:id`; `LoanWorkspace` supplies the shared six-tab shell. Pipeline reads projections, never installs a loan document.
 - **Loan Summary** (`/loans/:id`): Default loan landing page. Shows:
   - Header: Pipeline return breadcrumb, persisted 8-stage chevron stepper, metadata, amount + status chips, tab navigation. The first/last chevrons save backward/forward stage changes with revision checks.
@@ -67,9 +67,9 @@ New styles MUST come from Figma or the existing design-tokens.css. No arbitrary 
 - **loans**: id, loanNumber, cifNumber, loanType, stage, primaryBorrowerName, displayAmount, amountRequested, financedFees, taxesInsurance, product, finalRate, principalInterest, totalMonthlyPayment, applicationType, ecoaDaysRemaining, tridDaysRemaining, piti, dti, lcv, pweCbScore, ruleOfXx, totalCv, cashReserves, totalLoanAmount
 - **borrowers**: id, loanId, name, email, phone, isPrimary
 - **users**: id, username, password
-- **Active aggregate**: `LoanApplication` holds loan, borrowers, mode, generation, revision, sections, changeLog, businessRules, and optional `meta { createdAt, updatedAt, source }` (backfilled when loaded). Saved application and workflow data belongs to its loan.
+- **Active aggregate**: `LoanApplication` holds loan, borrowers, mode, generation, revision, sections, changeLog, businessRules, and optional metadata including creation receipts, opportunity details and `meta.baseline`. The baseline captures original Salesforce loan/borrower/section/opportunity data. Saved data belongs to its loan; no additional table or version upgrade is needed.
 - `mode: "existing"` is reserved for seed loan `"1"`. New loans use UUIDs, incrementing nine-digit loan numbers, a blank factory, and stage `"Customer Application"`. Existing seed stage is preserved, not reset on migration.
-- Stage and section writes use generation/revision compare-and-swap. All writes refresh `meta.updatedAt`; replacing demo data retains original `createdAt`. Loan-number allocation is transaction-serialized.
+- Stage and section writes use generation/revision compare-and-swap. Reset restores the Salesforce baseline and increments both counters; fill-only Blend imports increment revision only, leave metadata/history/workflows untouched, and do not write on a no-op. Only Reset starts a fresh TRID/ECOA lifecycle. Legacy loans capture missing baselines during their first Reset, preserving known Salesforce values. Loan-number/CIF allocation is transaction-serialized.
 - The single-active-loan client store drains pending saves before departure. Unsaved drafts require confirmation on the Pipeline breadcrumb. Late responses cannot replace another loan's active document.
 - No new tables or schema push are required; the unused Drizzle loan/borrower tables are not the persistence path.
 
@@ -103,11 +103,11 @@ shared/
 ## API Routes
 - `GET /api/database/compatibility` - Fresh, read-only check of the pulled code against this project's database; no apply endpoint
 - `GET /api/loans` - Lightweight pipeline projections, newest update first, no-store
-- `POST /api/loans` - Create a blank loan from `{ source: "blank" }`; returns `{ id, loanNumber }`. Blend creation then calls the existing demo import with client-built sections.
+- `POST /api/loans` - Create a Salesforce opportunity from `{ source: "sf", borrowerCount?: 1 | 2, idempotencyKey? }`, default one borrower; returns `{ id, loanNumber }`. Baseline capture is atomic with creation; retry source/count must agree.
 - `PUT /api/loans/:id/stage` - Save a validated stage with `{ stage, generation, revision }`; returns the updated document or 409 on stale input
 - `GET /api/loans/:id/application` - Load the loan document
 - `PUT /api/loans/:id/application` - Save a section with revision checks, rule evaluation, and change tracking
-- `POST /api/loans/:id/application/demo` - Loan-scoped reset, Blend import, TRID actions, and checklist reset
+- `POST /api/loans/:id/application/demo` - Loan-scoped reset to baseline, fill-only random Blend import, server-built TRID templates, and narrow checklist/TRID controls. Clients send action/options, not section data. Only Reset starts a fresh overall lifecycle; narrow controls retain their defined scope.
 - `POST /api/loans/:id/application/credit` - Simulated borrower-specific credit results
 - `GET /api/loans/:id` - Loan details with borrowers (includes ratios, scores, amounts)
 - `GET /api/github/user` - Authenticated GitHub user info

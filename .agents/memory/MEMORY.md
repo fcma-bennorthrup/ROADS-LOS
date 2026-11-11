@@ -38,5 +38,5 @@
 - [Demo borrower history](demo-borrower-history.md) — preserve unmatched old tracking; never infer borrower associations from display names.
 - [GitHub provider context](github-provider-context.md) — source-control API authentication can work despite empty sandbox discovery or unauthenticated CLI; verify account and repo separately.
 - [Pipeline design scope](pipeline-design-scope.md) — preserve New Loan/admin; Feather navigation; department queues stay empty until assignment rules are approved.
-- [Creation retry scope](creation-retry-scope.md) — preserve creation receipts across demo replacement without broad migrations or changing Blend import behavior.
+- [Creation retry scope](creation-retry-scope.md) — preserve SF creation receipts across resets/imports and reject retry borrower-count changes without a new ledger.
 - [Isolated browser layout checks](browser-layout-harness.md) — real components with intercepted fixtures avoid touching saved loans and bypass legacy artifact limitations.

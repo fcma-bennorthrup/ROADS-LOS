@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertLoanDocument, loanApplicationSchema, subjectPropertySchema } from "./loan-contract";
 import { newLoanApplication } from "./loan-factory";
-import { blendDemoSections } from "../client/src/lib/blend-demo-fixture";
+import { generatedBlend } from "./loan-events/test-fixtures";
 import { shouldIgnorePath } from "../server/sync-mechanics";
 
 describe("shared loan model", () => {
@@ -55,8 +55,7 @@ describe("shared loan model", () => {
     expect(subjectPropertySchema.safeParse({ parcel: 123 }).success).toBe(false);
   });
   it.each([1, 2] as const)("validates actual Blend fixtures with %i borrowers", borrowerCount => {
-    const loan = newLoanApplication({ id: "model", loanNumber: "123456790", source: "blend",
-      borrowerCount, sections: blendDemoSections("model", borrowerCount) });
+    const loan = generatedBlend("model", borrowerCount);
     expect(loanApplicationSchema.safeParse(loan).success).toBe(true);
     const legacy = structuredClone(loan); delete legacy.schemaVersion;
     expect(() => assertLoanDocument(legacy, "model")).not.toThrow();

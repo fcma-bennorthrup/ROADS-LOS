@@ -2,7 +2,7 @@ import { useState } from "react";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { BorrowerFinancialsContent } from "../BorrowerFinancialsContent";
-import { blendDemoSections } from "@/lib/blend-demo-fixture";
+import { blendDemoSections } from "@shared/loan-events/test-fixtures";
 import { populateDemoCredit } from "@shared/demo-credit";
 
 const state = vi.hoisted(() => ({ document: null as any }));
@@ -53,7 +53,9 @@ it("switches borrower balance sheets and isolates edits, additions and deletions
   expect(screen.getAllByTestId(/^liability-card-/)).toHaveLength(4);
   expect(screen.getByText("DEMO-2-101")).toBeInTheDocument();
   expect(screen.queryByText("DEMO-1-101")).toBeNull();
-  expect(screen.queryAllByTestId(/^asset-card-/)).toHaveLength(0);
+  const secondaryAssets = ["current-assets", "noncurrent-assets"].flatMap(key =>
+    state.document.sections[key].filter((row: any) => row.borrowerId === "demo-secondary"));
+  expect(screen.queryAllByTestId(/^asset-card-/)).toHaveLength(secondaryAssets.length);
   const primaryBefore = structuredClone(state.document.sections["current-liabilities"].filter((r: any) => r.borrowerId === "demo-primary"));
   const card = screen.getAllByTestId("liability-card-0")[0];
   fireEvent.click(within(card).getByTestId("button-edit-liability-0"));

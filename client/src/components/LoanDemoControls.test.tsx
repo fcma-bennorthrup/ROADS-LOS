@@ -10,10 +10,6 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/contexts/loan-application-context", () => ({ useApplicationStatus: () => mocks.store }));
 vi.mock("@/lib/loan-application-store", () => ({ applicationRequest: mocks.request }));
-vi.mock("@/lib/blend-demo-fixture", () => ({
-  tridDemoSections: () => ({ "evaluation-1": { estimatedValue: "195000" } }),
-  blendDemoSections: (_id: string, count: number) => ({ income: Array(count).fill({}) }),
-}));
 beforeEach(() => {
   cleanup(); vi.clearAllMocks();
   mocks.store.document.businessRules.trid.status = "not-triggered";
@@ -159,8 +155,7 @@ describe("Trigger TRID button", () => {
     await waitFor(() => expect(mocks.store.install).toHaveBeenCalled());
     expect(mocks.request).toHaveBeenCalledWith("demo", "/demo", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ action: "trid", generation: 1, revision: 2, confirmed: true,
-        sections: { "evaluation-1": { estimatedValue: "195000" } } }),
+      body: JSON.stringify({ action: "trid", generation: 1, revision: 2, confirmed: true }),
     }));
   });
 });
