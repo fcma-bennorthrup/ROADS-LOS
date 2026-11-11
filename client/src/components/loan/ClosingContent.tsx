@@ -7,6 +7,7 @@ interface ClosingDetailsState {
   closingDate: string;
   disbursementDate: string;
   preClosingReviewComplete: boolean;
+  bonaFideFinancialHardship: boolean;
 }
 
 export function ClosingContent() {
@@ -14,6 +15,7 @@ export function ClosingContent() {
     closingDate: "",
     disbursementDate: "",
     preClosingReviewComplete: false,
+    bonaFideFinancialHardship: false,
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -125,6 +127,32 @@ export function ClosingContent() {
               Pre-closing review complete
             </label>
           </div>
+          <label
+            className="flex items-center body-100"
+            style={{
+              gap: "var(--roads-spacing-component-xs)",
+              color: isEditing ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
+              cursor: isEditing ? "pointer" : "default",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={fields.bonaFideFinancialHardship ?? false}
+              onChange={(e) => setField("bonaFideFinancialHardship")(e.target.checked)}
+              disabled={!isEditing}
+              data-testid="checkbox-bona-fide-financial-hardship"
+              style={{
+                width: "var(--roads-spacing-component-l)",
+                height: "var(--roads-spacing-component-l)",
+                border: isEditing ? "1px solid var(--roads-border-dark)" : "1px solid var(--roads-border-subtle)",
+                borderRadius: "var(--roads-radius-2xs)",
+                accentColor: "var(--roads-bg-action)",
+                cursor: isEditing ? "pointer" : "default",
+                flexShrink: 0,
+              }}
+            />
+            Bona Fide Financial Hardship
+          </label>
         </div>
 
         <div className="flex items-center justify-end">
