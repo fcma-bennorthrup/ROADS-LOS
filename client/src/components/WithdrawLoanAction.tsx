@@ -5,6 +5,7 @@ import { Dialog, DialogPortal, DialogTitle, DialogDescription } from "@/componen
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
 import { queryClient } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 import type { PipelineLoan } from "@shared/pipeline";
 import "@/styles/loan-team.css";
 
@@ -49,6 +50,7 @@ export function WithdrawLoanAction({ loan, detailMenu, onOpen, onRestoreFocus }:
       void queryClient.invalidateQueries({ queryKey: ["/api/loans"] });
       setOpen(false);
       setAcknowledged(false);
+      toast({ variant: "success", title: "Loan withdrawn successfully", duration: 6000 });
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : "The loan could not be withdrawn. Please try again.");
     } finally {

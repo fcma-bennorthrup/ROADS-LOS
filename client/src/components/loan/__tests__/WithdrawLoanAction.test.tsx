@@ -4,9 +4,12 @@ import { WithdrawLoanAction } from "@/components/WithdrawLoanAction";
 import { queryClient } from "@/lib/queryClient";
 import type { PipelineLoan } from "@shared/pipeline";
 import { sectionSchemas } from "@shared/loan-contract";
+import { toast } from "@/hooks/use-toast";
+
+vi.mock("@/hooks/use-toast", () => ({ toast: vi.fn() }));
 
 const loan = { id: "withdraw-test", loanNumber: "123456", stage: "Customer Application" } as PipelineLoan;
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); queryClient.clear(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.clearAllMocks(); queryClient.clear(); });
 async function openDialog() {
   fireEvent.keyDown(screen.getByRole("button", { name: "More actions for loan 123456" }), { key: "Enter" });
   fireEvent.click(await screen.findByRole("menuitem", { name: "Withdraw Loan" }));
@@ -29,12 +32,14 @@ it("requires acknowledgment, cancels without saving, and persists a confirmed wi
   fireEvent.click(dialog.getByRole("checkbox"));
   fireEvent.click(dialog.getByRole("button", { name: "Cancel" }));
   expect(request).not.toHaveBeenCalled();
+  expect(toast).not.toHaveBeenCalled();
   dialog = await openDialog();
   expect(dialog.getByRole("checkbox")).not.toBeChecked();
   fireEvent.click(dialog.getByRole("checkbox"));
   fireEvent.click(dialog.getByRole("button", { name: "Withdraw Loan" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   expect(request).toHaveBeenCalledTimes(2);
+  expect(toast).toHaveBeenCalledExactlyOnceWith({ variant: "success", title: "Loan withdrawn successfully", duration: 6000 });
   expect(queryClient.getQueryData<PipelineLoan[]>(["/api/loans"])?.[0].withdrawn).toBe(true);
 });
 it("keeps the modal open with an error when the save fails", async () => {
@@ -46,6 +51,7 @@ it("keeps the modal open with an error when the save fails", async () => {
   fireEvent.click(dialog.getByRole("checkbox"));
   fireEvent.click(dialog.getByRole("button", { name: "Withdraw Loan" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Loan changed");
+  expect(toast).not.toHaveBeenCalled();
   expect(dialog.getByRole("button", { name: "Withdraw Loan" })).toBeEnabled();
 });
 it("rejects unacknowledged withdrawal data", () => {

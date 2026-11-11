@@ -3,7 +3,9 @@ import { afterEach, expect, it, vi } from "vitest";
 import { MoreOptionsMenu } from "@/components/AppHeader";
 import { applicationStore } from "@/lib/loan-application-store";
 import type { LoanApplication } from "@shared/loan-application";
+import { toast } from "@/hooks/use-toast";
 
+vi.mock("@/hooks/use-toast", () => ({ toast: vi.fn() }));
 vi.mock("@/components/GitHubSyncPanel", () => ({ GitHubSyncPanel: () => null }));
 vi.mock("@/components/loan/SummaryDebugDialog", () => ({ SummaryDebugDialog: () => null }));
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
@@ -29,6 +31,7 @@ it("withdraws from the detail menu without losing drafts or desynchronizing late
   fireEvent.click(dialog.getByRole("checkbox"));
   fireEvent.click(dialog.getByRole("button", { name: "Withdraw Loan" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  expect(toast).toHaveBeenCalledWith({ variant: "success", title: "Loan withdrawn successfully", duration: 6000 });
   expect(applicationStore.document?.sections.withdrawal).toEqual({ acknowledged: true });
   expect(applicationStore.dirty).toBe(true);
   expect(applicationStore.document?.sections["closing-details"]).toEqual({ closingDate: "11/11/2026" });
