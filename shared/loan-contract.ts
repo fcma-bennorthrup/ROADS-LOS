@@ -31,6 +31,7 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "current-liabilities": z.array(ownedRow), "noncurrent-liabilities": z.array(ownedRow),
   fees: z.array(feeRecordSchema),
   "fee-circumstances": feeCircumstancesSchema,
+  "origination-fee-initialized": z.boolean(),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),
   "credit-frozen": z.boolean(),
   // Accept the retired value in existing documents; decisionMode maps it to approval.

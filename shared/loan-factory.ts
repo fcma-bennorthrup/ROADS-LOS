@@ -2,6 +2,7 @@ import type { LoanApplication } from "./loan-application";
 import { evaluateLoanRules } from "./business-rules";
 import { LOAN_STAGES } from "./loan-stages";
 import { LOAN_DOCUMENT_VERSION } from "./loan-contract";
+import { withOriginationFee } from "./business-rules/origination-fee";
 
 export const BLANK_LOAN_TEMPLATE = {
   loanType: "", stage: LOAN_STAGES[0], primaryBorrowerName: "", product: "",
@@ -60,6 +61,7 @@ export function newLoanApplication(input: NewLoanInput): LoanApplication {
     generation: input.generation ?? 0, revision: input.revision ?? 0, sections,
     meta: { createdAt: now, updatedAt: now, source: input.source },
   };
-  next.businessRules = evaluateLoanRules(next);
-  return next;
+  const initialized = withOriginationFee(next);
+  initialized.businessRules = evaluateLoanRules(initialized);
+  return initialized;
 }

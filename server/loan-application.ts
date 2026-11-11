@@ -13,6 +13,7 @@ import { newLoanApplication } from "../shared/loan-factory";
 import { randomUUID } from "node:crypto";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
 import { ensureOpportunityExpiry } from "./opportunity-expiry";
+import { withOriginationFee } from "../shared/business-rules/origination-fee";
 import { LOAN_STAGES } from "../shared/loan-stages";
 import { pipelineView } from "../shared/pipeline";
 import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
@@ -30,17 +31,18 @@ async function load(id: string): Promise<LoanApplication | null> {
     let document: LoanApplication = existing.rows[0].document;
     assertLoanDocument(document, id);
     document = await ensureOpportunityExpiry(pool, document);
-    if (document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
+    const withFee = withOriginationFee(document);
+    if (withFee === document && document.meta && document.businessRules?.trid && document.businessRules?.ecoa && document.businessRules?.jointCredit && document.businessRules?.loanDecision && document.businessRules?.primaryWageEarner) return document;
     // Adopt existing saved loans once; persist any trigger before a later edit
     // can remove one of its inputs. CAS avoids racing a collaborator's save.
-    const initialized = { ...document,
+    const initialized = { ...withFee,
       // Revision zero is the existing browser-data adoption marker.
       revision: document.revision === 0 ? 0 : document.revision + 1,
       meta: document.meta ?? {
         createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
         source: id === "1" ? "seed" as const : document.mode === "blend" ? "blend" as const : "blank" as const,
       },
-      businessRules: evaluateLoanRules(document) };
+      businessRules: evaluateLoanRules(withFee) };
     const result = await pool.query(
       `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
        WHERE loan_id=$1 AND (document->>'revision')::int=$3 RETURNING document`,

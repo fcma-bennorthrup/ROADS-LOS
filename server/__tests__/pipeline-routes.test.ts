@@ -30,6 +30,26 @@ beforeEach(() => {
   db.connect.mockResolvedValue({ query: db.query, release: db.release });
 });
 describe("pipeline API", () => {
+  it("persists an automatic origination fee when opening a loan with a saved amount", async () => {
+    const current = document("origination-fee-loan");
+    current.revision = 2;
+    current.sections["loan-details"] = { requestedLoanAmount: "50000" };
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] });
+    db.query.mockImplementationOnce(async (_sql, params) => ({
+      rowCount: 1, rows: [{ document: JSON.parse(params[1]) }],
+    }));
+    const result = await request("GET /api/loans/:id/application", {}, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body.sections.fees).toEqual([expect.objectContaining({
+      fee: "Origination Fee", leAmount: "500.00", cdAmount: "500.00", waived: false,
+    })]);
+    expect(result.body.revision).toBe(3);
+    expect(db.query.mock.calls[1][0]).toContain("(document->>'revision')::int=$3");
+    db.query.mockResolvedValueOnce({ rows: [{ document: result.body }] });
+    const reloaded = await request("GET /api/loans/:id/application", {}, current.loan.id);
+    expect(reloaded.body.sections.fees).toHaveLength(1);
+    expect(db.query).toHaveBeenCalledTimes(3);
+  });
   it.each([
     ["Financed", "Seller", "Appraisal provider", true],
     ["Cash", "Buyer", "", false],

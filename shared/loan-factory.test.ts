@@ -47,7 +47,17 @@ describe("loan factory compatibility", () => {
         borrowerCount: count, sections, generation: 4, revision: 8, now: "2026-11-09T12:00:00.000Z" });
       const { meta, schemaVersion, ...document } = actual;
       expect(schemaVersion).toBe(1);
-      expect(document).toEqual(await previousFactory(source === "blend", count, sections));
+      const expected = await previousFactory(source === "blend", count, sections);
+      if (source === "blend") {
+        expected.sections["origination-fee-initialized"] = true;
+        expected.sections.fees = [{
+          id: "auto-origination-4", fee: "Origination Fee",
+          leAmount: "1000.00", cdAmount: "1000.00",
+          methodOfPayment: "Cash", paidBy: "Buyer", paidTo: "",
+          shoppedForProvider: false, waived: false,
+        }];
+      }
+      expect(document).toEqual(expected);
       expect(meta).toEqual({ createdAt: "2026-11-09T12:00:00.000Z", updatedAt: "2026-11-09T12:00:00.000Z", source });
     });
   }
