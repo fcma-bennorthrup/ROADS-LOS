@@ -104,7 +104,6 @@ export function LoanHeader({
         <BreadcrumbBar loanNumber={loanNumber} activityPanelOpen={activityPanelOpen} toggleActivityPanel={toggleActivityPanel} />
         <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} />
         <HeaderTextBlock
-          withdrawn={withdrawn}
           loanType={loanType}
           loanNumber={loanNumber}
           cifNumber={cifNumber}
@@ -119,7 +118,7 @@ export function LoanHeader({
         {withdrawn && <div role="status" data-testid="withdrawn-notice"
           className="flex items-start"
           style={{ margin: "0 24px", padding: "12px 16px", gap: 12,
-            backgroundColor: "var(--roads-bg-light)", border: "1px solid var(--roads-border-subtle)",
+            backgroundColor: "var(--roads-bg-warning-subtle)", border: "1px solid var(--roads-border-subtle)",
             borderRadius: "var(--roads-radius-2xs)", color: "var(--roads-text-primary)" }}>
           <Slash size={18} aria-hidden style={{ flexShrink: 0, marginTop: 1 }} />
           <div>
@@ -231,7 +230,6 @@ export function StageStepper() {
 }
 
 interface HeaderTextBlockProps {
-  withdrawn?: boolean;
   loanType: string;
   loanNumber: string;
   cifNumber: string;
@@ -245,7 +243,6 @@ interface HeaderTextBlockProps {
 }
 
 function HeaderTextBlock({
-  withdrawn = false,
   loanType,
   loanNumber,
   cifNumber,
@@ -266,11 +263,6 @@ function HeaderTextBlock({
         <span>SLP</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>Loan: {loanNumber}</span>
-        {withdrawn && <span className="body-200-strong inline-flex items-center" data-testid="chip-withdrawn"
-          style={{ marginLeft: 4, gap: 4, padding: "2px 8px", borderRadius: "var(--roads-radius-2xs)",
-            backgroundColor: "var(--roads-bg-dark)", color: "var(--roads-icon-dark)" }}>
-          <Slash size={14} aria-hidden />Withdrawn
-        </span>}
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>CIF: {cifNumber}</span>
       </div>

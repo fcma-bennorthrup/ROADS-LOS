@@ -26,14 +26,15 @@ for (const width of [1440, 390]) {
       return route.abort();
     });
     await page.goto("/loans/withdrawn-header");
-    await expect(page.getByTestId("chip-withdrawn")).toHaveText("Withdrawn");
+    await expect(page.getByTestId("withdrawn-notice")).toHaveCSS("background-color", "rgb(253, 239, 205)");
+    await expect(page.getByTestId("chip-withdrawn")).toHaveCount(0);
     await expect(page.getByTestId("withdrawn-stage-label")).toContainText("Decisioning");
     await expect(page.locator('[aria-current="step"]')).toHaveCSS("background-color", "rgb(222, 225, 225)");
     await page.screenshot({ path: info.outputPath("withdrawn-header.png") });
     for (const tab of ["origination", "closing-booking", "history"]) {
       await page.getByTestId(`tab-${tab}`).click();
       await expect(page.getByTestId("withdrawn-notice")).toBeVisible();
-      await expect(page.getByTestId("chip-withdrawn")).toBeVisible();
+      await expect(page.getByTestId("chip-withdrawn")).toHaveCount(0);
     }
     expect(saved.loan.stage).toBe("Decisioning");
     expect(errors).toEqual([]);
