@@ -36,6 +36,22 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it.each([
+  ["dashboard", "Dashboard"],
+  ["pipeline", "Pipeline"],
+  ["saved-items", "My Pipeline"],
+  ["reports", "Reports"],
+])("labels the collapsed %s navigation icon with a tooltip", async (id, label) => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
+  view();
+  const trigger = screen.getByTestId(`main-nav-${id}`).parentElement!;
+  fireEvent.focus(trigger);
+  expect(await screen.findByRole("tooltip")).toHaveTextContent(label);
+  fireEvent.click(screen.getByTestId("button-toggle-navigation"));
+  expect(screen.queryByRole("tooltip")).toBeNull();
+  expect(within(screen.getByTestId("main-navigation")).getByText("My Pipeline")).toBeInTheDocument();
+  expect(screen.queryByText("Saved items")).toBeNull();
+});
 it.each(["All Loans", "Sales Support"])("opens %s rows without making action icons navigate", async queue => {
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], departmentQueue: "Sales Support" }]))));
   const { history } = view();
@@ -90,7 +106,7 @@ it("expands navigation explicitly, exposes labels, and preserves queue data", as
   fireEvent.click(screen.getByRole("button", { name: "Expand navigation" }));
   expect(within(nav).getByText("ROADS")).toBeInTheDocument();
   expect(within(nav).getByText("Dashboard")).toBeInTheDocument();
-  expect(within(nav).getByText("Saved items")).toBeInTheDocument();
+  expect(within(nav).getByText("My Pipeline")).toBeInTheDocument();
   expect(within(nav).getByText("Reports")).toBeInTheDocument();
   expect(within(nav).getByRole("button", { name: /Dashboard — unavailable/ })).toBeDisabled();
   expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(2);
