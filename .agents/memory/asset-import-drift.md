@@ -14,3 +14,9 @@ The same mismatch can return after a GitHub API pull; a successful sync does not
 **Why:** The shared repository has contained timestamped PDF references absent from this workspace, reintroducing startup failures after a successful pull.
 
 **How to apply:** Verify the build after pulling. Keep local filename repairs explicit and do not change PDF synchronization policy or push those repairs without approval.
+
+For required application branding, keep a byte-identical recovered image with source assets rather than relying on the uploads directory.
+
+**Why:** This environment's global Git ignore excludes `attached_assets/*`; restoring an image there can fix the preview locally without making it travel with future code changes.
+
+**How to apply:** When an original small branding asset is recoverable from local history, preserve its exact bytes in a tracked application asset path and update only its import. Do not redesign the logo or change its display styling.
