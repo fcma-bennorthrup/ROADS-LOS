@@ -5,13 +5,17 @@ import { useLoanDraft } from "@/contexts/loan-application-context";
 
 interface ClosingDetailsState {
   closingDate: string;
+  disbursementDate: string;
   preClosingReviewComplete: boolean;
+  bonaFideFinancialHardship: boolean;
 }
 
 export function ClosingContent() {
   const defaultState: ClosingDetailsState = {
     closingDate: "",
+    disbursementDate: "",
     preClosingReviewComplete: false,
+    bonaFideFinancialHardship: false,
   };
 
   const [isEditing, setIsEditing] = useState(false);
@@ -57,12 +61,12 @@ export function ClosingContent() {
         Closing Details
       </h2>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
-          <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="flex flex-col" style={{ width: "100%", maxWidth: 656, gap: "var(--roads-spacing-component-xl)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+          <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-xl)" }}>
             <div
               className="flex flex-col"
-              style={{ flex: "1 1 0", gap: "var(--roads-spacing-component-xs)" }}
+              style={{ flex: "1 1 280px", minWidth: 0, gap: "var(--roads-spacing-component-xs)" }}
               data-testid="closing-detail-field-closing-date"
             >
               <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -75,10 +79,21 @@ export function ClosingContent() {
                 testId="input-closing-date"
               />
             </div>
-            <div style={{ flex: "1 1 0" }} />
-            <div style={{ flex: "1 1 0" }} />
-            <div style={{ flex: "1 1 0" }} />
-            <div style={{ flex: "1 1 0" }} />
+            <div
+              className="flex flex-col"
+              style={{ flex: "1 1 280px", minWidth: 0, gap: "var(--roads-spacing-component-xs)" }}
+              data-testid="closing-detail-field-disbursement-date"
+            >
+              <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+                Disbursement Date
+              </span>
+              <RoadsDatePicker
+                value={fields.disbursementDate ?? ""}
+                onChange={setField("disbursementDate")}
+                disabled={!isEditing}
+                testId="input-disbursement-date"
+              />
+            </div>
           </div>
 
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xl)" }}>
@@ -108,6 +123,37 @@ export function ClosingContent() {
               />
               Pre-closing review complete
             </label>
+          </div>
+          <div role="group" aria-labelledby="financial-hardship-heading" className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <h3 id="financial-hardship-heading" className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+            Bona Fide Financial Hardship
+          </h3>
+          <label
+            className="flex items-center body-100"
+            style={{
+              gap: "var(--roads-spacing-component-xs)",
+              color: isEditing ? "var(--roads-text-primary)" : "var(--roads-text-secondary)",
+              cursor: isEditing ? "pointer" : "default",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={fields.bonaFideFinancialHardship ?? false}
+              onChange={(e) => setField("bonaFideFinancialHardship")(e.target.checked)}
+              disabled={!isEditing}
+              data-testid="checkbox-bona-fide-financial-hardship"
+              style={{
+                width: "var(--roads-spacing-component-l)",
+                height: "var(--roads-spacing-component-l)",
+                border: isEditing ? "1px solid var(--roads-border-dark)" : "1px solid var(--roads-border-subtle)",
+                borderRadius: "var(--roads-radius-2xs)",
+                accentColor: "var(--roads-bg-action)",
+                cursor: isEditing ? "pointer" : "default",
+                flexShrink: 0,
+              }}
+            />
+            This is an approved hardship.
+          </label>
           </div>
         </div>
 

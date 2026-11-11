@@ -7,7 +7,7 @@ import { LOAN_STAGES } from "@shared/loan-stages";
 
 vi.mock("@/components/GitHubSyncPanel", () => ({ GitHubSyncPanel: () => null }));
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
-function install(index = 2) {
+function install(index = 0) {
   const state = { loan: { id: "stage-test", stage: LOAN_STAGES[index] }, borrowers: [],
     sections: {}, generation: 0, revision: 0, mode: "empty" } as unknown as LoanApplication;
   applicationStore.install(state);
@@ -23,7 +23,9 @@ function install(index = 2) {
 it("persists neighbouring stages with CAS and retains the saved stage on remount", async () => {
   install();
   const first = render(<StageStepper />);
-  expect(first.container.querySelector('[aria-current="step"]')).toHaveTextContent("Loan Setup");
+  expect(first.container.querySelector('[aria-current="step"]')).toHaveTextContent("Customer Application");
+  expect(screen.queryByText("Pre-Approval")).toBeNull();
+  expect(screen.queryByText("Loan Setup")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Move loan stage forward" }));
   await waitFor(() => expect(first.container.querySelector('[aria-current="step"]')).toHaveTextContent("Decisioning"));
   await act(() => applicationStore.flush());
@@ -49,5 +51,19 @@ it("shows stage-save failure without advancing the persisted step", async () => 
   const view = render(<StageStepper />);
   fireEvent.click(screen.getByRole("button", { name: "Move loan stage forward" }));
   await screen.findByRole("alert");
-  expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Loan Setup");
+  expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Customer Application");
+});
+it("moves backward from Decisioning directly to Customer Application", async () => {
+  install(3);
+  const view = render(<StageStepper />);
+  fireEvent.click(screen.getByRole("button", { name: "Move loan stage backward" }));
+  await waitFor(() => expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Customer Application"));
+});
+it.each([1, 2])("does not rewrite older hidden stage %s on render", index => {
+  install(index);
+  const view = render(<StageStepper />);
+  expect(view.container.querySelector('[aria-current="step"]')).toHaveTextContent("Customer Application");
+  expect(fetch).not.toHaveBeenCalled();
+  expect(screen.queryByText("Pre-Approval")).toBeNull();
+  expect(screen.queryByText("Loan Setup")).toBeNull();
 });

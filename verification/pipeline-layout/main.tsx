@@ -56,6 +56,10 @@ function FixturePage() {
 }
 
 // The real page, providers and CSS; requests are isolated by Playwright.
+// Refresh the real query without clicking through (or dismissing) an open modal.
+window.addEventListener("fixture:refresh-pipeline", () => {
+  void queryClient.refetchQueries({ queryKey: ["/api/loans"], exact: true });
+});
 const location = memoryLocation({ path: window.location.pathname === "/" ? "/pipeline" : window.location.pathname });
 createRoot(document.getElementById("root")!).render(
   <QueryClientProvider client={queryClient}>
