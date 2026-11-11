@@ -15,6 +15,7 @@ const feeSnapshotSchema = z.object({
 // Recording a reason does not establish tolerance-reset eligibility or trigger TRID.
 export const CIRCUMSTANCE_REASONS = [
   { value: "not-valid", label: "Not a valid change of circumstance" },
+  { value: "new-information", label: "New Information" },
   { value: "settlement-charges", label: "Changed circumstance affecting settlement charges" },
   { value: "eligibility", label: "Changed circumstance affecting eligibility" },
   { value: "consumer-request", label: "Revisions requested by the consumer" },
@@ -23,7 +24,7 @@ export const CIRCUMSTANCE_REASONS = [
   { value: "construction-delay", label: "Delayed settlement on a new-construction loan" },
 ] as const;
 export const circumstanceReasonSchema = z.enum([
-  "not-valid", "settlement-charges", "eligibility", "consumer-request",
+  "not-valid", "new-information", "settlement-charges", "eligibility", "consumer-request",
   "rate-dependent", "expiration", "construction-delay",
 ]);
 export type CircumstanceReason = z.infer<typeof circumstanceReasonSchema>;
