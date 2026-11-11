@@ -62,7 +62,8 @@ it("defaults hardship off and supports save, reload, discard, and uncheck", asyn
     return new Response(JSON.stringify(document));
   }));
   const view = render(<ClosingContent />);
-  const checkbox = () => screen.getByRole("checkbox", { name: "Bona Fide Financial Hardship" });
+  expect(screen.getByRole("heading", { name: "Bona Fide Financial Hardship" })).toBeInTheDocument();
+  const checkbox = () => screen.getByRole("checkbox", { name: "This is an approved hardship." });
   expect(checkbox()).not.toBeChecked();
   expect(checkbox()).toBeDisabled();
   fireEvent.click(screen.getByTestId("button-edit-closing-details"));

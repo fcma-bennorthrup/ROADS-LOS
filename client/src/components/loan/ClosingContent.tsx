@@ -61,12 +61,12 @@ export function ClosingContent() {
         Closing Details
       </h2>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
-        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
-          <div className="flex" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="flex flex-col" style={{ width: "100%", maxWidth: 656, gap: "var(--roads-spacing-component-xl)" }}>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+          <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-xl)" }}>
             <div
               className="flex flex-col"
-              style={{ flex: "1 1 0", gap: "var(--roads-spacing-component-xs)" }}
+              style={{ flex: "1 1 280px", minWidth: 0, gap: "var(--roads-spacing-component-xs)" }}
               data-testid="closing-detail-field-closing-date"
             >
               <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -81,7 +81,7 @@ export function ClosingContent() {
             </div>
             <div
               className="flex flex-col"
-              style={{ flex: "1 1 0", gap: "var(--roads-spacing-component-xs)" }}
+              style={{ flex: "1 1 280px", minWidth: 0, gap: "var(--roads-spacing-component-xs)" }}
               data-testid="closing-detail-field-disbursement-date"
             >
               <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
@@ -94,9 +94,6 @@ export function ClosingContent() {
                 testId="input-disbursement-date"
               />
             </div>
-            <div style={{ flex: "1 1 0" }} />
-            <div style={{ flex: "1 1 0" }} />
-            <div style={{ flex: "1 1 0" }} />
           </div>
 
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xl)" }}>
@@ -127,6 +124,10 @@ export function ClosingContent() {
               Pre-closing review complete
             </label>
           </div>
+          <div role="group" aria-labelledby="financial-hardship-heading" className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <h3 id="financial-hardship-heading" className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
+            Bona Fide Financial Hardship
+          </h3>
           <label
             className="flex items-center body-100"
             style={{
@@ -151,8 +152,9 @@ export function ClosingContent() {
                 flexShrink: 0,
               }}
             />
-            Bona Fide Financial Hardship
+            This is an approved hardship.
           </label>
+          </div>
         </div>
 
         <div className="flex items-center justify-end">
