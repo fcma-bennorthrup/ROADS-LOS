@@ -17,7 +17,9 @@ import { useApplicationStatus } from "@/contexts/loan-application-context";
 import { useLoanId } from "@/contexts/loan-id-context";
 import { LOAN_STAGES } from "@shared/loan-stages";
 
-const STAGES = LOAN_STAGES.map(label => ({ label }));
+const STAGES = LOAN_STAGES
+  .filter(label => label !== "Pre-Approval" && label !== "Loan Setup")
+  .map(label => ({ label }));
 
 const TABS = [
   "Summary",
@@ -122,7 +124,8 @@ export function LoanHeader({
 
 export function StageStepper() {
   const store = useApplicationStatus();
-  const currentStep = Math.max(0, LOAN_STAGES.indexOf(store.document?.loan.stage as typeof LOAN_STAGES[number]));
+  // Older saved stages remain intact; display them at the application step until moved.
+  const currentStep = Math.max(0, STAGES.findIndex(stage => stage.label === store.document?.loan.stage));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   async function move(direction: number) {
@@ -130,7 +133,7 @@ export function StageStepper() {
     const next = currentStep + direction;
     if (next < 0 || next >= STAGES.length) return;
     setBusy(true); setError("");
-    try { await applicationStore.changeStage(LOAN_STAGES[next]); }
+    try { await applicationStore.changeStage(STAGES[next].label); }
     catch (error) { setError((error as Error).message); }
     finally { setBusy(false); }
   }
