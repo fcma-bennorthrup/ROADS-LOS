@@ -5,6 +5,49 @@ import { blendDemoSections } from "../client/src/lib/blend-demo-fixture";
 import { shouldIgnorePath } from "../server/sync-mechanics";
 
 describe("shared loan model", () => {
+  const withBaseline = () => {
+    const app = newLoanApplication({ id: "baseline-contract-test", loanNumber: "123456790", source: "blank", borrowerCount: 2 });
+    app.meta!.baseline = {
+      capturedAt: "2026-11-11T00:00:00.000Z",
+      loan: structuredClone(app.loan),
+      borrowers: structuredClone(app.borrowers),
+      sections: { "borrower-primary": { firstName: "Avery" }, "future-section": { keep: true } },
+      opportunity: { region: "500", loanOfficer: "Demo Officer", applicationDate: "2026-11-11",
+        queue: "Sales Support", decision: "" },
+    };
+    return app;
+  };
+  it("accepts optional baselines without altering them and still accepts absent baselines", () => {
+    const app = withBaseline();
+    const before = structuredClone(app);
+    expect(() => assertLoanDocument(app)).not.toThrow();
+    expect(loanApplicationSchema.parse(app)).toEqual(before);
+    delete app.meta!.baseline;
+    expect(() => assertLoanDocument(app)).not.toThrow();
+  });
+  it("checks baseline loan ownership, borrower identities and recognized sections", () => {
+    const mutations: ((app: ReturnType<typeof withBaseline>) => void)[] = [
+      app => { app.meta!.baseline!.loan.id = "another-loan"; },
+      app => { app.meta!.baseline!.borrowers[0].loanId = "another-loan"; },
+      app => { app.meta!.baseline!.borrowers.push(app.meta!.baseline!.borrowers[0]); },
+      app => { app.meta!.baseline!.sections.income = "invalid"; },
+      app => { app.meta!.baseline!.sections["subject-property"] = { parcel: 12 }; },
+      app => { app.meta!.baseline!.loan.stage = "unknown"; },
+      app => { app.meta!.baseline!.capturedAt = "not-a-date"; },
+    ];
+    for (const mutate of mutations) {
+      const app = withBaseline();
+      mutate(app);
+      expect(() => assertLoanDocument(app)).toThrow("does not match");
+    }
+  });
+  it("uses the opportunity contract inside a baseline", () => {
+    const app = withBaseline();
+    const baseline = app.meta!.baseline!;
+    expect(loanApplicationSchema.safeParse({
+      ...app, meta: { ...app.meta, baseline: { ...baseline, opportunity: { ...baseline.opportunity, queue: "Other" } } },
+    }).success).toBe(false);
+  });
   it("accepts legacy property data and text parcel IDs, not numeric identifiers", () => {
     expect(subjectPropertySchema.safeParse({ zip: "40234" }).success).toBe(true);
     for (const parcel of ["", "000-012-A", "Lot 3 / Block 2"])

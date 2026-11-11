@@ -1,3 +1,4 @@
+- [Simulated loan event series](simulated-loan-events.md) — staged SF baseline/fill-only Blend plan supersedes replacement/reset-to-empty decisions; implement only the requested phase.
 - [Origination fee policy](origination-fee-policy.md) — seed once at 1% capped at $1,000; preserve manual edits and avoid circular financed-fee calculations.
 - [Admin operations policy](admin-operations-policy.md) — database and Git operations use prompts/shell; prototype admin is reserved for demo controls.
 - [Architecture audit constraints](audit-constraints.md) — Audit current local code; preserve all user-facing visuals and behavior, with per-change approval.
