@@ -7,6 +7,7 @@ import {
   ListChecks,
   Calendar,
   AlertTriangle,
+  Slash,
 } from "lucide-react";
 import { BreadcrumbBar } from "@/components/AppHeader";
 import { ChecklistPanel } from "@/components/loan/ChecklistPanel";
@@ -77,6 +78,7 @@ export function LoanHeader({
   const { activityPanelOpen, toggleActivityPanel } = useActivityPanel();
   const { tasks } = useChecklist();
   const app = useApplicationStatus().document;
+  const withdrawn = (app?.sections.withdrawal as { acknowledged?: boolean } | undefined)?.acknowledged === true;
   const showTridDaysRemaining = app
     ? app.businessRules?.trid.status === "required"
     : tasks.find((task) => task.name === "Loan Estimate")?.status === "re-fire";
@@ -102,6 +104,7 @@ export function LoanHeader({
         <BreadcrumbBar loanNumber={loanNumber} activityPanelOpen={activityPanelOpen} toggleActivityPanel={toggleActivityPanel} />
         <StageStepper key={`${app?.loan.id ?? loanNumber}:${app?.generation ?? 0}`} />
         <HeaderTextBlock
+          withdrawn={withdrawn}
           loanType={loanType}
           loanNumber={loanNumber}
           cifNumber={cifNumber}
@@ -113,6 +116,17 @@ export function LoanHeader({
           tridDaysRemaining={tridDaysRemaining}
           showTridDaysRemaining={showTridDaysRemaining}
         />
+        {withdrawn && <div role="status" data-testid="withdrawn-notice"
+          className="flex items-start"
+          style={{ margin: "0 24px", padding: "12px 16px", gap: 12,
+            backgroundColor: "var(--roads-bg-light)", border: "1px solid var(--roads-border-subtle)",
+            borderRadius: "var(--roads-radius-2xs)", color: "var(--roads-text-primary)" }}>
+          <Slash size={18} aria-hidden style={{ flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <p className="body-200-strong">This loan has been withdrawn.</p>
+            <p className="body-200" style={{ color: "var(--roads-text-secondary)" }}>Withdrawn at the borrower’s request.</p>
+          </div>
+        </div>}
         <TabNavigation
           activeTab={activeTab}
           onTabChange={handleTabClick}
@@ -124,6 +138,7 @@ export function LoanHeader({
 
 export function StageStepper() {
   const store = useApplicationStatus();
+  const withdrawn = (store.document?.sections.withdrawal as { acknowledged?: boolean } | undefined)?.acknowledged === true;
   // Older saved stages remain intact; display them at the application step until moved.
   const currentStep = Math.max(0, STAGES.findIndex(stage => stage.label === store.document?.loan.stage));
   const [busy, setBusy] = useState(false);
@@ -139,6 +154,8 @@ export function StageStepper() {
   }
   return (
     <>
+    {withdrawn && <p className="caption-100" style={{ padding: "0 24px", color: "var(--roads-text-secondary)" }}
+      data-testid="withdrawn-stage-label">Stage at withdrawal: {store.document?.loan.stage}</p>}
     <div
       className="flex w-full"
       style={{ padding: "0 24px" }}
@@ -153,7 +170,10 @@ export function StageStepper() {
 
         let bgColor: string;
         let textColor: string;
-        if (isCompleted) {
+        if (withdrawn) {
+          bgColor = isActive ? "var(--roads-bg-dark)" : "var(--roads-bg-light)";
+          textColor = isActive ? "var(--roads-text-primary)" : "var(--roads-text-secondary)";
+        } else if (isCompleted) {
           bgColor = "var(--roads-bg-brand-subtle)";
           textColor = "var(--roads-text-brand)";
         } else if (isActive) {
@@ -211,6 +231,7 @@ export function StageStepper() {
 }
 
 interface HeaderTextBlockProps {
+  withdrawn?: boolean;
   loanType: string;
   loanNumber: string;
   cifNumber: string;
@@ -224,6 +245,7 @@ interface HeaderTextBlockProps {
 }
 
 function HeaderTextBlock({
+  withdrawn = false,
   loanType,
   loanNumber,
   cifNumber,
@@ -240,10 +262,15 @@ function HeaderTextBlock({
       className="flex flex-col"
       style={{ padding: "0 24px", gap: "var(--roads-spacing-component-3xs)" }}
     >
-      <div className="flex items-center caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
+      <div className="flex items-center flex-wrap caption-100" style={{ color: "var(--roads-text-primary)", gap: "var(--roads-spacing-component-2xs)" }} data-testid="text-loan-metadata">
         <span>SLP</span>
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>Loan: {loanNumber}</span>
+        {withdrawn && <span className="body-200-strong inline-flex items-center" data-testid="chip-withdrawn"
+          style={{ marginLeft: 4, gap: 4, padding: "2px 8px", borderRadius: "var(--roads-radius-2xs)",
+            backgroundColor: "var(--roads-bg-dark)", color: "var(--roads-icon-dark)" }}>
+          <Slash size={14} aria-hidden />Withdrawn
+        </span>}
         <span style={{ color: "var(--roads-border-subtle)" }}>|</span>
         <span>CIF: {cifNumber}</span>
       </div>
