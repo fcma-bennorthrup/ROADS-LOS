@@ -4,6 +4,7 @@ import { evaluateLoanRules } from "../shared/business-rules";
 import { contractExpiry } from "./opportunity-expiry";
 import { pick } from "../shared/loan-events/random";
 import { syntheticBorrower } from "../shared/loan-events/synthetic-borrower";
+import { captureBaseline } from "../shared/loan-events/baseline";
 
 /** Called while holding the creation transaction lock. Wrap rather than reuse a CIF. */
 export function allocateCif(used: Set<string>, start = randomInt(100000, 1000000)): string {
@@ -14,7 +15,7 @@ export function allocateCif(used: Set<string>, start = randomInt(100000, 1000000
   throw new Error("No six-digit CIFs remain available.");
 }
 
-export function newSfOpportunity(id: string, loanNumber: string, cif: string, now = new Date()) {
+export function newSfOpportunity(id: string, loanNumber: string, cif: string, now = new Date(), borrowerCount: 1 | 2 = 1) {
   const borrower = syntheticBorrower({ cif, now, random: randomInt });
   const { firstName, lastName, phone, email } = borrower;
   const name = `${firstName} ${lastName}`;
@@ -28,6 +29,22 @@ export function newSfOpportunity(id: string, loanNumber: string, cif: string, no
     "loan-details": { loanType: "purchase", loanPurpose: "", requestedLoanAmount: amount,
       downPaymentAmount: "", downPaymentSource: "", tellTheStory: "", intentToProceed: false, brpLoan: false },
   };
+  if (borrowerCount === 2) {
+    let secondary: ReturnType<typeof syntheticBorrower>;
+    do {
+      secondary = syntheticBorrower({ cif, now, random: randomInt });
+    } while (`${secondary.firstName} ${secondary.lastName}` === name ||
+      secondary.ssn === borrower.ssn || secondary.phone === phone || secondary.email === email);
+    document.borrowers.push({
+      id: `${id}-secondary`, loanId: id, isPrimary: false,
+      name: `${secondary.firstName} ${secondary.lastName}`,
+      phone: secondary.phone, email: secondary.email,
+    });
+    document.sections["borrower-secondary"] = secondary;
+  }
+  document.sections.income = document.borrowers.map(({ name }) => ({
+    name, isPrimaryWageEarner: false, incomeSources: [],
+  }));
   document.meta!.source = "sf";
   // Persist the prototype's Eastern calendar date, without browser timezone shifts.
   document.meta!.opportunity = {
@@ -39,5 +56,6 @@ export function newSfOpportunity(id: string, loanNumber: string, cif: string, no
     contractExpiryDate: contractExpiry(now.toISOString()),
   };
   document.businessRules = evaluateLoanRules(document);
+  document.meta!.baseline = captureBaseline(document, now);
   return document;
 }

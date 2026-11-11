@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { newLoanApplication } from "../../shared/loan-factory";
+import { newSfOpportunity } from "../sf-opportunity";
 const db = vi.hoisted(() => ({ query: vi.fn(), connect: vi.fn(), release: vi.fn() }));
 vi.mock("pg", () => ({ default: { Pool: class {
   query = db.query;
@@ -106,7 +107,8 @@ describe("pipeline API", () => {
     const reloaded = await request("GET /api/loans/:id/application", {}, "parcel-loan");
     expect(reloaded.body.sections["subject-property"].parcel).toBe(parcel);
   });
-  it.each(["sf", "blank"])("recovers a lost %s response and serializes retries without regenerating values", async source => {
+  it.each([1, 2] as const)("recovers a lost %i-borrower SF response and serializes retries without regenerating values", async borrowerCount => {
+    const source = "sf";
     const saved: any[] = [document()];
     const key = "76a7c45c-9998-465c-afed-67b8f3588618";
     let tail = Promise.resolve();
@@ -137,11 +139,11 @@ describe("pipeline API", () => {
     const lostResponse: any = { status: () => lostResponse,
       json: () => { throw new Error("Connection lost after commit"); } };
     await expect(routes["POST /api/loans"]({
-      body: { source, idempotencyKey: key },
+      body: { source, borrowerCount, idempotencyKey: key },
     }, lostResponse)).rejects.toThrow("Connection lost after commit");
     const original = structuredClone(saved[1]);
     const retries = await Promise.all(Array.from({ length: 3 }, () =>
-      request("POST /api/loans", { source, idempotencyKey: key })));
+      request("POST /api/loans", { source, borrowerCount, idempotencyKey: key })));
     for (const result of retries) {
       expect(result.statusCode).toBe(201);
       expect(result.body).toEqual({ id: original.loan.id, loanNumber: original.loan.loanNumber });
@@ -149,11 +151,11 @@ describe("pipeline API", () => {
     expect(saved).toEqual([document(), original]);
     expect(allocations).toBe(1);
     expect((await request("POST /api/loans", {
-      source: source === "sf" ? "blank" : "sf", idempotencyKey: key,
+      source, borrowerCount: borrowerCount === 1 ? 2 : 1, idempotencyKey: key,
     })).statusCode).toBe(409);
     expect(saved).toHaveLength(2);
     const next = await request("POST /api/loans", {
-      source, idempotencyKey: "56a7c45c-9998-465c-afed-67b8f3588618",
+      source, borrowerCount, idempotencyKey: "56a7c45c-9998-465c-afed-67b8f3588618",
     });
     expect(next.statusCode).toBe(201);
     expect(next.body.id).not.toBe(original.loan.id);
@@ -164,6 +166,23 @@ describe("pipeline API", () => {
       expect((await request("POST /api/loans", { source: "sf", idempotencyKey })).statusCode).toBe(400);
     }
     expect(db.query).not.toHaveBeenCalled();
+  });
+  it("recovers a legacy single-borrower receipt and rejects a saved different source", async () => {
+    const key = "76a7c45c-9998-465c-afed-67b8f3588618";
+    const saved = newSfOpportunity("legacy-retry-test", "123456790", "123456");
+    saved.meta!.creationAttempt = { key, source: "sf" };
+    db.query.mockImplementation(async (sql: string) => {
+      if (sql.includes("creationAttempt")) return { rows: [{ document: saved }] };
+      if (sql.startsWith("SELECT document FROM")) return { rows: [{ document: document() }] };
+      return { rows: [] };
+    });
+    const retry = await request("POST /api/loans", { source: "sf", idempotencyKey: key });
+    expect(retry.statusCode).toBe(201);
+    expect(retry.body.id).toBe(saved.loan.id);
+    expect((await request("POST /api/loans", { source: "sf", borrowerCount: 2, idempotencyKey: key })).statusCode).toBe(409);
+    saved.meta!.creationAttempt.source = "blank";
+    expect((await request("POST /api/loans", { source: "sf", idempotencyKey: key })).statusCode).toBe(409);
+    expect(db.query.mock.calls.some(([sql]) => sql.startsWith("INSERT"))).toBe(false);
   });
   it("serializes simultaneous opportunity allocations and preserves both inserts", async () => {
     const saved: any[] = [document()];
@@ -243,26 +262,33 @@ describe("pipeline API", () => {
     expect(result.body[0]).not.toHaveProperty("borrowers");
     expect(result.body[0].amountRequested).toBeNull();
   });
-  it("allocates a blank package under a transaction lock", async () => {
+  it("allocates an SF opportunity with a default single borrower under a transaction lock", async () => {
     db.query.mockResolvedValueOnce({ rows: [{ document: document() }] })
       .mockResolvedValueOnce({ rows: [] }) // begin
       .mockResolvedValueOnce({ rows: [] }) // lock
       .mockResolvedValueOnce({ rows: [{ number: "123456790" }] })
+      .mockResolvedValueOnce({ rows: [] }) // CIF allocation
       .mockResolvedValueOnce({ rowCount: 1, rows: [] }) // insert
       .mockResolvedValueOnce({ rows: [] }); // commit
-    const result = await request("POST /api/loans", { source: "blank" });
+    const result = await request("POST /api/loans", { source: "sf" });
     expect(result.statusCode).toBe(201);
     expect(result.body.loanNumber).toBe("123456790");
     const insert = db.query.mock.calls.find(([sql]) => sql.startsWith("INSERT"));
     const saved = JSON.parse(insert![1][1]);
     expect(saved.mode).toBe("empty");
-    expect(saved.sections).toEqual({});
+    expect(saved.borrowers).toHaveLength(1);
+    expect(saved.sections.income).toHaveLength(1);
+    expect(saved.meta.baseline.loan).toEqual(saved.loan);
     expect(saved.loan.stage).toBe("Customer Application");
     expect(saved.borrowers[0].id).toBe(`${result.body.id}-primary`);
     expect(db.query.mock.calls.some(([sql]) => sql.includes("pg_advisory_xact_lock"))).toBe(true);
     expect(db.release).toHaveBeenCalledOnce();
   });
   it("rejects unsupported creation and stage values before querying", async () => {
+    for (const source of ["blank", "blend"])
+      expect((await request("POST /api/loans", { source })).statusCode).toBe(400);
+    for (const borrowerCount of [0, 3, "2", null])
+      expect((await request("POST /api/loans", { source: "sf", borrowerCount })).statusCode).toBe(400);
     expect((await request("POST /api/loans", { source: "existing" })).statusCode).toBe(400);
     expect((await request("PUT /api/loans/:id/stage", { stage: "Unknown", generation: 0, revision: 0 })).statusCode).toBe(400);
     expect(db.query).not.toHaveBeenCalled();
@@ -301,20 +327,22 @@ describe("pipeline API", () => {
     expect(result.body.loan.stage).toBe("Loan Setup");
     expect(result.body.revision).toBe(0);
   });
-  it("retains creation time and resets only the target loan on Blend replacement", async () => {
+  it.each(["reset", "blend"])("retains creation time and baseline on %s replacement", async action => {
     const current = document("other");
-    current.meta!.creationAttempt = { key: "76a7c45c-9998-465c-afed-67b8f3588618", source: "blank" };
+    current.meta!.baseline = newSfOpportunity("other", current.loan.loanNumber, "123456").meta!.baseline;
+    current.meta!.creationAttempt = { key: "76a7c45c-9998-465c-afed-67b8f3588618", source: "sf", borrowerCount: 2 };
     db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
       .mockImplementationOnce(async (_sql, args) => ({ rowCount: 1, rows: [{ document: JSON.parse(args[1]) }] }));
     const result = await request("POST /api/loans/:id/application/demo", {
-      action: "blend", borrowerCount: 1, confirmed: true, generation: 0, revision: 0,
+      action, borrowerCount: 1, confirmed: true, generation: 0, revision: 0,
       sections: { "current-liabilities": [], "noncurrent-liabilities": [] },
     }, "other");
     expect(result.body.loan.id).toBe("other");
     expect(result.body.meta.createdAt).toBe(current.meta!.createdAt);
     expect(result.body.meta.creationAttempt).toEqual(current.meta!.creationAttempt);
-    expect(result.body.meta.source).toBe("blend");
-    expect(result.body.borrowers).toHaveLength(1);
+    expect(result.body.meta.baseline).toEqual(current.meta!.baseline);
+    expect(result.body.meta.source).toBe(action === "blend" ? "blend" : "blank");
+    expect(result.body.borrowers).toHaveLength(action === "blend" ? 1 : 2);
     expect(result.body.generation).toBe(1);
   });
   it("returns a clear database error rather than an empty successful list", async () => {

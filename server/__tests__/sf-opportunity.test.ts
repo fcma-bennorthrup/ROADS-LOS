@@ -39,3 +39,32 @@ it("persists valid synthetic fields and matching detail projections", () => {
     expect(app.businessRules?.trid.status).toBe("not-triggered");
   }
 });
+it.each([1, 2] as const)("captures an independent baseline and income records for %i borrowers", borrowerCount => {
+  const now = new Date("2026-11-11T15:00:00Z");
+  const app = newSfOpportunity("sf-baseline-test", "123456790", "123456", now, borrowerCount);
+  assertLoanDocument(app);
+  expect(app.borrowers).toHaveLength(borrowerCount);
+  expect(app.sections.income).toEqual(app.borrowers.map(({ name }) => ({
+    name, isPrimaryWageEarner: false, incomeSources: [],
+  })));
+  expect(applicationView(app).borrowers).toHaveLength(borrowerCount);
+  expect(pipelineView(app).additionalBorrowerCount).toBe(borrowerCount - 1);
+  expect(app.meta!.baseline).toEqual({
+    capturedAt: now.toISOString(), loan: app.loan, borrowers: app.borrowers,
+    sections: app.sections, opportunity: app.meta!.opportunity,
+  });
+  if (borrowerCount === 2) {
+    const first = app.sections["borrower-primary"] as Record<string, string>;
+    const second = app.sections["borrower-secondary"] as Record<string, string>;
+    for (const key of ["ssn", "phone", "email"]) expect(first[key]).not.toBe(second[key]);
+    expect(app.borrowers[0].name).not.toBe(app.borrowers[1].name);
+    expect(app.borrowers[1]).toMatchObject({ id: "sf-baseline-test-secondary", loanId: app.loan.id, isPrimary: false });
+    expect(applicationView(app).borrowers[1].name).toBe(app.borrowers[1].name);
+  }
+  const baseline = structuredClone(app.meta!.baseline);
+  app.loan.primaryBorrowerName = "Edited";
+  app.borrowers[0].name = "Edited";
+  (app.sections["borrower-primary"] as Record<string, string>).firstName = "Edited";
+  app.meta!.opportunity!.region = "Edited";
+  expect(app.meta!.baseline).toEqual(baseline);
+});

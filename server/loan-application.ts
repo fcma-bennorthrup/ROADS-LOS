@@ -90,11 +90,12 @@ export function registerLoanApplicationRoutes(app: Express) {
     } catch (error) { loanFailure(res, error, "The pipeline could not be loaded from the database."); }
   });
   app.post("/api/loans", async (req, res) => {
-    const parsed = z.object({ source: z.enum(["blank", "sf"]),
+    const parsed = z.object({ source: z.literal("sf"),
+      borrowerCount: z.union([z.literal(1), z.literal(2)]).default(1),
       idempotencyKey: z.string().uuid().optional() }).strict().safeParse(req.body);
     if (!parsed.success)
       return void res.status(400).json({ error: "Choose a supported application source to create a loan." });
-    const { source, idempotencyKey } = parsed.data;
+    const { source, borrowerCount, idempotencyKey } = parsed.data;
     let client: pg.PoolClient | undefined;
     try {
       await load("1");
@@ -115,6 +116,11 @@ export function registerLoanApplicationRoutes(app: Express) {
             await client.query("ROLLBACK");
             return void res.status(409).json({ error: "This creation attempt belongs to a different application source." });
           }
+          // Older SF receipts predate this choice and always created one borrower.
+          if ((saved.meta?.creationAttempt?.borrowerCount ?? 1) !== borrowerCount) {
+            await client.query("ROLLBACK");
+            return void res.status(409).json({ error: "This creation attempt belongs to a different borrower count." });
+          }
           await client.query("COMMIT");
           return void res.status(201).json({ id: saved.loan.id, loanNumber: saved.loan.loanNumber });
         }
@@ -126,15 +132,10 @@ export function registerLoanApplicationRoutes(app: Express) {
       const loanNumber = String(allocation.rows[0].number);
       if (loanNumber.length > 9) throw new Error("Loan number range exhausted.");
       const id = randomUUID();
-      let document: LoanApplication;
-      if (source === "sf") {
-        const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
-        const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
-        document = newSfOpportunity(id, loanNumber, cif);
-      } else {
-        document = newLoanApplication({ id, loanNumber, source: "blank", borrowerCount: 2 });
-      }
-      if (idempotencyKey) document.meta!.creationAttempt = { key: idempotencyKey, source };
+      const existing = await client.query("SELECT document->'loan'->>'cifNumber' AS cif FROM prototype_loan_applications");
+      const cif = allocateCif(new Set(existing.rows.map(row => row.cif)));
+      const document = newSfOpportunity(id, loanNumber, cif, new Date(), borrowerCount);
+      if (idempotencyKey) document.meta!.creationAttempt = { key: idempotencyKey, source, borrowerCount };
       assertLoanDocument(document, id);
       const inserted = await client.query(
         "INSERT INTO prototype_loan_applications (loan_id, document) VALUES ($1,$2) ON CONFLICT DO NOTHING RETURNING loan_id",
@@ -279,6 +280,7 @@ export function registerLoanApplicationRoutes(app: Express) {
       // A demo replacement is not a new loan: retain its original creation time.
       if (current.meta) next.meta!.createdAt = current.meta.createdAt;
       if (current.meta?.creationAttempt) next.meta!.creationAttempt = current.meta.creationAttempt;
+      if (current.meta?.baseline) next.meta!.baseline = current.meta.baseline;
       const previousChecklist = current.sections[checklistKey];
       if (typeof previousChecklist === "string") {
         const statuses = JSON.parse(previousChecklist);
