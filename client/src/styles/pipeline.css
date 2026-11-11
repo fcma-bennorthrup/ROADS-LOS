@@ -53,6 +53,8 @@
 .pipeline-table th { background: var(--roads-bg-light); white-space: nowrap; }
 .pipeline-table th button { display: inline-flex; align-items: center; gap: var(--roads-spacing-component-2xs); }
 .pipeline-table tbody tr[data-loan]:hover { background: var(--roads-bg-light); }
+.pipeline-table tbody tr[data-loan] { cursor: pointer; }
+.pipeline-table tbody tr[data-loan]:focus-visible { outline: 2px solid var(--roads-border-brand); outline-offset: -2px; }
 .pipeline-table a { color: var(--roads-text-link); }
 .pipeline-table td:nth-child(6), .pipeline-table th:nth-child(6) { text-align: right; }
 .pipeline-table-operations th:nth-child(6) { text-align: left; }

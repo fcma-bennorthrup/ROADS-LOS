@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { FiSearch, FiPlus, FiPlusCircle, FiArrowDown, FiArrowUp, FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { LOAN_STAGES, type LoanStage } from "@shared/loan-stages";
 import { MoreOptionsMenu } from "@/components/AppHeader";
@@ -12,6 +13,7 @@ import { pipelineRows, pipelinePage, queueLoans, PIPELINE_QUEUES, type PipelineQ
 import "@/styles/pipeline.css";
 
 export default function PipelinePage() {
+  const [, navigate] = useLocation();
   const query = usePipelineQuery();
   const [search, setSearch] = useState("");
   const [tableSearch, setTableSearch] = useState("");
@@ -94,7 +96,19 @@ export default function PipelinePage() {
                 <tbody>{query.isLoading ? Array.from({ length: 6 }, (_, index) => <tr key={index} data-testid={`pipeline-skeleton-${index}`} className="animate-pulse">
                   {columns.map(column => <td key={column.key}><div className="pipeline-skeleton" /></td>)}
                 </tr>) : pagination.rows.map(loan => {
-                  return <tr key={loan.id} data-loan={loan.id} data-testid={`pipeline-row-${loan.id}`}>
+                  return <tr key={loan.id} data-loan={loan.id} data-testid={`pipeline-row-${loan.id}`}
+                    tabIndex={0} aria-label={`Open loan ${loan.loanNumber}`}
+                    onClick={event => {
+                      if ((event.target as HTMLElement).closest(".pipeline-row-actions")) return;
+                      navigate(`~/loans/${encodeURIComponent(loan.id)}`);
+                    }}
+                    onKeyDown={event => {
+                      if (event.target !== event.currentTarget) return;
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        navigate(`~/loans/${encodeURIComponent(loan.id)}`);
+                      }
+                    }}>
                     <PipelineRowCells columns={columns} loan={loan} />
                   </tr>;
                 })}</tbody>

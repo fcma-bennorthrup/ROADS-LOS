@@ -36,6 +36,27 @@ const salesHeaders = [
   ...allHeaders.slice(0, 8), "App Submit Date", "Contract Exp Date", "Decision", "Appraisal", "Actions",
 ];
 const expectedHeaders = (queue: string) => queue === "Operations" ? operationsHeaders : queue === "Sales Support" ? salesHeaders : allHeaders;
+it.each(["All Loans", "Sales Support"])("opens %s rows without making action icons navigate", async queue => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], departmentQueue: "Sales Support" }]))));
+  const { history } = view();
+  await screen.findByTestId("pipeline-row-first");
+  fireEvent.click(screen.getByTestId(`queue-${queue.toLowerCase().replaceAll(" ", "-")}`));
+  const row = screen.getByTestId("pipeline-row-first");
+  expect(within(row).queryByRole("link")).toBeNull();
+  fireEvent.click(within(row).getByRole("button", { name: /Preview loan/ }));
+  fireEvent.click(row.querySelector(".pipeline-row-actions")!);
+  expect(history.at(-1)).toBe("/pipeline");
+  fireEvent.click(within(row).getAllByRole("cell")[3]);
+  expect(history.at(-1)).toBe("/loans/first");
+});
+it.each(["Enter", " "])("opens a focused loan row using %s", async key => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(loans))));
+  const { history } = view();
+  const row = await screen.findByTestId("pipeline-row-first");
+  expect(row).toHaveAttribute("tabindex", "0");
+  fireEvent.keyDown(row, { key });
+  expect(history.at(-1)).toBe("/loans/first");
+});
 it("shows a newly created SF row on Pipeline even from a filtered empty department", async () => {
   let saved = [...loans];
   vi.stubGlobal("fetch", vi.fn(async (_url: string, options?: RequestInit) => {
@@ -103,8 +124,9 @@ it.each(PIPELINE_QUEUES)("aligns every %s header with its own cell renderer", qu
   const cells = screen.getAllByRole("cell");
   expect(cells.map(cell => cell.textContent)).toEqual(expectedHeaders(queue).map(header => values[header]));
   const actions = within(cells.at(-1)!);
-  expect(actions.getByRole("link", { name: "View loan 123456790" })).toHaveAttribute("href", "/loans/first");
-  expect(actions.getAllByRole("button")).toHaveLength(2);
+  expect(actions.queryByRole("link")).toBeNull();
+  expect(actions.getByRole("button", { name: "Preview loan 123456790 — unavailable" })).toBeDisabled();
+  expect(actions.getAllByRole("button")).toHaveLength(3);
   actions.getAllByRole("button").forEach(button => expect(button).toBeDisabled());
 });
 
@@ -204,7 +226,7 @@ it("uses only the index projection, filters with counts, sorts, and links to loa
   const cells = within(screen.getByTestId("pipeline-row-first")).getAllByRole("cell");
   expect(cells[8]).toHaveTextContent("—");
   expect(cells[8].firstChild).toHaveAttribute("aria-label", "Application start date is not available in the saved pipeline data.");
-  fireEvent.click(screen.getByTestId("open-loan-first"));
+  fireEvent.click(screen.getByTestId("pipeline-row-first"));
   expect(history.at(-1)).toBe("/loans/first");
 });
 it("renders the exact Figma columns and real queue counts without fabricating assignments", async () => {
