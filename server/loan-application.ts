@@ -10,7 +10,8 @@ import { applyTridDemoAction } from "../shared/business-rules/trid-demo-actions"
 import { populateDemoCredit } from "../shared/demo-credit";
 import { resetChecklistData } from "../shared/reset-checklist-data";
 import { newLoanApplication } from "../shared/loan-factory";
-import { randomUUID } from "node:crypto";
+import { randomUUID, randomInt } from "node:crypto";
+import { applyBlendApplication } from "../shared/loan-events/blend-application";
 import { allocateCif, newSfOpportunity } from "./sf-opportunity";
 import { ensureOpportunityExpiry } from "./opportunity-expiry";
 import { withOriginationFee } from "../shared/business-rules/origination-fee";
@@ -278,29 +279,13 @@ export function registerLoanApplicationRoutes(app: Express) {
         if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it before triggering TRID." });
         return void res.json(result.rows[0].document);
       }
-      const next = newLoanApplication({
-        id: current.loan.id, loanNumber: current.loan.loanNumber,
-        source: action === "blend" ? "blend" : "blank",
-        borrowerCount: parsed.data.borrowerCount, sections: parsed.data.sections,
-        generation: generation + 1, revision: revision + 1,
-      });
-      const checklistKey = `storage:loan-checklist-statuses:${current.loan.id}`;
-      // A demo replacement is not a new loan: retain its original creation time.
-      if (current.meta) next.meta!.createdAt = current.meta.createdAt;
-      if (current.meta?.creationAttempt) next.meta!.creationAttempt = current.meta.creationAttempt;
-      if (current.meta?.baseline) next.meta!.baseline = current.meta.baseline;
-      const previousChecklist = current.sections[checklistKey];
-      if (typeof previousChecklist === "string") {
-        const statuses = JSON.parse(previousChecklist);
-        next.sections[checklistKey] = JSON.stringify(Object.fromEntries(
-          Object.entries(statuses).filter(([, value]) => Array.isArray(value))
-            .map(([key, value]) => [key, (value as unknown[]).map(() => "not-started")]),
-        ));
-      }
-      next.businessRules = evaluateLoanRules(next);
+      if (current.generation !== generation || current.revision !== revision)
+        return void res.status(409).json({ error: "The loan changed. Reload it before importing." });
+      const next = applyBlendApplication(current, { borrowerCount: parsed.data.borrowerCount, random: randomInt, now: new Date() });
+      if (next === current) return void res.json(current);
       assertLoanDocument(next, current.loan.id);
       const result = await pool.query(
-        `UPDATE prototype_loan_applications SET document=jsonb_set($2::jsonb, '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
+        `UPDATE prototype_loan_applications SET document=$2::jsonb
          WHERE loan_id=$1 AND (document->>'generation')::int=$3 AND (document->>'revision')::int=$4 RETURNING document`,
         [req.params.id, JSON.stringify(next), generation, revision]);
       if (!result.rowCount) return void res.status(409).json({ error: "The loan changed. Reload it and confirm the action again." });

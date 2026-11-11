@@ -22,6 +22,22 @@ beforeEach(() => {
 });
 
 describe("Trigger TRID button", () => {
+  it("keeps the panel data installed unchanged for a no-op Blend import", async () => {
+    mocks.request.mockResolvedValueOnce({ ...mocks.store.document });
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
+    expect(await screen.findByText("Nothing to fill. This loan's application is already complete. Reset to import a different one.")).toBeInTheDocument();
+    expect(mocks.store.install).not.toHaveBeenCalled();
+  });
+  it("refuses Blend while edits are unsaved", async () => {
+    mocks.store.dirty = true;
+    render(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
+    expect(await screen.findByText("Save or discard your open edits before continuing.")).toBeInTheDocument();
+    expect(mocks.request).not.toHaveBeenCalled();
+  });
   it("describes and confirms a Salesforce baseline reset", async () => {
     mocks.request.mockResolvedValueOnce({ loan: { id: "demo" }, generation: 2, revision: 3 });
     render(<LoanDemoControls />);
@@ -126,12 +142,13 @@ describe("Trigger TRID button", () => {
     fireEvent.click(screen.getByRole("radio", { name: count === 1 ? "1 borrower" : "2 borrowers" }));
     fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
     expect(mocks.request).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Confirm replacement" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
     await waitFor(() => expect(mocks.request).toHaveBeenCalled());
     expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toMatchObject({
       action: "blend", borrowerCount: count, confirmed: true,
-      sections: { income: Array(count).fill({}) },
+      generation: 1, revision: 2,
     });
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).not.toHaveProperty("sections");
   });
   it("requires confirmation, then submits the current loan revision and demo fields", async () => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });

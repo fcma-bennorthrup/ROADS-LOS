@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { newLoanApplication } from "../../shared/loan-factory";
 import { newSfOpportunity } from "../sf-opportunity";
+import { applyBlendApplication } from "../../shared/loan-events/blend-application";
+import { deterministicRandom } from "../../shared/loan-events/random";
 const db = vi.hoisted(() => ({ query: vi.fn(), connect: vi.fn(), release: vi.fn() }));
 vi.mock("pg", () => ({ default: { Pool: class {
   query = db.query;
@@ -341,9 +343,9 @@ describe("pipeline API", () => {
     expect(result.body.meta.createdAt).toBe(current.meta!.createdAt);
     expect(result.body.meta.creationAttempt).toEqual(current.meta!.creationAttempt);
     expect(result.body.meta.baseline).toEqual(current.meta!.baseline);
-    expect(result.body.meta.source).toBe(action === "blend" ? "blend" : "sf");
-    expect(result.body.borrowers).toHaveLength(1);
-    expect(result.body.generation).toBe(1);
+    expect(result.body.meta.source).toBe(action === "blend" ? current.meta!.source : "sf");
+    expect(result.body.borrowers).toHaveLength(action === "blend" ? 2 : 1);
+    expect(result.body.generation).toBe(action === "blend" ? 0 : 1);
   });
   it("rejects stale baseline resets before saving", async () => {
     const current = document("reset-stale-test");
@@ -355,6 +357,18 @@ describe("pipeline API", () => {
     expect(result.statusCode).toBe(409);
     expect(db.query).toHaveBeenCalledTimes(1);
     expect(db.connect).not.toHaveBeenCalled();
+  });
+  it("does not write on a complete Blend import and rejects stale requests", async () => {
+    const current = applyBlendApplication(newSfOpportunity("blend-api-test", "123456790", "123456"), {
+      borrowerCount: 1, random: deterministicRandom(1), now: new Date(),
+    });
+    db.query.mockResolvedValue({ rows: [{ document: current }] });
+    const body = { action: "blend", borrowerCount: 1, confirmed: true, generation: current.generation, revision: current.revision };
+    const result = await request("POST /api/loans/:id/application/demo", { ...body, sections: { "borrower-primary": { firstName: "Malicious replacement" } } }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body).toEqual(current);
+    expect(db.query).toHaveBeenCalledTimes(1);
+    expect((await request("POST /api/loans/:id/application/demo", { ...body, revision: 99 }, current.loan.id)).statusCode).toBe(409);
   });
   it.each([true, false])("captures a legacy baseline only during reset (existing CIF: %s)", async hasCif => {
     const current = document("legacy-reset-test");
