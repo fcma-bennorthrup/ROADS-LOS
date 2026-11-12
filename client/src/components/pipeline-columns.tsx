@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import { FiEye, FiMoreVertical, FiUserPlus } from "react-icons/fi";
+import { FiEye, FiUserPlus } from "react-icons/fi";
 import type { PipelineLoan } from "@shared/pipeline";
 import type { PipelineQueue, PipelineSort } from "@/lib/pipeline-display";
 import { formatCurrency } from "@/lib/loan-display";
 import { LoanTeamDialog } from "@/components/LoanTeamDialog";
+import { WithdrawLoanAction } from "@/components/WithdrawLoanAction";
 
 type PipelineColumn = {
   key: string;
@@ -32,7 +33,7 @@ const columns = {
     <>{loan.primaryBorrowerName || <Unavailable field="Borrower name" />}{!!loan.additionalBorrowerCount && <span className="pipeline-additional caption-100" aria-label={`${loan.additionalBorrowerCount} additional borrowers`}>+{loan.additionalBorrowerCount}</span>}</> },
   loanType: { key: "loanType", sort: "loanType", label: "Loan Purpose", width: 230, render: loan => loan.loanType || <Unavailable field="Loan purpose" /> },
   amountRequested: { key: "amountRequested", sort: "amountRequested", label: "Req Amount", width: 242, render: loan => loan.amountRequested === null ? <Unavailable field="Requested amount" /> : formatCurrency(String(loan.amountRequested)) },
-  stage: { key: "stage", sort: "stage", label: "Stage", width: 230, render: loan => loan.stage },
+  stage: { key: "stage", sort: "stage", label: "Stage", width: 230, render: loan => loan.withdrawn ? "Withdrawn" : loan.stage },
   officer: { key: "officer", label: "LO", width: 160, render: loan => loan.loanOfficer ?? <Unavailable field="Loan officer" /> },
   applicationDate: { key: "applicationDate", label: "App Start Date", width: 151, render: loan => loan.applicationDate ? displayDate(loan.applicationDate) : <Unavailable field="Application start date" /> },
   submitDate: { key: "submitDate", label: "App Submit Date", width: 151, render: () => <Unavailable field="Application submit date" /> },
@@ -47,7 +48,7 @@ const columns = {
     <div className="pipeline-row-actions">
       {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
       <button disabled aria-label={`Preview loan ${loan.loanNumber} — unavailable`} title="Loan preview is not available yet"><FiEye aria-hidden /></button>
-      <button disabled aria-label={`More actions for loan ${loan.loanNumber} — unavailable`} title="No additional loan actions available"><FiMoreVertical aria-hidden /></button>
+      <WithdrawLoanAction loan={loan} />
     </div> },
 } satisfies Record<string, PipelineColumn>;
 

@@ -6,6 +6,8 @@ import { GitHubSyncPanel } from "@/components/GitHubSyncPanel";
 import { SummaryDebugDialog } from "@/components/loan/SummaryDebugDialog";
 import { useLeaveLoan } from "@/hooks/use-leave-loan";
 import { LoanNavigationMenu } from "@/components/LoanNavigationMenu";
+import { WithdrawLoanAction } from "@/components/WithdrawLoanAction";
+import { useApplicationStatus } from "@/contexts/loan-application-context";
 
 interface BreadcrumbBarProps {
   loanNumber?: string;
@@ -53,6 +55,9 @@ export function BreadcrumbBar({ loanNumber, activityPanelOpen, toggleActivityPan
 }
 
 export function MoreOptionsMenu({ onGitHubSync, loanActive }: { onGitHubSync: () => void; loanActive: boolean }) {
+  const store = useApplicationStatus();
+  const activeDocument = loanActive ? store.document : null;
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -65,7 +70,7 @@ export function MoreOptionsMenu({ onGitHubSync, loanActive }: { onGitHubSync: ()
     return () => document.removeEventListener("mousedown", outside);
   }, [open]);
   return <div className="relative" ref={menuRef}>
-    <button data-testid="button-more-options" aria-label="More options" aria-expanded={open} className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }} onClick={() => setOpen(value => !value)}><MoreVertical className="w-5 h-5" /></button>
+    <button ref={triggerRef} data-testid="button-more-options" aria-label="More options" aria-expanded={open} className="flex items-center justify-center" style={{ color: "var(--roads-icon-dark)" }} onClick={() => setOpen(value => !value)}><MoreVertical className="w-5 h-5" /></button>
     <div style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, background: "var(--roads-bg-primary)", borderRadius: "var(--roads-radius-2xs, 4px)", boxShadow: "0px 8px 16px rgba(39, 51, 51, 0.24)", padding: "var(--roads-spacing-component-xs, 8px)", zIndex: 50, visibility: open ? "visible" : "hidden", opacity: open ? 1 : 0 }}>
       <button data-testid="menu-item-prototype-admin" className="body-100"
         style={{ display: "flex", alignItems: "center", width: "100%", height: 40, padding: "0 12px", color: "var(--roads-text-primary)", background: "transparent", borderRadius: "var(--roads-radius-2xs, 4px)", cursor: "pointer", whiteSpace: "nowrap", border: "none" }}
@@ -73,6 +78,10 @@ export function MoreOptionsMenu({ onGitHubSync, loanActive }: { onGitHubSync: ()
         onMouseLeave={event => { event.currentTarget.style.background = "transparent"; }}
         onClick={() => { setOpen(false); onGitHubSync(); }}>Prototype Admin Controls</button>
       {loanActive && <button data-testid="menu-item-debug" className="body-100 w-full text-left rounded hover:bg-muted" style={{ height: 40, padding: "0 12px", color: "var(--roads-text-primary)" }} onClick={() => { setOpen(false); setDebugOpen(true); }}>Debug</button>}
+      {activeDocument && <WithdrawLoanAction detailMenu
+        loan={{ id: activeDocument.loan.id, loanNumber: activeDocument.loan.loanNumber,
+          withdrawn: (activeDocument.sections.withdrawal as { acknowledged?: boolean } | undefined)?.acknowledged === true }}
+        onOpen={() => setOpen(false)} onRestoreFocus={() => triggerRef.current?.focus()} />}
     </div>
     {loanActive && <SummaryDebugDialog open={debugOpen} onOpenChange={setDebugOpen} />}
   </div>;

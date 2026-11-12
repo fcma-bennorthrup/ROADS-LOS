@@ -64,6 +64,29 @@ export const applicationStore = {
       queryClient.setQueryData(["/api/loans", loanId], applicationView(document));
     }).catch(error => { if (epoch === installedEpoch) failure = error.message; }).finally(() => { pending--; notify(); });
   },
+  withdraw() {
+    if (!document) return Promise.reject(new Error("No active loan."));
+    const loanId = document.loan.id;
+    const installedEpoch = epoch;
+    pending++; notify();
+    const operation = queue.then(async () => {
+      if (failure) throw new Error(failure);
+      if (!document || epoch !== installedEpoch || document.loan.id !== loanId)
+        throw new Error("The active loan was replaced. Reload before saving.");
+      const next = await applicationRequest(loanId, "", {
+        method: "PUT", body: JSON.stringify({
+          section: "withdrawal", value: { acknowledged: true },
+          generation: document.generation, revision: document.revision,
+        }),
+      });
+      if (epoch !== installedEpoch || document?.loan.id !== loanId) return;
+      // Acknowledge only withdrawal; retain other queued sections and open drafts.
+      document = { ...next, sections: { ...next.sections, ...document.sections, withdrawal: { acknowledged: true } } };
+      queryClient.setQueryData(["/api/loans", loanId], applicationView(document));
+    }).finally(() => { pending--; notify(); });
+    queue = operation.catch(() => {});
+    return operation;
+  },
   changeStage(stage: LoanStage) {
     if (!document) return Promise.reject(new Error("No active loan."));
     const loanId = document.loan.id;

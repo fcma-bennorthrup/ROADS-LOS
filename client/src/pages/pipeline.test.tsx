@@ -190,7 +190,7 @@ it.each(PIPELINE_QUEUES)("aligns every %s header with its own cell renderer", qu
   expect(actions.queryByRole("link")).toBeNull();
   expect(actions.getByRole("button", { name: "Preview loan 123456790 — unavailable" })).toBeDisabled();
   expect(actions.getAllByRole("button")).toHaveLength(3);
-  actions.getAllByRole("button").forEach(button => expect(button).toBeDisabled());
+  expect(actions.getByRole("button", { name: "More actions for loan 123456790" })).toBeEnabled();
 });
 
 it.each(PIPELINE_QUEUES)("aligns %s loading cells and colgroup with its headers", queue => {

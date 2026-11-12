@@ -30,6 +30,7 @@
 - [Checklist demo reset](checklist-reset-scope.md) — Clear task outputs through prototype controls, preserving application inputs and allowing rules to restart required tasks.
 - [Collateral ratio calculation](collateral-ratio-policy.md) — L/CV uses total loan amount and switches from estimated to reported collateral value.
 - [Pipeline scope](pipeline-scope.md) — Prompts 0–4 approved, deletion excluded; preserve loan UI and distinguish inherited verification failures.
+- [Loan withdrawal scope](withdrawal-scope.md) — withdrawn loans remain visible; preserve loan data and queue assignments.
 - [Prototype PDF retirement](prototype-pdf-policy.md) — Remove demo PDFs and prevent re-import; keep document controls, simulated workflows, and business rules unchanged.
 - [Fee provider shopping](fee-provider-shopping.md) — All fee types allow provider shopping for now, overriding the Figma eligibility annotation.
 - [Asset import drift after task merges](asset-import-drift.md) — merged work may import @assets files with timestamps that don't exist here; repoint to the real filename in attached_assets.
