@@ -88,6 +88,7 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
 
     expect(screen.getByText("Document Generated")).toBeInTheDocument();
     expect(screen.getByText("Decision letter generated")).toBeInTheDocument();
+    expect(within(screen.getByTestId("toast-success")).getByText("Decision letter generated.")).toBeInTheDocument();
     expect(screen.getByText("September 10, 2026 at 4:32pm")).toBeInTheDocument();
 
     vi.setSystemTime(new Date(2026, 8, 10, 16, 40));
@@ -101,6 +102,7 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
 
     expect(screen.getByText("Document Delivered")).toBeInTheDocument();
     expect(screen.getByText("Decision letter delivered")).toBeInTheDocument();
+    expect(within(screen.getByTestId("toast-success")).getByText("Decision letter delivered.")).toBeInTheDocument();
     expect(screen.getByText("September 10, 2026 at 4:40pm")).toBeInTheDocument();
 
     const activityItems = within(screen.getByTestId("activity-list")).getAllByTestId(

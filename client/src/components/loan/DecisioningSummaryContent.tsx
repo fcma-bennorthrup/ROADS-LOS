@@ -114,6 +114,11 @@ export function DecisioningSummaryContent({
       timestamp: formatActivityTimestamp(generatedAt),
       date: generatedAt,
     });
+    toast({
+      variant: "success",
+      title: "Decision letter generated.",
+      duration: 5000,
+    });
   };
 
   const handleDeliverDecisionLetter = () => {
@@ -127,6 +132,11 @@ export function DecisioningSummaryContent({
       description: "Decision letter delivered",
       timestamp: formatActivityTimestamp(deliveredAt),
       date: deliveredAt,
+    });
+    toast({
+      variant: "success",
+      title: "Decision letter delivered.",
+      duration: 5000,
     });
   };
 
