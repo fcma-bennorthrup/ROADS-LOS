@@ -5,11 +5,10 @@ export type PipelineSort = "loanNumber" | "cifNumber" | "primaryBorrowerName" | 
 export const PIPELINE_QUEUES = ["All Loans", "Sales Support", "Operations"] as const;
 export type PipelineQueue = typeof PIPELINE_QUEUES[number];
 export type DepartmentQueue = Exclude<PipelineQueue, "All Loans">;
-// Only explicitly saved assignments determine department membership, never stages.
+// Sales Support uses saved assignments; Operations is additive TRID eligibility.
 export function queueLoans(rows: PipelineLoan[], queue: PipelineQueue,
   assignment: (loan: PipelineLoan) => DepartmentQueue | undefined = loan => loan.departmentQueue) {
-  // Operations columns are presentation-only until assignment rules are approved.
-  if (queue === "Operations") return [];
+  if (queue === "Operations") return rows.filter(loan => loan.operationsEligible === true);
   return queue === "All Loans" ? rows : rows.filter(loan => assignment(loan) === queue);
 }
 export function pipelinePage<T>(rows: T[], requestedPage: number, pageSize: number) {

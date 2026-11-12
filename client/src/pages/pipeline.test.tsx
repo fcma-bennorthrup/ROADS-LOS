@@ -82,6 +82,38 @@ it("isolates loan teams and leaves other queues disabled", async () => {
   expect(screen.queryByRole("button", { name: /View loan team/ })).toBeNull();
   expect(screen.getByRole("button", { name: /Assign loan/ })).toBeDisabled();
 });
+it("populates Operations additively, highlights only its assignment icon, and refreshes on return", async () => {
+  let eligible = false;
+  const fetcher = vi.fn(async () => new Response(JSON.stringify([
+    { ...loans[0], departmentQueue: "Sales Support", operationsEligible: eligible },
+    loans[1],
+  ])));
+  vi.stubGlobal("fetch", fetcher);
+  const first = view();
+  await screen.findByTestId("pipeline-row-first");
+  expect(screen.getByTestId("queue-operations")).toHaveTextContent("0 Loans");
+  first.unmount();
+  eligible = true;
+  const { history } = view();
+  await waitFor(() => expect(screen.getByTestId("queue-operations")).toHaveTextContent("1 Loans"));
+  expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(screen.getByTestId("queue-all-loans")).toHaveTextContent("2 Loans");
+  expect(screen.getByTestId("queue-sales-support")).toHaveTextContent("1 Loans");
+  fireEvent.click(screen.getByTestId("queue-operations"));
+  const row = screen.getByTestId("pipeline-row-first");
+  expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
+  expect(within(row).getAllByRole("cell")).toHaveLength(14);
+  const assign = within(row).getByRole("button", { name: /Assign loan/ });
+  expect(assign).toBeDisabled();
+  expect(assign).toHaveClass("pipeline-operations-assignment");
+  expect(within(row).getByRole("button", { name: /Preview loan/ })).not.toHaveClass("pipeline-operations-assignment");
+  fireEvent.click(assign);
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(history.at(-1)).toBe("/pipeline");
+  fireEvent.click(screen.getByTestId("queue-sales-support"));
+  expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: /Assign loan/ })).not.toHaveClass("pipeline-operations-assignment");
+});
 it.each([
   ["dashboard", "Dashboard"],
   ["pipeline", "Pipeline"],
@@ -98,8 +130,8 @@ it.each([
   expect(within(screen.getByTestId("main-navigation")).getByText("My Pipeline")).toBeInTheDocument();
   expect(screen.queryByText("Saved items")).toBeNull();
 });
-it.each(["All Loans", "Sales Support"])("opens %s rows without making action icons navigate", async queue => {
-  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], departmentQueue: "Sales Support" }]))));
+it.each(PIPELINE_QUEUES)("opens %s rows without making action icons navigate", async queue => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([{ ...loans[0], departmentQueue: "Sales Support", operationsEligible: true }]))));
   const { history } = view();
   await screen.findByTestId("pipeline-row-first");
   fireEvent.click(screen.getByTestId(`queue-${queue.toLowerCase().replaceAll(" ", "-")}`));
@@ -214,7 +246,7 @@ it("keeps Operations empty with its own exact columns when saved loans exist", a
   expect(screen.getAllByRole("columnheader").map(cell => cell.textContent)).toEqual(operationsHeaders);
   expect(screen.queryAllByTestId(/^pipeline-row-/)).toHaveLength(0);
   expect(screen.getByTestId("queue-operations")).toHaveTextContent("0 Loans");
-  expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans assigned to Operations");
+  expect(screen.getByTestId("pipeline-empty")).toHaveTextContent("No loans in Operations");
   expect(screen.queryByRole("button", { name: "Closing Date" })).toBeNull();
   fireEvent.change(screen.getByPlaceholderText("Type to filter results"), { target: { value: "Avery" } });
   fireEvent.click(screen.getByRole("button", { name: "Custom Filter" }));
@@ -305,18 +337,19 @@ it("renders the exact Figma columns and real queue counts without fabricating as
   for (const department of ["sales-support", "operations"]) {
     expect(screen.getByTestId(`queue-${department}`)).toHaveTextContent("0 Loans");
     fireEvent.click(screen.getByTestId(`queue-${department}`));
-    expect(screen.getByTestId("pipeline-empty")).toHaveTextContent(department === "sales-support" ? "New SF Opportunities appear here" : "Department queue assignment has not been configured");
+    expect(screen.getByTestId("pipeline-empty")).toHaveTextContent(department === "sales-support" ? "New SF Opportunities appear here" : "Loans appear here when TRID is triggered");
     expect(screen.queryByTestId("pipeline-row-first")).toBeNull();
   }
   fireEvent.click(screen.getByRole("button", { name: "View All Loans" }));
   expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: /Reports — unavailable/ })).toBeDisabled();
 });
-it("paginates real rows, resets the page on filtering and supports the table result search", async () => {
-  const many = Array.from({ length: 23 }, (_, index) => ({ ...loans[0], id: `loan-${index}`, loanNumber: String(100000000 + index), primaryBorrowerName: `Borrower ${index}` }));
+it.each(["all-loans", "operations"])("paginates %s rows and resets the page on filtering", async queue => {
+  const many = Array.from({ length: 23 }, (_, index) => ({ ...loans[0], operationsEligible: true, id: `loan-${index}`, loanNumber: String(100000000 + index), primaryBorrowerName: `Borrower ${index}` }));
   vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(many))));
   view();
   await screen.findByTestId("pipeline-row-loan-0");
+  fireEvent.click(screen.getByTestId(`queue-${queue}`));
   expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(20);
   fireEvent.click(screen.getByRole("button", { name: "Next page" }));
   expect(screen.getAllByTestId(/^pipeline-row-/)).toHaveLength(3);

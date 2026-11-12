@@ -11,7 +11,7 @@ type PipelineColumn = {
   sort?: PipelineSort;
   label: string;
   width: number;
-  render: (loan: PipelineLoan, showTeam?: boolean) => ReactNode;
+  render: (loan: PipelineLoan, showTeam?: boolean, queue?: PipelineQueue) => ReactNode;
 };
 
 function displayDate(value: string) {
@@ -44,9 +44,9 @@ const columns = {
   trid: { key: "trid", label: "TRID", width: 85, render: () => null },
   appraisal: { key: "appraisal", label: "Appraisal", width: 100, render: () => null },
   titleWork: { key: "titleWork", label: "Title Work", width: 100, render: () => null },
-  actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam) =>
+  actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam, queue) =>
     <div className="pipeline-row-actions">
-      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
+      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button className={queue === "Operations" ? "pipeline-operations-assignment" : undefined} disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
       <button disabled aria-label={`Preview loan ${loan.loanNumber} — unavailable`} title="Loan preview is not available yet"><FiEye aria-hidden /></button>
       <WithdrawLoanAction loan={loan} />
     </div> },
@@ -80,6 +80,6 @@ export function getPipelineColumns(queue: PipelineQueue) {
   return queueColumns[queue];
 }
 
-export function PipelineRowCells({ columns, loan, showTeam = false }: { columns: readonly PipelineColumn[]; loan: PipelineLoan; showTeam?: boolean }) {
-  return <>{columns.map(column => <td key={column.key}>{column.render(loan, showTeam)}</td>)}</>;
+export function PipelineRowCells({ columns, loan, showTeam = false, queue }: { columns: readonly PipelineColumn[]; loan: PipelineLoan; showTeam?: boolean; queue?: PipelineQueue }) {
+  return <>{columns.map(column => <td key={column.key}>{column.render(loan, showTeam, queue)}</td>)}</>;
 }

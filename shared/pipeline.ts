@@ -11,6 +11,7 @@ export interface PipelineLoan {
   applicationDate?: string;
   contractExpiryDate?: string;
   departmentQueue?: "Sales Support";
+  operationsEligible?: boolean;
   decision?: string;
   primaryBorrowerName: string;
   loanType: string;
@@ -35,6 +36,7 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     applicationDate: document.meta.opportunity?.applicationDate,
     contractExpiryDate: document.meta.opportunity?.contractExpiryDate,
     departmentQueue: document.meta.opportunity?.queue,
+    operationsEligible: Boolean(document.businessRules?.trid.triggeredAt),
     decision: document.meta.opportunity?.decision,
     primaryBorrowerName: view.primaryBorrowerName,
     loanType: view.loanType, stage: view.stage as LoanStage,

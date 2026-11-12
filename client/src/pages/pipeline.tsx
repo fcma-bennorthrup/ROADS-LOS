@@ -102,13 +102,13 @@ export default function PipelinePage() {
                         navigate(`~/loans/${encodeURIComponent(loan.id)}`);
                       }
                     }}>
-                    <PipelineRowCells columns={columns} loan={loan} showTeam={queue === "All Loans"} />
+                    <PipelineRowCells columns={columns} loan={loan} showTeam={queue === "All Loans"} queue={queue} />
                   </tr>;
                 })}</tbody>
               </table>
             {!query.isLoading && !rows.length && <section className="pipeline-state" data-testid="pipeline-empty">
-              <h3 className="headline-300">{queue !== "All Loans" ? `No loans assigned to ${queue}` : filtered ? "No loans match" : "No loans yet — create the first one"}</h3>
-              <p className="body-200">{filtered ? "Try another borrower, loan number, CIF, or stage." : queue === "Sales Support" ? "New SF Opportunities appear here after creation." : queue !== "All Loans" ? "Department queue assignment has not been configured. View All Loans for saved applications." : "Start with a New SF Opportunity."}</p>
+              <h3 className="headline-300">{filtered ? "No loans match" : operations ? "No loans in Operations" : queue !== "All Loans" ? `No loans assigned to ${queue}` : "No loans yet — create the first one"}</h3>
+              <p className="body-200">{filtered ? "Try another borrower, loan number, CIF, or stage." : queue === "Sales Support" ? "New SF Opportunities appear here after creation." : operations ? "Loans appear here when TRID is triggered." : "Start with a New SF Opportunity."}</p>
               {queue !== "All Loans" ? <button className="pipeline-button pipeline-secondary body-200-strong" onClick={() => { setQueue("All Loans"); clearFilters(); }}>View All Loans</button>
                 : filtered ? <button className="pipeline-button pipeline-secondary body-200-strong" data-testid="clear-pipeline-filters" onClick={clearFilters}>Clear filters</button>
                 : <button className="pipeline-button body-200-strong" data-testid="create-first-loan" disabled={creating} onClick={() => setDialogOpen(true)}>New Loan</button>}

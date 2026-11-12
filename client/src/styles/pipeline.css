@@ -61,6 +61,7 @@
 .pipeline-table .pipeline-additional { margin-left: var(--roads-spacing-component-xs); color: var(--roads-text-link); white-space: nowrap; }
 .pipeline-table .pipeline-row-actions { display: flex; align-items: center; gap: var(--roads-spacing-component-xs); overflow-wrap: normal; }
 .pipeline-row-actions button, .pipeline-row-actions a { color: var(--roads-icon-dark); }
+.pipeline-row-actions button.pipeline-operations-assignment { color: var(--roads-icon-brand); }
 .pipeline-row-actions button:disabled { cursor: not-allowed; }
 .pipeline-pagination { min-height: 40px; display: flex; align-items: center; justify-content: flex-end; gap: var(--roads-spacing-component-xl); padding: var(--roads-spacing-component-xs) var(--roads-spacing-component-l); background: var(--roads-bg-light); border-radius: 0 0 var(--roads-radius-xs) var(--roads-radius-xs); }
 .pipeline-pagination label { display: flex; align-items: center; gap: var(--roads-spacing-component-xs); }
