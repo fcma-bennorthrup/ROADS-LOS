@@ -13,7 +13,7 @@ The search under Welcome back is intended as a future global search across activ
 
 **Why:** The user explicitly requested these design elements and preservation rules.
 
-New SF Opportunities are now approved to appear in both All Loans and Sales Support. Existing loans are not retroactively assigned; Operations, Credit, and Quality Control remain empty. Do not derive department assignments from loan stages.
+New SF Opportunities are approved to appear in both All Loans and Sales Support. Existing loans are not retroactively assigned to Sales Support. Operations now additionally includes loans when TRID is triggered, without removing their existing queue membership. Do not derive department assignments from loan stages.
 
 **Why:** The user initially selected “Leave departments empty for now,” then explicitly requested Sales Support membership for newly created SF opportunities.
 
@@ -31,11 +31,11 @@ Sales Support uses Figma frame 1320:51595 in the same ROADS-Pipeline file. Contr
 
 **How to apply:** Preserve a chosen date across refreshes and queue changes, and keep All Loans columns unchanged.
 
-Operations uses Figma frame 1320:53127 in the same ROADS-Pipeline file, but must not show any loans yet.
+Operations uses Figma frame 1320:53127 in the same ROADS-Pipeline file. The user now authorizes loans to appear when TRID triggers, with the Operations user-plus icon in icon-brand.
 
-**Why:** The user explicitly requested matching Operations columns while keeping the queue empty.
+**Why:** The user superseded the initial empty-queue restriction with TRID-based eligibility, while explicitly deferring claiming and missing column data.
 
-**How to apply:** Treat its Figma rows, dates, badges, and counts as reference-only; column styling does not authorize assignments or new business rules.
+**How to apply:** Preserve All Loans and Sales Support visibility. Do not implement claiming or fill missing column values as part of eligibility; use the existing icon-brand token for the Operations user-plus icon.
 
 The Pipeline sidebar should reveal an expand/collapse button on hover, display full page names and ROADS when expanded, and push content instead of overlaying it. Pipeline may use decorative blank rows to fill viewport space and keep the footer at the bottom.
 
