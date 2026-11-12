@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useChecklist } from "@/contexts/checklist-context";
+import { toast } from "@/hooks/use-toast";
+import { applicationStore } from "@/lib/loan-application-store";
 import { localCalendarDate, withBorrowerDelivery, type DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import {
   DisclosureWritesUnsupportedError,
@@ -64,14 +66,23 @@ export function useClosingDisclosures(loanId: string) {
     refresh();
   }, [demoResetVersion]);
 
-  function save(update: (current: ClosingDisclosureHistory) => ClosingDisclosureHistory) {
+  function save(update: (current: ClosingDisclosureHistory) => ClosingDisclosureHistory, title: string) {
     const failed = (error: unknown) => {
       setError(error instanceof DisclosureWritesUnsupportedError ? error.message
         : "Disclosure history could not be saved. Please enable browser storage and try again.");
     };
     try {
-      const result = updateClosingDisclosureHistory(loanId, update);
-      if (result) void result.catch(failed);
+      let changed = false;
+      const result = updateClosingDisclosureHistory(loanId, current => {
+        const next = update(current);
+        changed = JSON.stringify(next) !== JSON.stringify(current);
+        return next;
+      });
+      void Promise.resolve(result).then(async () => {
+        if (!changed) return;
+        await applicationStore.flush();
+        toast({ variant: "success", title, duration: 5000 });
+      }).catch(failed);
     } catch (error) {
       failed(error);
     }
@@ -91,7 +102,7 @@ export function useClosingDisclosures(loanId: string) {
           { id, generatedAt: new Date().toISOString(), deliveredAt: null },
           ...current.records,
         ] };
-      });
+      }, "Closing Disclosure generated.");
       setGenerating(false);
     }, 5000);
   }
@@ -112,7 +123,7 @@ export function useClosingDisclosures(loanId: string) {
           ? withBorrowerDelivery(row, borrowerIds, deliveredAt, deliveryDate)
           : row,
       ),
-    });
+    }, "Closing Disclosure delivered.");
   }
 
   function reset() {

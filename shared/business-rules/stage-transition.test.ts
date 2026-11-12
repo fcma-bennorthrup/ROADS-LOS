@@ -42,3 +42,38 @@ it.each(["Customer Application", "Closing", "Loan Finalization"] as const)("pres
   const app = ready(); app.loan.stage = stage;
   expect(stageAfterSavedProgress(app)).toBe(stage);
 });
+
+function closingReady() {
+  const app = ready();
+  app.loan.stage = "Loan Finalization";
+  app.sections[`storage:loan-checklist-statuses:${app.loan.id}`] = JSON.stringify({
+    "Title Work": ["complete", "complete", "complete"],
+    "Appraisal Evaluation": ["complete", "complete", "complete"],
+    "Rate Lock": ["complete", "not-started", "not-started"],
+  });
+  app.sections[`storage:loan-closing-disclosures:${app.loan.id}`] = JSON.stringify({
+    records: [{ id: 1, generatedAt: "2026-11-12T12:00:00Z", deliveredAt: "2026-11-12T13:00:00Z" }], resetToken: null,
+  });
+  return app;
+}
+it("advances finalization after completed evaluation/title, delivered CD and locked rate", () => {
+  expect(stageAfterSavedProgress(closingReady())).toBe("Closing");
+});
+it.each([
+  ["Title Work", 0], ["Title Work", 1], ["Title Work", 2],
+  ["Appraisal Evaluation", 0], ["Appraisal Evaluation", 1], ["Appraisal Evaluation", 2],
+  ["Rate Lock", 0],
+] as const)("requires %s action %i before Closing", (task, index) => {
+  const app = closingReady(), key = `storage:loan-checklist-statuses:${app.loan.id}`;
+  const progress = JSON.parse(app.sections[key] as string);
+  progress[task][index] = "in-progress";
+  app.sections[key] = JSON.stringify(progress);
+  expect(stageAfterSavedProgress(app)).toBe("Loan Finalization");
+});
+it.each(["{}", "invalid", JSON.stringify({ records: [{ generatedAt: "2026-11-12T12:00:00Z", deliveredAt: null }] })])(
+  "does not advance without valid generated and delivered CD history: %s", history => {
+    const app = closingReady();
+    app.sections[`storage:loan-closing-disclosures:${app.loan.id}`] = history;
+    expect(stageAfterSavedProgress(app)).toBe("Loan Finalization");
+  },
+);

@@ -31,6 +31,12 @@ Decisioning advances to Loan Finalization after a saved credit decision, intent 
 
 **How to apply:** Evaluate all prerequisites on saved loan data regardless of completion order. Advance only from Decisioning, persist with the triggering save, and reflect the new stage in the tracker and pipeline. Do not move later stages backward if prerequisites subsequently change.
 
+Loan Finalization advances to Closing after evaluation delivery/completion, title review/completion, CD generation and delivery, and rate locking.
+
+**Why:** The user defined these prerequisites and requested success confirmations for both CD actions.
+
+**How to apply:** Require completed title and evaluation tasks, a generated/delivered CD in loan-specific history, and the completed rate-lock action. Do not require rate-lock letter generation/delivery. Persist the stage with the qualifying save.
+
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.
 
 **How to apply:** Use existing saved fields only; do not create missing form fields to implement rules.

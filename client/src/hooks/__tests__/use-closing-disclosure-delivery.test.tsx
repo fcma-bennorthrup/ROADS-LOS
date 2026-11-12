@@ -4,6 +4,7 @@ import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { useClosingDisclosures } from "../use-closing-disclosures";
+import * as toastTools from "@/hooks/use-toast";
 import {
   beginDisclosureEdit, blankBorrowerDetails, saveDisclosureBorrowers,
   type DisclosureBorrower,
@@ -46,6 +47,19 @@ afterEach(() => {
 });
 
 describe("Closing Disclosure borrower delivery", () => {
+  it("shows success toasts after generation and delivery, but not duplicate delivery", async () => {
+    const toast = vi.spyOn(toastTools, "toast");
+    const hook = consumer();
+    await act(async () => { hook.result.current.generate(); await vi.advanceTimersByTimeAsync(5000); });
+    expect(toast).toHaveBeenCalledWith({ variant: "success", title: "Closing Disclosure generated.", duration: 5000 });
+    toast.mockClear();
+    const id = hook.result.current.records[0].id;
+    await act(async () => { hook.result.current.deliver(id, borrowers); });
+    expect(toast).toHaveBeenCalledWith({ variant: "success", title: "Closing Disclosure delivered.", duration: 5000 });
+    toast.mockClear();
+    await act(async () => { hook.result.current.deliver(id, borrowers); });
+    expect(toast).not.toHaveBeenCalled();
+  });
   it("sets Blend for every borrower without defaulting viewing or rewriting other records/loans", () => {
     const saved: ClosingDisclosureRecord = {
       ...record, id: 2, borrowerDetails: [
