@@ -2,9 +2,9 @@ import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
 import { useClosingPackage } from "@/hooks/use-closing-package";
 import { useState } from "react";
 import { ClosingDocumentIcon } from "./ClosingDocumentIcon";
-import { ClosingDisclosureBorrowerEditor } from "./ClosingDisclosureBorrowerEditor";
-import { ClosingDisclosureBorrowerCells } from "./ClosingDisclosureBorrowerCells";
-import type { DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
+import { assumedDeliveryCalendarDate, formatCalendarDate, localCalendarDate, type DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
+import { formatDisclosureDate, openClosingDisclosurePreview } from "@/lib/closing-disclosure-preview";
+import type { ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentSection, DocumentsContent } from "./DisclosureDocumentsContent";
 import "./ClosingDocumentsContent.css";
@@ -14,29 +14,21 @@ type ClosingDocumentsContentProps = {
   borrowers?: DisclosureBorrower[];
 };
 
-function formatDisclosureDate(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
 function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers: DisclosureBorrower[] }) {
   const [activeTab, setActiveTab] = useState("closing-disclosure");
+  const [previewError, setPreviewError] = useState("");
   const closingPackage = useClosingPackage(loanId);
-  const { records, generating, resetting, error, generate, deliver, reset } = useClosingDisclosures(loanId);
+  const { records, generating, resetting, error, generate, deliver } = useClosingDisclosures(loanId);
   const newestRecord = records[0];
   const canDeliverNewest = Boolean(newestRecord && !newestRecord.deliveredAt && !error && !resetting);
 
-  const confirmReset = () => {
-    if (window.confirm(
-      "Reset Closing Disclosure? This will clear all generated Closing Disclosure rows and their delivery timestamps for this loan and cancel any generation in progress. Closing Package and other demo progress will not be changed.",
-    )) reset();
+  const preview = (record: ClosingDisclosureRecord) => {
+    setPreviewError("");
+    try {
+      openClosingDisclosurePreview(loanId, record);
+    } catch (cause) {
+      setPreviewError(cause instanceof Error ? cause.message : "Closing Disclosure preview could not be opened. Please try again.");
+    }
   };
 
   return (
@@ -78,15 +70,6 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
             >
               Deliver Closing Disclosure
             </button>
-            <button
-              type="button"
-              onClick={confirmReset}
-              disabled={resetting}
-              className="label-strong closing-documents-button"
-              data-testid="button-reset-closing-disclosure"
-            >
-              Reset Closing Disclosure
-            </button>
           </div>
 
           <div className="closing-disclosure-feedback" aria-live="polite">
@@ -99,6 +82,11 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
             {error && (
               <p className="body-200 closing-disclosure-error" role="alert" data-testid="alert-closing-disclosure-error">
                 {error}
+              </p>
+            )}
+            {previewError && (
+              <p className="body-200 closing-disclosure-error" role="alert" data-testid="alert-closing-disclosure-preview-error">
+                {previewError}
               </p>
             )}
           </div>
@@ -115,13 +103,13 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
               <table className="closing-disclosure-table">
                 <thead>
                   <tr>
-                    <th scope="col">Document ID</th>
                     <th scope="col">Date Generated</th>
                     <th scope="col">Delivery Date</th>
-                    <th scope="col">Assumed Delivery Date</th>
                     <th scope="col">Delivery Method</th>
+                    <th scope="col">Assumed Delivery Date</th>
                     <th scope="col">CD Viewed</th>
-                    <th scope="col" aria-label="Document actions" />
+                    <th scope="col" aria-label="Delivery tracking" />
+                    <th scope="col" aria-label="Document preview" />
                   </tr>
                 </thead>
                 <tbody>
@@ -136,30 +124,43 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                   ) : (
                     records.map((record) => (
                       <tr key={record.id} data-testid={`row-closing-disclosure-${record.id}`}>
-                        <td>CD {record.id}</td>
                         <td>{formatDisclosureDate(record.generatedAt)}</td>
-                        <ClosingDisclosureBorrowerCells
-                          loanId={loanId}
-                          record={record}
-                          borrowers={borrowers}
-                          deliveryFallback={record.deliveredAt ? formatDisclosureDate(record.deliveredAt) : ""}
-                        />
-                        <td>
-                          <div className="closing-disclosure-row-actions">
-                            <button
-                              type="button"
-                              className="closing-disclosure-icon-button"
-                              aria-label={`View Closing Disclosure CD ${record.id}`}
-                              onClick={() => { /* PDF previews retired; retain the prototype control. */ }}
-                              data-testid={`button-view-closing-disclosure-${record.id}`}
-                            >
-                              <ClosingDocumentIcon kind="file" />
-                            </button>
-                            <span className="closing-disclosure-inert-icon" aria-hidden="true" title="History">
+                        <td data-testid={`text-delivery-date-${record.id}`}>
+                          {record.deliveredAt ? formatDisclosureDate(record.deliveredAt) : ""}
+                        </td>
+                        <td data-testid={`text-delivery-method-${record.id}`}>
+                          {record.deliveredAt ? "Blend" : ""}
+                        </td>
+                        <td data-testid={`text-assumed-delivery-date-${record.id}`}>
+                          {record.deliveredAt ? formatCalendarDate(assumedDeliveryCalendarDate(localCalendarDate(new Date(record.deliveredAt)))) : ""}
+                        </td>
+                        <td data-testid={`status-cd-viewed-${record.id}`}>
+                          {record.deliveredAt && (
+                            <span className="closing-disclosure-status">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 3v1" />
+                              </svg>
+                              Needed
+                            </span>
+                          )}
+                        </td>
+                        <td className="closing-disclosure-icon-cell">
+                          {record.deliveredAt && (
+                            <span className="closing-disclosure-inert-icon" aria-label="Delivery tracking pending">
                               <ClosingDocumentIcon kind="clock" />
                             </span>
-                            <ClosingDisclosureBorrowerEditor loanId={loanId} record={record} borrowers={borrowers} />
-                          </div>
+                          )}
+                        </td>
+                        <td className="closing-disclosure-icon-cell">
+                          <button
+                            type="button"
+                            className="closing-disclosure-icon-button"
+                            aria-label={`View Closing Disclosure CD ${record.id}`}
+                            onClick={() => preview(record)}
+                            data-testid={`button-view-closing-disclosure-${record.id}`}
+                          >
+                            <ClosingDocumentIcon kind="file" />
+                          </button>
                         </td>
                       </tr>
                     ))

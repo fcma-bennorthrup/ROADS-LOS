@@ -174,11 +174,24 @@
   text-align: center;
 }
 
-.closing-disclosure-row-actions {
-  display: flex;
+.closing-disclosure-status {
+  display: inline-flex;
   align-items: center;
   gap: var(--roads-spacing-component-xs);
+  padding: 0 var(--roads-spacing-component-xs);
+  border-radius: var(--roads-radius-2xs);
+  background: var(--roads-bg-warning-subtle);
+  color: var(--roads-text-primary);
+  font-weight: 600;
   white-space: nowrap;
+}
+
+.closing-disclosure-status svg {
+  color: var(--roads-text-warning);
+}
+
+.closing-disclosure-icon-cell {
+  width: 32px;
 }
 
 .closing-disclosure-icon-button,
@@ -204,7 +217,7 @@
 }
 
 .closing-disclosure-inert-icon {
-  color: var(--roads-text-tertiary);
+  color: var(--roads-icon-brand);
 }
 
 .closing-disclosure-prototype-note {

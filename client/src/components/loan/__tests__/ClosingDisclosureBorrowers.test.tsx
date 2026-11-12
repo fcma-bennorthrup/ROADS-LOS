@@ -1,6 +1,9 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ClosingDocumentsContent } from "../DocumentsContent";
+import { ClosingDisclosureBorrowerEditor } from "../ClosingDisclosureBorrowerEditor";
+import { ClosingDisclosureBorrowerCells } from "../ClosingDisclosureBorrowerCells";
+import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
+import type { DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { closingDisclosureStorageKey, loadClosingDisclosures, resetClosingDisclosureHistory, updateClosingDisclosureHistory } from "@/lib/closing-disclosure-history";
 import { blankBorrowerDetails } from "@/lib/closing-disclosure-borrowers";
@@ -12,6 +15,23 @@ const borrowers = [
   { id: "c", name: "Borrower C", isPrimary: false },
 ];
 const record = { id: 1, generatedAt: "2026-10-05T12:00:00.000Z", deliveredAt: null };
+// The historical editor remains supported independently; it is no longer a
+// Closing Documents entry point. Exercise its persistence/protection in isolation.
+function ClosingDocumentsContent({ loanId, borrowers }: { loanId: string; borrowers: DisclosureBorrower[] }) {
+  const { records, generate, deliver } = useClosingDisclosures(loanId);
+  return <>
+    <button data-testid="button-generate-closing-disclosure" onClick={generate}>Generate</button>
+    <button data-testid="button-deliver-closing-disclosure" disabled={!records[0] || Boolean(records[0].deliveredAt)}
+      onClick={() => deliver(records[0].id, borrowers)}>Deliver</button>
+    <table><thead><tr>{["Document ID", "Date Generated", "Delivery Date", "Assumed Delivery Date", "Delivery Method", "CD Viewed", "Actions"].map((title) => <th key={title}>{title}</th>)}</tr></thead>
+      <tbody>{records.map((item) => <tr key={item.id} data-testid={`row-closing-disclosure-${item.id}`}>
+        <td>CD {item.id}</td><td>{item.generatedAt}</td>
+        <ClosingDisclosureBorrowerCells loanId={loanId} record={item} borrowers={borrowers} deliveryFallback={item.deliveredAt ?? ""} />
+        <td><ClosingDisclosureBorrowerEditor loanId={loanId} record={item} borrowers={borrowers} /></td>
+      </tr>)}</tbody>
+    </table>
+  </>;
+}
 function setup(list = borrowers) {
   localStorage.setItem(closingDisclosureStorageKey("test"), JSON.stringify([record]));
   return render(<ChecklistProvider><ClosingDocumentsContent loanId="test" borrowers={list} /></ChecklistProvider>);

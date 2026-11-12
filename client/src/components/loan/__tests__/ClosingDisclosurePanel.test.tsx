@@ -1,6 +1,9 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ClosingDocumentsContent } from "../DocumentsContent";
+import { ClosingDisclosureBorrowerEditor } from "../ClosingDisclosureBorrowerEditor";
+import { ClosingDisclosureBorrowerCells } from "../ClosingDisclosureBorrowerCells";
+import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
+import type { DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import { ChecklistProvider } from "@/contexts/checklist-context";
 import { blankBorrowerDetails, type BorrowerDisclosureDetails } from "@/lib/closing-disclosure-borrowers";
 import { closingDisclosureStorageKey, loadClosingDisclosures } from "@/lib/closing-disclosure-history";
@@ -11,6 +14,17 @@ const borrowers = [
   { id: "c", name: "Third Person", isPrimary: false },
 ];
 const record = { id: 1, generatedAt: "2026-10-14T12:00:00.000Z", deliveredAt: null };
+// Keep regression coverage for the retained editor without restoring a page entry point.
+function ClosingDocumentsContent({ loanId, borrowers }: { loanId: string; borrowers: DisclosureBorrower[] }) {
+  const { records, deliver } = useClosingDisclosures(loanId);
+  return <>
+    <button data-testid="button-deliver-closing-disclosure" onClick={() => deliver(records[0].id, borrowers)}>Deliver</button>
+    <table><tbody>{records.map((item) => <tr key={item.id}>
+      <ClosingDisclosureBorrowerCells loanId={loanId} record={item} borrowers={borrowers} deliveryFallback={item.deliveredAt ?? ""} />
+      <td><ClosingDisclosureBorrowerEditor loanId={loanId} record={item} borrowers={borrowers} /></td>
+    </tr>)}</tbody></table>
+  </>;
+}
 function setup(details?: BorrowerDisclosureDetails[], roster = borrowers) {
   localStorage.setItem(closingDisclosureStorageKey("panel"), JSON.stringify([{ ...record, borrowerDetails: details }]));
   return render(<ChecklistProvider><ClosingDocumentsContent loanId="panel" borrowers={roster} /></ChecklistProvider>);
