@@ -43,6 +43,12 @@ Closing advances to Booking after closing and disbursement dates are saved, disb
 
 **How to apply:** Compare valid calendar dates, allow same-day disbursement, and require generation rather than delivery of the closing package. Wire Request is a loan-owned simulation, not a banking integration; retain its requester/time receipt and clear it with checklist resets.
 
+Booking advances to Loan Certification when the Book Loan action completes and saves.
+
+**Why:** The user defined Book Loan as the final stage-transition trigger.
+
+**How to apply:** Retain the existing simulated booking delay; advance with the saved booked status, not the in-progress status, and reflect the saved stage in the tracker and pipeline.
+
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.
 
 **How to apply:** Use existing saved fields only; do not create missing form fields to implement rules.

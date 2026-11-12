@@ -396,6 +396,24 @@ describe("pipeline API", () => {
     expect(result.body.sections["loan-details"].requestedLoanAmount).toBe("145000.00");
     expect(result.body.businessRules.trid.status).toBe("required");
   });
+  it("saves Loan Certification together with successful booking", async () => {
+    const current = withOriginationFee(newSfOpportunity("booking-completion", "123456790", "123456"));
+    current.loan.stage = "Booking";
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockImplementationOnce(async (sql, args) => {
+        expect(sql).toContain("'{loan,stage}'");
+        expect(args[1]).toBe("booking-state");
+        expect(JSON.parse(args[2])).toBe("booked");
+        expect(args[7]).toBe("Loan Certification");
+        expect(sql).toContain("(document->>'revision')::int=$5");
+        return { rowCount: 1, rows: [{ document: { ...current, loan: { ...current.loan, stage: args[7] } } }] };
+      });
+    const result = await request("PUT /api/loans/:id/application", {
+      section: "booking-state", value: "booked", generation: current.generation, revision: current.revision,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body.loan.stage).toBe("Loan Certification");
+  });
   it("saves finalization atomically when intent is the last prerequisite", async () => {
     const current = withOriginationFee(newSfOpportunity("finalization", "123456790", "123456"));
     current.loan.stage = "Decisioning";

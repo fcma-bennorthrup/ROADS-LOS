@@ -16,6 +16,9 @@ export function stageAfterBlendImport(stage: LoanApplication["loan"]["stage"]) {
 
 /** All prerequisites must be present in the saved, loan-scoped snapshot. */
 export function stageAfterSavedProgress(app: LoanApplication) {
+  if (app.loan.stage === "Booking") {
+    return app.sections["booking-state"] === "booked" ? "Loan Certification" : app.loan.stage;
+  }
   if (app.loan.stage === "Closing") {
     const details = app.sections["closing-details"] as Record<string, unknown> | undefined;
     const closing = calendarDate(details?.closingDate);

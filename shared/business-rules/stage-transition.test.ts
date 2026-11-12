@@ -66,6 +66,18 @@ function bookingReady() {
   app.sections[`storage:loan-closing-package:${app.loan.id}`] = JSON.stringify({ generatedAt: "2026-11-12T12:00:00Z" });
   return app;
 }
+it.each(["idle", "booking", "booked", undefined])("uses saved booking completion for certification (%s)", state => {
+  const app = ready();
+  app.loan.stage = "Booking";
+  app.sections["booking-state"] = state;
+  expect(stageAfterSavedProgress(app)).toBe(state === "booked" ? "Loan Certification" : "Booking");
+});
+it("keeps Loan Certification unchanged on repeated booking saves", () => {
+  const app = ready();
+  app.loan.stage = "Loan Certification";
+  app.sections["booking-state"] = "booked";
+  expect(stageAfterSavedProgress(app)).toBe("Loan Certification");
+});
 it.each(["11/12/2026", "11/13/2026", "2026-11-14"])("advances to Booking for valid disbursement %s", disbursementDate => {
   const app = bookingReady();
   (app.sections["closing-details"] as any).disbursementDate = disbursementDate;
