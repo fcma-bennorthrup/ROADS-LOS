@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { applicationStore } from "../loan-application-store";
+import { queryClient } from "../queryClient";
 import { applicationView, emptyFields, type LoanApplication } from "@shared/loan-application";
 import { act, renderHook } from "@testing-library/react";
 import { useLoanDraft } from "@/contexts/loan-application-context";
@@ -14,6 +15,15 @@ function fixture(mode: LoanApplication["mode"] = "existing"): LoanApplication {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("loan application persistence", () => {
+  it("invalidates the pipeline when installing a saved loan stage", () => {
+    queryClient.setQueryData(["/api/loans"], [{ id: "test-loan", stage: "Customer Application" }]);
+    const next = fixture();
+    next.loan.stage = "Decisioning";
+    applicationStore.install(next);
+    expect(queryClient.getQueryState(["/api/loans"])?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryData(["/api/loans", "test-loan"])).toMatchObject({ stage: "Decisioning" });
+    queryClient.removeQueries({ queryKey: ["/api/loans"] });
+  });
   it("clears data values while preserving structural identifiers", () => {
     expect(emptyFields({ id: "slot", name: "Sample", amount: 20, selected: true, rows: [{ a: 1 }] }))
       .toEqual({ id: "slot", name: "", amount: 0, selected: false, rows: [] });

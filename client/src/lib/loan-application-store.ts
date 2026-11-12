@@ -26,6 +26,7 @@ export const applicationStore = {
     baselines.clear();
     document = next; failure = ""; drafts.clear();
     queryClient.setQueryData(["/api/loans", next.loan.id], applicationView(next));
+    void queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
     notify();
   },
   read<T>(key: string, initial: T, blank?: T, applicationData = true): T {

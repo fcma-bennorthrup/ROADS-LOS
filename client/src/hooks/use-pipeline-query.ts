@@ -6,5 +6,6 @@ export function usePipelineQuery() {
     queryKey: ["/api/loans"],
     refetchOnMount: "always",
     refetchOnWindowFocus: "always",
+    refetchInterval: 10_000,
   });
 }
