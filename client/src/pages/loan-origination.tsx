@@ -6,11 +6,12 @@ import { CollateralContent } from "@/components/loan/CollateralContent";
 import { ProductPricingContent } from "@/components/loan/ProductPricingContent";
 import { LoanDetailsContent } from "@/components/loan/LoanDetailsContent";
 import { FeesContent } from "@/components/loan/FeesContent";
+import { CreditsContent } from "@/components/loan/CreditsContent";
 import { BorrowerInformationContent } from "@/components/loan/BorrowerInformationContent";
 import { StockContent } from "@/components/loan/StockContent";
 import { formatCurrency } from "@/lib/loan-display";
 
-const VALID_NAV_ITEMS = ["Borrower Information", "Loan Details", "Collateral", "Product & Pricing", "Fees", "Stock"];
+const VALID_NAV_ITEMS = ["Borrower Information", "Loan Details", "Collateral", "Product & Pricing", "Fees", "Credits", "Stock"];
 
 export default function LoanOriginationPage() {
   const loan = useWorkspaceLoan();
@@ -27,6 +28,7 @@ export default function LoanOriginationPage() {
       {activeNavItem === "Product & Pricing" && <ProductPricingContent loanNumber={loan.loanNumber} borrowerName={loan.primaryBorrowerName} />}
       {activeNavItem === "Loan Details" && <LoanDetailsContent initialRequestedLoanAmount={formatCurrency(loan.amountRequested)} />}
       {activeNavItem === "Fees" && <FeesContent />}
+      {activeNavItem === "Credits" && <CreditsContent />}
       {activeNavItem === "Stock" && <StockContent />}
       {activeNavItem === "Borrower Information" && <BorrowerInformationContent />}
     </div>

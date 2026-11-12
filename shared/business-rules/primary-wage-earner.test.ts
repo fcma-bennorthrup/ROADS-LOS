@@ -32,7 +32,10 @@ it("handles one borrower, ties, missing and invalid income", () => {
   loan.sections.income = [{ incomeSources: [{ totalMonthlyIncome: "5000" }] }, { incomeSources: [{ totalMonthlyIncome: "5000" }] }];
   expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBe("a");
   (loan.sections.income as any[])[1].incomeSources = [];
-  expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBeNull();
+  expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBe("a");
+  expect(evaluateLoanRules(loan).primaryWageEarner.monthlyIncomes).toEqual([5000, 0]);
+  loan.sections.income = (loan.sections.income as any[]).slice(0, 1);
+  expect(evaluateLoanRules(loan).primaryWageEarner.monthlyIncomes).toEqual([5000, 0]);
   loan.borrowers = loan.borrowers.slice(0, 1);
   expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBe("a");
   expect(incomeSourceTotals({ baseEmploymentIncome: "$60,000", bonuses: "12000" })).toEqual({ yearly: 72000, monthly: 6000 });

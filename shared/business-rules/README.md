@@ -62,8 +62,9 @@ results. Existing saved Blend imports are adopted when loaded.
 ## Joint credit
 
 Salesforce-only creation supports one or two borrowers and saves a baseline.
-Blend controls default to the loan's current count. A one-borrower import fills
-only the first borrower and never removes an existing second borrower. Importing
-two can add a co-borrower. Reset returns to the original baseline borrower count.
+Blend uses the count selected at Salesforce creation; there is no in-loan
+borrower-count choice. The server reads the baseline, falling back to creation
+metadata or the existing count for legacy loans. Existing borrower records are
+never deleted by import. Reset returns to the original baseline borrower count.
 The joint-credit rule shows “Joint Credit Application” for two or more named
 borrowers, and no chip for one borrower or unnamed slots.

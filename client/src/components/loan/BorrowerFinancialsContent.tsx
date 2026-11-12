@@ -464,8 +464,10 @@ export function BorrowerFinancialsContent() {
     SAMPLE_BORROWERS.map((b, index) => ({ ...b, name: `Borrower ${index + 1}`, incomeSources: [] })));
   const loanBorrowers = applicationStore.document ? applicationView(applicationStore.document).borrowers : null;
   const pweIndex = app ? evaluatePrimaryWageEarner(app).borrowerIndex : null;
-  const borrowers = savedBorrowers.map((b, index) => ({ ...b,
-    name: loanBorrowers ? loanBorrowers[index]?.name || `Borrower ${index + 1}` : b.name }));
+  const borrowers = (loanBorrowers ?? savedBorrowers).map((_, index) => ({
+    ...(savedBorrowers[index] ?? { name: "", isPrimaryWageEarner: false, incomeSources: [] }),
+    name: loanBorrowers ? loanBorrowers[index]?.name || `Borrower ${index + 1}` : savedBorrowers[index].name,
+  }));
   const [editingSourceIndex, setEditingSourceIndex] = useState<number | null>(null);
   const [editBuffer, setEditBuffer] = useState<IncomeSourceData | null>(null);
   useLoanEditing("income-editor", editingSourceIndex !== null);
@@ -492,7 +494,7 @@ export function BorrowerFinancialsContent() {
     };
 
     setBorrowers((prev) => {
-      const next = [...prev];
+      const next = borrowers.map((borrower, index) => prev[index] ?? borrower);
       const sources = [...next[activeBorrowerIndex].incomeSources];
       sources[editingSourceIndex] = updated;
       next[activeBorrowerIndex] = { ...next[activeBorrowerIndex], incomeSources: sources };
@@ -518,7 +520,7 @@ export function BorrowerFinancialsContent() {
       id: String(Date.now()),
     };
     setBorrowers((prev) => {
-      const next = [...prev];
+      const next = borrowers.map((borrower, index) => prev[index] ?? borrower);
       const sources = [...next[activeBorrowerIndex].incomeSources, newSource];
       next[activeBorrowerIndex] = { ...next[activeBorrowerIndex], incomeSources: sources };
       return next;
@@ -620,6 +622,11 @@ export function BorrowerFinancialsContent() {
         </div>
 
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          {activeBorrower.incomeSources.length === 0 && (
+            <p className="body-100" style={{ color: "var(--roads-text-secondary)" }} data-testid="text-no-borrower-income">
+              No income reported for this borrower
+            </p>
+          )}
           {activeBorrower.incomeSources.map((source, idx) => (
             <IncomeSourceCard
               key={source.id}

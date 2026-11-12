@@ -22,6 +22,7 @@ export function evaluatePrimaryWageEarner(app: LoanApplication) {
   const income = Array.isArray(app.sections.income) ? app.sections.income : [];
   const monthlyIncomes = app.borrowers.map((_, index): number | null => {
     const sources = income[index]?.incomeSources;
+    if (index === 1 && (sources == null || (Array.isArray(sources) && !sources.length))) return 0;
     if (!Array.isArray(sources) || !sources.length) return null;
     let sum = 0;
     for (const source of sources) {

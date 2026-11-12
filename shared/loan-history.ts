@@ -18,7 +18,7 @@ const sections: Record<string, string> = {
   "subject-property": "Collateral", "evaluation-1": "Collateral", "evaluation-2": "Collateral",
   "appraisal-split": "Collateral", "pricing-type": "Product & Pricing",
   "pricing-product": "Product & Pricing", "pricing-term": "Product & Pricing",
-  fees: "Fees", "closing-details": "Closing", "credit-pulled": "Decisioning",
+  fees: "Fees", credits: "Credits", "closing-details": "Closing", "credit-pulled": "Decisioning",
   "booking-state": "Booking", "booking-at": "Booking",
 };
 const label = (key: string) => key.replace(/([a-z])([A-Z])/g, "$1 $2")

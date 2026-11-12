@@ -132,19 +132,22 @@ describe("Trigger TRID button", () => {
     expect(screen.getAllByRole("alert")).toHaveLength(1);
     expect(mocks.request).not.toHaveBeenCalled();
   });
-  it.each([1, 2])("submits the selected %i borrower Blend import", async count => {
+  it("submits Blend import without a borrower-count choice", async () => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });
     render(<LoanDemoControls />);
-    fireEvent.click(screen.getByRole("radio", { name: count === 1 ? "1 borrower" : "2 borrowers" }));
+    expect(screen.queryByRole("group", { name: "Borrowers to import" })).toBeNull();
+    expect(screen.queryByRole("radio", { name: "1 borrower" })).toBeNull();
+    expect(screen.queryByRole("radio", { name: "2 borrowers" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "New Blend Import" }));
     expect(mocks.request).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Confirm import" }));
     await waitFor(() => expect(mocks.request).toHaveBeenCalled());
     expect(JSON.parse(mocks.request.mock.calls[0][2].body)).toMatchObject({
-      action: "blend", borrowerCount: count, confirmed: true,
+      action: "blend", confirmed: true,
       generation: 1, revision: 2,
     });
     expect(JSON.parse(mocks.request.mock.calls[0][2].body)).not.toHaveProperty("sections");
+    expect(JSON.parse(mocks.request.mock.calls[0][2].body)).not.toHaveProperty("borrowerCount");
   });
   it("requires confirmation, then submits the current loan revision and demo fields", async () => {
     mocks.request.mockResolvedValue({ loan: { id: "demo" } });

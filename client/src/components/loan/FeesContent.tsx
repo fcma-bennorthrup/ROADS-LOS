@@ -18,6 +18,7 @@ const FEE_OPTIONS = [
   "Credit Report Fee",
   "Flood Certification Fee",
   "Origination Fee",
+  "Prepaid Interest",
   "Processing Fee",
   "Recording Fee",
   "Tax Service Fee",
@@ -139,6 +140,15 @@ export function FeesContent() {
     methodOfPayment !== "Cash" || paidBy !== "Buyer");
   useLoanEditing("fee-editor", editing);
 
+  function handleFeeTypeChange(value: string) {
+    setFeeType(value);
+    if (value === "Prepaid Interest" && feeType !== value) {
+      const amount = (400 + Math.floor(Math.random() * 1601)).toFixed(2);
+      setLeAmount(amount);
+      setCdAmount(amount);
+    }
+  }
+
   function handleAddFee() {
     if (!feeType) return;
     try {
@@ -255,7 +265,7 @@ export function FeesContent() {
 
       <div className="roads-fees-fields" data-testid="fees-field-row">
         <Field label="Fee">
-          <RoadsDropdown value={feeType} onChange={setFeeType} options={FEE_OPTIONS}
+          <RoadsDropdown value={feeType} onChange={handleFeeTypeChange} options={FEE_OPTIONS}
             placeholder="Select fee" variant="field" ariaLabel="Fee" testId="select-fee-type" />
         </Field>
         <Field label="Method of Payment">

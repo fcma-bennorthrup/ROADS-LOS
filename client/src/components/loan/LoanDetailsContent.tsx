@@ -94,7 +94,8 @@ const LOAN_TYPE_OPTIONS = [
 
 const LOAN_PURPOSE_OPTIONS = [
   { value: "primary_dwelling", label: "Primary Dwelling" },
-  { value: "land_lot", label: "Land/Lot" },
+  { value: "land", label: "Land" },
+  { value: "lot", label: "Lot" },
   { value: "other", label: "Other" },
 ];
 
@@ -115,7 +116,7 @@ interface LoanDetailsContentProps {
 export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDetailsContentProps) {
   const defaultState: LoanDetailsState = {
     loanType: "purchase",
-    loanPurpose: "land_lot",
+    loanPurpose: "land",
     requestedLoanAmount: initialRequestedLoanAmount,
     downPaymentAmount: "$50,000.00",
     downPaymentSource: "cash_on_hand",
@@ -154,7 +155,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
     LOAN_TYPE_OPTIONS.find((o) => o.value === val)?.label ?? val;
 
   const getLoanPurposeLabel = (val: string) =>
-    LOAN_PURPOSE_OPTIONS.find((o) => o.value === val)?.label ?? val;
+    val === "land_lot" ? "Land/Lot" : LOAN_PURPOSE_OPTIONS.find((o) => o.value === val)?.label ?? val;
 
   const getDownPaymentSourceLabel = (val: string) =>
     val === "" ? "" : (DOWN_PAYMENT_SOURCE_OPTIONS.find((o) => o.value === val)?.label ?? val);

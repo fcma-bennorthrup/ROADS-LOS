@@ -10,6 +10,7 @@ const ORIGINATION_NAV_ITEMS = [
   "Collateral",
   "Product & Pricing",
   "Fees",
+  "Credits",
   "Stock",
 ];
 

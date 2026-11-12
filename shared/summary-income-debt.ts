@@ -30,7 +30,8 @@ function record(value: unknown): Record<string, unknown> {
  * falling back to saved totals only when components are absent.
  * There is no saved pay-frequency field: no weekly/hourly conversion is guessed.
  * Blank optional components contribute zero only if another component is explicit.
- * A blank borrower/source is unknown, not an assertion of zero income.
+ * An absent secondary borrower's source list counts as zero income.
+ * Blank or invalid added sources, and missing primary income, remain unknown.
  *
  * Both balance-sheet arrays are loan-wide, not per-borrower. Count each row once.
  * "To Be Paid Off" describes intent, not a confirmed payoff: rows marked Yes
@@ -62,6 +63,7 @@ export function calculateSummaryIncomeDebt(
     app.borrowers.forEach((_, borrowerIndex) => {
       const label = `Income borrower ${borrowerIndex + 1}`;
       const sources = record(income[borrowerIndex]).incomeSources;
+      if (borrowerIndex === 1 && (sources == null || (Array.isArray(sources) && sources.length === 0))) return;
       if (!Array.isArray(sources) || sources.length === 0) {
         incomeMissing(`${label}: income sources are missing; zero income must be explicit.`);
         return;

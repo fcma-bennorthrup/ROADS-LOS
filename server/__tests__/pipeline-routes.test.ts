@@ -3,6 +3,7 @@ import { newLoanApplication } from "../../shared/loan-factory";
 import { newSfOpportunity } from "../sf-opportunity";
 import { applyBlendApplication } from "../../shared/loan-events/blend-application";
 import { deterministicRandom } from "../../shared/loan-events/random";
+import { withOriginationFee } from "../../shared/business-rules/origination-fee";
 const db = vi.hoisted(() => ({ query: vi.fn(), connect: vi.fn(), release: vi.fn() }));
 vi.mock("pg", () => ({ default: { Pool: class {
   query = db.query;
@@ -75,6 +76,30 @@ describe("pipeline API", () => {
   it("rejects invalid new fee field types before any database write", async () => {
     const result = await request("PUT /api/loans/:id/application",
       { generation: 0, revision: 0, section: "fees", value: [{ shoppedForProvider: "yes" }] });
+    expect(result.statusCode).toBe(400);
+    expect(db.query).not.toHaveBeenCalled();
+  });
+  it.each([
+    { value: [{ id: "promotion", creditType: "Lender Credit - Promotion", cdAmount: "250.00", description: "Test credit" }] },
+    { value: [] },
+  ])("persists credits including deletion in only the selected loan", async ({ value }) => {
+    const current = document("credit-loan");
+    const saved = { ...current, revision: current.revision + 1, sections: { ...current.sections, credits: value } };
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ document: saved }] });
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: 0, revision: 0, section: "credits", value }, "credit-loan");
+    expect(result.statusCode).toBe(200);
+    expect(result.body.sections.credits).toEqual(value);
+    expect(db.query.mock.calls[1][1].slice(0, 3)).toEqual(["credit-loan", "credits", JSON.stringify(value)]);
+    db.query.mockResolvedValueOnce({ rows: [{ document: saved }] });
+    const reloaded = await request("GET /api/loans/:id/application", {}, "credit-loan");
+    expect(reloaded.body.sections.credits).toEqual(value);
+  });
+  it("rejects malformed credit rows before database access", async () => {
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: 0, revision: 0, section: "credits",
+        value: [{ id: "bad", creditType: "Unsupported", cdAmount: "-1", description: "" }] });
     expect(result.statusCode).toBe(400);
     expect(db.query).not.toHaveBeenCalled();
   });
@@ -382,6 +407,20 @@ describe("pipeline API", () => {
     expect(result.body).toEqual(current);
     expect(db.query).toHaveBeenCalledTimes(1);
     expect((await request("POST /api/loans/:id/application/demo", { ...body, revision: 99 }, current.loan.id)).statusCode).toBe(409);
+  });
+  it.each([1, 2] as const)("uses the original %i-borrower Salesforce count despite a conflicting import option", async count => {
+    const current = withOriginationFee(newSfOpportunity("blend-count", "123456790", "123456", new Date(), count));
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockImplementationOnce(async (_sql, args) => ({ rowCount: 1, rows: [{ document: JSON.parse(args[1]) }] }));
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "blend", confirmed: true, generation: current.generation, revision: current.revision,
+      borrowerCount: count === 1 ? 2 : 1,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body.borrowers).toHaveLength(count);
+    expect(result.body.sections.income).toHaveLength(count);
+    expect(result.body.sections.income.every((borrower: any) => borrower.incomeSources.length > 0)).toBe(true);
+    expect(result.body.meta.baseline).toEqual(current.meta!.baseline);
   });
   it.each([true, false])("captures a legacy baseline only during reset (existing CIF: %s)", async hasCif => {
     const current = document("legacy-reset-test");
