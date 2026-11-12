@@ -2,6 +2,7 @@ export interface ClosingDisclosureRecord {
   id: number;
   generatedAt: string;
   deliveredAt: string | null;
+  viewedAt?: string;
   borrowerDetails?: import("./closing-disclosure-borrowers").BorrowerDisclosureDetails[];
 }
 
@@ -12,6 +13,30 @@ export function closingDisclosureStorageKey(loanId: string) {
 
 export function loadClosingDisclosures(loanId: string): ClosingDisclosureRecord[] {
   return loadClosingDisclosureHistory(loanId).records;
+}
+
+export function latestDeliveredDisclosure(records: readonly ClosingDisclosureRecord[]) {
+  return records.filter(record => record.deliveredAt).reduce<ClosingDisclosureRecord | undefined>(
+    (latest, record) => !latest || Date.parse(record.deliveredAt!) > Date.parse(latest.deliveredAt!) ||
+      (record.deliveredAt === latest.deliveredAt && record.id > latest.id) ? record : latest, undefined);
+}
+
+/** Guard queued clicks against a reset or a newer delivery, rather than viewing a different CD. */
+export async function simulateClosingDisclosureViewed(loanId: string) {
+  const snapshot = loadClosingDisclosureHistory(loanId);
+  const target = latestDeliveredDisclosure(snapshot.records);
+  if (!target || target.viewedAt) throw new Error("There is no delivered Closing Disclosure awaiting viewing.");
+  const viewedAt = new Date().toISOString();
+  await updateClosingDisclosureHistory(loanId, current => {
+    const latest = latestDeliveredDisclosure(current.records);
+    if (current.resetToken !== snapshot.resetToken || latest?.id !== target.id ||
+        latest.generatedAt !== target.generatedAt || latest.deliveredAt !== target.deliveredAt) {
+      throw new Error("The latest delivered disclosure changed. Please try again.");
+    }
+    if (latest.viewedAt) return current;
+    return { ...current, records: current.records.map(record =>
+      record.id === latest.id ? { ...record, viewedAt } : record) };
+  });
 }
 
 export interface ClosingDisclosureHistory {
@@ -57,6 +82,7 @@ export function loadClosingDisclosureHistory(loanId: string): ClosingDisclosureH
     if (
       !row || !Number.isSafeInteger(row.id) || row.id < 1 || ids.has(row.id) ||
       typeof row.generatedAt !== "string" || !Number.isFinite(Date.parse(row.generatedAt)) ||
+      (row.viewedAt !== undefined && (typeof row.viewedAt !== "string" || !Number.isFinite(Date.parse(row.viewedAt)) || !row.deliveredAt)) ||
       (row.deliveredAt !== null &&
         (typeof row.deliveredAt !== "string" || !Number.isFinite(Date.parse(row.deliveredAt))))
     ) throw new Error("Invalid disclosure history");

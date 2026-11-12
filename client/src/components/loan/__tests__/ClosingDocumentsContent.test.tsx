@@ -12,6 +12,12 @@ import {
 } from "@/lib/closing-disclosure-history";
 import { useClosingDisclosures } from "@/hooks/use-closing-disclosures";
 import { DocumentSection } from "../DisclosureDocumentsContent";
+import { openClosingDisclosurePreview } from "@/lib/closing-disclosure-preview";
+
+vi.mock("@/lib/closing-disclosure-preview", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/lib/closing-disclosure-preview")>(),
+  openClosingDisclosurePreview: vi.fn(),
+}));
 
 function Reset() {
   const { resetDemoTasks } = useChecklist();
@@ -36,12 +42,22 @@ function generate() {
   act(() => vi.advanceTimersByTime(5000));
 }
 function row(id: number) {
-  return screen.getByText(`CD ${id}`).closest("tr")!;
+  return screen.getByTestId(`row-closing-disclosure-${id}`);
 }
 
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date(2026, 9, 2, 10, 0));
+  // Locks return promises even when the test grants the callback immediately.
+  // Package retention chains .catch() on that return value.
+  Object.defineProperty(navigator, "locks", {
+    configurable: true,
+    value: { request: (_name: string, write: () => void) => {
+      write();
+      return Promise.resolve();
+    } },
+  });
+  vi.mocked(openClosingDisclosurePreview).mockClear();
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -59,15 +75,15 @@ describe("Closing Documents tabs and history", () => {
     expect(screen.queryByRole("button", { name: "Generate Closing Package" })).not.toBeInTheDocument();
   });
 
-  it("keeps three toolbar controls and seven aligned columns in empty and populated history", () => {
+  it("keeps only two toolbar controls and seven aligned columns in empty and populated history", () => {
     render(<Harness />);
     const toolbar = button("Generate Closing Disclosure").parentElement!;
     expect(within(toolbar).getAllByRole("button").map((node) => node.textContent)).toEqual([
-      "Generate Closing Disclosure", "Deliver Closing Disclosure", "Reset Closing Disclosure",
+      "Generate Closing Disclosure", "Deliver Closing Disclosure",
     ]);
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("columnheader").map((node) => node.getAttribute("aria-label") || node.textContent)).toEqual([
-      "Document ID", "Date Generated", "Delivery Date", "Assumed Delivery Date", "Delivery Method", "CD Viewed", "Document actions",
+      "Date Generated", "Delivery Date", "Delivery Method", "Assumed Delivery Date", "CD Viewed", "Delivery tracking", "Document preview",
     ]);
     expect(screen.getByTestId("text-closing-disclosure-empty")).toHaveAttribute("colspan", "7");
     generate();
@@ -93,10 +109,10 @@ describe("Closing Documents tabs and history", () => {
     expect(button("Generate Closing Disclosure")).toBeDisabled();
     expect(screen.getByText(/Generating Closing Disclosure/)).toBeVisible();
     act(() => vi.advanceTimersByTime(4999));
-    expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("row-closing-disclosure-1")).not.toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1));
     generate();
-    expect(screen.getAllByText(/^CD \d$/).map((node) => node.textContent)).toEqual(["CD 2", "CD 1"]);
+    expect(screen.getAllByTestId(/^row-closing-disclosure-/).map((node) => node.dataset.testid)).toEqual(["row-closing-disclosure-2", "row-closing-disclosure-1"]);
   });
 
   it("delivers only the newest disclosure from the toolbar and keeps original timestamps", () => {
@@ -118,12 +134,10 @@ describe("Closing Documents tabs and history", () => {
       expect(within(row(id)).getAllByRole("cell")).toHaveLength(7);
       const actions = within(row(id)).getAllByRole("cell")[6];
       expect(within(actions).queryByRole("button", { name: /Deliver/ })).not.toBeInTheDocument();
-      expect(within(actions).getAllByRole("button")).toHaveLength(2);
-      expect(actions.querySelectorAll("svg")).toHaveLength(3);
-      expect(Array.from(actions.firstElementChild!.children).map((node) => node.tagName))
-        .toEqual(["BUTTON", "SPAN", "BUTTON"]);
-      expect(within(actions).getByTitle("History")).toHaveAttribute("aria-hidden", "true");
-      expect(within(actions).getByRole("button", { name: `Edit Closing Disclosure CD ${id}` })).toBeInTheDocument();
+      expect(within(actions).getAllByRole("button")).toHaveLength(1);
+      expect(actions.querySelectorAll("svg")).toHaveLength(1);
+      expect(screen.queryByRole("button", { name: `Edit Closing Disclosure CD ${id}` })).not.toBeInTheDocument();
+      expect(within(row(id)).getAllByRole("cell")[5].querySelector("svg") !== null).toBe(id === 2);
     }
     expect(screen.getAllByRole("button", { name: /Deliver Closing Disclosure/ })).toHaveLength(1);
   });
@@ -157,21 +171,55 @@ describe("Closing Documents tabs and history", () => {
     expect(saved[0].deliveredAt).toBeNull();
   });
 
-  it("opens sample PDFs without fabricating borrower views and leaves clock inert", () => {
-    const open = vi.spyOn(window, "open").mockReturnValue(null);
+  it("opens the selected simulated preview without mutations and leaves clock inert", () => {
     render(<Harness />);
     generate();
+    generate();
+    const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
     fireEvent.click(within(row(1)).getByRole("button", { name: /View/ }));
-    expect(open).toHaveBeenCalledTimes(1);
-    expect(open).toHaveBeenCalledWith(expect.stringContaining("SampleCD"), "_blank", "noopener,noreferrer");
+    expect(openClosingDisclosurePreview).toHaveBeenCalledTimes(1);
+    expect(openClosingDisclosurePreview).toHaveBeenCalledWith("prototype", loadClosingDisclosures("prototype")[1]);
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
     expect(loadClosingDisclosures("prototype")[0].borrowerDetails).toBeUndefined();
     const cells = within(row(1)).getAllByRole("cell");
     expect(cells[3]).toBeEmptyDOMElement();
-    expect(cells[4]).toHaveTextContent("Not recorded");
-    expect(cells[5]).toHaveTextContent("No borrowers");
+    expect(cells[1]).toBeEmptyDOMElement();
+    expect(cells[2]).toBeEmptyDOMElement();
+    expect(cells[4]).toBeEmptyDOMElement();
+    expect(cells[5]).toBeEmptyDOMElement();
     expect(cells).toHaveLength(7);
     expect(within(cells[6]).getByRole("button", { name: "View Closing Disclosure CD 1" })).toBeEnabled();
     expect(within(row(1)).queryByRole("button", { name: /clock|history/i })).not.toBeInTheDocument();
+  });
+
+  it("reports preview errors locally, clears them on retry and does not disable generation or delivery", () => {
+    render(<Harness />);
+    generate();
+    const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
+    vi.mocked(openClosingDisclosurePreview).mockImplementationOnce(() => { throw new Error("Allow pop-ups to open the simulated preview."); });
+    fireEvent.click(within(row(1)).getByRole("button", { name: /View/ }));
+    expect(screen.getByRole("alert")).toHaveTextContent("Allow pop-ups");
+    expect(button("Generate Closing Disclosure")).toBeEnabled();
+    expect(button("Deliver Closing Disclosure")).toBeEnabled();
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+    fireEvent.click(within(row(1)).getByRole("button", { name: /View/ }));
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+  });
+
+  it("shows Needed only after delivery regardless of historical borrower viewing, with no editor or breakdown", () => {
+    const saved = JSON.stringify([{ id: 1, generatedAt: new Date().toISOString(), deliveredAt: null,
+      borrowerDetails: [{ borrowerId: "a", deliveryMethod: "Mail", deliveryDate: "2026-09-01", cdViewed: "Yes", viewedDate: "2026-09-02" }] }]);
+    localStorage.setItem(closingDisclosureStorageKey("prototype"), saved);
+    render(<Harness />);
+    expect(screen.getByTestId("status-cd-viewed-1")).toBeEmptyDOMElement();
+    expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
+    fireEvent.click(button("Deliver Closing Disclosure"));
+    expect(screen.getByTestId("status-cd-viewed-1")).toHaveTextContent("Needed");
+    expect(screen.queryByRole("button", { name: /Edit Closing Disclosure|View borrower details|Reset Closing Disclosure/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(60000));
+    expect(screen.getByTestId("status-cd-viewed-1")).toHaveTextContent("Needed");
   });
 
   it("retains history across tabs and unmount/remount and isolates loans", () => {
@@ -180,33 +228,33 @@ describe("Closing Documents tabs and history", () => {
     selectTab("Closing Package");
     expect(screen.getByRole("tab", { name: "Closing Package" })).toHaveAttribute("aria-selected", "true");
     selectTab("Closing Disclosure");
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(row(1)).toBeVisible();
     fireEvent.click(button("Navigate away/back"));
     fireEvent.click(button("Navigate away/back"));
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(row(1)).toBeVisible();
     view.rerender(<Harness loanId="other" />);
-    expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("row-closing-disclosure-1")).not.toBeInTheDocument();
     generate();
     view.rerender(<Harness />);
-    expect(screen.queryByText("CD 2")).not.toBeInTheDocument();
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(screen.queryByTestId("row-closing-disclosure-2")).not.toBeInTheDocument();
+    expect(row(1)).toBeVisible();
   });
 
-  it("Reset Demo clears history and cancels pending generation, also while unmounted", () => {
+  it("Reset Demo clears history and cancels pending generation, also while unmounted", async () => {
     render(<Harness />);
     generate();
     fireEvent.click(button("Generate Closing Disclosure"));
-    fireEvent.click(button("Reset Demo"));
+    await act(async () => { fireEvent.click(button("Reset Demo")); });
     act(() => vi.advanceTimersByTime(5000));
-    expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("row-closing-disclosure-1")).not.toBeInTheDocument();
     generate();
     fireEvent.click(button("Navigate away/back"));
-    fireEvent.click(button("Reset Demo"));
+    await act(async () => { fireEvent.click(button("Reset Demo")); });
     fireEvent.click(button("Navigate away/back"));
-    expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("row-closing-disclosure-1")).not.toBeInTheDocument();
   });
 
-  it("preserves package generation, PDF preview and delivery when switching tabs", () => {
+  it("preserves package generation, inert preview and delivery when switching tabs", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
     render(<Harness />);
     selectTab("Closing Package");
@@ -217,7 +265,7 @@ describe("Closing Documents tabs and history", () => {
     selectTab("Closing Package");
     expect(screen.getByTestId("text-closing-package-status")).toHaveTextContent("Last Generated:");
     fireEvent.click(button("View Closing Package"));
-    expect(open).toHaveBeenCalledWith(expect.stringContaining("Redacted-ClosingPackage"), "_blank", "noopener,noreferrer");
+    expect(open).not.toHaveBeenCalled();
     fireEvent.click(button("Deliver Closing Package"));
     selectTab("Closing Disclosure");
     selectTab("Closing Package");
@@ -233,7 +281,7 @@ describe("Closing Documents tabs and history", () => {
     expect(localStorage.getItem(key)).toBe("broken history");
     fireEvent.click(button("Reset Demo"));
     generate();
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(row(1)).toBeVisible();
   });
 
   it("reports failed writes without claiming a disclosure was saved", () => {
@@ -243,7 +291,7 @@ describe("Closing Documents tabs and history", () => {
     });
     generate();
     expect(screen.getByRole("alert")).toHaveTextContent("could not be saved");
-    expect(screen.queryByText("CD 1")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("row-closing-disclosure-1")).not.toBeInTheDocument();
   });
 });
 
@@ -259,15 +307,13 @@ function UnrelatedProgress() {
 }
 
 describe("Dedicated Closing Disclosure reset", () => {
-  it("asks for confirmation and cancel preserves history and pending generation", () => {
-    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+  it("offers no page reset control and keeps pending generation intact", () => {
     render(<Harness />);
     generate();
     fireEvent.click(button("Deliver Closing Disclosure"));
     const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
     fireEvent.click(button("Generate Closing Disclosure"));
-    fireEvent.click(button("Reset Closing Disclosure"));
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining("their delivery timestamps for this loan"));
+    expect(screen.queryByRole("button", { name: "Reset Closing Disclosure" })).not.toBeInTheDocument();
     expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
     expect(screen.getByText(/Generating Closing Disclosure/)).toBeVisible();
     act(() => vi.advanceTimersByTime(5000));
@@ -275,13 +321,12 @@ describe("Dedicated Closing Disclosure reset", () => {
   });
 
   it("clears saved rows and delivery dates, cancels generation, survives remount, and restarts at CD 1", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness />);
     generate();
     fireEvent.click(button("Deliver Closing Disclosure"));
     generate();
     fireEvent.click(button("Generate Closing Disclosure"));
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     expect(loadClosingDisclosures("prototype")).toEqual([]);
     expect(screen.queryByTestId("button-view-closing-disclosure")).not.toBeInTheDocument();
     expect(button("Deliver Closing Disclosure")).toBeDisabled();
@@ -296,50 +341,45 @@ describe("Dedicated Closing Disclosure reset", () => {
   });
 
   it("recovers unreadable history without affecting another loan", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     const other = [{ id: 8, generatedAt: new Date().toISOString(), deliveredAt: null }];
     localStorage.setItem(closingDisclosureStorageKey("other"), JSON.stringify(other));
     localStorage.setItem(closingDisclosureStorageKey("prototype"), "broken");
     render(<Harness />);
     expect(button("Generate Closing Disclosure")).toBeDisabled();
-    expect(button("Reset Closing Disclosure")).toBeEnabled();
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
     expect(loadClosingDisclosures("other")).toEqual(other);
     generate();
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(row(1)).toBeVisible();
   });
 
   it("shows failed reset writes and retains the visible and saved history", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness />);
     generate();
     fireEvent.click(button("Deliver Closing Disclosure"));
     const saved = localStorage.getItem(closingDisclosureStorageKey("prototype"));
     const write = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("Full"); });
-    fireEvent.click(button("Reset Closing Disclosure"));
-    expect(screen.getByRole("alert")).toHaveTextContent("could not be reset");
-    expect(screen.getByText("CD 1")).toBeVisible();
+    expect(adminReset()).toContain("could not be reset");
+    expect(row(1)).toBeVisible();
     expect(localStorage.getItem(closingDisclosureStorageKey("prototype"))).toBe(saved);
-    expect(button("Reset Closing Disclosure")).toBeEnabled();
+    expect(screen.queryByRole("button", { name: "Reset Closing Disclosure" })).not.toBeInTheDocument();
     write.mockRestore();
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
   });
 
   it("does not globally reset sibling document progress or unrelated checklist tasks", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<ChecklistProvider><UnrelatedProgress /><ClosingDocumentsContent /></ChecklistProvider>);
     fireEvent.click(button("Complete another task"));
     fireEvent.click(button("Generate unrelated document"));
     generate();
     const before = screen.getByTestId("text-unrelated-document-status").textContent;
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     expect(screen.getByTestId("text-unrelated-document-status")).toHaveTextContent(before!);
     expect(screen.getByTestId("unrelated-checklist-status")).toHaveTextContent("complete");
   });
 
-  it("keeps scoped native resets scoped and preserves the broader Reset Demo signal", () => {
+  it("keeps scoped native resets scoped and preserves the broader Reset Demo signal", async () => {
     render(<ChecklistProvider><Reset /><UnrelatedProgress /><ClosingDocumentsContent /></ChecklistProvider>);
     fireEvent.click(button("Complete another task"));
     fireEvent.click(button("Generate unrelated document"));
@@ -351,12 +391,11 @@ describe("Dedicated Closing Disclosure reset", () => {
     expect(screen.getByText("No Closing Disclosures have been generated")).toBeVisible();
     expect(screen.getByTestId("text-unrelated-document-status")).toHaveTextContent(before!);
     expect(screen.getByTestId("unrelated-checklist-status")).toHaveTextContent("complete");
-    fireEvent.click(button("Reset Demo"));
+    await act(async () => { fireEvent.click(button("Reset Demo")); });
     expect(screen.getByText("Unrelated idle")).toBeVisible();
   });
 
   it("leaves completed package delivery and in-progress package generation unchanged", () => {
-    vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<Harness />);
     selectTab("Closing Package");
     fireEvent.click(button("Generate Closing Package"));
@@ -366,19 +405,27 @@ describe("Dedicated Closing Disclosure reset", () => {
     const delivered = screen.getByTestId("text-closing-package-delivered").textContent;
     selectTab("Closing Disclosure");
     generate();
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     selectTab("Closing Package");
     expect(screen.getByTestId("text-closing-package-status")).toHaveTextContent(generated!);
     expect(screen.getByTestId("text-closing-package-delivered")).toHaveTextContent(delivered!);
     fireEvent.click(button("Generate Closing Package"));
     selectTab("Closing Disclosure");
-    fireEvent.click(button("Reset Closing Disclosure"));
+    adminReset();
     act(() => vi.advanceTimersByTime(5000));
     selectTab("Closing Package");
     expect(screen.getByTestId("text-closing-package-status")).toHaveTextContent("Last Generated:");
     expect(screen.getByTestId("text-closing-package-delivered")).toHaveTextContent(delivered!);
   });
 });
+
+function adminReset() {
+  const admin = consumer();
+  act(() => admin.result.current.reset());
+  const error = admin.result.current.error;
+  admin.unmount();
+  return error;
+}
 
 // Independent hook instances model tab snapshots. Direct storage writes deliberately
 // omit notifications to exercise stale consumers; StorageEvents model other windows.

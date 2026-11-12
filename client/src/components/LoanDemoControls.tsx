@@ -5,6 +5,7 @@ import { useApplicationStatus } from "@/contexts/loan-application-context";
 import { applicationRequest } from "@/lib/loan-application-store";
 import { Switch } from "@/components/ui/switch";
 import { decisionMode, type DecisionMode } from "@shared/business-rules/decision-simulation";
+import { latestDeliveredDisclosure, loadClosingDisclosures, simulateClosingDisclosureViewed } from "@/lib/closing-disclosure-history";
 
 type DemoAction = "reset" | "blend" | "trid" | "checklist" | "trid-reset" | "trid-manual";
 
@@ -14,6 +15,27 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
   const [busy, setBusy] = useState(false);
   const [blendMessage, setBlendMessage] = useState("");
   const [error, setError] = useState("");
+  const [viewedMessage, setViewedMessage] = useState("");
+  let canSimulateViewing = false;
+  let disclosureReadError = "";
+  try {
+    const latest = store.document && latestDeliveredDisclosure(loadClosingDisclosures(store.document.loan.id));
+    canSimulateViewing = Boolean(latest && !latest.viewedAt);
+  } catch {
+    disclosureReadError = "Saved Closing Disclosure history could not be loaded.";
+  }
+  async function simulateViewing() {
+    if (!store.document || busy) return;
+    setBusy(true); setError(""); setViewedMessage("");
+    const loanId = store.document.loan.id;
+    try {
+      await simulateClosingDisclosureViewed(loanId);
+      await store.flush();
+      setViewedMessage("Latest delivered Closing Disclosure marked viewed.");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Closing Disclosure viewing could not be saved.");
+    } finally { setBusy(false); }
+  }
   async function changeDecisionMode(value: DecisionMode) {
     if (!store.document || busy) return;
     setBusy(true); setError("");
@@ -70,6 +92,15 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
       Loan {store.document?.loan.loanNumber} only · Shared by all viewers · Synthetic data only
     </p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-start">
+    <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-cd-viewed-card">
+      <h3 className="font-semibold">Closing Disclosure viewing</h3>
+      <p className="text-sm text-muted-foreground">Simulate the borrower viewing the latest delivered Closing Disclosure for this loan.</p>
+      {disclosureReadError && <p role="alert">{disclosureReadError}</p>}
+      {viewedMessage && <p role="status" className="text-sm text-muted-foreground">{viewedMessage}</p>}
+      <Button className="mt-auto w-full h-auto whitespace-normal py-2" variant="secondary"
+        disabled={busy || !store.document || store.pending > 0 || !!store.error || !canSimulateViewing}
+        onClick={simulateViewing}>Simulate CD Viewed</Button>
+    </div>
     {onViewCircumstances && <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-circumstance-card">
       <h3 className="font-semibold">Change of circumstance</h3>
       <p className="text-sm text-muted-foreground">Review the latest saved appraisal fee change reason.</p>

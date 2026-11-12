@@ -44,7 +44,7 @@ export function useClosingDisclosures(loanId: string) {
       setError(null);
     } catch {
       cancelGeneration();
-      setError("Saved disclosure history could not be loaded. Use Reset Closing Disclosure or Reset Demo to clear it.");
+      setError("Saved disclosure history could not be loaded. Saved data has not been changed. You can use Reset Demo in the prototype admin controls if you want to clear it.");
     }
   }
 

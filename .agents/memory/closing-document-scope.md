@@ -3,6 +3,20 @@ name: Closing document scope
 description: User-approved boundaries for the Closing Documents prototype.
 ---
 
+## Simplified simulation scope
+
+The user subsequently approved a loan admin control that simulates viewing the latest delivered CD, changing its Needed chip to green Complete. A newer delivery supersedes an older unviewed CD: hide the older Needed chip and clock, but preserve history. Generation alone must not supersede delivery.
+
+**Why:** The user specified this simulation and supersession behavior; staff document previews still are not borrower viewing.
+
+**How to apply:** Track viewing per disclosure, target latest delivered rather than latest generated, and preserve already completed disclosures. Clock interaction itself remains deferred.
+
+The user now requests disclosure-level tracking instead of the borrower editor: only Generate and Deliver toolbar actions; generation/delivery timestamps, Blend, assumed delivery plus three calendar days, Needed chip after delivery, blue clock after delivery, and a file icon. Remove the borrower side-panel action; viewing completion simulation and clock interaction remain deferred. Preserve saved historical data and Closing Package.
+
+**Why:** The user explicitly simplified the simulation and approved a simulated document preview opening in a separate tab instead of restoring PDFs.
+
+**How to apply:** This supersedes the older borrower-editor and toolbar protection requirements below for this page. Staff previews must still never count as borrower viewing. The approved preview is an exception to retired PDF controls being inert, not permission to restore retired PDF assets.
+
 The user chose interactive disclosure history rather than sample history. Clock/history-icon functionality remains deferred; the user subsequently requested borrower-specific editing.
 
 **Why:** The user originally deferred both icons, then explicitly approved the edit panel and borrower-viewing breakdown, not clock/history functionality.

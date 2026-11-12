@@ -33,7 +33,7 @@ describe("Assumed Delivery Date table column", () => {
     expect(cell()).toBeEmptyDOMElement();
     expect(cell(2)).toBeEmptyDOMElement();
     const header = screen.getAllByRole("columnheader").map((node) => node.textContent);
-    expect(header.slice(2, 5)).toEqual(["Delivery Date", "Assumed Delivery Date", "Delivery Method"]);
+    expect(header.slice(1, 4)).toEqual(["Delivery Date", "Delivery Method", "Assumed Delivery Date"]);
     expect(within(screen.getByTestId("row-closing-disclosure-1")).getAllByRole("cell")).toHaveLength(7);
     const writes = vi.spyOn(Storage.prototype, "setItem");
     fireEvent.click(screen.getByTestId("button-deliver-closing-disclosure"));
@@ -77,25 +77,26 @@ describe("Assumed Delivery Date table column", () => {
     expect(localStorage.getItem(closingDisclosureStorageKey("assumed"))).toBe(before);
   });
 
-  it("updates from successful linked manual corrections and survives remount without changing viewing or original timestamps", async () => {
+  it("ignores historical manual corrections and survives remount without rewriting them", () => {
     const saved = { ...record, deliveredAt: "2026-10-14T12:00:00.000Z", borrowerDetails: details };
     seed([saved]); const view = mount();
     expect(cell()).toHaveTextContent("10/17/2026");
-    fireEvent.click(screen.getByTestId("button-edit-closing-disclosure-1"));
-    fireEvent.change(screen.getByTestId("input-delivery-date-a"), { target: { value: "2026-10-20" } });
-    expect(cell()).toHaveTextContent("10/17/2026"); // Draft only until Save commits.
-    await act(async () => { fireEvent.click(screen.getByTestId("button-save-borrower-edit-1")); });
-    expect(cell()).toHaveTextContent("10/23/2026");
+    expect(screen.queryByTestId("button-edit-closing-disclosure-1")).not.toBeInTheDocument();
+    act(() => {
+      seed([{ ...saved, borrowerDetails: details.map((item) => ({ ...item, deliveryDate: "2026-10-20" })) }]);
+      window.dispatchEvent(new StorageEvent("storage", { key: closingDisclosureStorageKey("assumed"), storageArea: localStorage }));
+    });
+    expect(cell()).toHaveTextContent("10/17/2026");
     const corrected = loadClosingDisclosures("assumed")[0];
     expect(corrected.deliveredAt).toBe(saved.deliveredAt);
     expect(corrected.generatedAt).toBe(saved.generatedAt);
     expect(corrected.borrowerDetails!.map(({ cdViewed, viewedDate }) => ({ cdViewed, viewedDate })))
       .toEqual(details.map(({ cdViewed, viewedDate }) => ({ cdViewed, viewedDate })));
     view.unmount(); mount();
-    expect(cell()).toHaveTextContent("10/23/2026");
+    expect(cell()).toHaveTextContent("10/17/2026");
   });
 
-  it("reflects native cross-tab corrections and reset, keeping summaries instead of inventing a single date", () => {
+  it("ignores borrower date differences from another tab and reflects reset", () => {
     seed([{ ...record, deliveredAt: "2026-10-14T12:00:00.000Z", borrowerDetails: details }]);
     mount();
     act(() => {
@@ -104,7 +105,7 @@ describe("Assumed Delivery Date table column", () => {
       ] }]);
       window.dispatchEvent(new StorageEvent("storage", { key: closingDisclosureStorageKey("assumed"), storageArea: localStorage }));
     });
-    expect(cell()).toHaveTextContent("Multiple dates");
+    expect(cell()).toHaveTextContent("10/17/2026");
     act(() => {
       localStorage.setItem(closingDisclosureStorageKey("assumed"), JSON.stringify({ records: [], resetToken: "reset", resetScope: "disclosure" }));
       window.dispatchEvent(new StorageEvent("storage", { key: closingDisclosureStorageKey("assumed"), storageArea: localStorage }));
@@ -126,13 +127,24 @@ describe("Assumed Delivery Date table column", () => {
     expect(localStorage.getItem(closingDisclosureStorageKey("assumed"))).toBe(before);
   });
 
-  it("does not calculate a plausible date when stored borrower metadata cannot be read", () => {
+  it("uses the disclosure timestamp even when historical borrower metadata cannot be read", () => {
     seed([{ ...record, deliveredAt: "2026-10-14T12:00:00.000Z", borrowerDetails: [
       { ...details[0], deliveryDate: "2026-02-30" },
     ] }]);
     const before = localStorage.getItem(closingDisclosureStorageKey("assumed"));
     mount();
-    expect(cell()).toHaveTextContent("Borrower details unavailable");
+    expect(cell()).toHaveTextContent("10/17/2026");
     expect(localStorage.getItem(closingDisclosureStorageKey("assumed"))).toBe(before);
+  });
+
+  it.each([
+    [new Date(2026, 0, 30, 23, 58), "02/02/2026"],
+    [new Date(2026, 11, 30, 23, 58), "01/02/2027"],
+    [new Date(2028, 1, 27, 23, 58), "03/01/2028"],
+    [new Date(2026, 2, 7, 23, 58), "03/10/2026"],
+  ])("adds three local calendar days across boundaries: %s", (delivered, expected) => {
+    seed([{ ...record, deliveredAt: delivered.toISOString() }]);
+    mount();
+    expect(cell()).toHaveTextContent(expected);
   });
 });
