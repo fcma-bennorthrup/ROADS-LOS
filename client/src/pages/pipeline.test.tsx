@@ -103,11 +103,10 @@ it("populates Operations additively, highlights only its assignment icon, and re
   const row = screen.getByTestId("pipeline-row-first");
   expect(screen.queryByTestId("pipeline-row-second")).toBeNull();
   expect(within(row).getAllByRole("cell")).toHaveLength(14);
-  const assign = within(row).getByRole("button", { name: /Assign loan/ });
-  expect(assign).toBeDisabled();
+  const assign = within(row).getByRole("button", { name: /Edit Operations team/ });
+  expect(assign).toBeEnabled();
   expect(assign).toHaveClass("pipeline-operations-assignment");
   expect(within(row).getByRole("button", { name: /Preview loan/ })).not.toHaveClass("pipeline-operations-assignment");
-  fireEvent.click(assign);
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(history.at(-1)).toBe("/pipeline");
   fireEvent.click(screen.getByTestId("queue-sales-support"));

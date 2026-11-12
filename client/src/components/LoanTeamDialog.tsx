@@ -3,6 +3,7 @@ import { useRef } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dialog, DialogClose, DialogPortal, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import "@/styles/loan-team.css";
+import type { OperationsTeam } from "@shared/operations-team";
 
 const supportByOfficer: Record<string, string> = {
   "Sarah Williams": "Tyler Coke",
@@ -11,13 +12,13 @@ const supportByOfficer: Record<string, string> = {
   "Connor Welch": "Nikki Wheat",
 };
 
-export function LoanTeamDialog({ loanNumber, loanOfficer }: { loanNumber: string; loanOfficer?: string }) {
+export function LoanTeamDialog({ loanNumber, loanOfficer, operationsTeam }: { loanNumber: string; loanOfficer?: string; operationsTeam?: OperationsTeam }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const officer = loanOfficer?.trim() || "Not Assigned";
   const roles = [
     { name: "Originator", primary: officer },
     { name: "Sales Support", primary: Object.hasOwn(supportByOfficer, officer) ? supportByOfficer[officer] : "Not Assigned" },
-    { name: "Operations", primary: "Not Assigned" },
+    { name: "Operations", primary: operationsTeam?.primary || "Not Assigned", secondary: operationsTeam?.secondary || "Not Assigned" },
   ];
   return <Dialog>
     <DialogTrigger asChild>
@@ -48,7 +49,7 @@ export function LoanTeamDialog({ loanNumber, loanOfficer }: { loanNumber: string
             <div className="loan-team-positions">
               {(["Primary", "Secondary"] as const).map(position => <label key={position} className="body-200">
                 {position}
-                <input aria-label={`${role.name} ${position}`} className="body-200-strong" readOnly value={position === "Primary" ? role.primary : "Not Assigned"} />
+                <input aria-label={`${role.name} ${position}`} className="body-200-strong" readOnly value={position === "Primary" ? role.primary : role.secondary || "Not Assigned"} />
               </label>)}
             </div>
           </section>)}

@@ -7,6 +7,15 @@
 .loan-team-positions { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 .loan-team-positions label { display: grid; gap: 4px; min-width: 0; }
 .loan-team-positions input { width: 100%; min-width: 0; height: 40px; padding: 8px 12px; border: 1px solid var(--roads-border-subtle); border-radius: var(--roads-radius-2xs); background: var(--roads-bg-light); color: var(--roads-text-primary); }
+.loan-team-positions select { width: 100%; min-width: 0; height: 40px; padding: 8px 12px; border: 1px solid var(--roads-border-dark); border-radius: var(--roads-radius-2xs); background: var(--roads-bg-primary); color: var(--roads-text-primary); }
+.operations-team-dialog { width: min(512px, calc(100vw - 32px)); }
+.operations-team-dialog .loan-team-header { padding: 28px 24px; display: grid; gap: 8px; }
+.operations-team-dialog .loan-team-body { width: 100%; max-width: 336px; gap: 16px; }
+.operations-team-dialog .loan-team-body h3 { margin: 0; }
+.operations-team-dialog .loan-team-positions { grid-template-columns: 1fr; gap: 24px; }
+.operations-team-dialog .loan-team-footer { align-items: center; flex-wrap: wrap; }
+.operations-required-note { margin-right: auto; }
+.operations-team-dialog select:focus-visible { outline: 2px solid var(--roads-border-brand); outline-offset: 2px; }
 .loan-team-footer { display: flex; justify-content: flex-end; padding: 24px; border-top: 1px solid var(--roads-border-subtle); }
 .loan-team-close { background: var(--roads-bg-action); color: var(--roads-text-reverse); padding: 6px 16px; border-radius: var(--roads-radius-2xs); }
 .loan-team-dialog button:focus-visible, .loan-team-dialog input:focus-visible { outline: 2px solid var(--roads-border-brand); outline-offset: 2px; }

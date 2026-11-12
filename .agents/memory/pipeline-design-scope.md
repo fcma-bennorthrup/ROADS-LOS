@@ -35,13 +35,13 @@ Operations uses Figma frame 1320:53127 in the same ROADS-Pipeline file. The user
 
 **Why:** The user superseded the initial empty-queue restriction with TRID-based eligibility, while explicitly deferring claiming and missing column data.
 
-**How to apply:** Preserve All Loans and Sales Support visibility. Do not implement claiming or fill missing column values as part of eligibility; use the existing icon-brand token for the Operations user-plus icon.
+**How to apply:** Preserve All Loans and Sales Support visibility. Use the existing icon-brand token for unclaimed Operations loans; claiming is now authorized separately in operations-claiming.md.
 
 Operations TRID chips count calendar days from the trigger date (Day 0) and hide when TRID is satisfied. Show saved Closing Date in Operations.
 
 **Why:** The user explicitly chose calendar days and hiding the chip on completion, and authorized the Closing Date column.
 
-**How to apply:** This extends the previously deferred column scope only for TRID and Closing Date; claiming and other missing columns remain deferred.
+**How to apply:** This extends the previously deferred column scope only for TRID and Closing Date; other missing columns remain deferred. See operations-claiming.md for the subsequently approved claiming rules.
 
 The Pipeline sidebar should reveal an expand/collapse button on hover, display full page names and ROADS when expanded, and push content instead of overlaying it. Pipeline may use decorative blank rows to fill viewport space and keep the footer at the bottom.
 

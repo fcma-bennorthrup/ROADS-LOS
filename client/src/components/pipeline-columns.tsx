@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/loan-display";
 import { LoanTeamDialog } from "@/components/LoanTeamDialog";
 import { WithdrawLoanAction } from "@/components/WithdrawLoanAction";
 import { PipelineTridChip } from "@/components/PipelineTridChip";
+import { OperationsTeamDialog } from "@/components/OperationsTeamDialog";
 
 type PipelineColumn = {
   key: string;
@@ -47,7 +48,7 @@ const columns = {
   titleWork: { key: "titleWork", label: "Title Work", width: 100, render: () => null },
   actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam, queue) =>
     <div className="pipeline-row-actions">
-      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} /> : <button className={queue === "Operations" ? "pipeline-operations-assignment" : undefined} disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
+      {showTeam ? <LoanTeamDialog loanNumber={loan.loanNumber} loanOfficer={loan.loanOfficer} operationsTeam={loan.operationsTeam} /> : queue === "Operations" ? <OperationsTeamDialog loan={loan} /> : <button disabled aria-label={`Assign loan ${loan.loanNumber} — unavailable`} title="Loan assignment is not available"><FiUserPlus aria-hidden /></button>}
       <button disabled aria-label={`Preview loan ${loan.loanNumber} — unavailable`} title="Loan preview is not available yet"><FiEye aria-hidden /></button>
       <WithdrawLoanAction loan={loan} />
     </div> },

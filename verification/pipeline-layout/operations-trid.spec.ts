@@ -16,8 +16,8 @@ test("Operations uses brand assignment icons without changing other queues", asy
   await page.goto("/");
   await expect(page.getByTestId("queue-operations")).toContainText("1 Loans");
   await page.getByTestId("queue-operations").click();
-  const assign = page.getByRole("button", { name: /Assign loan/ });
-  await expect(assign).toBeDisabled();
+  const assign = page.getByRole("button", { name: /Edit Operations team/ });
+  await expect(assign).toBeEnabled();
   await expect(assign).toHaveCSS("color", "rgb(0, 91, 148)");
   await expect(page.getByRole("button", { name: /Preview loan/ })).toHaveCSS("color", "rgb(39, 51, 51)");
   await expect(page.getByTestId("pipeline-row-operations-fixture").getByRole("cell")).toHaveCount(14);
@@ -25,7 +25,7 @@ test("Operations uses brand assignment icons without changing other queues", asy
   await expect(page.getByText("11/25/2026")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("operations.png") });
   await page.getByTestId("queue-sales-support").click();
-  await expect(assign).toHaveCSS("color", "rgb(39, 51, 51)");
+  await expect(page.getByRole("button", { name: /Assign loan/ })).toHaveCSS("color", "rgb(39, 51, 51)");
   await page.getByTestId("queue-all-loans").click();
   await expect(page.getByRole("button", { name: /View loan team/ })).toHaveCSS("color", "rgb(39, 51, 51)");
 });

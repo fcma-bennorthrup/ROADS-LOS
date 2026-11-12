@@ -1,5 +1,6 @@
 import { applicationView, type LoanApplication } from "./loan-application";
 import type { LoanStage } from "./loan-stages";
+import { operationsTeamSchema, type OperationsTeam } from "./operations-team";
 
 export interface PipelineLoan {
   id: string;
@@ -12,6 +13,7 @@ export interface PipelineLoan {
   contractExpiryDate?: string;
   departmentQueue?: "Sales Support";
   operationsEligible?: boolean;
+  operationsTeam?: OperationsTeam;
   closingDate?: string;
   tridTriggeredAt?: string | null;
   tridStatus?: "not-triggered" | "required" | "satisfied";
@@ -30,6 +32,7 @@ export interface PipelineLoan {
 
 export function pipelineView(document: LoanApplication): PipelineLoan {
   const view = applicationView(document);
+  const team = operationsTeamSchema.safeParse(document.sections["operations-team"]);
   const closing = document.sections["closing-details"] as { closingDate?: unknown } | undefined;
   if (!document.meta) throw new Error("Loan metadata must be initialized before projection.");
   return {
@@ -41,6 +44,7 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     contractExpiryDate: document.meta.opportunity?.contractExpiryDate,
     departmentQueue: document.meta.opportunity?.queue,
     operationsEligible: Boolean(document.businessRules?.trid.triggeredAt),
+    operationsTeam: team.success ? team.data : undefined,
     closingDate: typeof closing?.closingDate === "string" ? closing.closingDate : undefined,
     tridTriggeredAt: document.businessRules?.trid.triggeredAt,
     tridStatus: document.businessRules?.trid.status,
