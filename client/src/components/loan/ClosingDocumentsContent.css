@@ -190,6 +190,15 @@
   color: var(--roads-text-warning);
 }
 
+.closing-disclosure-status.is-complete {
+  background: var(--roads-bg-success-subtle);
+  color: var(--roads-text-success);
+}
+
+.closing-disclosure-status.is-complete svg {
+  color: inherit;
+}
+
 .closing-disclosure-icon-cell {
   width: 32px;
 }

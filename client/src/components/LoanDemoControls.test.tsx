@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LoanDemoControls } from "./LoanDemoControls";
+import { closingDisclosureStorageKey, loadClosingDisclosures } from "@/lib/closing-disclosure-history";
 
 const mocks = vi.hoisted(() => ({
   store: { document: { loan: { id: "demo", loanNumber: "Demo" }, generation: 1, revision: 2, sections: {} as Record<string, unknown>,
@@ -9,7 +10,9 @@ const mocks = vi.hoisted(() => ({
   request: vi.fn(),
 }));
 vi.mock("@/contexts/loan-application-context", () => ({ useApplicationStatus: () => mocks.store }));
-vi.mock("@/lib/loan-application-store", () => ({ applicationRequest: mocks.request }));
+vi.mock("@/lib/loan-application-store", () => ({ applicationRequest: mocks.request,
+  loanStorage: { getItem: (key: string) => localStorage.getItem(key), setItem: (key: string, value: string) => localStorage.setItem(key, value) },
+}));
 beforeEach(() => {
   cleanup(); vi.clearAllMocks();
   mocks.store.document.businessRules.trid.status = "not-triggered";
@@ -18,6 +21,22 @@ beforeEach(() => {
 });
 
 describe("Trigger TRID button", () => {
+  it("disables viewing until delivered and persists the latest delivered CD as viewed", async () => {
+    const view = render(<LoanDemoControls />);
+    expect(screen.getByRole("button", { name: "Simulate CD Viewed" })).toBeDisabled();
+    const records = [
+      { id: 2, generatedAt: "2026-11-12T11:00:00Z", deliveredAt: null },
+      { id: 1, generatedAt: "2026-11-12T10:00:00Z", deliveredAt: "2026-11-12T10:05:00Z" },
+    ];
+    localStorage.setItem(closingDisclosureStorageKey("demo"), JSON.stringify(records));
+    view.rerender(<LoanDemoControls />);
+    fireEvent.click(screen.getByRole("button", { name: "Simulate CD Viewed" }));
+    await screen.findByText("Latest delivered Closing Disclosure marked viewed.");
+    expect(loadClosingDisclosures("demo")[0].viewedAt).toBeUndefined();
+    expect(loadClosingDisclosures("demo")[1].viewedAt).toBeTruthy();
+    expect(mocks.store.flush).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Simulate CD Viewed" })).toBeDisabled();
+  });
   it("keeps the panel data installed unchanged for a no-op Blend import", async () => {
     mocks.request.mockResolvedValueOnce({ ...mocks.store.document });
     render(<LoanDemoControls />);

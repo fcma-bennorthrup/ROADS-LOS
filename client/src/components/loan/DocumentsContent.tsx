@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ClosingDocumentIcon } from "./ClosingDocumentIcon";
 import { assumedDeliveryCalendarDate, formatCalendarDate, localCalendarDate, type DisclosureBorrower } from "@/lib/closing-disclosure-borrowers";
 import { formatDisclosureDate, openClosingDisclosurePreview } from "@/lib/closing-disclosure-preview";
-import type { ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
+import { latestDeliveredDisclosure, type ClosingDisclosureRecord } from "@/lib/closing-disclosure-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DocumentSection, DocumentsContent } from "./DisclosureDocumentsContent";
 import "./ClosingDocumentsContent.css";
@@ -20,6 +20,7 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
   const closingPackage = useClosingPackage(loanId);
   const { records, generating, resetting, error, generate, deliver } = useClosingDisclosures(loanId);
   const newestRecord = records[0];
+  const latestDelivered = latestDeliveredDisclosure(records);
   const canDeliverNewest = Boolean(newestRecord && !newestRecord.deliveredAt && !error && !resetting);
 
   const preview = (record: ClosingDisclosureRecord) => {
@@ -135,18 +136,18 @@ function ClosingDocumentsLoan({ loanId, borrowers }: { loanId: string; borrowers
                           {record.deliveredAt ? formatCalendarDate(assumedDeliveryCalendarDate(localCalendarDate(new Date(record.deliveredAt)))) : ""}
                         </td>
                         <td data-testid={`status-cd-viewed-${record.id}`}>
-                          {record.deliveredAt && (
-                            <span className="closing-disclosure-status">
+                          {record.deliveredAt && (record.viewedAt || record.id === latestDelivered?.id) && (
+                            <span className={`closing-disclosure-status${record.viewedAt ? " is-complete" : ""}`}>
                               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                                <circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 3v1" />
+                                {record.viewedAt ? <path d="m5 12 4 4L19 6" /> : <><circle cx="12" cy="12" r="9" /><path d="M12 7v6m0 3v1" /></>}
                               </svg>
-                              Needed
+                              {record.viewedAt ? "Complete" : "Needed"}
                             </span>
                           )}
                         </td>
                         <td className="closing-disclosure-icon-cell">
-                          {record.deliveredAt && (
-                            <span className="closing-disclosure-inert-icon" aria-label="Delivery tracking pending">
+                          {record.deliveredAt && (record.viewedAt || record.id === latestDelivered?.id) && (
+                            <span className="closing-disclosure-inert-icon" aria-label="Delivery tracking">
                               <ClosingDocumentIcon kind="clock" />
                             </span>
                           )}

@@ -59,6 +59,18 @@ test("simplified disclosure generation, delivery, preview and retained package",
   await generate.click();
   await expect(page.getByTestId("row-closing-disclosure-2")).toBeVisible({ timeout: 10000 });
   await expect(first.getByTestId("text-delivery-date-1")).toHaveText(deliveryDate!);
+  await deliver.click();
+  await expect(first.getByText("Needed", { exact: true })).toHaveCount(0);
+  await expect(first.getByLabel("Delivery tracking")).toHaveCount(0);
+  await page.getByTestId("button-more-options").click();
+  await page.getByTestId("menu-item-prototype-admin").click();
+  const simulate = page.getByRole("button", { name: "Simulate CD Viewed" });
+  await expect(simulate).toBeEnabled();
+  await simulate.click();
+  await expect(page.getByText("Latest delivered Closing Disclosure marked viewed.")).toBeVisible();
+  await expect(simulate).toBeDisabled();
+  await page.getByTestId("button-close-sync-panel").click();
+  await expect(page.getByTestId("row-closing-disclosure-2").getByText("Complete", { exact: true })).toBeVisible();
   await page.screenshot({ path: info.outputPath("closing-disclosure-desktop.png") });
   await page.getByRole("tab", { name: "Closing Package", exact: true }).click();
   await page.getByRole("button", { name: "Generate Closing Package", exact: true }).click();
@@ -69,7 +81,8 @@ test("simplified disclosure generation, delivery, preview and retained package",
   await expect.poll(() => JSON.stringify(saved.sections)).toContain("deliveredAt");
   await page.reload();
   await page.getByRole("button", { name: "Closing Documents", exact: true }).click();
-  await expect(first.getByText("Needed", { exact: true })).toBeVisible();
+  await expect(first.getByText("Needed", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("row-closing-disclosure-2").getByText("Complete", { exact: true })).toBeVisible();
   await expect(page.getByTestId("row-closing-disclosure-2")).toBeVisible();
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(generate).toBeVisible();
