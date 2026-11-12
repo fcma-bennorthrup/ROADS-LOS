@@ -418,9 +418,23 @@ describe("pipeline API", () => {
     }, current.loan.id);
     expect(result.statusCode).toBe(200);
     expect(result.body.borrowers).toHaveLength(count);
+    expect(result.body.loan.stage).toBe("Decisioning");
     expect(result.body.sections.income).toHaveLength(count);
     expect(result.body.sections.income.every((borrower: any) => borrower.incomeSources.length > 0)).toBe(true);
     expect(result.body.meta.baseline).toEqual(current.meta!.baseline);
+  });
+  it("does not confirm a Blend stage transition when the save conflicts", async () => {
+    const current = withOriginationFee(newSfOpportunity("blend-conflict", "123456790", "123456"));
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+    const result = await request("POST /api/loans/:id/application/demo", {
+      action: "blend", confirmed: true, generation: current.generation, revision: current.revision,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(409);
+    expect(current.loan.stage).toBe("Customer Application");
+    const saved = JSON.parse(db.query.mock.calls[1][1][1]);
+    expect(saved.loan.stage).toBe("Decisioning");
+    expect(saved.sections.income[0].incomeSources.length).toBeGreaterThan(0);
   });
   it.each([true, false])("captures a legacy baseline only during reset (existing CIF: %s)", async hasCif => {
     const current = document("legacy-reset-test");

@@ -2,6 +2,7 @@ import type { LoanApplication } from "../loan-application";
 import { evaluateLoanRules } from "../business-rules";
 import { incomeSourceTotals } from "../business-rules/primary-wage-earner";
 import { withOriginationFee } from "../business-rules/origination-fee";
+import { stageAfterBlendImport } from "../business-rules/stage-transition";
 import { currencyAmount } from "../loan-collateral-value";
 import { fillMissing } from "./fill-missing";
 import { syntheticBorrower } from "./synthetic-borrower";
@@ -120,6 +121,7 @@ export function applyBlendApplication(current: LoanApplication, { borrowerCount,
   sections["subject-property"] = fillMissing(property, incomingProperty);
   next.mode = "blend";
   next = withOriginationFee(next);
+  next.loan.stage = stageAfterBlendImport(current.loan.stage);
   // A repeated import must not refresh rule timestamps or produce a new revision.
   if (JSON.stringify(next) === JSON.stringify(current)) return current;
   next.businessRules = evaluateLoanRules(next, now.toISOString());

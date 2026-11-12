@@ -19,6 +19,12 @@ borrower's hard-pull score. The income-page chip must move when saved incomes ch
 keep scores attached to borrower IDs, not income rank. Demo scores are synthetic.
 The real application uses a third-party rule engine.
 
+A successful in-loan Blend import advances Customer Application directly to Decisioning when the imported fields are saved.
+
+**Why:** The user defined this as the first automatic stage-transition rule, rather than requiring a manual tracker click.
+
+**How to apply:** Save the stage with the imported fields atomically. Do not change other stages, advance on failed saves, or infer a transition merely from viewing an already populated loan.
+
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.
 
 **How to apply:** Use existing saved fields only; do not create missing form fields to implement rules.

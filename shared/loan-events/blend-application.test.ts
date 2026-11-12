@@ -16,7 +16,7 @@ it.each([1, 2] as const)("fills %i borrowers without replacing Salesforce or wor
   const result = apply(app, count);
   assertLoanDocument(result);
   expect(app).toEqual(before);
-  expect(result.loan).toEqual(app.loan);
+  expect(result.loan).toEqual({ ...app.loan, stage: "Decisioning" });
   expect(result.meta).toEqual(app.meta);
   expect(result.borrowers).toEqual(app.borrowers);
   expect(result.generation).toBe(app.generation);
@@ -32,6 +32,22 @@ it.each([1, 2] as const)("fills %i borrowers without replacing Salesforce or wor
   expect(result.businessRules!.ecoa.status).toBe("required");
   expect(apply(result, count, 9)).toBe(result);
   expect(apply(app, count, 2).sections).not.toEqual(result.sections);
+});
+it.each(["Decisioning", "Pre-Approval", "Loan Setup", "Closing", "Booking"] as const)(
+  "does not change stage %s during a Blend import", stage => {
+    const app = newSfOpportunity("stage-test", "123456790", "123456", now);
+    app.loan.stage = stage;
+    expect(apply(app, 1).loan.stage).toBe(stage);
+  },
+);
+it("advances a fully populated Customer Application only when importing again", () => {
+  const app = apply(newSfOpportunity("stage-test", "123456790", "123456", now), 1);
+  app.loan.stage = "Customer Application";
+  const next = apply(app, 1);
+  expect(next.loan.stage).toBe("Decisioning");
+  expect(next.sections).toEqual(app.sections);
+  expect(next.revision).toBe(app.revision + 1);
+  expect(app.loan.stage).toBe("Customer Application");
 });
 it("preserves hand entry, coupled fields and uncovered borrowers", () => {
   const app = newSfOpportunity("blend-test", "123456790", "123456", now, 2);
