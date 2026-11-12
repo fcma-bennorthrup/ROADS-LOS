@@ -3,6 +3,7 @@ import { createSelectSchema } from "drizzle-zod";
 import { loans, borrowers } from "./schema";
 import { LOAN_STAGES } from "./loan-stages";
 import { feeRecordSchema } from "./fees";
+import { creditRecordSchema } from "./credits";
 import { feeCircumstancesSchema } from "./fee-circumstances";
 import type { LoanBusinessRules } from "./business-rules";
 
@@ -30,6 +31,7 @@ export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "current-assets": z.array(ownedRow), "noncurrent-assets": z.array(ownedRow),
   "current-liabilities": z.array(ownedRow), "noncurrent-liabilities": z.array(ownedRow),
   fees: z.array(feeRecordSchema),
+  credits: z.array(creditRecordSchema),
   "fee-circumstances": feeCircumstancesSchema,
   "origination-fee-initialized": z.boolean(),
   "credit-pulled": z.boolean(), "appraisal-split": z.boolean(),

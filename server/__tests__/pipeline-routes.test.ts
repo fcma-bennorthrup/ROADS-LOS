@@ -78,6 +78,30 @@ describe("pipeline API", () => {
     expect(result.statusCode).toBe(400);
     expect(db.query).not.toHaveBeenCalled();
   });
+  it.each([
+    { value: [{ id: "promotion", creditType: "Lender Credit - Promotion", cdAmount: "250.00", description: "Test credit" }] },
+    { value: [] },
+  ])("persists credits including deletion in only the selected loan", async ({ value }) => {
+    const current = document("credit-loan");
+    const saved = { ...current, revision: current.revision + 1, sections: { ...current.sections, credits: value } };
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ document: saved }] });
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: 0, revision: 0, section: "credits", value }, "credit-loan");
+    expect(result.statusCode).toBe(200);
+    expect(result.body.sections.credits).toEqual(value);
+    expect(db.query.mock.calls[1][1].slice(0, 3)).toEqual(["credit-loan", "credits", JSON.stringify(value)]);
+    db.query.mockResolvedValueOnce({ rows: [{ document: saved }] });
+    const reloaded = await request("GET /api/loans/:id/application", {}, "credit-loan");
+    expect(reloaded.body.sections.credits).toEqual(value);
+  });
+  it("rejects malformed credit rows before database access", async () => {
+    const result = await request("PUT /api/loans/:id/application",
+      { generation: 0, revision: 0, section: "credits",
+        value: [{ id: "bad", creditType: "Unsupported", cdAmount: "-1", description: "" }] });
+    expect(result.statusCode).toBe(400);
+    expect(db.query).not.toHaveBeenCalled();
+  });
   it("blocks frozen credit on the server without saving scores, liabilities or task progress", async () => {
     const current = document("frozen-loan");
     current.sections["credit-frozen"] = true;
