@@ -1,12 +1,12 @@
 import { useRef, useState, type CSSProperties, type ReactNode } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import type { FeeRow } from "@shared/fees";
+import { applyFeeWaiver, type FeeRow } from "@shared/fees";
 import { Dialog, DialogOverlay, DialogPortal, DialogTitle } from "@/components/ui/dialog";
 import { useLoanEditing } from "@/contexts/loan-application-context";
 import { RoadsDropdown } from "./RoadsDropdown";
 
-type FeeDraft = Pick<FeeRow, "fee" | "methodOfPayment" | "paidBy" | "paidTo" | "leAmount" | "cdAmount" | "shoppedForProvider" | "waived">;
+type FeeDraft = Pick<FeeRow, "fee" | "methodOfPayment" | "paidBy" | "paidTo" | "leAmount" | "cdAmount" | "shoppedForProvider" | "waived" | "waiver">;
 
 const inputStyle: CSSProperties = {
   width: "100%", minWidth: 0, height: 40,
@@ -26,7 +26,7 @@ const paidByOptions = ["Buyer", "Seller"].map(value => ({ value, label: value })
 function draftFrom(row: FeeRow): FeeDraft {
   return {
     fee: row.fee, methodOfPayment: row.methodOfPayment, paidBy: row.paidBy,
-    paidTo: row.paidTo ?? "", leAmount: row.leAmount, cdAmount: row.cdAmount,
+    paidTo: row.paidTo ?? "", leAmount: row.waiver?.leBase ?? row.leAmount, cdAmount: row.waiver?.cdBase ?? row.cdAmount,
     shoppedForProvider: row.shoppedForProvider ?? false,
     waived: row.waived ?? false,
   };
@@ -48,8 +48,11 @@ export function FeeEditDialog({ fee, onSave, onClose }: {
   const [baseline] = useState(() => draftFrom(fee));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [waiverAmount, setWaiverAmount] = useState(fee.waiver?.amount ?? "");
+  const [entire, setEntire] = useState(fee.waiver?.entire ?? fee.waived ?? false);
   const submitting = useRef(false);
-  useLoanEditing(`fee-edit-${fee.id}`, JSON.stringify(draft) !== JSON.stringify(baseline) || saving || !!error);
+  useLoanEditing(`fee-edit-${fee.id}`, JSON.stringify(draft) !== JSON.stringify(baseline) ||
+    waiverAmount !== (fee.waiver?.amount ?? "") || entire !== (fee.waiver?.entire ?? fee.waived ?? false) || saving || !!error);
 
   function change<K extends keyof FeeDraft>(key: K, value: FeeDraft[K]) {
     setDraft(previous => ({ ...previous, [key]: value }));
@@ -63,7 +66,9 @@ export function FeeEditDialog({ fee, onSave, onClose }: {
     setSaving(true);
     setError("");
     try {
-      await onSave(draft);
+      await onSave(entire || waiverAmount !== "" || fee.waiver
+        ? applyFeeWaiver({ ...fee, ...draft }, waiverAmount, entire)
+        : { ...draft, waived: false });
       onClose();
     } catch (cause) {
       setError(`Fee not saved. ${cause instanceof Error ? cause.message : "Please try again."}`);
@@ -135,12 +140,23 @@ export function FeeEditDialog({ fee, onSave, onClose }: {
                 style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }} />
               Shopped for Provider
             </label>
-            <label className="body-100" style={{ display: "flex", alignItems: "center", gap: "var(--roads-spacing-component-xs)" }}>
-              <input type="checkbox" checked={draft.waived} disabled={saving}
-                onChange={event => change("waived", event.target.checked)} data-testid="checkbox-edit-waived"
-                style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }} />
-              Waive fee
-            </label>
+            <Field label="Amount to waive">
+              <span className="body-100">The LE and CD amounts above are before the waiver.</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "var(--roads-spacing-component-l)", flexWrap: "wrap" }}>
+                <div style={{ ...inputStyle, width: 180, display: "flex", alignItems: "center", gap: 8 }}>
+                  <span aria-hidden="true">$</span>
+                  <input aria-label="Amount to waive" inputMode="decimal" value={waiverAmount}
+                    disabled={saving || entire} onChange={event => setWaiverAmount(event.target.value)}
+                    style={{ width: "100%", border: "none", background: "transparent", color: "inherit" }} />
+                </div>
+                <label className="body-100" style={{ display: "flex", alignItems: "center", gap: "var(--roads-spacing-component-xs)" }}>
+                  <input type="checkbox" checked={entire} disabled={saving}
+                    onChange={event => setEntire(event.target.checked)} data-testid="checkbox-edit-waived"
+                    style={{ width: 16, height: 16, accentColor: "var(--roads-bg-action)" }} />
+                  Waive entire fee
+                </label>
+              </div>
+            </Field>
             {error && <p role="alert" className="body-100" data-testid="text-edit-fee-error" style={{ color: "var(--roads-text-error)" }}>{error}</p>}
           </div>
           <div style={{
