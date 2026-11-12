@@ -57,6 +57,34 @@ beforeEach(() => {
 });
 
 describe("FeesContent", () => {
+  it.each([{ random: 0, amount: "400.00" }, { random: 0.999999, amount: "2000.00" }])(
+    "prefills prepaid interest with $amount and keeps it when added", async ({ random, amount }) => {
+      const user = userEvent.setup();
+      render(<FeesContent />);
+      const spy = vi.spyOn(Math, "random").mockReturnValue(random);
+      try {
+        await user.click(screen.getByTestId("select-fee-type"));
+        await user.click(screen.getByRole("button", { name: /^Prepaid Interest$/ }));
+        expect(screen.getByTestId("input-le-amount")).toHaveValue(amount);
+        expect(screen.getByTestId("input-cd-amount")).toHaveValue(amount);
+        await user.click(screen.getByTestId("button-add-fee"));
+        expect(mocks.stored[0]).toMatchObject({ fee: "Prepaid Interest", leAmount: amount, cdAmount: amount });
+        await user.click(screen.getByTestId("button-save-fee-table"));
+        expect(mocks.flush).toHaveBeenCalled();
+        expect(mocks.stored[0].cdAmount).toBe(amount);
+      } finally { spy.mockRestore(); }
+    },
+  );
+  it("allows overriding the prepaid interest amount before adding", async () => {
+    const user = userEvent.setup();
+    render(<FeesContent />);
+    await user.click(screen.getByTestId("select-fee-type"));
+    await user.click(screen.getByRole("button", { name: /^Prepaid Interest$/ }));
+    await user.clear(screen.getByTestId("input-cd-amount"));
+    await user.type(screen.getByTestId("input-cd-amount"), "750.50");
+    await user.click(screen.getByTestId("button-add-fee"));
+    expect(mocks.stored[0].cdAmount).toBe("750.50");
+  });
   it("saves waived status, shows its checkmark, and supports unwaiving", async () => {
     mocks.rows = [{ id: "waiver", fee: "Credit Report Fee", leAmount: "50", cdAmount: "50", methodOfPayment: "Cash", paidBy: "Buyer" }];
     const user = userEvent.setup();
