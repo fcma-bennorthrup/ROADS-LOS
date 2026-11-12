@@ -72,7 +72,6 @@ const writeSchema = z.object({
 });
 const actionSchema = z.object({
   action: z.enum(["reset", "blend", "trid", "checklist", "trid-reset", "trid-manual"]),
-  borrowerCount: z.union([z.literal(1), z.literal(2)]).optional().default(2),
   generation: z.number().int().nonnegative(),
   revision: z.number().int().nonnegative(),
   confirmed: z.literal(true),
@@ -280,7 +279,10 @@ export function registerLoanApplicationRoutes(app: Express) {
       }
       if (current.generation !== generation || current.revision !== revision)
         return void res.status(409).json({ error: "The loan changed. Reload it before importing." });
-      const next = applyBlendApplication(current, { borrowerCount: parsed.data.borrowerCount, random: randomInt, now: new Date() });
+      const createdCount = current.meta?.baseline?.borrowers.length ?? current.meta?.creationAttempt?.borrowerCount;
+      // Older loans without creation metadata retain their current borrower count.
+      const borrowerCount = (createdCount ?? current.borrowers.length) === 1 ? 1 : 2;
+      const next = applyBlendApplication(current, { borrowerCount, random: randomInt, now: new Date() });
       if (next === current) return void res.json(current);
       assertLoanDocument(next, current.loan.id);
       const result = await pool.query(

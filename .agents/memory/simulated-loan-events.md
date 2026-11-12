@@ -9,7 +9,7 @@ The 2026-11-11 simulated-data prompts supersede earlier decisions about creation
 
 **How to apply:** Preserve every page's styling and behavior unless the current prompt expressly changes it. Never edit design tokens. Keep one document per loan, no new tables, db:push, upgrade files or version bump; the sole stored-model addition in this series is optional meta.baseline. Preserve legacy mode/source enums. Run db:check before and after each phase and record check/full-suite baseline failures without fixing unrelated issues. Verify only with newly created test loans, list them, and never Reset or Blend-import an existing loan. Do not push or pull GitHub.
 
-The approved behavior is Salesforce-only creation, a captured opportunity baseline, Reset back to that baseline, and Blend that only fills blanks, never removes a second borrower or restarts TRID/ECOA. Older loans gain missing opportunity details on their first Reset while retaining known Salesforce values. Reset no longer produces an empty loan. Never revive the superseded blank/Blend creation choices or replacement-based imports.
+The approved behavior is Salesforce-only creation, a captured opportunity baseline, Reset back to that baseline, and Blend that only fills blanks, never removes a second borrower or restarts TRID/ECOA. Blend must use the borrower count chosen at Salesforce creation; the user removed the in-loan count selector. Older loans gain missing opportunity details on their first Reset while retaining known Salesforce values. Reset no longer produces an empty loan. Never revive the superseded blank/Blend creation choices or replacement-based imports.
 
 **Why:** Existing replacement-based imports overwrite saved loan information; the new design preserves it.
 

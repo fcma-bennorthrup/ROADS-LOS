@@ -61,16 +61,15 @@ explicitly requested a hard-coded clock.
 **How to apply:** Require all three saved actions to hide ECOA. Do not add an
 elapsed-day calculation or a separate application-completeness workflow.
 
-Blend demo imports must offer one or two borrowers. Show the joint-credit
+Salesforce creation offers one or two borrowers; in-loan Blend import must use that count without a selector. Show the joint-credit
 application chip for the two-borrower application and omit it for one borrower.
 
 **Why:** The user needs both application scenarios for demos.
 
-**How to apply:** Keep this chip decision in business rules. The simulated-data
-series supersedes the old single-borrower replacement behavior: importing one
-covers only the first borrower, never removes a second borrower, and retains
-the joint chip when two named borrowers remain. Salesforce creation supports
-one or two borrowers; Reset restores its saved baseline count.
+**How to apply:** Keep this chip decision in business rules. The user's later
+instruction supersedes the old in-loan count selector: Blend must follow the
+original Salesforce count, not a request from the browser. Preserve existing
+records; Reset restores its saved baseline count.
 
 The first and last tracker chevrons are temporary, visually unchanged demo
 controls that move one stage backward or forward without persisting the stage.

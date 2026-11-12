@@ -12,7 +12,6 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
   const store = useApplicationStatus();
   const [action, setAction] = useState<DemoAction | null>(null);
   const [busy, setBusy] = useState(false);
-  const [borrowerCount, setBorrowerCount] = useState<1 | 2>(() => store.document?.borrowers?.length === 1 ? 1 : 2);
   const [blendMessage, setBlendMessage] = useState("");
   const [error, setError] = useState("");
   async function changeDecisionMode(value: DecisionMode) {
@@ -43,7 +42,6 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
       const next = await applicationRequest(current.loan.id, "/demo", {
         method: "POST", body: JSON.stringify({
           action, generation: current.generation, revision: current.revision, confirmed: true,
-          ...(action === "blend" ? { borrowerCount } : {}),
         }),
       });
       if (store.document?.loan.id !== current.loan.id || store.document.generation !== current.generation) return;
@@ -113,15 +111,8 @@ export function LoanDemoControls({ onViewCircumstances }: { onViewCircumstances?
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-blend-card">
       <h3 className="font-semibold">Blend import</h3>
-      <p className="text-sm text-muted-foreground">Fill in the application with random borrower and loan data. Existing data is kept.</p>
+      <p className="text-sm text-muted-foreground">Fill in application data for the borrowers selected at Salesforce opportunity creation. Existing data is kept.</p>
       {blendMessage && <p className="text-sm text-muted-foreground">{blendMessage}</p>}
-      <fieldset disabled={busy} className="flex flex-wrap gap-x-3 gap-y-2 text-sm">
-        <legend className="sr-only">Borrowers to import</legend>
-        {([1, 2] as const).map(count => <label key={count} className="flex items-center gap-2">
-          <input type="radio" name="blend-borrower-count" value={count} checked={borrowerCount === count} onChange={() => setBorrowerCount(count)} />
-          {count} {count === 1 ? "borrower" : "borrowers"}
-        </label>)}
-      </fieldset>
       {actionControl("blend", "New Blend Import")}
     </div>
     <div className="min-w-0 h-64 flex flex-col gap-2 rounded border p-4 overflow-y-auto" data-testid="demo-trid-card">

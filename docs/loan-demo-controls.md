@@ -12,10 +12,11 @@ Prototype Admin Controls remains an empty shell. Inside a loan it shows demo con
   Salesforce-level values are kept and missing ones generated in the same save.
   This does not happen when merely loading or listing loans.
 - **New Blend Import** generates synthetic application data on the server and
-  fills blanks only. Choosing one covers only the first borrower; choosing two
-  can add a co-borrower. No borrower, existing value, liability or workflow result
+  fills blanks only, using the borrower count chosen at Salesforce opportunity
+  creation. No borrower-count control is shown in the loan. No borrower, existing value, liability or workflow result
   is removed. Liability rows come only from credit pulls.
-- The borrower choice defaults to the current count. Unsaved edits block import.
+- The server reads the creation baseline; legacy loans without creation metadata
+  use their existing count. Unsaved edits block import.
   If nothing can be filled, the panel stays open with “Nothing to fill” and no
   revision is saved. Reset permits importing a different application.
 - **Trigger TRID** uses the same fixed templates as before, now constructed on
