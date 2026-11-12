@@ -12,6 +12,9 @@ export interface PipelineLoan {
   contractExpiryDate?: string;
   departmentQueue?: "Sales Support";
   operationsEligible?: boolean;
+  closingDate?: string;
+  tridTriggeredAt?: string | null;
+  tridStatus?: "not-triggered" | "required" | "satisfied";
   decision?: string;
   primaryBorrowerName: string;
   loanType: string;
@@ -27,6 +30,7 @@ export interface PipelineLoan {
 
 export function pipelineView(document: LoanApplication): PipelineLoan {
   const view = applicationView(document);
+  const closing = document.sections["closing-details"] as { closingDate?: unknown } | undefined;
   if (!document.meta) throw new Error("Loan metadata must be initialized before projection.");
   return {
     id: view.id, loanNumber: view.loanNumber, cifNumber: view.cifNumber,
@@ -37,6 +41,9 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     contractExpiryDate: document.meta.opportunity?.contractExpiryDate,
     departmentQueue: document.meta.opportunity?.queue,
     operationsEligible: Boolean(document.businessRules?.trid.triggeredAt),
+    closingDate: typeof closing?.closingDate === "string" ? closing.closingDate : undefined,
+    tridTriggeredAt: document.businessRules?.trid.triggeredAt,
+    tridStatus: document.businessRules?.trid.status,
     decision: document.meta.opportunity?.decision,
     primaryBorrowerName: view.primaryBorrowerName,
     loanType: view.loanType, stage: view.stage as LoanStage,

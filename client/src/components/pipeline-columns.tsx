@@ -5,6 +5,7 @@ import type { PipelineQueue, PipelineSort } from "@/lib/pipeline-display";
 import { formatCurrency } from "@/lib/loan-display";
 import { LoanTeamDialog } from "@/components/LoanTeamDialog";
 import { WithdrawLoanAction } from "@/components/WithdrawLoanAction";
+import { PipelineTridChip } from "@/components/PipelineTridChip";
 
 type PipelineColumn = {
   key: string;
@@ -39,9 +40,9 @@ const columns = {
   submitDate: { key: "submitDate", label: "App Submit Date", width: 151, render: () => <Unavailable field="Application submit date" /> },
   contractExpiryDate: { key: "contractExpiryDate", label: "Contract Exp Date", width: 151, render: loan => loan.contractExpiryDate ? displayDate(loan.contractExpiryDate) : <Unavailable field="Contract expiry date" /> },
   decision: { key: "decision", label: "Decision", width: 112, render: loan => loan.decision ?? <Unavailable field="Decision" /> },
+  closingDate: { key: "closingDate", label: "Closing Date", width: 130, render: loan => loan.closingDate || null },
+  trid: { key: "trid", label: "TRID", width: 85, render: loan => <PipelineTridChip loan={loan} /> },
   // These columns have no approved field semantics. Keep them blank, not inferred.
-  closingDate: { key: "closingDate", label: "Closing Date", width: 130, render: () => null },
-  trid: { key: "trid", label: "TRID", width: 85, render: () => null },
   appraisal: { key: "appraisal", label: "Appraisal", width: 100, render: () => null },
   titleWork: { key: "titleWork", label: "Title Work", width: 100, render: () => null },
   actions: { key: "actions", label: "Actions", width: 104, render: (loan, showTeam, queue) =>

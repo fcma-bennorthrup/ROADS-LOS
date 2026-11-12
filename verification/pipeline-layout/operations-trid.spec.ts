@@ -10,6 +10,7 @@ test("Operations uses brand assignment icons without changing other queues", asy
       loanType: "Purchase", stage: "Customer Application", amountRequested: 100000,
       product: null, mode: "empty", revision: 1, departmentQueue: "Sales Support",
       operationsEligible: true, createdAt: "2026-11-01T12:00:00Z", updatedAt: "2026-11-01T12:00:00Z",
+      tridTriggeredAt: new Date().toISOString(), tridStatus: "required", closingDate: "11/25/2026",
     }] });
   });
   await page.goto("/");
@@ -20,6 +21,8 @@ test("Operations uses brand assignment icons without changing other queues", asy
   await expect(assign).toHaveCSS("color", "rgb(0, 91, 148)");
   await expect(page.getByRole("button", { name: /Preview loan/ })).toHaveCSS("color", "rgb(39, 51, 51)");
   await expect(page.getByTestId("pipeline-row-operations-fixture").getByRole("cell")).toHaveCount(14);
+  await expect(page.getByLabel("TRID day 0")).toHaveCSS("background-color", "rgb(234, 234, 249)");
+  await expect(page.getByText("11/25/2026")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("operations.png") });
   await page.getByTestId("queue-sales-support").click();
   await expect(assign).toHaveCSS("color", "rgb(39, 51, 51)");
