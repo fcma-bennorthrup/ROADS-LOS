@@ -95,3 +95,13 @@ Existing loans, including retired EDE selections, default to forced approval.
 
 **How to apply:** Apply the selected mode when running the next decision, retain its
 outcome for display, and clear the outcome (not the mode) with checklist reset.
+
+Treat the second borrower as having zero income when no income source has been
+added, and show “No income reported for this borrower” in their income section.
+
+**Why:** The user explicitly chose this assumption rather than blocking ratios
+and primary-wage-earner selection when a co-borrower has no reported income.
+
+**How to apply:** Apply zero to an absent or empty secondary source list. Do not
+hide invalid or incomplete sources that have actually been added, or infer zero
+for missing primary-borrower income.

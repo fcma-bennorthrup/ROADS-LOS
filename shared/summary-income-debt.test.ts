@@ -63,14 +63,17 @@ describe("saved summary income and debt", () => {
     }), 0)).toMatchObject({ monthlyDebt: 0, piti: 0, dti: 0 });
   });
 
-  it("does not present partial borrower income as a complete denominator", () => {
+  it("counts missing secondary sources as zero without masking incomplete added sources", () => {
     const result = calculateSummaryIncomeDebt(application({}, 2), 1000);
-    expect(result).toMatchObject({ monthlyIncome: null, monthlyDebt: 0, piti: null, dti: null });
-    expect(result.missing.join(" ")).toContain("borrower 2");
+    expect(result).toMatchObject({ monthlyIncome: 5000, monthlyDebt: 0, piti: 20, dti: 20 });
+    expect(result.missing.join(" ")).not.toContain("borrower 2");
     expect(calculateSummaryIncomeDebt(application({}, 0), 1000).monthlyIncome).toBeNull();
     expect(calculateSummaryIncomeDebt(application({
       income: [{ incomeSources: [{ totalMonthlyIncome: "5000" }] }, { incomeSources: [] }],
-    }), 1000).monthlyIncome).toBeNull();
+    }, 2), 1000).monthlyIncome).toBe(5000);
+    expect(calculateSummaryIncomeDebt(application({
+      income: [{ incomeSources: [{ totalMonthlyIncome: "5000" }] }, { incomeSources: [{}] }],
+    }, 2), 1000).monthlyIncome).toBeNull();
   });
 
   it("rejects invalid explicit income without falling back or guessing frequencies", () => {
