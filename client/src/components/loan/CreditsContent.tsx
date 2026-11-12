@@ -136,7 +136,7 @@ export function CreditsContent() {
       </Field>
       <Field label="Description">
         <input type="text" aria-label="Description" value={description} onChange={event => setDescription(event.target.value)}
-          className="body-100" style={inputStyle} placeholder="Text field" data-testid="input-credit-description" />
+          className="body-100" style={{ ...inputStyle, outlineColor: "var(--roads-border-dark)" }} placeholder="Text field" data-testid="input-credit-description" />
       </Field>
     </div>
     <div className="flex flex-wrap items-center justify-end"
