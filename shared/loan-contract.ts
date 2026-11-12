@@ -6,6 +6,7 @@ import { feeRecordSchema } from "./fees";
 import { feeCircumstancesSchema } from "./fee-circumstances";
 import type { LoanBusinessRules } from "./business-rules";
 import { operationsTeamSchema } from "./operations-team";
+import { salesSupportTeamSchema } from "./sales-support-team";
 
 export const LOAN_DOCUMENT_VERSION = 1;
 const fields = z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]));
@@ -25,6 +26,7 @@ const income = z.array(z.object({
  * recognized section structures are checked without stripping saved fields. */
 export const sectionSchemas: Record<string, z.ZodTypeAny> = {
   "operations-team": operationsTeamSchema,
+  "sales-support-team": salesSupportTeamSchema,
   withdrawal: z.object({ acknowledged: z.literal(true) }).strict(),
   "borrower-primary": fields, "borrower-secondary": fields,
   "loan-details": fields, "subject-property": subjectPropertySchema,

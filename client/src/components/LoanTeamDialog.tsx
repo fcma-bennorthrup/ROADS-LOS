@@ -4,20 +4,14 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dialog, DialogClose, DialogPortal, DialogTrigger, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import "@/styles/loan-team.css";
 import type { OperationsTeam } from "@shared/operations-team";
+import { defaultSalesSupport, type SalesSupportTeam } from "@shared/sales-support-team";
 
-const supportByOfficer: Record<string, string> = {
-  "Sarah Williams": "Tyler Coke",
-  "Rylee Alcorn": "Matthew Lewis",
-  "Conner Welch": "Nikki Wheat",
-  "Connor Welch": "Nikki Wheat",
-};
-
-export function LoanTeamDialog({ loanNumber, loanOfficer, operationsTeam }: { loanNumber: string; loanOfficer?: string; operationsTeam?: OperationsTeam }) {
+export function LoanTeamDialog({ loanNumber, loanOfficer, operationsTeam, salesSupportTeam }: { loanNumber: string; loanOfficer?: string; operationsTeam?: OperationsTeam; salesSupportTeam?: SalesSupportTeam }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const officer = loanOfficer?.trim() || "Not Assigned";
   const roles = [
     { name: "Originator", primary: officer },
-    { name: "Sales Support", primary: Object.hasOwn(supportByOfficer, officer) ? supportByOfficer[officer] : "Not Assigned" },
+    { name: "Sales Support", primary: salesSupportTeam?.primary || defaultSalesSupport(officer) || "Not Assigned", secondary: salesSupportTeam?.secondary || "Not Assigned" },
     { name: "Operations", primary: operationsTeam?.primary || "Not Assigned", secondary: operationsTeam?.secondary || "Not Assigned" },
   ];
   return <Dialog>

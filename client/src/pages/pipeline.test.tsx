@@ -80,7 +80,7 @@ it("isolates loan teams and leaves other queues disabled", async () => {
   expect(history).toEqual(["/pipeline"]);
   fireEvent.click(screen.getByTestId("queue-sales-support"));
   expect(screen.queryByRole("button", { name: /View loan team/ })).toBeNull();
-  expect(screen.getByRole("button", { name: /Assign loan/ })).toBeDisabled();
+  expect(screen.getByRole("button", { name: /Edit Sales Support team/ })).toBeEnabled();
 });
 it("populates Operations additively, highlights only its assignment icon, and refreshes on return", async () => {
   let eligible = false;
@@ -111,7 +111,7 @@ it("populates Operations additively, highlights only its assignment icon, and re
   expect(history.at(-1)).toBe("/pipeline");
   fireEvent.click(screen.getByTestId("queue-sales-support"));
   expect(screen.getByTestId("pipeline-row-first")).toBeInTheDocument();
-  expect(screen.getByRole("button", { name: /Assign loan/ })).not.toHaveClass("pipeline-operations-assignment");
+  expect(screen.getByRole("button", { name: /Edit Sales Support team/ })).not.toHaveClass("pipeline-operations-assignment");
 });
 it.each([
   ["dashboard", "Dashboard"],

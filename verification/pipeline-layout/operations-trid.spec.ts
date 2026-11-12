@@ -25,7 +25,7 @@ test("Operations uses brand assignment icons without changing other queues", asy
   await expect(page.getByText("11/25/2026")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("operations.png") });
   await page.getByTestId("queue-sales-support").click();
-  await expect(page.getByRole("button", { name: /Assign loan/ })).toHaveCSS("color", "rgb(39, 51, 51)");
+  await expect(page.getByRole("button", { name: /Edit Sales Support team/ })).toHaveCSS("color", "rgb(39, 51, 51)");
   await page.getByTestId("queue-all-loans").click();
   await expect(page.getByRole("button", { name: /View loan team/ })).toHaveCSS("color", "rgb(39, 51, 51)");
 });

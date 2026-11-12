@@ -5,11 +5,16 @@ import { Dialog, DialogPortal, DialogTitle, DialogDescription } from "@/componen
 import { applicationRequest } from "@/lib/loan-application-store";
 import { queryClient } from "@/lib/queryClient";
 import { OPERATIONS_PEOPLE, operationsTeamSchema } from "@shared/operations-team";
+import { SALES_SUPPORT_PEOPLE, salesSupportTeamSchema, defaultSalesSupport } from "@shared/sales-support-team";
 import { pipelineView, type PipelineLoan } from "@shared/pipeline";
 import type { LoanApplication } from "@shared/loan-application";
 import "@/styles/loan-team.css";
 
-export function OperationsTeamDialog({ loan }: { loan: PipelineLoan }) {
+export function OperationsTeamDialog({ loan, role = "Operations" }: { loan: PipelineLoan; role?: "Operations" | "Sales Support" }) {
+  const sales = role === "Sales Support";
+  const schema = sales ? salesSupportTeamSchema : operationsTeamSchema;
+  const people = sales ? SALES_SUPPORT_PEOPLE : OPERATIONS_PEOPLE;
+  const section = sales ? "sales-support-team" : "operations-team";
   const [open, setOpen] = useState(false);
   const [primary, setPrimary] = useState("");
   const [secondary, setSecondary] = useState("");
@@ -25,8 +30,8 @@ export function OperationsTeamDialog({ loan }: { loan: PipelineLoan }) {
     try {
       const document = await applicationRequest(loan.id);
       if (id !== requestId.current) return;
-      const team = operationsTeamSchema.safeParse(document.sections["operations-team"]);
-      setPrimary(team.success ? team.data.primary : "");
+      const team = schema.safeParse(document.sections[section]);
+      setPrimary(team.success ? team.data.primary : sales ? defaultSalesSupport(document.meta?.opportunity?.loanOfficer) : "");
       setSecondary(team.success ? team.data.secondary : "");
       setCurrent(document);
     } catch (failure) {
@@ -39,13 +44,13 @@ export function OperationsTeamDialog({ loan }: { loan: PipelineLoan }) {
     if (next) { setPrimary(""); setSecondary(""); void load(); }
     else { requestId.current++; setBusy(false); setCurrent(null); }
   }
-  const parsed = operationsTeamSchema.safeParse({ primary, secondary });
+  const parsed = schema.safeParse({ primary, secondary });
   async function save() {
     if (!parsed.success || !current || saving.current || busy) return;
     saving.current = true; setBusy(true); setError("");
     try {
       const saved = await applicationRequest(loan.id, "", { method: "PUT", body: JSON.stringify({
-        section: "operations-team", value: parsed.data, generation: current.generation, revision: current.revision,
+        section, value: parsed.data, generation: current.generation, revision: current.revision,
       }) });
       const updated = pipelineView(saved);
       queryClient.setQueryData<PipelineLoan[]>(["/api/loans"], rows => rows?.map(row => row.id === loan.id ? updated : row));
@@ -56,8 +61,8 @@ export function OperationsTeamDialog({ loan }: { loan: PipelineLoan }) {
     } finally { saving.current = false; setBusy(false); }
   }
   return <>
-    <button ref={trigger} type="button" className={!loan.operationsTeam?.primary ? "pipeline-operations-assignment" : undefined}
-      aria-label={`Edit Operations team for loan ${loan.loanNumber}`} title="Operations assignments"
+    <button ref={trigger} type="button" className={!sales && !loan.operationsTeam?.primary ? "pipeline-operations-assignment" : undefined}
+      aria-label={`Edit ${role} team for loan ${loan.loanNumber}`} title={`${role} assignments`}
       onClick={event => { event.stopPropagation(); changeOpen(true); }}><FiUserPlus aria-hidden /></button>
     <Dialog open={open} onOpenChange={changeOpen}>
       <DialogPortal>
@@ -67,23 +72,23 @@ export function OperationsTeamDialog({ loan }: { loan: PipelineLoan }) {
           <header className="loan-team-header">
             <DialogTitle className="headline-300">Loan Team Assignment</DialogTitle>
             <DialogDescription className="body-100">Assign primary and secondary (optional).</DialogDescription>
-            <button className="loan-team-x" disabled={saving.current} aria-label="Close Operations assignments" onClick={() => changeOpen(false)}><FiX aria-hidden /></button>
+            <button className="loan-team-x" disabled={saving.current} aria-label={`Close ${role} assignments`} onClick={() => changeOpen(false)}><FiX aria-hidden /></button>
           </header>
           <form onSubmit={event => { event.preventDefault(); void save(); }}>
             <div className="loan-team-body">
               {busy && !current && <p role="status">Loading assignments…</p>}
-              <h3 className="headline-300">Operations</h3>
+              <h3 className="headline-300">{role}</h3>
               <div className="loan-team-positions">
                 <label className="body-200-strong">Primary
-                  <select aria-label="Operations Primary" required value={primary} disabled={busy || !current} onChange={event => setPrimary(event.target.value)}>
+                  <select aria-label={`${role} Primary`} required value={primary} disabled={busy || !current} onChange={event => setPrimary(event.target.value)}>
                     <option value="">Select primary</option>
-                    {OPERATIONS_PEOPLE.map(name => <option key={name} value={name} disabled={name === secondary}>{name}</option>)}
+                    {people.map(name => <option key={name} value={name} disabled={name === secondary}>{name}</option>)}
                   </select>
                 </label>
                 <label className="body-200-strong">Secondary
-                  <select aria-label="Operations Secondary" value={secondary} disabled={busy || !current} onChange={event => setSecondary(event.target.value)}>
+                  <select aria-label={`${role} Secondary`} value={secondary} disabled={busy || !current} onChange={event => setSecondary(event.target.value)}>
                     <option value="">Not Assigned</option>
-                    {OPERATIONS_PEOPLE.map(name => <option key={name} value={name} disabled={name === primary}>{name}</option>)}
+                    {people.map(name => <option key={name} value={name} disabled={name === primary}>{name}</option>)}
                   </select>
                 </label>
               </div>
