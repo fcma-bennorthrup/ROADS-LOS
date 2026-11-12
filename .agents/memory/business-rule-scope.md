@@ -37,6 +37,12 @@ Loan Finalization advances to Closing after evaluation delivery/completion, titl
 
 **How to apply:** Require completed title and evaluation tasks, a generated/delivered CD in loan-specific history, and the completed rate-lock action. Do not require rate-lock letter generation/delivery. Persist the stage with the qualifying save.
 
+Closing advances to Booking after closing and disbursement dates are saved, disbursement is on or after closing, a closing package is generated, the funding wire request is saved, and pre-closing review is checked and saved.
+
+**Why:** The user defined these prerequisites for the next prototype stage and supplied the Wire Request section design.
+
+**How to apply:** Compare valid calendar dates, allow same-day disbursement, and require generation rather than delivery of the closing package. Wire Request is a loan-owned simulation, not a banking integration; retain its requester/time receipt and clear it with checklist resets.
+
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.
 
 **How to apply:** Use existing saved fields only; do not create missing form fields to implement rules.

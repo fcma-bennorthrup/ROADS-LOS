@@ -26,6 +26,7 @@ const income = z.array(z.object({
 /** Shared runtime contract. Unknown section keys remain forward-extensible;
  * recognized section structures are checked without stripping saved fields. */
 export const sectionSchemas: Record<string, z.ZodTypeAny> = {
+  "wire-request": z.object({ requestedAt: z.string().datetime(), requestedBy: z.string().min(1) }).nullable(),
   "operations-team": operationsTeamSchema,
   "sales-support-team": salesSupportTeamSchema,
   withdrawal: z.object({ acknowledged: z.literal(true) }).strict(),

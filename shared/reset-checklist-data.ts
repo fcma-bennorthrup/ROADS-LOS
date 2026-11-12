@@ -12,6 +12,7 @@ export function resetChecklistData(current: LoanApplication): LoanApplication {
     .map(([name, values]) => [name, (values as unknown[]).map(() => "not-started")])));
   // Missing legacy tasks also start empty, irrespective of the original sample defaults.
   sections["checklist-reset"] = true;
+  sections["wire-request"] = null;
   sections[`storage:loan-runtime-activity:${current.loan.id}`] = "[]";
   sections[`storage:loan-closing-package:${current.loan.id}`] = null;
   sections[`storage:loan-closing-disclosures:${current.loan.id}`] = null;

@@ -56,6 +56,33 @@ function closingReady() {
   });
   return app;
 }
+function bookingReady() {
+  const app = ready();
+  app.loan.stage = "Closing";
+  app.sections["closing-details"] = {
+    closingDate: "11/12/2026", disbursementDate: "11/12/2026", preClosingReviewComplete: true,
+  };
+  app.sections["wire-request"] = { requestedAt: "2026-11-12T13:00:00Z", requestedBy: "Prototype user" };
+  app.sections[`storage:loan-closing-package:${app.loan.id}`] = JSON.stringify({ generatedAt: "2026-11-12T12:00:00Z" });
+  return app;
+}
+it.each(["11/12/2026", "11/13/2026", "2026-11-14"])("advances to Booking for valid disbursement %s", disbursementDate => {
+  const app = bookingReady();
+  (app.sections["closing-details"] as any).disbursementDate = disbursementDate;
+  expect(stageAfterSavedProgress(app)).toBe("Booking");
+});
+it.each(["11/11/2026", "", "02/30/2026", "invalid"])("rejects invalid or early disbursement %s", date => {
+  const app = bookingReady();
+  (app.sections["closing-details"] as any).disbursementDate = date;
+  expect(stageAfterSavedProgress(app)).toBe("Closing");
+});
+it.each(["closingDate", "preClosingReviewComplete", "wire", "package"])("requires Booking prerequisite %s", missing => {
+  const app = bookingReady();
+  if (missing === "wire") delete app.sections["wire-request"];
+  else if (missing === "package") delete app.sections[`storage:loan-closing-package:${app.loan.id}`];
+  else delete (app.sections["closing-details"] as any)[missing];
+  expect(stageAfterSavedProgress(app)).toBe("Closing");
+});
 it("advances finalization after completed evaluation/title, delivered CD and locked rate", () => {
   expect(stageAfterSavedProgress(closingReady())).toBe("Closing");
 });

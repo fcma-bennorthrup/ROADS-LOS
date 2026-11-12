@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 import { RoadsDatePicker } from "./RoadsDatePicker";
+import { WireRequestContent } from "./WireRequestContent";
 import { useLoanDraft } from "@/contexts/loan-application-context";
 
 interface ClosingDetailsState {
@@ -217,6 +218,7 @@ export function ClosingContent() {
           )}
         </div>
       </div>
+      <WireRequestContent />
     </div>
   );
 }
