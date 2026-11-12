@@ -25,6 +25,12 @@ A successful in-loan Blend import advances Customer Application directly to Deci
 
 **How to apply:** Save the stage with the imported fields atomically. Do not change other stages, advance on failed saves, or infer a transition merely from viewing an already populated loan.
 
+Decisioning advances to Loan Finalization after a saved credit decision, intent to proceed, title order, evaluation order, and generation and delivery of Early Disclosures, Loan Estimate, and Decision Letter.
+
+**Why:** The user explicitly defined this complete set of prerequisites; no approval-only condition or completed title/evaluation review was requested.
+
+**How to apply:** Evaluate all prerequisites on saved loan data regardless of completion order. Advance only from Decisioning, persist with the triggering save, and reflect the new stage in the tracker and pipeline. Do not move later stages backward if prerequisites subsequently change.
+
 **Why:** The user wants a maintainable place to add loan logic without reproducing that service.
 
 **How to apply:** Use existing saved fields only; do not create missing form fields to implement rules.

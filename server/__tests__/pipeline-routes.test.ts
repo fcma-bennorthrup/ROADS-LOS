@@ -396,6 +396,29 @@ describe("pipeline API", () => {
     expect(result.body.sections["loan-details"].requestedLoanAmount).toBe("145000.00");
     expect(result.body.businessRules.trid.status).toBe("required");
   });
+  it("saves finalization atomically when intent is the last prerequisite", async () => {
+    const current = withOriginationFee(newSfOpportunity("finalization", "123456790", "123456"));
+    current.loan.stage = "Decisioning";
+    current.sections[`storage:loan-checklist-statuses:${current.loan.id}`] = JSON.stringify({
+      "Loan Decision": ["complete"], "Title Work": ["complete"],
+      "Appraisal Evaluation": ["complete"], "Early Disclosures": ["complete", "complete"],
+      "Loan Estimate": ["complete", "complete"], "Decision Letter": ["complete", "complete"],
+    });
+    db.query.mockResolvedValueOnce({ rows: [{ document: current }] })
+      .mockImplementationOnce(async (sql, args) => {
+        expect(sql).toContain("'{loan,stage}'");
+        expect(args[7]).toBe("Loan Finalization");
+        expect(JSON.parse(args[2]).intentToProceed).toBe(true);
+        expect(sql).toContain("(document->>'revision')::int=$5");
+        return { rowCount: 1, rows: [{ document: { ...current, loan: { ...current.loan, stage: args[7] } } }] };
+      });
+    const result = await request("PUT /api/loans/:id/application", {
+      section: "loan-details", value: { intentToProceed: true },
+      generation: current.generation, revision: current.revision,
+    }, current.loan.id);
+    expect(result.statusCode).toBe(200);
+    expect(result.body.loan.stage).toBe("Loan Finalization");
+  });
   it("does not write on a complete Blend import and rejects stale requests", async () => {
     const current = applyBlendApplication(newSfOpportunity("blend-api-test", "123456790", "123456"), {
       borrowerCount: 1, random: deterministicRandom(1), now: new Date(),

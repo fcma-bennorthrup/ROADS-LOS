@@ -17,6 +17,7 @@ import { ensureOpportunityExpiry } from "./opportunity-expiry";
 import { withOriginationFee } from "../shared/business-rules/origination-fee";
 import { resetLoan } from "./reset-loan";
 import { LOAN_STAGES } from "../shared/loan-stages";
+import { stageAfterSavedProgress } from "../shared/business-rules/stage-transition";
 import { pipelineView } from "../shared/pipeline";
 import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "../shared/business-rules/credit-freeze";
 import { assertLoanDocument, LoanContractError, LOAN_DOCUMENT_VERSION, sectionSchemas } from "../shared/loan-contract";
@@ -226,13 +227,15 @@ export function registerLoanApplicationRoutes(app: Express) {
         ? current.sections[section] : parsed.data.baseline;
       const history = [...(current.changeLog ?? []),
         ...changesForSave(section, previous, value, revision + 1)];
-      const businessRules = evaluateLoanRules({ ...current, sections: { ...current.sections, [section]: value } });
+      const savedSnapshot = { ...current, sections: { ...current.sections, [section]: value } };
+      const businessRules = evaluateLoanRules(savedSnapshot);
+      const stage = stageAfterSavedProgress(savedSnapshot);
       const result = await pool.query(
         `UPDATE prototype_loan_applications SET document =
-         jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(document, ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb), '{businessRules}', $7::jsonb),
+         jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(document, '{loan,stage}', to_jsonb($8::text)), ARRAY['sections',$2], $3::jsonb), '{revision}', to_jsonb($5::int + 1)), '{changeLog}', $6::jsonb), '{businessRules}', $7::jsonb),
           '{meta,updatedAt}', to_jsonb(to_char(clock_timestamp() AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"')))
          WHERE loan_id=$1 AND (document->>'generation')::int=$4 AND (document->>'revision')::int=$5 RETURNING document`,
-        [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history), JSON.stringify(businessRules)]);
+        [req.params.id, section, JSON.stringify(value ?? null), generation, revision, JSON.stringify(history), JSON.stringify(businessRules), stage]);
       if (!result.rowCount) return void res.status(409).json({ error: "This loan changed in another session. Reload the latest loan before saving." });
       res.json(result.rows[0].document);
     } catch (error) { loanFailure(res, error, "Changes were not saved. Retry when the database is available."); }

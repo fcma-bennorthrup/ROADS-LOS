@@ -61,8 +61,10 @@ export const applicationStore = {
       });
       if (epoch !== installedEpoch || document?.loan.id !== loanId) return;
       // Keep any newer queued optimistic values while acknowledging this revision.
+      const stageChanged = document?.loan.stage !== next.loan.stage;
       document = { ...next, sections: { ...next.sections, ...document.sections } };
       queryClient.setQueryData(["/api/loans", loanId], applicationView(document));
+      if (stageChanged) void queryClient.invalidateQueries({ queryKey: ["/api/loans"], exact: true });
     }).catch(error => { if (epoch === installedEpoch) failure = error.message; }).finally(() => { pending--; notify(); });
   },
   withdraw() {
