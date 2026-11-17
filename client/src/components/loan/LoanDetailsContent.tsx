@@ -3,6 +3,15 @@ import { Pencil } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { useLoanDraft } from "@/contexts/loan-application-context";
 
+function displayCurrency(value: string): string {
+  const raw = value.replace(/[$,]/g, "").trim();
+  if (!raw || !Number.isFinite(Number(raw))) return value;
+  return Number(raw).toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+  });
+}
+
 function LoanDetailField({
   label,
   value,
@@ -16,10 +25,11 @@ function LoanDetailField({
   value: string;
   displayValue?: string;
   isEditing: boolean;
-  type?: "text" | "dropdown";
+  type?: "text" | "dropdown" | "currency";
   options?: { value: string; label: string }[];
   onChange?: (value: string) => void;
 }) {
+  const [focused, setFocused] = useState(false);
   const testId = label.toLowerCase().replace(/[\s()]+/g, "-");
   return (
     <div
@@ -37,10 +47,14 @@ function LoanDetailField({
           options={(options || []).map((o) => ({ value: o.value, label: o.label }))}
           testId={`select-${testId}`}
         />
-      ) : isEditing && type === "text" ? (
+      ) : isEditing && (type === "text" || type === "currency") ? (
         <input
           type="text"
-          value={value}
+          aria-label={label}
+          inputMode={type === "currency" ? "decimal" : undefined}
+          value={type === "currency" ? (focused ? value.replace(/[$,]/g, "") : displayCurrency(value)) : value}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           onChange={(e) => onChange?.(e.target.value)}
           className="w-full outline-none label-strong"
           style={{
@@ -66,7 +80,7 @@ function LoanDetailField({
             className="label-strong"
             style={{ flex: 1, color: "var(--roads-text-primary)", display: "block" }}
           >
-            {displayValue || value || "\u00A0"}
+            {displayValue || (type === "currency" ? displayCurrency(value) : value) || "\u00A0"}
           </span>
         </div>
       )}
@@ -204,7 +218,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               label="Requested Loan Amount"
               value={fields.requestedLoanAmount}
               isEditing={isEditing}
-              type="text"
+              type="currency"
               onChange={setField("requestedLoanAmount")}
             />
             <LoanDetailField
