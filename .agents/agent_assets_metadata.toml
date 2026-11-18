@@ -28,3 +28,31 @@ mtime_ms = 1794341649179
 storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:2f3783a8-421b-4591-872e-4e7105082df4/a014515c-10ad-4107-8f81-05690afe592f/81913da7-6d8f-4190-ae6c-262202f4b04e"
 storage_version_token = "1794341655860710"
 content_type = "text/plain"
+
+[[outputs]]
+id = "OG-K9pUCYPc5MFZZSMkDY"
+uri = "file://generated-artifacts/loan-contact-ideas/table.html"
+type = "html"
+title = "Option A · Contact table and edit panel"
+description = "Interactive Loan Contacts concept using sample data. Open to try adding, editing, and deleting; no loan is changed."
+logical_id = "5c6e4b30-012a-47fc-a9e9-68c46fe65586"
+content_hash = "sha256:7f2d5146a50c0005f43f6b5ed8e9b4bf879910213c2169c4e334deaf9c3c03fc"
+size = 25019
+mtime_ms = 1795030259958
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:2f3783a8-421b-4591-872e-4e7105082df4/5c6e4b30-012a-47fc-a9e9-68c46fe65586/42fd8e87-c9a5-4a62-ac59-dbf3e2eaca68"
+storage_version_token = "1795030301305018"
+content_type = "text/html"
+
+[[outputs]]
+id = "gXXZ8SenNe3GicPtsQ5jh"
+uri = "file://generated-artifacts/loan-contact-ideas/cards.html"
+type = "html"
+title = "Option B · Contacts grouped by role"
+description = "Interactive Loan Contacts concept using sample data. Open to try adding, editing, and deleting; no loan is changed."
+logical_id = "16919344-ef9d-4332-a106-e83472b98aac"
+content_hash = "sha256:2f762eb98523d186841c79b6a84f5cc8451abf59e6266fc0b9950089bf1bb8a9"
+size = 27288
+mtime_ms = 1795030268886
+storage_uri = "gcs://replit-rams-assets-picard/rams/assets/repl:2f3783a8-421b-4591-872e-4e7105082df4/16919344-ef9d-4332-a106-e83472b98aac/2feccca2-7d67-4128-a7c8-1b680bdfe48a"
+storage_version_token = "1795030301910651"
+content_type = "text/html"
