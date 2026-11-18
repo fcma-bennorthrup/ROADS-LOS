@@ -728,6 +728,7 @@ export function CollateralContent({
       }}
       data-testid="collateral-content"
     >
+      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
       <h2
         className="headline-200"
         style={{ color: "var(--roads-text-primary)", padding: "0 var(--roads-spacing-component-xl)" }}
@@ -792,6 +793,7 @@ export function CollateralContent({
           onDiscard={() => { setAddressFields({ ...savedAddressFields }); setIsEditingAddress(false); }}
           testIdPrefix="address"
         />
+      </div>
       </div>
 
       <div
