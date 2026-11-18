@@ -48,6 +48,13 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
+  it("matches the page heading pattern and uses 40px field-grid spacing", () => {
+    renderCollateral();
+    expect(screen.getByRole("heading", { name: /^Collateral$/ })).toHaveClass("headline-200");
+    for (const id of ["subject-property-field-grid", "evaluation-field-grid", "field-state-zip"]) {
+      expect(screen.getByTestId(id)).toHaveStyle({ gap: "var(--roads-spacing-component-3xl)" });
+    }
+  });
   it("saves Appraiser Code next to Appraiser and supports reload and discard", () => {
     const sections = new Map<string, unknown>();
     vi.spyOn(applicationStore, "read").mockImplementation((key, initial) =>

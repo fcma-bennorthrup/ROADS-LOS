@@ -129,11 +129,11 @@ function StateZipFields({
   return (
     <div
       className="flex"
-      style={{ width: "288px", gap: "var(--roads-spacing-component-l)" }}
+      style={{ width: "288px", gap: "var(--roads-spacing-component-3xl)" }}
       data-testid="field-state-zip"
     >
-      <CollateralField label="State" value={stateVal} width="136px" isEditing={isEditing} onChange={onStateChange} />
-      <CollateralField label="Zip" value={zipVal} width="136px" isEditing={isEditing} onChange={onZipChange} />
+      <CollateralField label="State" value={stateVal} width="124px" isEditing={isEditing} onChange={onStateChange} />
+      <CollateralField label="Zip" value={zipVal} width="124px" isEditing={isEditing} onChange={onZipChange} />
     </div>
   );
 }
@@ -724,10 +724,17 @@ export function CollateralContent({
       style={{
         padding: "var(--roads-spacing-component-xl) 0",
         paddingBottom: "60px",
-        gap: "var(--roads-spacing-component-l)",
+        gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="collateral-content"
     >
+      <h2
+        className="headline-200"
+        style={{ color: "var(--roads-text-primary)", padding: "0 var(--roads-spacing-component-3xl)" }}
+        data-testid="text-collateral-title"
+      >
+        Collateral
+      </h2>
       <div
         className="flex flex-col"
         style={{ gap: "var(--roads-spacing-component-l)" }}
@@ -742,6 +749,7 @@ export function CollateralContent({
         >
           Subject Property
         </h2>
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }} data-testid="subject-property-field-grid">
         <AddressFields
           fields={addressFields}
           isEditing={isEditingAddress}
@@ -775,6 +783,7 @@ export function CollateralContent({
                 testId="select-collateral-owner"
               />
             </div>
+        </div>
         </div>
         <EditControls
           isEditing={isEditingAddress}
@@ -850,6 +859,7 @@ export function CollateralContent({
           />
         )}
 
+        <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }} data-testid="evaluation-field-grid">
         {isSplit && (
           <AddressFields
             fields={activeEvalFields}
@@ -863,6 +873,7 @@ export function CollateralContent({
           isEditing={isEditingValue}
           onFieldChange={updateEvalField as (key: keyof EvaluationData) => (value: string) => void}
         />
+        </div>
 
         <EditControls
           isEditing={isEditingValue}
