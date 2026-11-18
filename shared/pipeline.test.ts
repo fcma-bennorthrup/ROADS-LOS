@@ -5,6 +5,18 @@ import { applyTridDemoAction } from "./business-rules/trid-demo-actions";
 import { evaluateLoanRules } from "./business-rules";
 import { queueLoans } from "../client/src/lib/pipeline-display";
 
+it.each(["approved", "denied"] as const)("reflects saved stages and the %s decision", outcome => {
+  const app = newLoanApplication({ id: "decision-test", loanNumber: "123456799", source: "blank", borrowerCount: 1 });
+  expect(pipelineView(app)).toMatchObject({ stage: "Customer Application", decision: "" });
+  app.loan.stage = "Decisioning";
+  expect(pipelineView(app)).toMatchObject({ stage: "Decisioning", decision: "Pending" });
+  app.sections["decision-outcome"] = outcome;
+  const decision = outcome === "approved" ? "Approved" : "Denied";
+  expect(pipelineView(app)).toMatchObject({ stage: "Decisioning", decision });
+  app.loan.stage = "Loan Finalization";
+  expect(pipelineView(app)).toMatchObject({ stage: "Loan Finalization", decision });
+});
+
 it("projects additive Operations eligibility through trigger, satisfaction and reset", () => {
   const app = newLoanApplication({ id: "operations-test", loanNumber: "123456799", source: "blank", borrowerCount: 1 });
   app.meta!.opportunity = { region: "500", loanOfficer: "Sarah Williams", applicationDate: "2026-11-12",
