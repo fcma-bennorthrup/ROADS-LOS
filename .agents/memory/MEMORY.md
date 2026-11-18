@@ -44,3 +44,4 @@
 - [Operations claiming](operations-claiming.md) — approved simulated staff, primary/secondary rules, and editable assignments without removing loans from queues.
 - [Creation retry scope](creation-retry-scope.md) — preserve SF creation receipts across resets/imports and reject retry borrower-count changes without a new ledger.
 - [Isolated browser layout checks](browser-layout-harness.md) — real components with intercepted fixtures avoid touching saved loans and bypass legacy artifact limitations.
+- [Page indentation hierarchy](page-indentation-policy.md) — side-nav offsets: page headers 24px, subheaders 32px, fields 40px; count nested padding only once.
