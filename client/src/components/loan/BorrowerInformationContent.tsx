@@ -686,7 +686,6 @@ export function BorrowerInformationContent() {
         data-testid="text-borrower-information-title"
       >
         Borrower Information
-        {borrowers.length === 1 && <> — {borrowers[0].name}</>}
       </h2>
 
       {borrowers.length > 1 && <BorrowerTabs active={selectedBorrower} onChange={setActiveBorrower} borrowers={borrowers} />}
