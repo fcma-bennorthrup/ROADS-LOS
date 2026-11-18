@@ -54,6 +54,12 @@ describe("shared loan model", () => {
       expect(subjectPropertySchema.safeParse({ zip: "40234", parcel }).success).toBe(true);
     expect(subjectPropertySchema.safeParse({ parcel: 123 }).success).toBe(false);
   });
+  it("preserves appraiser codes in both saved evaluation sections", () => {
+    const app = withBaseline();
+    app.sections["evaluation-1"] = { appraiser: "Appraiser", appraiserCode: "001-AP" };
+    app.sections["evaluation-2"] = { appraiser: "Second appraiser", appraiserCode: "002-AP" };
+    expect(loanApplicationSchema.parse(app).sections).toEqual(app.sections);
+  });
   it.each([1, 2] as const)("validates actual Blend fixtures with %i borrowers", borrowerCount => {
     const loan = generatedBlend("model", borrowerCount);
     expect(loanApplicationSchema.safeParse(loan).success).toBe(true);

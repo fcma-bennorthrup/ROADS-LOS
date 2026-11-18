@@ -233,6 +233,7 @@ interface EvaluationData {
   otherImprovementsValue: string;
   reportedValueTotal: string;
   appraiser: string;
+  appraiserCode?: string;
 }
 
 interface FullEvaluationData extends EvaluationData, AddressData {}
@@ -267,7 +268,7 @@ function AddressFields({
         onStateChange={onFieldChange("state")}
         onZipChange={onFieldChange("zip")}
       />
-      {parcelField && <CollateralField label="Parcel" value={parcelField.value}
+      {parcelField && <CollateralField label="Parcel Number" value={parcelField.value}
         isEditing={isEditing} onChange={parcelField.onChange} />}
     </div>
   );
@@ -297,6 +298,7 @@ function EvalValueFields({
       <CollateralField label="Other Improvements Value" value={fields.otherImprovementsValue} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("otherImprovementsValue")} />
       <CollateralField label="Reported Value Total" value={fields.reportedValueTotal} hasLeadingIcon isEditing={isEditing} onChange={onFieldChange("reportedValueTotal")} />
       <CollateralField label="Appraiser" value={fields.appraiser} isEditing={isEditing} onChange={onFieldChange("appraiser")} />
+      <CollateralField label="Appraiser Code" value={fields.appraiserCode ?? ""} isEditing={isEditing} onChange={onFieldChange("appraiserCode")} />
     </div>
   );
 }
@@ -357,6 +359,7 @@ const DEFAULT_EVALUATION: EvaluationData = {
   otherImprovementsValue: "50,000",
   reportedValueTotal: "450,000",
   appraiser: "Jerry Geraldson",
+  appraiserCode: "",
 };
 
 const EMPTY_ADDRESS: AddressData = {
@@ -411,6 +414,7 @@ const EMPTY_EVALUATION: EvaluationData = {
   otherImprovementsValue: "",
   reportedValueTotal: "",
   appraiser: "",
+  appraiserCode: "",
 };
 
 const DEFAULT_FULL_EVAL: FullEvaluationData = { ...DEFAULT_ADDRESS, ...DEFAULT_EVALUATION };

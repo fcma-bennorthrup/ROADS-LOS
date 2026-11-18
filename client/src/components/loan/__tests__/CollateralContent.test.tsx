@@ -8,6 +8,7 @@ import {
   useActivityPanel,
 } from "@/contexts/loan-activity-context";
 import { Toaster } from "@/components/ui/toaster";
+import { applicationStore } from "@/lib/loan-application-store";
 
 function ActivityState() {
   const { activityItems } = useActivityPanel();
@@ -47,27 +48,46 @@ afterEach(() => {
 });
 
 describe("CollateralContent Subject Property workflow", () => {
-  it("shows Parcel after ZIP and supports saving, reloading, discarding and clearing", () => {
+  it("saves Appraiser Code next to Appraiser and supports reload and discard", () => {
+    const sections = new Map<string, unknown>();
+    vi.spyOn(applicationStore, "read").mockImplementation((key, initial) =>
+      sections.has(key) ? sections.get(key) as typeof initial : initial);
+    vi.spyOn(applicationStore, "write").mockImplementation((key, value) => { sections.set(key, value); });
     const view = renderCollateral();
-    const parcel = screen.getByTestId("field-parcel");
+    expect(screen.getByTestId("field-appraiser").nextElementSibling).toBe(screen.getByTestId("field-appraiser-code"));
+    fireEvent.click(screen.getByTestId("value-button-edit"));
+    expect(screen.getByTestId("input-appraiser-code")).toHaveValue("");
+    fireEvent.change(screen.getByTestId("input-appraiser-code"), { target: { value: "001-AP" } });
+    fireEvent.click(screen.getByTestId("value-button-save"));
+    view.unmount();
+    renderCollateral();
+    expect(screen.getByTestId("field-appraiser-code")).toHaveTextContent("001-AP");
+    fireEvent.click(screen.getByTestId("value-button-edit"));
+    fireEvent.change(screen.getByTestId("input-appraiser-code"), { target: { value: "discard" } });
+    fireEvent.click(screen.getByTestId("value-button-discard"));
+    expect(screen.getByTestId("field-appraiser-code")).toHaveTextContent("001-AP");
+  });
+  it("shows Parcel Number after ZIP and supports saving, reloading, discarding and clearing", () => {
+    const view = renderCollateral();
+    const parcel = screen.getByTestId("field-parcel-number");
     const zip = screen.getAllByTestId("field-zip")[0];
     expect(zip.compareDocumentPosition(parcel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(screen.getByTestId("address-button-edit"));
-    expect(screen.getByTestId("input-parcel")).toHaveValue("");
-    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "001-042-A" } });
+    expect(screen.getByTestId("input-parcel-number")).toHaveValue("");
+    fireEvent.change(screen.getByTestId("input-parcel-number"), { target: { value: "001-042-A" } });
     fireEvent.click(screen.getByTestId("address-button-save"));
-    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    expect(screen.getByTestId("field-parcel-number")).toHaveTextContent("001-042-A");
     view.unmount();
     renderCollateral();
-    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    expect(screen.getByTestId("field-parcel-number")).toHaveTextContent("001-042-A");
     fireEvent.click(screen.getByTestId("address-button-edit"));
-    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "discard this" } });
+    fireEvent.change(screen.getByTestId("input-parcel-number"), { target: { value: "discard this" } });
     fireEvent.click(screen.getByTestId("address-button-discard"));
-    expect(screen.getByTestId("field-parcel")).toHaveTextContent("001-042-A");
+    expect(screen.getByTestId("field-parcel-number")).toHaveTextContent("001-042-A");
     fireEvent.click(screen.getByTestId("address-button-edit"));
-    fireEvent.change(screen.getByTestId("input-parcel"), { target: { value: "" } });
+    fireEvent.change(screen.getByTestId("input-parcel-number"), { target: { value: "" } });
     fireEvent.click(screen.getByTestId("address-button-save"));
-    expect(screen.getByTestId("field-parcel")).not.toHaveTextContent("001-042-A");
+    expect(screen.getByTestId("field-parcel-number")).not.toHaveTextContent("001-042-A");
   });
   it("starts monthly costs blank and saves and discards them with Subject Property", () => {
     const view = renderCollateral();
