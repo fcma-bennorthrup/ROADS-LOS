@@ -4,7 +4,7 @@ export function DemographicSection() {
   return (
     <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
       <h3
-        className="headline-300"
+        className="loan-layout-subhead headline-300"
         style={{ color: "var(--roads-text-primary)" }}
         data-testid="section-demographic"
       >

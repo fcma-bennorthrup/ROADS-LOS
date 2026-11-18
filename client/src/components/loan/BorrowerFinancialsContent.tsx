@@ -534,7 +534,7 @@ export function BorrowerFinancialsContent() {
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-l)",
       }}
       data-testid="borrower-financials-content"
@@ -582,7 +582,7 @@ export function BorrowerFinancialsContent() {
           <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }}>
             <span
               className="headline-300"
-              style={{ color: "var(--roads-text-primary)", paddingLeft: "var(--roads-spacing-component-s)" }}
+              style={{ color: "var(--roads-text-primary)", paddingLeft: "calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl))" }}
               data-testid="text-income-title"
             >
               Income

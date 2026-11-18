@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, useEffect, useRef } from "react";
 import { useLoanState } from "@/contexts/loan-application-context";
 
@@ -53,7 +54,7 @@ export function BookingContent() {
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="booking-content"
@@ -66,7 +67,7 @@ export function BookingContent() {
         Booking
       </h2>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <div className="flex items-center">
           <button
             onClick={handleBookLoan}

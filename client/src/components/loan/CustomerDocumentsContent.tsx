@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 export function CustomerDocumentsContent() {
   return (
     <div
@@ -9,14 +10,14 @@ export function CustomerDocumentsContent() {
       data-testid="customer-documents-content"
     >
       <h1 className="headline-200">Customer Documents</h1>
-      <section aria-labelledby="minimum-required-documents-heading" className="flex flex-col items-start"
+      <section aria-labelledby="minimum-required-documents-heading" className="loan-layout-subhead flex flex-col items-start"
         style={{ gap: "var(--roads-spacing-component-l)" }}>
         <h2 id="minimum-required-documents-heading" className="headline-300">
           Minimum Required Documents
         </h2>
         <button
           type="button"
-          className="body-200-strong whitespace-nowrap"
+          className="loan-layout-section-content body-200-strong whitespace-nowrap"
           style={{
             backgroundColor: "var(--roads-bg-primary)",
             border: "1px solid var(--roads-border-dark)",

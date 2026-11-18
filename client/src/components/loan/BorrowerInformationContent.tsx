@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, useRef } from "react";
 import { applicationStore } from "@/lib/loan-application-store";
 import { Pencil, Calendar, ChevronDown } from "lucide-react";
@@ -542,7 +543,7 @@ function PersonalInfoSection({
         marginTop: "var(--roads-spacing-component-l)",
       }}
     >
-      <div className="flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="loan-layout-subhead flex items-center" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <h3
           className="headline-300"
           style={{ color: "var(--roads-text-primary)" }}
@@ -553,7 +554,7 @@ function PersonalInfoSection({
         {isPrimary && <PrimaryChip />}
       </div>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
         <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-3xl)" }}>
           <TextField label="First Name" value={data.firstName} isEditing={isEditing} onChange={setField("firstName")} testId="first-name" />
           <TextField label="Last Name" value={data.lastName} isEditing={isEditing} onChange={setField("lastName")} testId="last-name" />
@@ -613,7 +614,7 @@ function PersonalInfoSection({
         </div>
       </div>
 
-      <div style={{ marginTop: "var(--roads-spacing-component-3xl)" }}>
+      <div className="loan-layout-fields" style={{ marginTop: "var(--roads-spacing-component-3xl)" }}>
         <EditControls
           isEditing={isEditing}
           onEdit={onEdit}
@@ -674,7 +675,7 @@ export function BorrowerInformationContent() {
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="borrower-information-content"

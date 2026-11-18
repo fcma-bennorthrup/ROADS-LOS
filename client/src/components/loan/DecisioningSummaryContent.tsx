@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useEffect, useRef, useState } from "react";
 import { useLoanState, useApplicationStatus } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
@@ -144,7 +145,7 @@ export function DecisioningSummaryContent({
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-l)",
       }}
       data-testid="decisioning-summary-content"
@@ -157,7 +158,7 @@ export function DecisioningSummaryContent({
         Decisioning Summary
       </h2>
       <div
-        className="flex"
+        className="loan-layout-subhead flex"
         style={{ gap: "80px" }}
       >
       <div
@@ -175,7 +176,7 @@ export function DecisioningSummaryContent({
           <span data-testid="text-loan-decision-value">{isDecisioned ? (decisionOutcome === "denied" ? "Loan Denied" : "Loan Approved") : "--"}</span>
         </div>
         <div
-          className="flex items-center"
+          className="loan-layout-section-content flex items-center"
           style={{ gap: "var(--roads-spacing-component-l)" }}
         >
           <button
@@ -260,7 +261,7 @@ export function DecisioningSummaryContent({
           <span data-testid="text-credit-score-label">Credit Score:</span>
           <span data-testid="text-credit-score-value">{creditPulled ? "742" : "--"}</span>
         </div>
-        <div className="flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+        <div className="loan-layout-section-content flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <button
             onClick={handlePullCredit}
             disabled={hasCreditResults || pullingCredit}

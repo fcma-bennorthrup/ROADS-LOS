@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Check, Pencil, Trash2 } from "lucide-react";
 import type { FeeRow } from "@shared/fees";
@@ -256,14 +257,14 @@ export function FeesContent() {
         }
       `}</style>
       <h2
-        className="headline-300"
+        className="headline-200"
         style={{ color: "var(--roads-text-primary)", lineHeight: "32px", marginBottom: "var(--roads-spacing-component-l)" }}
         data-testid="text-fees-title"
       >
         Fees
       </h2>
 
-      <div className="roads-fees-fields" data-testid="fees-field-row">
+      <div className="roads-fees-fields loan-layout-fields" data-testid="fees-field-row">
         <Field label="Fee">
           <RoadsDropdown value={feeType} onChange={handleFeeTypeChange} options={FEE_OPTIONS}
             placeholder="Select fee" variant="field" ariaLabel="Fee" testId="select-fee-type" />

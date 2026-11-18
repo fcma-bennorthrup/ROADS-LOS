@@ -1,0 +1,22 @@
+/* Page roots have xl (24px) horizontal padding. These are remaining
+   offsets, not another full level of padding. Keep card/table interiors local. */
+.loan-layout-fields {
+  margin-inline: calc(var(--roads-spacing-component-3xl) - var(--roads-spacing-component-xl));
+}
+
+.loan-layout-subhead {
+  padding-inline: calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl));
+}
+
+.loan-layout-section-content {
+  margin-inline: calc(var(--roads-spacing-component-3xl) - var(--roads-spacing-component-2xl));
+}
+
+/* DocumentSection is also used by Closing Documents. Only Disclosures opts in. */
+.loan-disclosures > .loan-document-group > .loan-document-heading {
+  padding-inline: calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl));
+}
+
+.loan-disclosures > .loan-document-group > .loan-document-content {
+  margin-inline: calc(var(--roads-spacing-component-3xl) - var(--roads-spacing-component-xl));
+}

@@ -554,7 +554,7 @@ function TaskButtonsSection({
       style={{ gap: "var(--roads-spacing-component-l)" }}
       data-testid="section-task-buttons"
     >
-      <div style={{ padding: "0 var(--roads-spacing-component-3xl)" }}>
+      <div style={{ padding: "0 var(--roads-spacing-component-2xl)" }}>
         <h2
           className="headline-300"
           style={{ color: "var(--roads-text-primary)" }}
@@ -730,7 +730,7 @@ export function CollateralContent({
     >
       <h2
         className="headline-200"
-        style={{ color: "var(--roads-text-primary)", padding: "0 var(--roads-spacing-component-3xl)" }}
+        style={{ color: "var(--roads-text-primary)", padding: "0 var(--roads-spacing-component-xl)" }}
         data-testid="text-collateral-title"
       >
         Collateral
@@ -743,7 +743,7 @@ export function CollateralContent({
           className="headline-300"
           style={{
             color: "var(--roads-text-primary)",
-            padding: "0 var(--roads-spacing-component-3xl)",
+            padding: "0 var(--roads-spacing-component-2xl)",
           }}
           data-testid="section-subject-property"
         >
@@ -801,7 +801,7 @@ export function CollateralContent({
         <div
           className="flex flex-col"
           style={{
-            padding: "0 var(--roads-spacing-component-3xl)",
+            padding: "0 var(--roads-spacing-component-2xl)",
             gap: "var(--roads-spacing-component-xs)",
           }}
         >
@@ -814,7 +814,10 @@ export function CollateralContent({
           </h2>
           <div
             className="flex items-start"
-            style={{ gap: "var(--roads-spacing-component-l)" }}
+            style={{
+              gap: "var(--roads-spacing-component-l)",
+              padding: "0 calc(var(--roads-spacing-component-3xl) - var(--roads-spacing-component-2xl))",
+            }}
           >
             <button
               onClick={handleSplitAppraisal}

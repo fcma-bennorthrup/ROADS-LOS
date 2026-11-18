@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, type CSSProperties, type ReactNode } from "react";
 import { Trash2 } from "lucide-react";
 import { CREDIT_TYPES, normalizeCreditAmount, type CreditRow } from "@shared/credits";
@@ -117,10 +118,10 @@ export function CreditsContent() {
         .roads-credits-fields > div { flex-basis: 100%; }
       }
     `}</style>
-    <h2 className="headline-300"
+    <h2 className="headline-200"
       style={{ color: "var(--roads-text-primary)", lineHeight: "32px", marginBottom: "var(--roads-spacing-component-l)" }}
       data-testid="text-credits-title">Credits</h2>
-    <div className="roads-credits-fields" data-testid="credits-field-row">
+    <div className="roads-credits-fields loan-layout-fields" data-testid="credits-field-row">
       <Field label="Credit Type">
         <RoadsDropdown value={creditType} onChange={setCreditType} options={creditOptions}
           placeholder="Select credit type" variant="field" ariaLabel="Credit Type" testId="select-credit-type" />

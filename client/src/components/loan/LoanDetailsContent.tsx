@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
@@ -164,7 +165,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="loan-details-content"
@@ -177,7 +178,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
         Loan Details
       </h2>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
 
         {/* Fields row + checkboxes: 16px between them */}
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>

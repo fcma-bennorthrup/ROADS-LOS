@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useRef, useState } from "react";
 import { Pencil } from "lucide-react";
 import { useLoanDraft } from "@/contexts/loan-application-context";
@@ -27,7 +28,7 @@ export function StockContent() {
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="stock-content"
@@ -35,7 +36,7 @@ export function StockContent() {
       <h2 className="headline-200" style={{ color: "var(--roads-text-primary)" }}>
         Stock Voter
       </h2>
-      <div className="flex flex-col" style={{ width: 288, maxWidth: "100%", gap: "var(--roads-spacing-component-xl)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ width: 288, maxWidth: "calc(100% - 2 * (var(--roads-spacing-component-3xl) - var(--roads-spacing-component-xl)))", gap: "var(--roads-spacing-component-xl)" }}>
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xs)" }}>
           <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>Stock Voter</span>
           <RoadsDropdown

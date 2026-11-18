@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState, useRef } from "react";
 import { Pencil } from "lucide-react";
 import { RoadsDatePicker } from "./RoadsDatePicker";
@@ -49,7 +50,7 @@ export function ClosingContent() {
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="closing-content"
@@ -62,7 +63,7 @@ export function ClosingContent() {
         Closing Details
       </h2>
 
-      <div className="flex flex-col" style={{ width: "100%", maxWidth: 656, gap: "var(--roads-spacing-component-xl)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ maxWidth: 656, gap: "var(--roads-spacing-component-xl)" }}>
         <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
           <div className="flex flex-wrap" style={{ gap: "var(--roads-spacing-component-xl)" }}>
             <div

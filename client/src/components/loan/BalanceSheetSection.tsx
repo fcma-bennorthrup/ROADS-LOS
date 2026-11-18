@@ -678,7 +678,7 @@ function BalanceSheetRow({
     >
       <div
         className="flex items-center justify-between"
-        style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
+        style={{ paddingLeft: "calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl))" }}
         data-testid={`${testPrefix}-section`}
       >
         <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${testPrefix}-heading`}>
@@ -703,7 +703,7 @@ function BalanceSheetRow({
 
       <div
         className="flex items-center justify-between"
-        style={{ paddingLeft: "var(--roads-spacing-component-s)" }}
+        style={{ paddingLeft: "calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl))" }}
         data-testid={`${liabilityTestPrefix}-section`}
       >
         <span className="label-strong" style={{ color: "var(--roads-text-primary)", lineHeight: "24px" }} data-testid={`text-${liabilityTestPrefix}-heading`}>
@@ -895,7 +895,7 @@ export function BalanceSheetSection({ borrowerId, primaryBorrowerId }: {
       <div className="flex items-center">
         <span
           className="headline-300"
-          style={{ color: "var(--roads-text-primary)", paddingLeft: "var(--roads-spacing-component-s)" }}
+          style={{ color: "var(--roads-text-primary)", paddingLeft: "calc(var(--roads-spacing-component-2xl) - var(--roads-spacing-component-xl))" }}
           data-testid="text-balance-sheet-title"
         >
           Balance Sheet

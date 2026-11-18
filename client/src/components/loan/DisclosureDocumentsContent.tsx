@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useEffect, useRef, useState } from "react";
 import { useLoanState } from "@/contexts/loan-application-context";
 import { useChecklist } from "@/contexts/checklist-context";
@@ -159,16 +160,16 @@ function DocumentSectionPresentation({
   const generationDisabled = generationState === "generating" || Boolean(error);
 
   return (
-    <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+    <div className="loan-document-group flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
       <h2
-        className="headline-200"
+        className="loan-document-heading headline-200"
         style={{ color: "var(--roads-text-primary)" }}
         data-testid={`text-${testIdPrefix}-title`}
       >
         {title}
       </h2>
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
+      <div className="loan-document-content flex flex-col" style={{ gap: "var(--roads-spacing-component-l)" }}>
         <p
           className="body-100"
           style={{ color: "var(--roads-text-secondary)" }}
@@ -334,13 +335,16 @@ export function DocumentsContent() {
 
   return (
     <div
-      className="flex flex-col"
+      className="loan-disclosures flex flex-col"
       style={{
         padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="disclosures-content"
     >
+      <h1 className="headline-200" style={{ color: "var(--roads-text-primary)" }} data-testid="text-disclosures-title">
+        Disclosures
+      </h1>
       <DocumentSection
         title="At-App Disclosures"
         idleText="No At-App Disclosures have been generated"

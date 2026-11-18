@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useState } from "react";
 import { useLoanState } from "@/contexts/loan-application-context";
 import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
@@ -27,18 +28,18 @@ export function WireRequestContent() {
       setError(cause instanceof Error ? cause.message : "Wire request could not be saved.");
     } finally { setSaving(false); }
   }
-  return <section style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "var(--roads-spacing-component-l)" }} data-testid="wire-request">
+  return <section className="loan-layout-subhead" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "var(--roads-spacing-component-l)" }} data-testid="wire-request">
     <h2 className="headline-200" style={{ color: "var(--roads-text-primary)" }}>Wire Request</h2>
-    <button type="button" className="body-200-strong" onClick={() => void submit()} disabled={saving || !!request}
+    <button type="button" className="loan-layout-section-content body-200-strong" onClick={() => void submit()} disabled={saving || !!request}
       data-testid="button-wire-request"
       style={{ backgroundColor: "var(--roads-bg-action)", color: "var(--roads-text-reverse)",
         border: "1px solid var(--roads-bg-action)", borderRadius: "var(--roads-radius-2xs)",
         padding: "var(--roads-spacing-component-3xs) var(--roads-spacing-component-xs)", cursor: saving || request ? "default" : "pointer" }}>
       {saving ? "Requesting…" : "Wire Request"}
     </button>
-    {request && <p className="body-100" style={{ color: "var(--roads-text-secondary)" }}>
+    {request && <p className="loan-layout-section-content body-100" style={{ color: "var(--roads-text-secondary)" }}>
       Wire requested by {request.requestedBy} on {new Date(request.requestedAt).toLocaleString("en-US")}
     </p>}
-    {error && <p className="body-100" role="alert" style={{ color: "var(--roads-text-error)" }}>{error}</p>}
+    {error && <p className="loan-layout-section-content body-100" role="alert" style={{ color: "var(--roads-text-error)" }}>{error}</p>}
   </section>;
 }

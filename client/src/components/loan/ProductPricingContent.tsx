@@ -1,3 +1,4 @@
+import "./LoanContentLayout.css";
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useLoanDraft } from "@/contexts/loan-application-context";
 import { HelpCircle, Pencil, Lock, X } from "lucide-react";
@@ -259,7 +260,7 @@ export function ProductPricingContent({
     <div
       className="flex flex-col flex-1"
       style={{
-        padding: "var(--roads-spacing-component-xl) var(--roads-spacing-component-3xl)",
+        padding: "var(--roads-spacing-component-xl)",
         gap: "var(--roads-spacing-component-xl)",
       }}
       data-testid="product-pricing-content"
@@ -274,7 +275,7 @@ export function ProductPricingContent({
 
       {termsUnavailable && <p role="alert">Locked pricing terms unavailable. Reset Demo to start again.</p>}
 
-      <div className="flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
+      <div className="loan-layout-fields flex flex-col" style={{ gap: "var(--roads-spacing-component-xl)" }}>
         <div
           className="flex items-center"
           style={{
