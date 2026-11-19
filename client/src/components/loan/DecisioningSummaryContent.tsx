@@ -263,11 +263,11 @@ export function DecisioningSummaryContent({
         <div
           className="headline-300 flex items-center whitespace-nowrap"
           style={{
-            gap: "var(--roads-spacing-component-xs)",
+            gap: "var(--roads-spacing-component-l)",
             color: "var(--roads-text-primary)",
           }}
         >
-          <span data-testid="text-credit-score-label">Credit Score</span>
+          <span data-testid="text-credit-score-label">Credit Score:</span>
           <button
             onClick={handlePullCredit}
             disabled={pullingCredit}
@@ -285,7 +285,7 @@ export function DecisioningSummaryContent({
             {pullingCredit ? "Pulling Credit…" : "Pull Credit"}
           </button>
         </div>
-        <dl className="loan-layout-section-content flex flex-col body-200" style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}>
+        <dl className="loan-layout-section-content flex flex-col body-100" style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}>
           {borrowers.map(borrower => (
             <div key={borrower.id} className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }} data-testid="borrower-credit-score">
               <dt>{borrower.name}:</dt>
