@@ -4,6 +4,12 @@ import { Pencil } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
 import { useLoanDraft } from "@/contexts/loan-application-context";
 
+function currencyAmount(value: string): string {
+  const amount = value.replace(/[$,\s]/g, "");
+  if (!amount || !Number.isFinite(Number(amount))) return amount;
+  return Number(amount).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 function LoanDetailField({
   label,
   value,
@@ -17,7 +23,7 @@ function LoanDetailField({
   value: string;
   displayValue?: string;
   isEditing: boolean;
-  type?: "text" | "dropdown";
+  type?: "text" | "dropdown" | "currency";
   options?: { value: string; label: string }[];
   onChange?: (value: string) => void;
 }) {
@@ -31,7 +37,31 @@ function LoanDetailField({
       <span className="label-strong" style={{ color: "var(--roads-text-primary)" }}>
         {label}
       </span>
-      {type === "dropdown" && isEditing ? (
+      {type === "currency" ? (
+        <div className="flex items-center w-full" style={{
+          backgroundColor: isEditing ? "var(--roads-bg-primary)" : "var(--roads-bg-light)",
+          border: `1px solid ${isEditing ? "var(--roads-border-dark)" : "var(--roads-border-subtle)"}`,
+          borderRadius: "var(--roads-radius-2xs)",
+          padding: "var(--roads-spacing-component-s) var(--roads-spacing-component-m)",
+          gap: "var(--roads-spacing-component-xs)",
+        }}>
+          <span aria-hidden="true" style={{ flexShrink: 0, color: "var(--roads-icon-dark)" }}>$</span>
+          {isEditing ? <input
+            type="text"
+            inputMode="decimal"
+            aria-label={label}
+            value={value.replace(/\$/g, "")}
+            onChange={event => onChange?.(event.target.value.replace(/\$/g, ""))}
+            onBlur={() => onChange?.(currencyAmount(value))}
+            placeholder="0.00"
+            className="label-strong outline-none"
+            style={{ flex: 1, width: 0, minWidth: 0, border: "none", background: "transparent", padding: 0, color: "var(--roads-text-primary)" }}
+            data-testid={`input-${testId}`}
+          /> : <span className="label-strong" style={{ flex: 1, color: "var(--roads-text-primary)" }}>
+            {currencyAmount(value) || "\u00A0"}
+          </span>}
+        </div>
+      ) : type === "dropdown" && isEditing ? (
         <RoadsDropdown
           value={value}
           onChange={(v) => onChange?.(v)}
@@ -205,7 +235,7 @@ export function LoanDetailsContent({ initialRequestedLoanAmount = "" }: LoanDeta
               label="Requested Loan Amount"
               value={fields.requestedLoanAmount}
               isEditing={isEditing}
-              type="text"
+              type="currency"
               onChange={setField("requestedLoanAmount")}
             />
             <LoanDetailField
