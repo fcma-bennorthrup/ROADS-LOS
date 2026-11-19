@@ -49,7 +49,12 @@ export function LoanContactsContent() {
   return <div className="loan-contacts">
     <section className="contacts-table">
       <header>
-        <h2 className="headline-200">Loan Contacts</h2>
+        <div>
+          <h2 className="headline-200">Loan Contacts</h2>
+          <p className="body-100" style={{ marginTop: "var(--roads-spacing-component-xs)", color: "var(--roads-text-secondary)" }}>
+            People and companies involved in closing.
+          </p>
+        </div>
         <div className="contacts-tools">
           <label className="contacts-search"><Search size={16} /><input aria-label="Filter contacts" placeholder="Type to filter results" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
           <select aria-label="Filter by contact type" value={role} onChange={e => { setRole(e.target.value); setPage(1); }}><option value="">All contact types</option>{CONTACT_ROLES.map(r => <option key={r}>{r}</option>)}</select>
