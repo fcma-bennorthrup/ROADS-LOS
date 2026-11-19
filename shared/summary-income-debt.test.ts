@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { LoanApplication } from "./loan-application";
 import { calculateSummaryIncomeDebt } from "./summary-income-debt";
+import { LIABILITY_EXCLUSIONS } from "./liability-exclusions";
 
 function application(sections: Record<string, unknown> = {}, borrowerCount = 1): LoanApplication {
   return {
@@ -17,6 +18,15 @@ function application(sections: Record<string, unknown> = {}, borrowerCount = 1):
 }
 
 describe("saved summary income and debt", () => {
+  it.each(LIABILITY_EXCLUSIONS)("uses the saved exclusion selection: %s", exclusion => {
+    const app = application({
+      "current-liabilities": [{ id: "card", monthlyPayment: "100", exclusion, toBePaidOff: "Yes" }],
+    });
+    const result = calculateSummaryIncomeDebt(app, 2000);
+    expect(result.monthlyDebt).toBe(exclusion === "Not excluded" ? 100 : 0);
+    expect(result.dti).toBe(exclusion === "Not excluded" ? 42 : 40);
+    expect(result.missing).toEqual([]);
+  });
   it("includes both borrowers, all sources and both liability arrays once", () => {
     const app = application({
       income: [

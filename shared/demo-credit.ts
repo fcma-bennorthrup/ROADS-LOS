@@ -26,6 +26,7 @@ export function populateDemoCredit(current: LoanApplication): LoanApplication {
       unpaidBalance: String((type === "Credit Card" ? 2400 : type === "Personal Loan" ? 5000 : type === "Auto Loan" ? 18000 : 12000) + index * 1000),
       monthlyPayment: String((type === "Credit Card" ? 85 : type === "Personal Loan" ? 175 : type === "Auto Loan" ? 425 : 150) + index * 25),
       toBePaidOff: "No",
+      exclusion: "Not excluded",
     })));
     sections[key] = [...existing, ...additions.filter(row => !existing.some(old => old.id === row.id))];
   }

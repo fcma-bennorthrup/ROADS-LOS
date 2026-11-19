@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MoreVertical, Pencil, ChevronDown } from "lucide-react";
 import { RoadsDropdown } from "./RoadsDropdown";
+import { LIABILITY_EXCLUSIONS, liabilityExclusionLabel } from "@shared/liability-exclusions";
 
 import { useLoanState, useLoanEditing } from "@/contexts/loan-application-context";
 
@@ -23,11 +24,11 @@ interface LiabilityData {
   unpaidBalance: string;
   monthlyPayment: string;
   toBePaidOff: string;
+  exclusion?: string;
 }
 
 const ASSET_TYPES = ["Checking Account", "Savings Account", "Money Market", "CD", "Stocks/Bonds", "Retirement", "Other"];
 const LIABILITY_TYPES = ["Credit Card", "Auto Loan", "Student Loan", "Mortgage", "Personal Loan", "Other"];
-const PAID_OFF_OPTIONS = ["Yes", "No"];
 
 const DEFAULT_ASSET: AssetData = {
   id: "",
@@ -45,6 +46,7 @@ const DEFAULT_LIABILITY: LiabilityData = {
   unpaidBalance: "",
   monthlyPayment: "",
   toBePaidOff: "No",
+  exclusion: "Not excluded",
 };
 
 function BalanceSheetField({
@@ -55,6 +57,7 @@ function BalanceSheetField({
   type,
   options,
   hasLeadingDollar,
+  maxLength,
 }: {
   label: string;
   value: string;
@@ -63,6 +66,7 @@ function BalanceSheetField({
   type?: "text" | "dropdown";
   options?: string[];
   hasLeadingDollar?: boolean;
+  maxLength?: number;
 }) {
   const fieldType = type || "text";
 
@@ -110,6 +114,8 @@ function BalanceSheetField({
           ) : (
             <input
               type="text"
+              maxLength={maxLength}
+              inputMode={maxLength === 4 ? "numeric" : undefined}
               value={value}
               onChange={(e) => onChange?.(e.target.value)}
               className="w-full outline-none"
@@ -477,10 +483,11 @@ function LiabilityCard({
             onChange={(v) => onChange("creditorName", v)}
           />
           <BalanceSheetField
-            label="Account Number"
-            value={liability.accountNumber}
+            label="Last 4 of Account Number"
+            value={liability.accountNumber.replace(/\D/g, "").slice(-4)}
             isEditing={isEditing}
-            onChange={(v) => onChange("accountNumber", v)}
+            onChange={(v) => onChange("accountNumber", v.replace(/\D/g, "").slice(0, 4))}
+            maxLength={4}
           />
           <BalanceSheetField
             label="Unpaid Balance"
@@ -490,19 +497,19 @@ function LiabilityCard({
             hasLeadingDollar
           />
           <BalanceSheetField
+            label="Exclusion"
+            value={liabilityExclusionLabel(liability)}
+            isEditing={isEditing}
+            onChange={(v) => onChange("exclusion", v)}
+            type="dropdown"
+            options={[...LIABILITY_EXCLUSIONS]}
+          />
+          <BalanceSheetField
             label="Monthly Payment"
             value={liability.monthlyPayment}
             isEditing={isEditing}
             onChange={(v) => onChange("monthlyPayment", v)}
             hasLeadingDollar
-          />
-          <BalanceSheetField
-            label="Will be paid off by closing?"
-            value={liability.toBePaidOff}
-            isEditing={isEditing}
-            onChange={(v) => onChange("toBePaidOff", v)}
-            type="dropdown"
-            options={PAID_OFF_OPTIONS}
           />
         </div>
       </div>
@@ -802,7 +809,7 @@ export function BalanceSheetSection({ borrowerId, primaryBorrowerId }: {
 
   function handleEditLiability(category: "currentLiabilities" | "nonCurrentLiabilities", index: number) {
     const list = category === "currentLiabilities" ? currentLiabilities : nonCurrentLiabilities;
-    setLiabilityBuffer({ ...list[index] });
+    setLiabilityBuffer({ ...list[index], exclusion: liabilityExclusionLabel(list[index]) });
     setAssetBuffer(null);
     setEditTarget({ category, index });
   }

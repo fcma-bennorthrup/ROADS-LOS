@@ -1,3 +1,4 @@
+import { LIABILITY_EXCLUSIONS } from "./liability-exclusions";
 import type { LoanApplication } from "./loan-application";
 import { currencyAmount } from "./loan-collateral-value";
 import { incomeSourceTotals } from "./business-rules/primary-wage-earner";
@@ -104,12 +105,17 @@ export function calculateSummaryIncomeDebt(
         return;
       }
       if (id) ids.add(id);
-      if (row.toBePaidOff === "Yes") {
+      if (typeof row.exclusion === "string" && (LIABILITY_EXCLUSIONS as readonly string[]).includes(row.exclusion)) {
+        if (row.exclusion !== "Not excluded") return;
+      } else if (row.exclusion != null) {
+        missing.push(`${path}: select a valid exclusion reason.`);
+        debtComplete = false;
+        return;
+      } else if (row.toBePaidOff === "Yes") {
         missing.push(`${path}: planned-payoff debt exclusion requires a confirmed policy.`);
         debtComplete = false;
         return;
-      }
-      if (row.toBePaidOff !== "No") {
+      } else if (row.toBePaidOff !== "No") {
         missing.push(`${path}: paid-off status must be Yes or No.`);
         debtComplete = false;
         return;
