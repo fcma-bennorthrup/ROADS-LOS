@@ -45,3 +45,4 @@
 - [Creation retry scope](creation-retry-scope.md) — preserve SF creation receipts across resets/imports and reject retry borrower-count changes without a new ledger.
 - [Isolated browser layout checks](browser-layout-harness.md) — real components with intercepted fixtures avoid touching saved loans and bypass legacy artifact limitations.
 - [Page indentation hierarchy](page-indentation-policy.md) — side-nav offsets: page headers 24px, subheaders 32px, fields 40px; count nested padding only once.
+- [Demo credit scores](demo-credit-scores.md) — repeat pulls randomize each borrower's score from 680–820; display primary wage earner first.

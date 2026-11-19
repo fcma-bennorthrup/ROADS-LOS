@@ -8,6 +8,8 @@ import { ChecklistProvider } from "@/contexts/checklist-context";
 import { LoanActivityProvider, useActivityPanel } from "@/contexts/loan-activity-context";
 import { Toaster } from "@/components/ui/toaster";
 import * as decisionSimulation from "@shared/business-rules/decision-simulation";
+import * as applicationContext from "@/contexts/loan-application-context";
+import type { LoanApplication } from "@shared/loan-application";
 
 function OpenActivityPanel() {
   const { toggleActivityPanel } = useActivityPanel();
@@ -37,6 +39,21 @@ afterEach(() => {
 });
 
 describe("DecisioningSummaryContent checklist and activity wiring", () => {
+  it("places credit below the decision and reorders named borrowers when income changes", () => {
+    const document = { loan: { id: "test" }, borrowers: [{ id: "a", name: "Avery Morgan" }, { id: "b", name: "Jordan Morgan" }],
+      sections: { income: [
+        { incomeSources: [{ baseEmploymentIncome: "40000" }] },
+        { incomeSources: [{ baseEmploymentIncome: "80000" }] },
+      ] } } as unknown as LoanApplication;
+    const original = applicationContext.useApplicationStatus;
+    vi.spyOn(applicationContext, "useApplicationStatus").mockImplementation(() => ({ ...original(), document }));
+    const view = renderDecisioningFlow();
+    expect(screen.getAllByTestId("borrower-credit-score").map(row => row.textContent)).toEqual(["Jordan Morgan:--", "Avery Morgan:--"]);
+    expect(screen.getByTestId("button-deliver-decision-letter").compareDocumentPosition(screen.getByTestId("button-pull-credit")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    (document.sections.income as any[])[0].incomeSources[0].baseEmploymentIncome = "100000";
+    view.rerender(<LoanActivityProvider><ChecklistProvider><DecisioningSummaryContent /></ChecklistProvider></LoanActivityProvider>);
+    expect(screen.getAllByTestId("borrower-credit-score")[0]).toHaveTextContent("Avery Morgan:");
+  });
   it("uses a denied outcome in the display and activity", () => {
     vi.spyOn(decisionSimulation, "simulateLoanDecision").mockReturnValue("denied");
     renderDecisioningFlow();
@@ -195,7 +212,9 @@ describe("DecisioningSummaryContent checklist and activity wiring", () => {
     fireEvent.click(screen.getByRole("button", { name: "Generate Decision Letter" }));
 
     expect(screen.getByTestId("text-loan-decision-value")).toHaveTextContent("Loan Approved");
-    expect(screen.getByTestId("text-credit-score-value")).toHaveTextContent("742");
+    const score = Number(screen.getByTestId("text-credit-score-value").textContent);
+    expect(score).toBeGreaterThanOrEqual(680);
+    expect(score).toBeLessThanOrEqual(820);
     expect(screen.getByRole("button", { name: "View Decision Letter" })).toHaveAttribute(
       "aria-disabled",
       "false",

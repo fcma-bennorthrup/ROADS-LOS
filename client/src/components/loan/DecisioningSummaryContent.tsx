@@ -8,6 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { applicationRequest, applicationStore } from "@/lib/loan-application-store";
 import { loanDecisionActionStatus } from "@shared/business-rules/loan-decision";
 import { simulateLoanDecision, type DecisionOutcome } from "@shared/business-rules/decision-simulation";
+import { applicationView } from "@shared/loan-application";
+import { evaluatePrimaryWageEarner } from "@shared/business-rules/primary-wage-earner";
+import { randomDemoCreditScore } from "@shared/demo-credit";
 
 interface DecisioningSummaryContentProps {
   loanNumber?: string;
@@ -26,7 +29,12 @@ export function DecisioningSummaryContent({
   const [creditPulled, setCreditPulled] = useLoanState("credit-pulled", false, false, false);
   const [decisionOutcome, setDecisionOutcome] = useLoanState<DecisionOutcome | null>("decision-outcome", null, null, false);
   const app = useApplicationStatus().document;
-  const hasCreditResults = creditPulled && (!app || !!app.sections["credit-scores"]);
+  const [previewScore, setPreviewScore] = useState<number | null>(null);
+  const primaryWageEarnerId = app ? evaluatePrimaryWageEarner(app).borrowerId : null;
+  const borrowers = app ? [...applicationView(app).borrowers].sort((a, b) =>
+    Number(b.id === primaryWageEarnerId) - Number(a.id === primaryWageEarnerId))
+    : [{ id: "preview", name: borrowerName }];
+  const scores = app?.sections["credit-scores"] as Record<string, number> | undefined;
   const observedResetVersion = useRef(demoResetVersion);
   const { addActivity } = useActivityPanel();
   const { toast } = useToast();
@@ -60,6 +68,7 @@ export function DecisioningSummaryContent({
       // Standalone component previews have no saved document/provider rule result.
       // The application checklist consumes the acknowledged business rule instead.
       if (!applicationStore.document) {
+        setPreviewScore(randomDemoCreditScore());
         setActionStatus("Loan Decision", 0,
           loanDecisionActionStatus(true, getActionStatus("Loan Decision", 0)) as "complete" | "in-progress");
       }
@@ -158,8 +167,8 @@ export function DecisioningSummaryContent({
         Decisioning Summary
       </h2>
       <div
-        className="loan-layout-subhead flex"
-        style={{ gap: "80px" }}
+        className="loan-layout-subhead flex flex-col"
+        style={{ gap: "var(--roads-spacing-component-xl)" }}
       >
       <div
         className="flex flex-col"
@@ -258,27 +267,32 @@ export function DecisioningSummaryContent({
             color: "var(--roads-text-primary)",
           }}
         >
-          <span data-testid="text-credit-score-label">Credit Score:</span>
-          <span data-testid="text-credit-score-value">{creditPulled ? "742" : "--"}</span>
-        </div>
-        <div className="loan-layout-section-content flex items-center whitespace-nowrap" style={{ gap: "var(--roads-spacing-component-xs)" }}>
+          <span data-testid="text-credit-score-label">Credit Score</span>
           <button
             onClick={handlePullCredit}
-            disabled={hasCreditResults || pullingCredit}
+            disabled={pullingCredit}
             className="body-200-strong whitespace-nowrap"
             style={{
-              backgroundColor: creditPulled ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
+              backgroundColor: pullingCredit ? "var(--roads-bg-action-disabled)" : "var(--roads-bg-action)",
               color: "var(--roads-text-reverse)",
               padding: "var(--roads-spacing-component-xs) var(--roads-spacing-component-l)",
               borderRadius: "var(--roads-radius-2xs)",
               border: "none",
-              cursor: creditPulled ? "not-allowed" : "pointer",
+              cursor: pullingCredit ? "not-allowed" : "pointer",
             }}
             data-testid="button-pull-credit"
           >
             {pullingCredit ? "Pulling Credit…" : "Pull Credit"}
           </button>
         </div>
+        <dl className="loan-layout-section-content flex flex-col body-200" style={{ gap: "var(--roads-spacing-component-xs)", color: "var(--roads-text-primary)" }}>
+          {borrowers.map(borrower => (
+            <div key={borrower.id} className="flex items-center" style={{ gap: "var(--roads-spacing-component-xs)" }} data-testid="borrower-credit-score">
+              <dt>{borrower.name}:</dt>
+              <dd data-testid="text-credit-score-value">{creditPulled ? (app ? scores?.[borrower.id] ?? "--" : previewScore ?? "--") : "--"}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
       </div>
     </div>

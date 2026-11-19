@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { populateDemoCredit } from "./demo-credit";
 import type { LoanApplication } from "./loan-application";
 
@@ -23,7 +23,22 @@ describe("demo credit liabilities", () => {
     expect(result.businessRules?.loanDecision.ready).toBe(true);
     expect(result.revision).toBe(4);
     expect(current.sections["credit-pulled"]).toBeUndefined();
-    expect(populateDemoCredit(result)).toBe(result);
+    const repeated = populateDemoCredit(result);
+    expect(repeated.sections["current-liabilities"]).toEqual(result.sections["current-liabilities"]);
+    expect(repeated.sections["noncurrent-liabilities"]).toEqual(result.sections["noncurrent-liabilities"]);
+    expect(repeated.revision).toBe(5);
+  });
+  it("generates independent scores from 680 through 820 on every pull", () => {
+    const random = vi.spyOn(Math, "random");
+    try {
+      random.mockReturnValueOnce(0).mockReturnValueOnce(0.99999);
+      const first = populateDemoCredit(application(2));
+      expect(first.sections["credit-scores"]).toEqual({ "borrower-0": 680, "borrower-1": 820 });
+      random.mockReturnValue(0.5);
+      expect(populateDemoCredit(first).sections["credit-scores"]).toEqual({ "borrower-0": 750, "borrower-1": 750 });
+    } finally {
+      random.mockRestore();
+    }
   });
   it("uses edited borrower names and rejects an empty application", () => {
     const current = application(1);

@@ -5,7 +5,6 @@ import { isCreditFrozen, CREDIT_FROZEN_MESSAGE } from "./business-rules/credit-f
 /** Synthetic credit accounts, not a bureau integration. Existing entries are preserved. */
 export function populateDemoCredit(current: LoanApplication): LoanApplication {
   if (isCreditFrozen(current)) throw new Error(CREDIT_FROZEN_MESSAGE);
-  if (current.sections["credit-pulled"] === true && current.sections["credit-scores"]) return current;
   const borrowers = applicationView(current).borrowers.filter(b => b.name.trim());
   if (!borrowers.length) throw new Error("Add borrower information before pulling credit.");
   const sections = { ...current.sections };
@@ -32,8 +31,12 @@ export function populateDemoCredit(current: LoanApplication): LoanApplication {
   }
   sections["credit-pulled"] = true;
   // Synthetic hard-pull results, keyed to borrowers, never to income rank.
-  sections["credit-scores"] = Object.fromEntries(borrowers.map((borrower, index) => [borrower.id, index === 0 ? 742 : 718]));
+  sections["credit-scores"] = Object.fromEntries(borrowers.map(borrower => [borrower.id, randomDemoCreditScore()]));
   const next = { ...current, sections, revision: current.revision + 1 };
   next.businessRules = evaluateLoanRules(next);
   return next;
+}
+
+export function randomDemoCreditScore(): number {
+  return 680 + Math.floor(Math.random() * 141);
 }

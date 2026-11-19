@@ -18,10 +18,10 @@ it("recomputes income, moves PWE and selects that borrower's saved score", () =>
   expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBe("a");
   expect(calculateSummary(loan).pweCbScore).toBeNull();
   loan = populateDemoCredit(loan);
-  expect(calculateSummary(loan).pweCbScore).toBe(742);
+  expect(calculateSummary(loan).pweCbScore).toBe((loan.sections["credit-scores"] as Record<string, number>).a);
   (loan.sections.income as any[])[1].incomeSources[0].baseEmploymentIncome = "96000";
   expect(evaluateLoanRules(loan).primaryWageEarner.borrowerId).toBe("b");
-  expect(calculateSummary(JSON.parse(JSON.stringify(loan))).pweCbScore).toBe(718);
+  expect(calculateSummary(JSON.parse(JSON.stringify(loan))).pweCbScore).toBe((loan.sections["credit-scores"] as Record<string, number>).b);
   const reset = resetChecklistData(loan);
   expect(calculateSummary(reset).pweCbScore).toBeNull();
   expect(evaluateLoanRules(reset).primaryWageEarner.borrowerId).toBe("b");
