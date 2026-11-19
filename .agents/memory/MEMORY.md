@@ -1,3 +1,4 @@
+- [Loan contact scope](loan-contact-scope.md) — approved table and side panel; multiple contacts per role; broker fields remain provisional.
 - [Simulated loan event series](simulated-loan-events.md) — staged SF baseline/fill-only Blend plan supersedes replacement/reset-to-empty decisions; implement only the requested phase.
 - [Origination fee policy](origination-fee-policy.md) — seed once at 1% capped at $1,000; preserve manual edits and avoid circular financed-fee calculations.
 - [Fee waiver behavior](fee-waiver-policy.md) — partial and whole waivers reduce LE/CD amounts and appear in history; repeated saves must not subtract twice.

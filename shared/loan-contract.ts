@@ -8,6 +8,7 @@ import { feeCircumstancesSchema } from "./fee-circumstances";
 import type { LoanBusinessRules } from "./business-rules";
 import { operationsTeamSchema } from "./operations-team";
 import { salesSupportTeamSchema } from "./sales-support-team";
+import { loanContactsSchema } from "./loan-contacts";
 
 export const LOAN_DOCUMENT_VERSION = 1;
 const fields = z.record(z.union([z.string(), z.number(), z.boolean(), z.null()]));
@@ -26,6 +27,7 @@ const income = z.array(z.object({
 /** Shared runtime contract. Unknown section keys remain forward-extensible;
  * recognized section structures are checked without stripping saved fields. */
 export const sectionSchemas: Record<string, z.ZodTypeAny> = {
+  "loan-contacts": loanContactsSchema,
   "wire-request": z.object({ requestedAt: z.string().datetime(), requestedBy: z.string().min(1) }).nullable(),
   "operations-team": operationsTeamSchema,
   "sales-support-team": salesSupportTeamSchema,
