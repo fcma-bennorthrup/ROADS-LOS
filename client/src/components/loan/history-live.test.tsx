@@ -15,6 +15,10 @@ describe("loan-scoped History", () => {
     const view = render(<HistoryContent loanId="history-test" />);
     expect(screen.getByText("Alex")).toBeTruthy();
     expect(screen.getByText("Sam")).toBeTruthy();
+    const field = screen.getByTestId(`td-field-${doc.changeLog![0].id}`);
+    expect(field).toHaveTextContent(/^First Name$/);
+    expect(field).toHaveAttribute("title", "First Name");
+    expect(doc.changeLog![0].field).toContain("/");
     fireEvent.change(screen.getByTestId("input-search-change-log"), { target: { value: "no match" } });
     expect(screen.queryByText("Sam")).toBeNull();
     view.rerender(<HistoryContent loanId="another-loan" />);

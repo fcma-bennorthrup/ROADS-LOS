@@ -21,7 +21,11 @@ export function HistoryContent({ loanId, onNavigateToField }: HistoryContentProp
   const [sortDirection, setSortDirection] = useState<"desc" | "asc">("desc");
 
   const filteredAndSortedData = useMemo(() => {
-    return filterAndSortHistory(entries, searchQuery, sortDirection);
+    const displayEntries = entries.map(entry => ({
+      ...entry,
+      field: entry.field.split("/").map(part => part.trim()).filter(Boolean).at(-1) ?? "",
+    }));
+    return filterAndSortHistory(displayEntries, searchQuery, sortDirection);
   }, [entries, searchQuery, sortDirection]);
 
   const perPage = parseInt(itemsPerPage, 10);
