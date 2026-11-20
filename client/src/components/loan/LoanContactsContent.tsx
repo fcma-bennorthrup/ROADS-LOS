@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, CirclePlus } from "lucide-react";
 import { useLoanEditing, useLoanState } from "@/contexts/loan-application-context";
 import { applicationStore } from "@/lib/loan-application-store";
 import { CONTACT_ROLES, contactFields, contactName, type LoanContact } from "@shared/loan-contacts";
@@ -10,7 +10,6 @@ import "./LoanContactsContent.css";
 export function LoanContactsContent() {
   const [contacts, setContacts] = useLoanState<LoanContact[]>("loan-contacts", [], []);
   const [query, setQuery] = useState("");
-  const [role, setRole] = useState("");
   const [draft, setDraft] = useState<LoanContact | null>(null);
   const [original, setOriginal] = useState("");
   const [deleting, setDeleting] = useState<LoanContact | null>(null);
@@ -20,7 +19,7 @@ export function LoanContactsContent() {
   const [pageSize, setPageSize] = useState(20);
   const [message, setMessage] = useState("");
   useLoanEditing("loan-contact-editor", !!draft && JSON.stringify(draft) !== original);
-  const filtered = contacts.filter(c => (!role || c.role === role) && Object.values(c).join(" ").toLowerCase().includes(query.toLowerCase().trim()));
+  const filtered = contacts.filter(c => Object.values(c).join(" ").toLowerCase().includes(query.toLowerCase().trim()));
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pages);
   const visible = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
@@ -56,22 +55,22 @@ export function LoanContactsContent() {
           </p>
         </div>
         <div className="contacts-tools">
-          <label className="contacts-search"><Search size={16} /><input aria-label="Filter contacts" placeholder="Type to filter results" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
-          <select aria-label="Filter by contact type" value={role} onChange={e => { setRole(e.target.value); setPage(1); }}><option value="">All contact types</option>{CONTACT_ROLES.map(r => <option key={r}>{r}</option>)}</select>
-          <button className="contacts-primary" onClick={() => edit({ id: crypto.randomUUID(), role: "Seller" })}><Plus size={16} />Add Contact</button>
+          <button className="contacts-add" onClick={() => edit({ id: crypto.randomUUID(), role: "Seller" })}><CirclePlus size={16} />Add Contact</button>
+          <label className="contacts-search"><input aria-label="Filter contacts" placeholder="Type to filter results" value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} /></label>
         </div>
       </header>
       {message && <p role="status" className="contacts-feedback">{message}</p>}
       <div className="contacts-scroll"><table>
-        <thead><tr>{["Name", "Contact Type", "Company", "Email / Phone", "Actions"].map(label => <th key={label}>{label}</th>)}</tr></thead>
+        <thead><tr>{["Name", "Contact Type", "Company", "Email", "Phone Number"].map(label => <th key={label}>{label}</th>)}<th><span className="sr-only">Actions</span></th></tr></thead>
         <tbody>{visible.map(c => <tr key={c.id}>
-          <td><strong>{contactName(c)}</strong><small>{[c.city, c.state].filter(Boolean).join(", ")}</small></td>
-          <td>{c.role}</td><td>{c.role === "Seller" ? "—" : c.company || "—"}</td>
-          <td>{c.role !== "Seller" && <>{c.email}<small>{c.phone}</small></>}</td>
+          <td>{contactName(c)}</td>
+          <td>{c.role}</td><td>{c.role === "Seller" ? "" : c.company || ""}</td>
+          <td>{c.email && <a href={`mailto:${c.email}`}>{c.email}</a>}</td>
+          <td className="contacts-phone">{c.phone}</td>
           <td><div className="contacts-actions"><button aria-label={`Edit ${contactName(c)}`} onClick={() => edit(c)}><Pencil size={16} /></button><button aria-label={`Delete ${contactName(c)}`} onClick={() => { setError(""); setDeleting(c); }}><Trash2 size={16} /></button></div></td>
         </tr>)}</tbody>
       </table>{!visible.length && <p className="contacts-empty">{contacts.length ? "No contacts match your filters." : "No loan contacts yet. Add a contact to get started."}</p>}</div>
-      <footer><span>{filtered.length} contacts</span><label>Items per page <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>{[10, 20, 50].map(n => <option key={n}>{n}</option>)}</select></label><button disabled={safePage === 1} onClick={() => setPage(safePage - 1)} aria-label="Previous page">‹</button><span>{safePage} of {pages}</span><button disabled={safePage === pages} onClick={() => setPage(safePage + 1)} aria-label="Next page">›</button></footer>
+      {filtered.length > 10 && <footer><span>{filtered.length} contacts</span><label>Items per page <select value={pageSize} onChange={e => { setPageSize(Number(e.target.value)); setPage(1); }}>{[10, 20, 50].map(n => <option key={n}>{n}</option>)}</select></label><button disabled={safePage === 1} onClick={() => setPage(safePage - 1)} aria-label="Previous page">‹</button><span>{safePage} of {pages}</span><button disabled={safePage === pages} onClick={() => setPage(safePage + 1)} aria-label="Next page">›</button></footer>}
     </section>
     <Sheet open={!!draft} onOpenChange={open => { if (!open) close(); }}>
       <SheetContent className="contacts-editor w-full sm:max-w-[640px]">
