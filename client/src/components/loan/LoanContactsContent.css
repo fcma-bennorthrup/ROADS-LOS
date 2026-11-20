@@ -1,5 +1,5 @@
 .loan-contacts { padding: var(--roads-spacing-component-xl); flex: 1; display: flex; flex-direction: column; min-width: 0; color: var(--roads-text-primary); }
-.contacts-table { display: flex; flex-direction: column; flex: 1; overflow: hidden; border: 1px solid var(--roads-border-subtle); border-radius: var(--roads-radius-xs); background: var(--roads-bg-primary); }
+.contacts-table { display: flex; flex-direction: column; flex: 0 0 auto; overflow: hidden; border: 1px solid var(--roads-border-subtle); border-radius: var(--roads-radius-xs); background: var(--roads-bg-primary); }
 .contacts-table header { display: flex; justify-content: space-between; flex-wrap: wrap; align-items: center; gap: 16px; padding: 24px; border-bottom: 1px solid var(--roads-border-subtle); }
 .contacts-tools, .contacts-actions, .contacts-search { display: flex; align-items: center; gap: 8px; }
 .contacts-tools { flex-wrap: wrap; gap: 16px; }
@@ -9,7 +9,8 @@
 .loan-contacts button, .contacts-editor button:not([aria-label="Close"]) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--roads-border-dark); border-radius: var(--roads-radius-2xs); font-weight: 600; }
 .contacts-primary { background: var(--roads-bg-action); color: var(--roads-text-reverse); border-color: var(--roads-bg-action) !important; }
 .contacts-danger { background: var(--roads-bg-error); color: var(--roads-text-reverse); }
-.contacts-scroll { overflow-x: auto; flex: 1; background: var(--roads-bg-light); }
+.contacts-scroll { overflow-x: auto; background: var(--roads-bg-light); }
+.contacts-table:has(> .contacts-scroll:last-child)::after { content: ""; display: block; height: 41px; background: var(--roads-bg-light); }
 .contacts-table table { width: 100%; border-collapse: collapse; min-width: 720px; text-align: left; }
 .contacts-table th { background: var(--roads-bg-light); font-weight: 600; }
 .contacts-table th, .contacts-table td { padding: 8px 16px; border-bottom: 1px solid var(--roads-border-subtle); vertical-align: middle; line-height: 24px; font-size: 14px; }
@@ -25,7 +26,8 @@
 .loan-contacts .contacts-actions button { border: 0; padding: 0; background: transparent; color: var(--roads-text-primary); min-width: 24px; min-height: 24px; }
 .loan-contacts .contacts-actions button:hover { background: var(--roads-bg-light); }
 .contacts-table small { display: block; color: var(--roads-text-secondary); }
-.contacts-table footer { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 16px; padding: 8px 16px; background: var(--roads-bg-light); }
+.contacts-table footer { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 16px; min-height: 41px; padding: 4px 16px; background: var(--roads-bg-light); }
+.contacts-table footer select, .contacts-table footer button { padding: 2px 8px; }
 .contacts-empty { padding: 32px; text-align: center; color: var(--roads-text-secondary); }
 .loan-contacts select, .contacts-editor input, .contacts-editor select { border: 1px solid var(--roads-border-dark); border-radius: var(--roads-radius-2xs); padding: 8px 12px; background: var(--roads-bg-primary); min-width: 0; }
 .contacts-editor { display: flex; flex-direction: column; color: var(--roads-text-primary); }
