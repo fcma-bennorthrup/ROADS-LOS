@@ -62,7 +62,10 @@
 .pipeline-table .pipeline-row-actions { display: flex; align-items: center; gap: var(--roads-spacing-component-xs); overflow-wrap: normal; }
 .pipeline-row-actions button, .pipeline-row-actions a { color: var(--roads-icon-dark); }
 .pipeline-row-actions button.pipeline-operations-assignment { color: var(--roads-icon-brand); }
-.pipeline-trid-chip { display: inline-flex; align-items: center; white-space: nowrap; padding: 0 4px; border-radius: var(--roads-radius-2xs); }
+.pipeline-trid-chip, .pipeline-decision-chip { display: inline-flex; align-items: center; white-space: nowrap; padding: 0 4px; border-radius: var(--roads-radius-2xs); }
+.pipeline-decision-chip[data-status="Pending"] { background: var(--roads-bg-warning-subtle); color: var(--roads-text-primary); }
+.pipeline-decision-chip[data-status="Approved"] { background: var(--roads-bg-success-subtle); color: var(--roads-text-primary); }
+.pipeline-decision-chip[data-status="Denied"] { background: var(--roads-bg-error-subtle); color: var(--roads-text-error); }
 .pipeline-trid-initial { background: var(--roads-bg-discovery-subtle); color: var(--roads-bg-discovery); }
 .pipeline-trid-warning { background: var(--roads-bg-warning-subtle); color: var(--roads-text-warning); }
 .pipeline-trid-late { background: var(--roads-bg-error-subtle); color: var(--roads-text-error); }

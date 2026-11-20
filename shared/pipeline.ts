@@ -37,6 +37,8 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
   const team = operationsTeamSchema.safeParse(document.sections["operations-team"]);
   const support = salesSupportTeamSchema.safeParse(document.sections["sales-support-team"]);
   const closing = document.sections["closing-details"] as { closingDate?: unknown } | undefined;
+  const stage = document.loan.stage as LoanStage;
+  const outcome = document.sections["decision-outcome"];
   if (!document.meta) throw new Error("Loan metadata must be initialized before projection.");
   return {
     id: view.id, loanNumber: view.loanNumber, cifNumber: view.cifNumber,
@@ -52,9 +54,10 @@ export function pipelineView(document: LoanApplication): PipelineLoan {
     closingDate: typeof closing?.closingDate === "string" ? closing.closingDate : undefined,
     tridTriggeredAt: document.businessRules?.trid.triggeredAt,
     tridStatus: document.businessRules?.trid.status,
-    decision: document.meta.opportunity?.decision,
+    decision: outcome === "approved" ? "Approved" : outcome === "denied" ? "Denied"
+      : stage === "Decisioning" ? "Pending" : "",
     primaryBorrowerName: view.primaryBorrowerName,
-    loanType: view.loanType, stage: view.stage as LoanStage,
+    loanType: view.loanType, stage,
     withdrawn: (document.sections.withdrawal as { acknowledged?: boolean } | undefined)?.acknowledged === true,
     amountRequested: view.summary.amountRequested, product: view.summary.product,
     mode: document.mode, revision: document.revision,

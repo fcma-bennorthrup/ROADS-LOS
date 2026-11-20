@@ -40,7 +40,9 @@ const columns = {
   applicationDate: { key: "applicationDate", label: "App Start Date", width: 151, render: loan => loan.applicationDate ? displayDate(loan.applicationDate) : <Unavailable field="Application start date" /> },
   submitDate: { key: "submitDate", label: "App Submit Date", width: 151, render: () => <Unavailable field="Application submit date" /> },
   contractExpiryDate: { key: "contractExpiryDate", label: "Contract Exp Date", width: 151, render: loan => loan.contractExpiryDate ? displayDate(loan.contractExpiryDate) : <Unavailable field="Contract expiry date" /> },
-  decision: { key: "decision", label: "Decision", width: 112, render: loan => loan.decision ?? <Unavailable field="Decision" /> },
+  decision: { key: "decision", label: "Decision", width: 112, render: loan => loan.decision
+    ? <span className={`pipeline-decision-chip caption-100-strong`} data-status={loan.decision}>{loan.decision}</span>
+    : null },
   closingDate: { key: "closingDate", label: "Closing Date", width: 130, render: loan => loan.closingDate || null },
   trid: { key: "trid", label: "TRID", width: 85, render: loan => <PipelineTridChip loan={loan} /> },
   // These columns have no approved field semantics. Keep them blank, not inferred.

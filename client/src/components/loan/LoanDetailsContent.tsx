@@ -27,6 +27,7 @@ function LoanDetailField({
   options?: { value: string; label: string }[];
   onChange?: (value: string) => void;
 }) {
+  const [focused, setFocused] = useState(false);
   const testId = label.toLowerCase().replace(/[\s()]+/g, "-");
   return (
     <div
@@ -50,9 +51,10 @@ function LoanDetailField({
             type="text"
             inputMode="decimal"
             aria-label={label}
-            value={value.replace(/\$/g, "")}
+            value={focused ? value.replace(/[$,]/g, "") : currencyAmount(value)}
+            onFocus={() => setFocused(true)}
             onChange={event => onChange?.(event.target.value.replace(/\$/g, ""))}
-            onBlur={() => onChange?.(currencyAmount(value))}
+            onBlur={() => { setFocused(false); onChange?.(currencyAmount(value)); }}
             placeholder="0.00"
             className="label-strong outline-none"
             style={{ flex: 1, width: 0, minWidth: 0, border: "none", background: "transparent", padding: 0, color: "var(--roads-text-primary)" }}
@@ -71,6 +73,7 @@ function LoanDetailField({
       ) : isEditing && type === "text" ? (
         <input
           type="text"
+          aria-label={label}
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           className="w-full outline-none label-strong"
